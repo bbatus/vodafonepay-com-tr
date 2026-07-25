@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import type { StepProduct } from "@/types/homepage";
 
 const steps: StepProduct[] = [
@@ -53,7 +54,7 @@ export function StepPhones() {
 
       <div className="mt-12 flex flex-col gap-y-16">
         {steps.map((step, i) => (
-          <div
+          <ScrollReveal
             key={step.title}
             className={`flex flex-col items-center gap-8 lg:flex-row lg:gap-16 ${
               i % 2 === 1 ? "lg:flex-row-reverse" : ""
@@ -72,7 +73,7 @@ export function StepPhones() {
               <h3 className="text-2xl font-bold text-black">{step.title}</h3>
               <p className="mt-3 text-base text-gray-600">{step.description}</p>
             </div>
-          </div>
+          </ScrollReveal>
         ))}
       </div>
     </section>
