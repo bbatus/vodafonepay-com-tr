@@ -40,7 +40,7 @@ const steps: StepProduct[] = [
 
 export function StepPhones() {
   return (
-    <section className="px-4 py-16 lg:px-16">
+    <section className="mx-auto max-w-[1030px] px-4 py-16 lg:px-0">
       <div className="mx-auto max-w-3xl text-center">
         <h2 className="text-3xl font-bold text-black lg:text-[36px] lg:leading-[40px]">
           Vodafone Pay&apos;de bizi neler bekliyor ?

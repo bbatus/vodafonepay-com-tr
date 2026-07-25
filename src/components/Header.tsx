@@ -32,7 +32,7 @@ export function Header() {
         </Link>
       </div>
 
-      <div className="hidden items-center justify-between px-8 py-3 lg:flex">
+      <div className="mx-auto hidden max-w-4xl items-center gap-x-8 py-6 lg:flex">
         <Link href="/">
           <Image src="/images/vpay-logo.svg" alt="Vodafone Pay Logo" width={139} height={42} priority />
         </Link>
@@ -41,7 +41,7 @@ export function Header() {
             <Link
               key={link.label}
               href={link.href}
-              className="text-base text-black transition-colors hover:text-[#e60000]"
+              className="text-xl font-normal text-black transition-colors hover:text-[#e60000]"
             >
               {link.label}
             </Link>

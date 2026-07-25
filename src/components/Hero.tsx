@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function Hero() {
   return (
-    <section className="px-0 lg:px-8 lg:pt-4">
+    <section className="mx-auto max-w-[1030px] lg:pt-4">
       <div className="relative overflow-hidden lg:rounded-xl">
         <Image
           src="/images/hero-spotlight.jpg"

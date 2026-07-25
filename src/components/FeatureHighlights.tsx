@@ -1,52 +1,49 @@
+import Image from "next/image";
 import Link from "next/link";
+import { ChevronRightIcon } from "@/components/icons";
 
 const features = [
   {
+    icon: "/images/icon-payment.svg",
     title: "Akıllı Ödeme Yöntemleri",
     description: "Vodafone Pay'in tüm ürünleriyle dilediğiniz yerde hızlı ve güvenli harcama imkanı.",
-    hasVideo: true,
   },
   {
+    icon: "/images/icon-shopping-trolley.svg",
     title: "Harcadıkça Kazandıran",
     description: "Alışverişlerinizde nakit iade, fatura indirimi ve GB kazanma imkanı.",
-    hasVideo: true,
   },
   {
+    icon: "/images/icon-family.svg",
     title: "Size Özel Limit",
     description: "Size özel limitlerinizle dilediğinizce alışveriş yapma imkanı.",
-    hasVideo: false,
   },
 ];
 
 export function FeatureHighlights() {
   return (
-    <section className="bg-[#f9fafb] px-4 py-16 lg:px-16">
-      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-3">
-        {features.map((feature) => (
-          <div key={feature.title} className="flex flex-col items-center rounded-2xl bg-white p-6 text-center shadow-sm">
-            {feature.hasVideo ? (
-              <video
-                className="mb-4 h-40 w-full rounded-lg object-cover"
-                src="/videos/feature-loop.mp4"
-                autoPlay
-                muted
-                loop
-                playsInline
-              />
-            ) : (
-              <div className="mb-4 h-40 w-full rounded-lg bg-[#27455c]" />
-            )}
-            <h3 className="text-xl font-bold text-black">{feature.title}</h3>
-            <p className="mt-2 text-sm text-gray-600">{feature.description}</p>
-          </div>
-        ))}
+    <section className="mx-auto max-w-[1030px] px-4 py-10">
+      <div className="flex items-center gap-x-10">
+        <div className="flex w-full flex-col gap-y-6 lg:w-1/3">
+          {features.map((feature) => (
+            <div key={feature.title} className="flex gap-x-4">
+              <Image src={feature.icon} alt={feature.title} width={36} height={36} className="h-9 w-9 shrink-0" />
+              <div>
+                <h3 className="text-xl font-bold text-black">{feature.title}</h3>
+                <p className="mt-1 text-lg leading-5 text-black/70">{feature.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="hidden w-2/3 overflow-hidden rounded-xl lg:block">
+          <video className="h-[340px] w-full object-cover" src="/videos/feature-loop.mp4" autoPlay muted loop playsInline />
+        </div>
       </div>
-      <div className="mt-10 flex justify-center">
-        <Link
-          href="/kampanyalar"
-          className="rounded-[2px] bg-[#e60000] px-6 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90"
-        >
-          Kampanyalar İncele
+
+      <div className="mb-10 mt-10 flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-black lg:text-4xl">Kampanyalar</h2>
+        <Link href="/kampanyalar" className="flex items-center gap-x-1 text-sm font-bold text-[#e60000]">
+          İncele <ChevronRightIcon className="h-4 w-4" />
         </Link>
       </div>
     </section>
