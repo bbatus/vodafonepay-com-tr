@@ -1,9 +1,23 @@
+import { AppDownloadBanner } from "@/components/AppDownloadBanner";
+import { Header } from "@/components/Header";
+import { Hero } from "@/components/Hero";
+import { StepPhones } from "@/components/StepPhones";
+import { FeatureHighlights } from "@/components/FeatureHighlights";
+import { Campaigns } from "@/components/Campaigns";
+import { Faq } from "@/components/Faq";
+import { Footer } from "@/components/Footer";
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <p className="text-muted-foreground">
-        Clone target not yet built. Run <code className="font-mono text-foreground">/clone-website</code> to start.
-      </p>
+    <main className="flex min-h-screen flex-col">
+      <AppDownloadBanner />
+      <Header />
+      <Hero />
+      <StepPhones />
+      <FeatureHighlights />
+      <Campaigns />
+      <Faq />
+      <Footer />
     </main>
   );
 }
