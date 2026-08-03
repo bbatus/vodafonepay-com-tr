@@ -27,14 +27,14 @@ const faqs: FaqItem[] = [
   },
 ];
 
-export function Faq() {
+export function Faq({ items = faqs }: { items?: FaqItem[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
     <section className="bg-[#f9fafb] px-4 py-16 lg:px-16">
       <h2 className="text-center text-3xl font-bold text-black">Sıkça Sorulan Sorular</h2>
       <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-y-3">
-        {faqs.map((item, i) => {
+        {items.map((item, i) => {
           const isOpen = openIndex === i;
           return (
             <div key={item.question}>

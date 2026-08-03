@@ -1,0 +1,70 @@
+import type { Metadata } from "next";
+import { AppDownloadBanner } from "@/components/AppDownloadBanner";
+import { Header } from "@/components/Header";
+import { StickyQr } from "@/components/StickyQr";
+import { Breadcrumb } from "@/components/Breadcrumb";
+import { ProductHero } from "@/components/ProductHero";
+import { AppFeatures } from "@/components/AppFeatures";
+import { HowToEarn } from "@/components/HowToEarn";
+import { Faq } from "@/components/Faq";
+import { Footer } from "@/components/Footer";
+import type { FaqItem } from "@/types/homepage";
+
+export const metadata: Metadata = {
+  title: "Vodafone Pay Uygulaması ve Avantajları | Vodafone Pay",
+  description:
+    "Vodafone Pay Uygulaması'nı indirerek tüm harcamalarınızı kolayca takip edebilir, kazandıran kampanyalara katılabilirsiniz.",
+};
+
+const faqs: FaqItem[] = [
+  {
+    question: "Vodafone Pay Uygulaması Nedir?",
+    answer:
+      "Vodafone Pay Uygulaması, herhangi bir banka müşterisi olmadan ve hangi operatörü kullandığınız fark etmeden finansal işlemlerinizi tek bir uygulama içerisinden yönetmenizi sağlayan yeni nesil bir mobil cüzdan uygulamasıdır. Vodafone Pay Uygulaması ile Vodafone Pay Kart, Faturana Yansıt ve Vodafone Cüzdanım bakiyenizi ve harcamalarınızı yönetebilirsiniz.",
+  },
+  {
+    question: "Vodafone Pay Uygulaması ile Neler Yapabilirsiniz?",
+    answer:
+      "Vodafone Pay Uygulaması kullanıcılarına kolay ve güvenli ödeme imkânı sunar. Özellikle 18 yaşından küçük kullanıcılar için online alışveriş yapmanın en pratik yoludur. Vodafone Pay Uygulamasında Vodafone faturasız hat kullanıcıları için nakit iade kazanabileceği Vodafone Kolay Paketler bulunur. Aynı zamanda uygulama ile kolay bir şekilde faturasız hattınıza TL yükleyebilirsiniz.",
+  },
+  {
+    question: "Vodafone Pay Uygulaması Nasıl Kullanılır?",
+    answer:
+      "Vodafone Pay uygulamasını kullanabilmek için öncelikle Google Play Store ya da App Store üzerinden Vodafone Pay uygulamasını indirmeniz gerekir. Uygulamaya kaydolmak için 12 yaşından büyük bir kullanıcı olmalısınız. Kayıt ekranına TCKN, ad, soyad, doğum tarihi, uyruk, cep telefonu numarası, meslek ve e-posta bilgilerinizi girerek uygulamaya kaydolmalısınız.",
+  },
+  {
+    question: "Vodafone Pay Uygulamasıyla Sanal Kart Nasıl Üretilir?",
+    answer:
+      "Vodafone Pay uygulamasına kaydolduktan sonra uygulama size otomatik olarak bir Vodafone Pay Sanal Kart oluşturur. Yeni bir sanal kart oluşturmak için 'Varlıklarım' alanının altında yer alan 'Vodafone Pay Kart Ekle' alanına dokunup 'Vodafone Pay Sanal' sekmesini seçmeniz ve 'Kart Ekle' butonuna dokunmanız yeterlidir.",
+  },
+  {
+    question: "Vodafone Pay Uygulamasında Hangi İşlemleri Takip Edebilirim?",
+    answer:
+      "Vodafone Cüzdanım ya da Vodafone Pay Kart'a bakiye yükleyebilir, kartlarınız arasında bakiye aktarımı gerçekleştirebilir, faturasız hatlara Kolay Paket ve TL yükleyebilir, fatura ödemelerinizi gerçekleştirebilir ve tüm harcamalarınızı takip edebilirsiniz.",
+  },
+  {
+    question: "Vodafone Pay Uygulamasında Kampanyaları Takip Edebilir miyim?",
+    answer:
+      "Vodafone Pay uygulamasına giriş yaptıktan sonra ana sayfada yer alan Kampanyalar başlığı altında güncel kampanyaları görebilir, 'Tümü' sekmesine tıklayarak tüm kampanyaları detaylı şekilde inceleyebilirsiniz.",
+  },
+];
+
+export default function VodafonePayUygulama() {
+  return (
+    <main className="flex min-h-screen flex-col">
+      <AppDownloadBanner />
+      <Header />
+      <StickyQr />
+      <Breadcrumb current="Vodafone Pay Uygulama" />
+      <ProductHero
+        image="/images/uygulama-hero.jpg"
+        imageAlt="Vodafone Pay Uygulaması"
+        heading="Vodafone Pay Uygulaması'nı indir"
+      />
+      <AppFeatures />
+      <HowToEarn />
+      <Faq items={faqs} />
+      <Footer />
+    </main>
+  );
+}

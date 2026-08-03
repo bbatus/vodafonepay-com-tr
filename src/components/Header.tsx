@@ -6,8 +6,15 @@ import Link from "next/link";
 import { ChevronRightIcon, CloseIcon, MenuIcon } from "@/components/icons";
 import type { NavLink } from "@/types/homepage";
 
+const productLinks: NavLink[] = [
+  { label: "Vodafone Pay Uygulaması", href: "/vodafone-pay-uygulama" },
+  { label: "Vodafone Pay Kart", href: "/vodafone-pay-kart" },
+  { label: "QR ile Faturana Yansıt", href: "/qr-ile-faturana-yansit" },
+  { label: "Faturana Yansıt", href: "/faturana-yansit" },
+  { label: "Anında Bakiye", href: "/aninda-bakiye" },
+];
+
 const navLinks: NavLink[] = [
-  { label: "Ürünler", href: "/vodafone-pay-uygulama" },
   { label: "Kampanyalar", href: "/kampanyalar" },
   { label: "Blog", href: "/blog" },
   { label: "Ücretler ve Limitler", href: "/ucretler-ve-limitler" },
@@ -16,6 +23,8 @@ const navLinks: NavLink[] = [
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [productsOpen, setProductsOpen] = useState(false);
+  const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
 
   return (
     <header className="sticky -top-px z-[999] bg-white">
@@ -37,6 +46,28 @@ export function Header() {
           <Image src="/images/vpay-logo.svg" alt="Vodafone Pay Logo" width={139} height={42} priority />
         </Link>
         <nav className="flex items-center gap-x-8">
+          <div
+            className="relative"
+            onMouseEnter={() => setProductsOpen(true)}
+            onMouseLeave={() => setProductsOpen(false)}
+          >
+            <button className="text-xl font-normal text-black transition-colors hover:text-[#e60000]">
+              Ürünler
+            </button>
+            {productsOpen && (
+              <div className="absolute left-0 top-full w-64 rounded-md bg-white py-2 shadow-lg">
+                {productLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="block px-4 py-2 text-base text-black transition-colors hover:bg-gray-100"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
           {navLinks.map((link) => (
             <Link
               key={link.label}
@@ -67,6 +98,27 @@ export function Header() {
             className="absolute left-0 top-0 h-full overflow-y-auto bg-white shadow-xl"
           >
             <div className="px-4 pb-4 pt-20">
+              <button
+                onClick={() => setMobileProductsOpen((v) => !v)}
+                className="mb-2 flex w-full items-center justify-between border-b border-gray-200 px-4 py-3 text-left text-lg font-normal transition-colors hover:bg-gray-50"
+              >
+                <span>Ürünler</span>
+                <ChevronRightIcon className={`h-5 w-5 transition-transform ${mobileProductsOpen ? "rotate-90" : ""}`} />
+              </button>
+              {mobileProductsOpen && (
+                <div className="mb-2 flex flex-col gap-y-1 pl-4">
+                  {productLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="rounded px-4 py-2 text-base text-gray-700 hover:bg-gray-50"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
               {navLinks.map((link) => (
                 <Link
                   key={link.label}
