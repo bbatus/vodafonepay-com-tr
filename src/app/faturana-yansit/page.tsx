@@ -5,7 +5,8 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ProductHero } from "@/components/ProductHero";
 import { CardsWithIcons } from "@/components/CardsWithIcons";
-import { NumberedSteps } from "@/components/NumberedSteps";
+import { VideosWithTabs } from "@/components/VideosWithTabs";
+import { HowToEarn } from "@/components/HowToEarn";
 import { BrandLogoGrid } from "@/components/BrandLogoGrid";
 import { LeadFormCta } from "@/components/LeadFormCta";
 import { Faq } from "@/components/Faq";
@@ -35,10 +36,22 @@ const cards = [
   },
 ];
 
-const steps = [
-  { title: "Faturana Yansıt'ı Aç", description: "Faturana Yansıt'ı Vodafone Pay veya Yanımda uygulaması üzerinden ücretsiz açabilirsiniz." },
-  { title: "Faturana Yansıt'ı Seç", description: "Anlaşmalı markalarda ödeme adımında Faturana Yansıt'ı seçebilirsiniz." },
-  { title: "Harcamalarını Faturana Yansıt", description: "Hızlı ve güvenli bir şekilde alışverişinizi tamamlayabilir, harcamalarınızı faturanıza yansıtabilirsiniz." },
+const earnSteps = [
+  {
+    icon: "/images/icon-fy-ac.svg",
+    title: "Faturana Yansıt'ı Aç",
+    description: "Faturana Yansıt'ı Vodafone Pay veya Yanımda uygulaması üzerinden ücretsiz açabilirsiniz.",
+  },
+  {
+    icon: "/images/icon-fy-sec.svg",
+    title: "Faturana Yansıt'ı Seç",
+    description: "Anlaşmalı markalarda ödeme adımında Faturana Yansıt'ı seçebilirsiniz.",
+  },
+  {
+    icon: "/images/icon-fy-harcamalarini.svg",
+    title: "Harcamalarını Faturana Yansıt",
+    description: "Hızlı ve güvenli bir şekilde alışverişinizi tamamlayabilir, harcamalarınızı faturanıza yansıtabilirsiniz.",
+  },
 ];
 
 const faqs: FaqItem[] = [
@@ -126,7 +139,8 @@ export default function FaturanaYansit() {
         description="Harcamalarınızı Vodafone faturanıza yansıtın, ödemesini ilk çıkacak faturanıza kadar erteleyin!"
         cards={cards}
       />
-      <NumberedSteps heading="Nasıl Kullanırım?" steps={steps} />
+      <VideosWithTabs />
+      <HowToEarn heading="Nasıl Kullanırım?" image="/images/fy-nasil-kazanirim.png" steps={earnSteps} invertIcons={false} />
       <BrandLogoGrid />
       <LeadFormCta />
       <Faq items={faqs} />

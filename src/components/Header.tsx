@@ -51,7 +51,7 @@ export function Header() {
             onMouseEnter={() => setProductsOpen(true)}
             onMouseLeave={() => setProductsOpen(false)}
           >
-            <button className="text-xl font-normal text-black transition-colors hover:text-[#e60000]">
+            <button className="text-xl font-normal text-black transition-colors hover:text-vf-red">
               Ürünler
             </button>
             {productsOpen && (
@@ -72,7 +72,7 @@ export function Header() {
             <Link
               key={link.label}
               href={link.href}
-              className="text-xl font-normal text-black transition-colors hover:text-[#e60000]"
+              className="text-xl font-normal text-black transition-colors hover:text-vf-red"
             >
               {link.label}
             </Link>

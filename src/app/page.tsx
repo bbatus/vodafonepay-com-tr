@@ -1,6 +1,5 @@
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Hero } from "@/components/Hero";
 import { StepPhones } from "@/components/StepPhones";
 import { FeatureHighlights } from "@/components/FeatureHighlights";
@@ -13,7 +12,6 @@ export default function Home() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Hero />
       <StepPhones />
       <FeatureHighlights />

@@ -15,13 +15,15 @@ const brands = [
 export function BrandLogoGrid() {
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-16">
-      <h2 className="text-center text-2xl font-bold text-black lg:text-4xl">Nerelerde kullanabilirim?</h2>
-      <div className="mt-10 grid grid-cols-3 gap-6 sm:grid-cols-5">
-        {brands.map((b) => (
-          <div key={b.name} className="flex h-20 items-center justify-center rounded-xl bg-[#f9fafb] p-4">
-            <Image src={b.logo} alt={b.name} width={80} height={40} className="h-auto max-h-10 w-auto max-w-full object-contain" />
-          </div>
-        ))}
+      <div className="rounded-lg bg-white p-6 shadow-[0px_2px_12px_0px_#00000014] lg:p-10">
+        <h2 className="text-xl font-bold text-black lg:text-2xl">Nerelerde kullanabilirim?</h2>
+        <div className="mt-8 grid grid-cols-3 gap-6 sm:grid-cols-5">
+          {brands.map((b) => (
+            <div key={b.name} className="flex h-16 items-center justify-center">
+              <Image src={b.logo} alt={b.name} width={80} height={40} className="h-auto max-h-10 w-auto max-w-full object-contain" />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

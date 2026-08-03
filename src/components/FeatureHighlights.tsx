@@ -42,7 +42,7 @@ export function FeatureHighlights() {
 
       <div className="mb-10 mt-10 flex items-center justify-between">
         <h2 className="text-2xl font-bold text-black lg:text-4xl">Kampanyalar</h2>
-        <Link href="/kampanyalar" className="flex items-center gap-x-1 text-sm font-bold text-[#e60000]">
+        <Link href="/kampanyalar" className="flex items-center gap-x-1 text-sm font-bold text-vf-red">
           İncele <ChevronRightIcon className="h-4 w-4" />
         </Link>
       </div>

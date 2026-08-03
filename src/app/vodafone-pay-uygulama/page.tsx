@@ -62,7 +62,27 @@ export default function VodafonePayUygulama() {
         heading="Vodafone Pay Uygulaması'nı indir"
       />
       <AppFeatures />
-      <HowToEarn />
+      <HowToEarn
+        heading="Vodafone Pay ile Nasıl Kazanırım?"
+        image="/images/step-nasil-kazanirim.png"
+        steps={[
+          {
+            icon: "/images/icon-bakiye-yukle.svg",
+            title: "Bakiye Yükle",
+            description: "Banka/kredi kartınızdan, EFT ile veya tüm ATM'lerden dilediğiniz kadar bakiye yükleyin.",
+          },
+          {
+            icon: "/images/icon-harca.svg",
+            title: "Harca",
+            description: "Tüm online ve fiziksel alışverişlerinizi Vodafone Pay Kart ile yapabilirsiniz.",
+          },
+          {
+            icon: "/images/icon-kazan.png",
+            title: "Kazan",
+            description: "Kampanya kapsamında yaptığınız tüm harcamalardan yüzlerce TL nakit iade kazanın!",
+          },
+        ]}
+      />
       <Faq items={faqs} />
       <Footer />
     </main>

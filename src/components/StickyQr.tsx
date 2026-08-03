@@ -8,6 +8,7 @@ export function StickyQr() {
         alt="QR Code"
         width={160}
         height={200}
+        priority
         className="h-auto w-[160px] rounded-lg shadow-md"
       />
     </div>

@@ -1,7 +1,6 @@
-import Image from "next/image";
-import { CardCarousel } from "@/components/CardCarousel";
+import { ImageSideCarousel } from "@/components/ImageSideCarousel";
 
-const cards = [
+const slides = [
   {
     image: "/images/kart-earn-1.jpg",
     text: "Vodafone Pay Kart'ınıza banka/kredi kartı, EFT veya tüm ATM'lerden dilediğiniz kadar bakiye yükleyebilirsiniz.",
@@ -24,10 +23,7 @@ export function EarnWithCard() {
         Vodafone Pay Sanal ve Fiziksel Kart ile harcamalarını kolayca ve güvenli bir şekilde
         gerçekleştirebilir, kazandığın nakit iadelerle daha fazla harcayabilirsin.
       </p>
-      <div className="mt-10 flex justify-center">
-        <Image src="/images/kart-visa.svg" alt="Vodafone Pay Kart" width={280} height={175} className="h-auto w-[240px]" />
-      </div>
-      <CardCarousel cards={cards} />
+      <ImageSideCarousel sideImage="/images/kart-visa.svg" sideImageAlt="Vodafone Pay Kart" slides={slides} />
     </section>
   );
 }

@@ -48,7 +48,7 @@ export function Campaigns() {
         <div className="flex max-w-[750px] flex-col gap-y-4">
           <span className="text-[25px] font-bold leading-8 text-black">{campaign.title}</span>
           <p className="text-base text-gray-600">{campaign.description}</p>
-          <a href={campaign.href} className="text-sm font-bold text-[#e60000]">
+          <a href={campaign.href} className="text-sm font-bold text-vf-red">
             Detayları gör
           </a>
         </div>
@@ -67,7 +67,7 @@ export function Campaigns() {
             key={c.title}
             aria-label={`Kampanya ${i + 1}`}
             onClick={() => setActive(i)}
-            className={`h-2 w-2 rounded-full transition-colors ${i === active ? "bg-[#e60000]" : "bg-gray-300"}`}
+            className={`h-2 w-2 rounded-full transition-colors ${i === active ? "bg-vf-red" : "bg-gray-300"}`}
           />
         ))}
         <button
