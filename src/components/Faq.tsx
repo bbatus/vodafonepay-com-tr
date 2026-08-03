@@ -27,12 +27,12 @@ const faqs: FaqItem[] = [
   },
 ];
 
-export function Faq({ items = faqs }: { items?: FaqItem[] }) {
+export function Faq({ items = faqs, showHeading = true }: { items?: FaqItem[]; showHeading?: boolean }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
     <section className="bg-[#f9fafb] px-4 py-16 lg:px-16">
-      <h2 className="text-center text-3xl font-bold text-black">Sıkça Sorulan Sorular</h2>
+      {showHeading && <h2 className="text-center text-3xl font-bold text-black">Sıkça Sorulan Sorular</h2>}
       <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-y-3">
         {items.map((item, i) => {
           const isOpen = openIndex === i;
