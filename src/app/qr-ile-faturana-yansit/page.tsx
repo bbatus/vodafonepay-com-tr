@@ -8,6 +8,7 @@ import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
+import { getFaqItems } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 
 export const metadata: Metadata = {
@@ -43,7 +44,7 @@ const steps = [
   { number: "06", text: "Tebrikler! QR harcamanız başarıyla faturanıza yansıtıldı.", image: "/images/qr-step-6.png" },
 ];
 
-const faqs: FaqItem[] = [
+const fallbackFaqs: FaqItem[] = [
   {
     question: "Faturana Yansıt Nedir?",
     answer:
@@ -76,7 +77,12 @@ const faqs: FaqItem[] = [
   },
 ];
 
-export default function QrIleFaturanaYansit() {
+export default async function QrIleFaturanaYansit() {
+  const cmsFaqItems = await getFaqItems("qr-ile-faturana-yansit");
+  const faqs: FaqItem[] = cmsFaqItems?.length
+    ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
+    : fallbackFaqs;
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />

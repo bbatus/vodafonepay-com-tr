@@ -12,11 +12,16 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
+      - CMS_API_URL=http://cms:3000/api
+      - REVALIDATE_SECRET=${REVALIDATE_SECRET:-dev-revalidate-secret}
     env_file:
       - path: .env.local
         required: false
       - path: .env
         required: false
+    depends_on:
+      cms:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
       interval: 30s
@@ -36,6 +41,8 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=1
+      - CMS_API_URL=http://cms:3000/api
+      - REVALIDATE_SECRET=${REVALIDATE_SECRET:-dev-revalidate-secret}
     env_file:
       - path: .env.local
         required: false
@@ -51,3 +58,102 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
+
+  # ---------------------------------------------------------------------
+  # CMS stack — Payload CMS + Postgres + MinIO (S3-compatible object storage)
+  # ---------------------------------------------------------------------
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: vodafonepaycms-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-vodafonepaycms}
+      - POSTGRES_USER=${POSTGRES_USER:-payload}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-payload}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-payload}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: vodafonepaycms-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-payload}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-payload-minio-secret}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # One-shot: creates the media bucket and a policy allowing public reads of
+  # uploaded files (so <img> tags on the site can load directly from MinIO).
+  minio-init:
+    image: minio/mc:latest
+    container_name: vodafonepaycms-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-payload} ${MINIO_ROOT_PASSWORD:-payload-minio-secret} &&
+      mc mb --ignore-existing local/${S3_BUCKET:-vodafonepaycomtr-media} &&
+      mc anonymous set download local/${S3_BUCKET:-vodafonepaycomtr-media}
+      "
+
+  cms:
+    build:
+      context: ./cms
+      dockerfile: Dockerfile
+    image: vodafonepaycomtr-cms:latest
+    container_name: vodafonepaycomtr-cms
+    restart: unless-stopped
+    ports:
+      - "${CMS_PORT:-3010}:3000"
+    environment:
+      - DATABASE_URI=postgres://${POSTGRES_USER:-payload}:${POSTGRES_PASSWORD:-payload}@postgres:5432/${POSTGRES_DB:-vodafonepaycms}
+      - PAYLOAD_SECRET=${PAYLOAD_SECRET:-dev-payload-secret-change-me}
+      - SITE_URL=${SITE_URL:-http://localhost:3000}
+      - SITE_REVALIDATE_URL=http://app:3000/api/revalidate
+      - REVALIDATE_SECRET=${REVALIDATE_SECRET:-dev-revalidate-secret}
+      - S3_ENDPOINT=http://minio:9000
+      - S3_PUBLIC_URL=http://localhost:${MINIO_API_PORT:-9000}
+      - S3_REGION=us-east-1
+      - S3_BUCKET=${S3_BUCKET:-vodafonepaycomtr-media}
+      - S3_ACCESS_KEY_ID=${MINIO_ROOT_USER:-payload}
+      - S3_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-payload-minio-secret}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/admin').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  postgres-data:
+  minio-data:

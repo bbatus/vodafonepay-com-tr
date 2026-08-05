@@ -9,6 +9,7 @@ import { WhereCanIBuy } from "@/components/WhereCanIBuy";
 import { VideoGuideSection } from "@/components/VideoGuideSection";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
+import { getFaqItems } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 
 export const metadata: Metadata = {
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
     "Vodafone Pay Sanal ve Fiziksel Kart ile harcamalarını kolayca ve güvenli bir şekilde gerçekleştirebilir, kazandığın nakit iadelerle daha fazla harcayabilirsin.",
 };
 
-const faqs: FaqItem[] = [
+const fallbackFaqs: FaqItem[] = [
   {
     question: "Vodafone Pay Kart Nedir?",
     answer:
@@ -44,7 +45,12 @@ const faqs: FaqItem[] = [
   },
 ];
 
-export default function VodafonePayKart() {
+export default async function VodafonePayKart() {
+  const cmsFaqItems = await getFaqItems("vodafone-pay-kart");
+  const faqs: FaqItem[] = cmsFaqItems?.length
+    ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
+    : fallbackFaqs;
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />

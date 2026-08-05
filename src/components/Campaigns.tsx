@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import type { CampaignCard } from "@/types/homepage";
 
-const campaigns: CampaignCard[] = [
+const fallbackCampaigns: CampaignCard[] = [
   {
     title: "Vodafone Pay ile Çeşme Plajlarında 1.000 TL Nakit İade!",
     description:
@@ -31,9 +31,11 @@ const campaigns: CampaignCard[] = [
   },
 ];
 
-export function Campaigns() {
+export function Campaigns({ campaigns = fallbackCampaigns }: { campaigns?: CampaignCard[] }) {
   const [active, setActive] = useState(0);
   const campaign = campaigns[active];
+
+  if (!campaign) return null;
 
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-10">

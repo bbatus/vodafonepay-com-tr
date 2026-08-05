@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // cms/ is a separate app with its own lint config — see cms/eslint.config.mjs
+    "cms/**",
   ]),
 ]);
 

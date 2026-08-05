@@ -1,0 +1,39 @@
+{
+  "name": "vodafonepaycomtr-cms",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Headless CMS for vodafonepaycomtr — Payload CMS, Postgres, S3-compatible (MinIO) storage",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "generate:types": "payload generate:types",
+    "seed": "node scripts/seed-via-api.mjs"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "^3.37.0",
+    "@payloadcms/next": "^3.37.0",
+    "@payloadcms/richtext-lexical": "^3.37.0",
+    "@payloadcms/storage-s3": "^3.37.0",
+    "cross-env": "^7.0.3",
+    "graphql": "^16.9.0",
+    "next": "^16.2.6",
+    "payload": "^3.37.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "^16.2.6",
+    "typescript": "^5.6.0"
+  }
+}

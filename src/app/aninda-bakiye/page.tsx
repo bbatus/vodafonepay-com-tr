@@ -8,6 +8,7 @@ import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
+import { getFaqItems } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 
 export const metadata: Metadata = {
@@ -42,7 +43,7 @@ const steps = [
   { number: "06", text: "GSM numaranıza gelen 4 haneli onay kodunu girerek yükleme işleminizi tamamlayın.", image: "/images/ab-step-6.jpg" },
 ];
 
-const faqs: FaqItem[] = [
+const fallbackFaqs: FaqItem[] = [
   {
     question: "Anında Bakiye nedir? Kimler kullanabilir?",
     answer:
@@ -124,7 +125,12 @@ const faqs: FaqItem[] = [
   },
 ];
 
-export default function AnindaBakiye() {
+export default async function AnindaBakiye() {
+  const cmsFaqItems = await getFaqItems("aninda-bakiye");
+  const faqs: FaqItem[] = cmsFaqItems?.length
+    ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
+    : fallbackFaqs;
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />

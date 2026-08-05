@@ -1,0 +1,33 @@
+/*
+ * Vodafone Pay brand override for the Payload admin panel.
+ * Payload exposes its accent/action color through the --theme-success-*
+ * ramp (used for primary buttons, active nav state, checkboxes, links).
+ * We repoint that ramp to Vodafone red so the whole admin reads as
+ * "Vodafone red on white" without fighting Payload's own layout CSS.
+ */
+:root {
+  --theme-success-50: #fdeaea;
+  --theme-success-100: #fad0d0;
+  --theme-success-200: #f5a3a3;
+  --theme-success-300: #ef7575;
+  --theme-success-400: #ea4747;
+  --theme-success-500: #e60000;
+  --theme-success-600: #cc0000;
+  --theme-success-700: #b30000;
+  --theme-success-800: #990000;
+  --theme-success-900: #800000;
+  --theme-success-950: #660000;
+}
+
+a {
+  color: #e60000;
+}
+
+.btn--style-primary {
+  background: #e60000 !important;
+  border-color: #e60000 !important;
+}
+
+.btn--style-primary:hover {
+  background: #b30000 !important;
+}

@@ -7,6 +7,7 @@ import { FilterTabs } from "@/components/FilterTabs";
 import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
+import { getCampaigns, getFaqItems } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 
 export const metadata: Metadata = {
@@ -14,13 +15,13 @@ export const metadata: Metadata = {
   description: "Vodafone Pay'in nakit iade ve indirim kampanyalarını incele, avantajlardan yararlan.",
 };
 
-const favorites: CardListItem[] = [
+const fallbackFavorites: CardListItem[] = [
   { image: "/images/campaign-cesme.jpg", title: "Vodafone Pay ile Çeşme Plajlarında 1.000 TL Nakit İade!" },
   { image: "/images/campaign-hayat-su.jpg", title: "1 TL'ye Hayat Su Kapında!" },
   { image: "/images/campaign-market.jpg", title: "Market harcamanı ilk kez QR ile faturana yansıt, 100 TL indirim kazan!" },
 ];
 
-const allCampaigns: CardListItem[] = [
+const fallbackAllCampaigns: CardListItem[] = [
   { image: "/images/camp-01.jpg", title: "Kurum Faturalarını Vodafone Pay ile Öde 100 TL Nakit İade Kazan!" },
   { image: "/images/camp-02.jpg", title: "Vodafone Telefon Faturalarına %10 Nakit İade!" },
   { image: "/images/camp-03.jpg", title: "Yaz Alışverişin Cebinde, Nakit İaden Vodafone Pay'de!" },
@@ -42,7 +43,7 @@ const allCampaigns: CardListItem[] = [
   { image: "/images/camp-19.jpg", title: "Vodafone Pay'li Yaz Boyunca Obilet'te Kazanıyor!" },
 ];
 
-const faqs: FaqItem[] = [
+const fallbackFaqs: FaqItem[] = [
   {
     question: "Vodafone Pay kampanyalarına nasıl katılabilirim?",
     answer:
@@ -50,7 +51,21 @@ const faqs: FaqItem[] = [
   },
 ];
 
-export default function Kampanyalar() {
+export default async function Kampanyalar() {
+  const [cmsCampaigns, cmsFaqItems] = await Promise.all([getCampaigns(), getFaqItems("kampanyalar")]);
+
+  const toCard = (c: NonNullable<typeof cmsCampaigns>[number]): CardListItem => ({
+    image: c.image.url,
+    title: c.title,
+    description: c.description,
+  });
+
+  const favorites = cmsCampaigns ? cmsCampaigns.filter((c) => c.featured).map(toCard) : fallbackFavorites;
+  const allCampaigns = cmsCampaigns ? cmsCampaigns.filter((c) => !c.featured).map(toCard) : fallbackAllCampaigns;
+  const faqs: FaqItem[] = cmsFaqItems?.length
+    ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
+    : fallbackFaqs;
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
@@ -66,7 +81,7 @@ export default function Kampanyalar() {
           </div>
         </div>
 
-        <CardListGrid title="Bu ayın favorileri" items={favorites} />
+        {favorites.length > 0 && <CardListGrid title="Bu ayın favorileri" items={favorites} />}
         <CardListGrid title="Tüm Kampanyalar" items={allCampaigns} />
       </section>
 
