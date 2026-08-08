@@ -9,7 +9,7 @@ import { WhereCanIBuy } from "@/components/WhereCanIBuy";
 import { VideoGuideSection } from "@/components/VideoGuideSection";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getFaqItems } from "@/lib/cms";
+import { getFaqItems, getProductHero } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 
 export const metadata: Metadata = {
@@ -46,7 +46,10 @@ const fallbackFaqs: FaqItem[] = [
 ];
 
 export default async function VodafonePayKart() {
-  const cmsFaqItems = await getFaqItems("vodafone-pay-kart");
+  const [cmsFaqItems, cmsHero] = await Promise.all([
+    getFaqItems("vodafone-pay-kart"),
+    getProductHero("vodafone-pay-kart"),
+  ]);
   const faqs: FaqItem[] = cmsFaqItems?.length
     ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
     : fallbackFaqs;
@@ -58,9 +61,9 @@ export default async function VodafonePayKart() {
       <StickyQr />
       <Breadcrumb current="Vodafone Pay Kart" />
       <ProductHero
-        image="/images/kart-hero.jpg"
-        imageAlt="Vodafone Pay Kart"
-        heading="Vodafone Pay Kart ile dilediğin yerde harca, kazan"
+        image={cmsHero?.image.url ?? "/images/kart-hero.jpg"}
+        imageAlt={cmsHero?.image.alt || "Vodafone Pay Kart"}
+        heading={cmsHero?.heading ?? "Vodafone Pay Kart ile dilediğin yerde harca, kazan"}
       />
       <EarnWithCard />
       <WhereCanIBuy />

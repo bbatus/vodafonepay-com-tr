@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const feeRows: [string, string][] = [
+const fallbackFeeRows: [string, string][] = [
   ["Faturana Yansıt Hizmet Bedeli", "Aylık 31,90 TL olarak tahsil edilir."],
   [
     "Faturana Yansıt Geç Tahsilat Bedeli",
@@ -24,12 +24,12 @@ const feeRows: [string, string][] = [
   ["Yurt dışındaki ATM'lerden Para Çekme", "Ücretsiz"],
 ];
 
-interface LimitTable {
+export interface LimitTable {
   title: string;
   rows: [string, string, string, string][];
 }
 
-const limitTables: LimitTable[] = [
+const fallbackLimitTables: LimitTable[] = [
   {
     title: "Ön Ödemeli Kart / ATM Limitleri",
     rows: [
@@ -61,7 +61,13 @@ const limitTables: LimitTable[] = [
   },
 ];
 
-export function PricesAndLimits() {
+export function PricesAndLimits({
+  feeRows = fallbackFeeRows,
+  limitTables = fallbackLimitTables,
+}: {
+  feeRows?: [string, string][];
+  limitTables?: LimitTable[];
+}) {
   const [tab, setTab] = useState<"ucretler" | "limitler">("ucretler");
 
   return (

@@ -8,7 +8,7 @@ import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getFaqItems } from "@/lib/cms";
+import { getFaqItems, getProductHero, getFeatureCards, getStepCards } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   description: "Size özel limitinizle dilediğiniz yerde harcama yapabilirsiniz!",
 };
 
-const cards = [
+const fallbackCards = [
   {
     icon: "/images/icon-size-limit3.png",
     title: "Size Özel Limit",
@@ -34,7 +34,7 @@ const cards = [
   },
 ];
 
-const steps = [
+const fallbackSteps = [
   { number: "01", text: "Vodafone Pay Uygulaması ana sayfasında bulunan \"Anında Bakiye, Hemen Al\" butonuna tıklayınız.", image: "/images/ab-step-1.jpg" },
   { number: "02", text: "Faturana Yansıt kapalı ise aktive edin.", image: "/images/ab-step-2.jpg" },
   { number: "03", text: "Sözleşmeleri onaylayarak aktivasyonunuzu tamamlayın.", image: "/images/ab-step-3.jpg" },
@@ -126,10 +126,21 @@ const fallbackFaqs: FaqItem[] = [
 ];
 
 export default async function AnindaBakiye() {
-  const cmsFaqItems = await getFaqItems("aninda-bakiye");
+  const [cmsFaqItems, cmsHero, cmsCards, cmsSteps] = await Promise.all([
+    getFaqItems("aninda-bakiye"),
+    getProductHero("aninda-bakiye"),
+    getFeatureCards("aninda-bakiye"),
+    getStepCards("aninda-bakiye"),
+  ]);
   const faqs: FaqItem[] = cmsFaqItems?.length
     ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
     : fallbackFaqs;
+  const cards = cmsCards?.length
+    ? cmsCards.map((c) => ({ icon: c.icon.url, title: c.title, text: c.text }))
+    : fallbackCards;
+  const steps = cmsSteps?.length
+    ? cmsSteps.map((s) => ({ number: s.number, text: s.text, image: s.image.url }))
+    : fallbackSteps;
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -138,9 +149,9 @@ export default async function AnindaBakiye() {
       <StickyQr />
       <Breadcrumb current="Anında Bakiye" />
       <ProductHero
-        image="/images/ab-hero.jpg"
-        imageAlt="Anında Bakiye"
-        heading="Kart Limitiniz Bittiği Anda Anında Bakiye Yanınızda!"
+        image={cmsHero?.image.url ?? "/images/ab-hero.jpg"}
+        imageAlt={cmsHero?.image.alt || "Anında Bakiye"}
+        heading={cmsHero?.heading ?? "Kart Limitiniz Bittiği Anda Anında Bakiye Yanınızda!"}
       />
       <CardsWithIcons
         title="Neden Anında Bakiye?"

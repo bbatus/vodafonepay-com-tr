@@ -8,7 +8,7 @@ import { AppFeatures } from "@/components/AppFeatures";
 import { HowToEarn } from "@/components/HowToEarn";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getFaqItems } from "@/lib/cms";
+import { getFaqItems, getProductHero } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 
 export const metadata: Metadata = {
@@ -51,7 +51,10 @@ const fallbackFaqs: FaqItem[] = [
 ];
 
 export default async function VodafonePayUygulama() {
-  const cmsFaqItems = await getFaqItems("vodafone-pay-uygulama");
+  const [cmsFaqItems, cmsHero] = await Promise.all([
+    getFaqItems("vodafone-pay-uygulama"),
+    getProductHero("vodafone-pay-uygulama"),
+  ]);
   const faqs: FaqItem[] = cmsFaqItems?.length
     ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
     : fallbackFaqs;
@@ -63,9 +66,9 @@ export default async function VodafonePayUygulama() {
       <StickyQr />
       <Breadcrumb current="Vodafone Pay Uygulama" />
       <ProductHero
-        image="/images/uygulama-hero.jpg"
-        imageAlt="Vodafone Pay Uygulaması"
-        heading="Vodafone Pay Uygulaması'nı indir"
+        image={cmsHero?.image.url ?? "/images/uygulama-hero.jpg"}
+        imageAlt={cmsHero?.image.alt || "Vodafone Pay Uygulaması"}
+        heading={cmsHero?.heading ?? "Vodafone Pay Uygulaması'nı indir"}
       />
       <AppFeatures />
       <HowToEarn

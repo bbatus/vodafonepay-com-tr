@@ -5,13 +5,14 @@ import { StickyQr } from "@/components/StickyQr";
 import { FilterTabs } from "@/components/FilterTabs";
 import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
 import { Footer } from "@/components/Footer";
+import { getBlogPosts } from "@/lib/cms";
 
 export const metadata: Metadata = {
   title: "Bloglar | Vodafone Pay",
   description: "Vodafone Pay'den mobil ödeme, kart ve dijital cüzdan hakkında güncel blog yazıları.",
 };
 
-const posts: CardListItem[] = [
+const fallbackPosts: CardListItem[] = [
   { image: "/images/blog-01.jpg", title: "Ulaşım Kartı Bakiye Yükleme Yolları | Vodafone Pay" },
   { image: "/images/blog-02.jpg", title: "Ön Ödemeli Kart Nedir?" },
   { image: "/images/blog-03.jpg", title: "Kart Limiti Artırma Nasıl Yapılır? | Vodafone Pay" },
@@ -26,7 +27,12 @@ const posts: CardListItem[] = [
   { image: "/images/blog-12.jpg", title: "Sanal Kredi Kartı Nedir? | Vodafone Pay" },
 ];
 
-export default function Blog() {
+export default async function Blog() {
+  const cmsPosts = await getBlogPosts();
+  const posts: CardListItem[] = cmsPosts?.length
+    ? cmsPosts.map((p) => ({ image: p.coverImage.url, title: p.title, description: p.excerpt }))
+    : fallbackPosts;
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />

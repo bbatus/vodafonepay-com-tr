@@ -11,7 +11,7 @@ import { BrandLogoGrid } from "@/components/BrandLogoGrid";
 import { LeadFormCta } from "@/components/LeadFormCta";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getFaqItems } from "@/lib/cms";
+import { getFaqItems, getProductHero, getFeatureCards } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: "Yalnızca cep telefonu numaranızı kullanarak indirimli alışverişin keyfini çıkarın!",
 };
 
-const cards = [
+const fallbackCards = [
   {
     icon: "/images/icon-size-limit2.png",
     title: "Size Özel Limit",
@@ -124,10 +124,17 @@ const fallbackFaqs: FaqItem[] = [
 ];
 
 export default async function FaturanaYansit() {
-  const cmsFaqItems = await getFaqItems("faturana-yansit");
+  const [cmsFaqItems, cmsHero, cmsCards] = await Promise.all([
+    getFaqItems("faturana-yansit"),
+    getProductHero("faturana-yansit"),
+    getFeatureCards("faturana-yansit"),
+  ]);
   const faqs: FaqItem[] = cmsFaqItems?.length
     ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
     : fallbackFaqs;
+  const cards = cmsCards?.length
+    ? cmsCards.map((c) => ({ icon: c.icon.url, title: c.title, text: c.text }))
+    : fallbackCards;
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -136,9 +143,9 @@ export default async function FaturanaYansit() {
       <StickyQr />
       <Breadcrumb current="Faturana Yansıt" />
       <ProductHero
-        image="/images/fy-hero.jpg"
-        imageAlt="Faturana Yansıt"
-        heading="Yalnızca cep telefonu numaranızı kullanarak indirimli alışverişin keyfini çıkarın!"
+        image={cmsHero?.image.url ?? "/images/fy-hero.jpg"}
+        imageAlt={cmsHero?.image.alt || "Faturana Yansıt"}
+        heading={cmsHero?.heading ?? "Yalnızca cep telefonu numaranızı kullanarak indirimli alışverişin keyfini çıkarın!"}
       />
       <CardsWithIcons
         title="Neden Faturana Yansıt?"

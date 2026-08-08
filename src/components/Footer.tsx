@@ -1,19 +1,33 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getNavLinks, type NavLinkSection } from "@/lib/cms";
 
-const columns: { title: string; links: { label: string; href: string }[] }[] = [
+interface FooterLink {
+  label: string;
+  href: string;
+}
+
+interface FooterColumn {
+  title: string;
+  section: NavLinkSection;
+  links: FooterLink[];
+}
+
+const fallbackColumns: FooterColumn[] = [
   {
     title: "Kurumsal",
+    section: "footer-kurumsal",
     links: [
-      { label: "Temsilciliklerimiz", href: "/temsilcilik" },
+      { label: "Temsilciliklerimiz", href: "/temsilciliklerimiz" },
       { label: "İletişim", href: "/iletisim" },
       { label: "Kurumsal Yönetim", href: "/kurumsal-yonetim" },
       { label: "Duyurular", href: "/duyurular" },
-      { label: "Bilgi Toplum Hizmetleri", href: "/bilgi-toplum-hizmetleri" },
+      { label: "Bilgi Toplum Hizmetleri", href: "https://e-sirket.mkk.com.tr/?page=company&company=21693" },
     ],
   },
   {
     title: "Sık Sorulanlar",
+    section: "footer-sss",
     links: [
       { label: "QR ile Ödeme Nasıl Yapılır?", href: "/sikca-sorulan-sorular" },
       { label: "İstanbulkart Bakiye Yükleme", href: "/sikca-sorulan-sorular" },
@@ -25,6 +39,7 @@ const columns: { title: string; links: { label: string; href: string }[] }[] = [
   },
   {
     title: "Kampanyalar",
+    section: "footer-kampanyalar",
     links: [
       { label: "Eğlence Yanımda üyeliklerinde %50 indirim", href: "/kampanyalar" },
       { label: "Kolay Paket Yüklemelerine 100 TL Nakit İade", href: "/kampanyalar" },
@@ -35,16 +50,29 @@ const columns: { title: string; links: { label: string; href: string }[] }[] = [
   },
   {
     title: "Yasal",
+    section: "footer-yasal",
     links: [
-      { label: "Gizlilik Politikası", href: "/gizlilik-politikasi" },
-      { label: "Kullanım Koşulları", href: "/kullanim-kosullari" },
-      { label: "Çerez Politikası", href: "/cerez-politikasi" },
       { label: "Site Haritası", href: "/site-haritasi" },
+      { label: "Gizlilik ve Güvenlik Politikası", href: "/gizlilik-ve-guvenlik-politikasi" },
+      { label: "Çerez Politikası", href: "/cerez-politikasi" },
+      { label: "Bilgi Güvenliği", href: "/bilgi-guvenligi" },
+      { label: "Sözleşmeler ve Formlar", href: "/sozlesmeler-ve-formlar" },
+      { label: "Web Sitesi Kullanımı Hüküm ve Şartları", href: "/web-sitesi-hukum-ve-sartlari" },
+      { label: "Faydalı Bilgiler", href: "/faydali-bilgiler" },
     ],
   },
 ];
 
-export function Footer() {
+export async function Footer() {
+  const cmsLinks = await getNavLinks();
+
+  const columns: FooterColumn[] = fallbackColumns.map((col) => {
+    const links = cmsLinks?.length
+      ? cmsLinks.filter((l) => l.section === col.section).map((l) => ({ label: l.label, href: l.href }))
+      : [];
+    return { ...col, links: links.length ? links : col.links };
+  });
+
   return (
     <footer className="mt-auto bg-black px-4 py-12 text-white lg:px-16">
       <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -52,13 +80,27 @@ export function Footer() {
           <div key={col.title}>
             <h4 className="mb-4 text-sm font-bold uppercase tracking-wide text-gray-400">{col.title}</h4>
             <ul className="flex flex-col gap-y-2">
-              {col.links.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href} className="text-sm text-gray-300 transition-colors hover:text-white">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+              {col.links.map((link) => {
+                const isExternal = /^https?:\/\//.test(link.href);
+                return (
+                  <li key={link.label}>
+                    {isExternal ? (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-gray-300 transition-colors hover:text-white"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link href={link.href} className="text-sm text-gray-300 transition-colors hover:text-white">
+                        {link.label}
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}

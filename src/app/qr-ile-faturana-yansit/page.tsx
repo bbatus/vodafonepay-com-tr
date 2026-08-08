@@ -8,7 +8,7 @@ import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getFaqItems } from "@/lib/cms";
+import { getFaqItems, getProductHero, getFeatureCards, getStepCards } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "Artık QR ile yapacağınız fiziksel harcamalarınızı Vodafone faturanıza yansıtabilir, üstelik harcama tutarınızı ilk çıkacak fatura döneminize kadar erteleyebilirsiniz!",
 };
 
-const cards = [
+const fallbackCards = [
   {
     icon: "/images/icon-size-limit.png",
     title: "Size Özel Limit",
@@ -35,7 +35,7 @@ const cards = [
   },
 ];
 
-const steps = [
+const fallbackSteps = [
   { number: "01", text: "Vodafone Pay Uygulaması ana sayfasında bulunan \"QR\" butonuna tıklayınız.", image: "/images/qr-step-1.jpg" },
   { number: "02", text: "\"QR ile Ödeme\" seçeneğinizi seçin.", image: "/images/qr-step-2.jpg" },
   { number: "03", text: "POS cihazındaki QR'ı okutun.", image: "/images/qr-step-3.jpg" },
@@ -78,10 +78,21 @@ const fallbackFaqs: FaqItem[] = [
 ];
 
 export default async function QrIleFaturanaYansit() {
-  const cmsFaqItems = await getFaqItems("qr-ile-faturana-yansit");
+  const [cmsFaqItems, cmsHero, cmsCards, cmsSteps] = await Promise.all([
+    getFaqItems("qr-ile-faturana-yansit"),
+    getProductHero("qr-ile-faturana-yansit"),
+    getFeatureCards("qr-ile-faturana-yansit"),
+    getStepCards("qr-ile-faturana-yansit"),
+  ]);
   const faqs: FaqItem[] = cmsFaqItems?.length
     ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
     : fallbackFaqs;
+  const cards = cmsCards?.length
+    ? cmsCards.map((c) => ({ icon: c.icon.url, title: c.title, text: c.text }))
+    : fallbackCards;
+  const steps = cmsSteps?.length
+    ? cmsSteps.map((s) => ({ number: s.number, text: s.text, image: s.image.url }))
+    : fallbackSteps;
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -89,7 +100,11 @@ export default async function QrIleFaturanaYansit() {
       <Header />
       <StickyQr />
       <Breadcrumb current="Qr ile Faturana Yansıt" />
-      <ProductHero image="/images/qr-hero.jpg" imageAlt="QR ile Faturana Yansıt" heading="QR ile Faturana Yansıt" />
+      <ProductHero
+        image={cmsHero?.image.url ?? "/images/qr-hero.jpg"}
+        imageAlt={cmsHero?.image.alt || "QR ile Faturana Yansıt"}
+        heading={cmsHero?.heading ?? "QR ile Faturana Yansıt"}
+      />
       <CardsWithIcons
         title="QR ile Faturana Yansıt"
         description="Artık QR ile yapacağınız fiziksel harcamalarınızı Vodafone faturanıza yansıtabilir, üstelik harcama tutarınızı ilk çıkacak fatura döneminize kadar erteleyebilirsiniz!"

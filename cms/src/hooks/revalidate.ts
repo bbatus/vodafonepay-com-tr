@@ -1,4 +1,5 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from "payload";
+import type { GlobalAfterChangeHook } from "payload";
 
 /**
  * Notifies the main site's /api/revalidate route so a published change
@@ -32,6 +33,12 @@ export function revalidateTag(tag: string): CollectionAfterChangeHook {
 }
 
 export function revalidateTagOnDelete(tag: string): CollectionAfterDeleteHook {
+  return async () => {
+    await pingRevalidate(tag);
+  };
+}
+
+export function revalidateGlobalTag(tag: string): GlobalAfterChangeHook {
   return async () => {
     await pingRevalidate(tag);
   };

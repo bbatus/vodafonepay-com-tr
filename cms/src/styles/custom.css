@@ -1,10 +1,34 @@
 /*
- * Vodafone Pay brand override for the Payload admin panel.
- * Payload exposes its accent/action color through the --theme-success-*
- * ramp (used for primary buttons, active nav state, checkboxes, links).
- * We repoint that ramp to Vodafone red so the whole admin reads as
- * "Vodafone red on white" without fighting Payload's own layout CSS.
+ * Vodafone Pay brand + polish pass for the Payload admin panel.
+ *
+ * Payload exposes almost everything through CSS custom properties (see
+ * @payloadcms/ui/dist/scss/{app,colors,vars}.scss) rather than one-off
+ * classes, so most of this file works by repointing those variables:
+ *   --theme-success-*   accent color ramp (buttons, active nav, links)
+ *   --style-radius-*    global corner radius (cards, inputs, buttons)
+ *   --font-body          admin-wide font family
+ * A handful of class selectors (.login__*, .nav*, .card, .btn*, .table,
+ * .pill, .app-header) are layered on top for things variables don't reach.
+ * Those class names are Payload's own stable BEM-style names, confirmed
+ * against the live login screen; some admin-only views (nav/dashboard)
+ * are targeted from documentation/known naming and weren't visually
+ * re-checked behind login.
  */
+
+@font-face {
+  font-family: "VodafoneRegular";
+  src: url("/vodafone-regular.woff") format("woff");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "VodafoneRegular";
+  src: url("/vodafone-bold.woff") format("woff");
+  font-weight: 700;
+  font-display: swap;
+}
+
 :root {
   --theme-success-50: #fdeaea;
   --theme-success-100: #fad0d0;
@@ -17,17 +41,189 @@
   --theme-success-800: #990000;
   --theme-success-900: #800000;
   --theme-success-950: #660000;
+
+  /* Rounder, calmer surfaces — closer to what modern CMS/dashboard tools
+     (Notion, Linear, Stripe) use than Payload's tighter default radius. */
+  --style-radius-s: 6px;
+  --style-radius-m: 10px;
+  --style-radius-l: 14px;
+
+  --font-body: "VodafoneRegular", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --vf-red: #e60000;
+  --vf-red-dark: #b30000;
+  --vf-navy: #27455c;
+}
+
+* {
+  font-family: var(--font-body);
 }
 
 a {
-  color: #e60000;
+  color: var(--vf-red);
+}
+
+/* ---------------------------------------------------------------------
+   Buttons
+--------------------------------------------------------------------- */
+
+.btn {
+  border-radius: var(--style-radius-s);
+  font-weight: 500;
+  transition: transform 100ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
 
 .btn--style-primary {
-  background: #e60000 !important;
-  border-color: #e60000 !important;
+  background: var(--vf-red) !important;
+  border-color: var(--vf-red) !important;
+  box-shadow: 0 1px 2px rgba(230, 0, 0, 0.25);
 }
 
 .btn--style-primary:hover {
-  background: #b30000 !important;
+  background: var(--vf-red-dark) !important;
+  box-shadow: 0 4px 10px rgba(230, 0, 0, 0.3);
+}
+
+.btn--style-secondary {
+  border-color: var(--theme-elevation-150);
+}
+
+.btn--style-secondary:hover {
+  border-color: var(--vf-red);
+  color: var(--vf-red);
+}
+
+/* ---------------------------------------------------------------------
+   Login screen
+--------------------------------------------------------------------- */
+
+.template-minimal {
+  background: linear-gradient(180deg, #fff 0%, #fdf4f4 100%);
+}
+
+.login__brand img {
+  filter: none;
+}
+
+.login__form {
+  background: var(--theme-bg);
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-l);
+  padding: calc(var(--base) * 1.5);
+  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.12);
+}
+
+.field-type input {
+  border-radius: var(--style-radius-s);
+}
+
+.field-type input:focus {
+  border-color: var(--vf-red);
+  box-shadow: 0 0 0 2px rgba(230, 0, 0, 0.15);
+}
+
+/* ---------------------------------------------------------------------
+   Top bar / step nav (breadcrumb)
+--------------------------------------------------------------------- */
+
+.app-header {
+  background: var(--theme-bg);
+  border-bottom: 1px solid var(--theme-elevation-100);
+}
+
+.step-nav a {
+  color: var(--theme-elevation-500);
+}
+
+.step-nav a:hover {
+  color: var(--vf-red);
+}
+
+/* ---------------------------------------------------------------------
+   Sidebar navigation
+--------------------------------------------------------------------- */
+
+.nav {
+  background: #fafafa;
+  border-right: 1px solid var(--theme-elevation-100);
+}
+
+.nav a,
+.nav__link {
+  border-radius: var(--style-radius-s);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.nav a:hover,
+.nav__link:hover {
+  background: var(--theme-success-50);
+  color: var(--vf-red-dark);
+}
+
+.nav a.active,
+.nav__link--active,
+.nav__link[aria-current="page"] {
+  background: var(--theme-success-50);
+  color: var(--vf-red);
+  font-weight: 600;
+}
+
+.nav-group__toggle {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+  color: var(--theme-elevation-400);
+}
+
+/* ---------------------------------------------------------------------
+   Dashboard cards + collection list
+--------------------------------------------------------------------- */
+
+.dashboard__card-list .card,
+.card {
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-m);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 150ms ease, transform 150ms ease, border-color 150ms ease;
+}
+
+.card:hover {
+  border-color: var(--theme-success-200);
+  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.card .card__click {
+  border-radius: inherit;
+}
+
+/* ---------------------------------------------------------------------
+   Tables
+--------------------------------------------------------------------- */
+
+.table table thead th {
+  background: #fafafa;
+  color: var(--theme-elevation-500);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+}
+
+.table table tbody tr:hover {
+  background: var(--theme-success-50);
+}
+
+/* ---------------------------------------------------------------------
+   Status pills (draft/published)
+--------------------------------------------------------------------- */
+
+.pill {
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.pill--style-light.pill--has-bg-color {
+  background: var(--theme-success-50);
+  color: var(--vf-red-dark);
 }

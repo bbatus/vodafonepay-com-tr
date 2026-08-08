@@ -17,6 +17,9 @@ import { NavLinks } from "./src/collections/NavLinks";
 import { ProductHeroes } from "./src/collections/ProductHeroes";
 import { FeatureCards } from "./src/collections/FeatureCards";
 import { StepCards } from "./src/collections/StepCards";
+import { Announcements } from "./src/collections/Announcements";
+import { LegalPages } from "./src/collections/LegalPages";
+import { ContactInfo } from "./src/globals/ContactInfo";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -26,6 +29,7 @@ const siteUrl = process.env.SITE_URL || "http://localhost:3000";
 export default buildConfig({
   admin: {
     user: Users.slug,
+    theme: "light",
     meta: {
       titleSuffix: " — Vodafone Pay CMS",
       icons: [{ url: "/favicon.ico" }],
@@ -49,7 +53,10 @@ export default buildConfig({
     ProductHeroes,
     FeatureCards,
     StepCards,
+    Announcements,
+    LegalPages,
   ],
+  globals: [ContactInfo],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {
