@@ -97,20 +97,154 @@ a {
    Login screen
 --------------------------------------------------------------------- */
 
+/* Split-screen login: brand/story panel on the left (injected via
+   admin.components.beforeLogin -> LoginBrandPanel), the actual auth form
+   card on the right. The panel is `position: fixed` so it renders as a true
+   full-height side panel regardless of where Payload places it in the DOM;
+   the login form component itself is never touched. Desktop/web only — the
+   product isn't used on mobile, so below 960px the panel just hides and the
+   form card centers full-width instead of squeezing a split layout. */
 .template-minimal {
-  background: linear-gradient(180deg, #fff 0%, #fdf4f4 100%);
+  position: relative;
+  min-height: 100vh;
+  background: #f4f4f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.template-minimal__wrap {
+  position: relative;
+  z-index: 1;
+  margin-left: 45vw;
+}
+
+@media (max-width: 960px) {
+  .template-minimal__wrap {
+    margin-left: 0;
+  }
+}
+
+.vf-login-panel {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 45vw;
+  min-width: 400px;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: calc(var(--base) * 1.5);
+  padding: calc(var(--base) * 2.5) calc(var(--base) * 2.5) calc(var(--base) * 2);
+  overflow: hidden;
+  color: #fff;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(255, 255, 255, 0.08) 0%, transparent 55%),
+    linear-gradient(160deg, var(--vf-red) 0%, var(--vf-red-dark) 48%, var(--vf-navy) 100%);
+}
+
+@media (max-width: 960px) {
+  .vf-login-panel {
+    display: none;
+  }
+}
+
+.vf-login-panel::after {
+  content: "";
+  position: absolute;
+  right: -18%;
+  bottom: -22%;
+  width: 26rem;
+  height: 26rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+.vf-login-panel__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--style-radius-l);
+  background: #fff;
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.45);
+}
+
+.vf-login-panel__title {
+  margin: calc(var(--base) * 0.75) 0 0.25rem;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 2.25rem;
+  line-height: 1.1;
+}
+
+.vf-login-panel__tagline {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.vf-login-panel__features {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--base) * 0.5);
+  position: relative;
+  z-index: 1;
+}
+
+.vf-login-panel__card {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--base) * 0.65);
+  padding: calc(var(--base) * 0.75);
+  border-radius: var(--style-radius-m);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.vf-login-panel__card-icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+}
+
+.vf-login-panel__card-title {
+  margin: 0 0 2px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.vf-login-panel__card-desc {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.vf-login-panel__status {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .login__brand img {
   filter: none;
+  height: 40px;
+  width: auto;
 }
 
 .login__form {
   background: var(--theme-bg);
   border: 1px solid var(--theme-elevation-100);
   border-radius: var(--style-radius-l);
-  padding: calc(var(--base) * 1.5);
-  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.12);
+  padding: calc(var(--base) * 1.75);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.18);
 }
 
 .field-type input {
@@ -129,6 +263,16 @@ a {
 .app-header {
   background: var(--theme-bg);
   border-bottom: 1px solid var(--theme-elevation-100);
+}
+
+/* Payload's content gutter has no max-width, so on wide monitors forms and
+   tables stretch edge-to-edge. Cap and center it above 1700px only — narrower
+   screens (laptops, standard desktops) are untouched. */
+@media (min-width: 1700px) {
+  .gutter {
+    max-width: 1600px;
+    margin-inline: auto;
+  }
 }
 
 .step-nav a {

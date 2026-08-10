@@ -26,10 +26,27 @@ const dirname = path.dirname(filename);
 
 const siteUrl = process.env.SITE_URL || "http://localhost:3000";
 
+// TEMPORARY (local review only): set CMS_AUTO_LOGIN=true to skip the admin
+// login screen entirely, so the CMS UI/UX can be reviewed without a real
+// auth flow. Off unless explicitly enabled — flip CMS_AUTO_LOGIN off (or
+// remove it) to restore normal login. Never set this in a real deployment.
+const autoLoginEnabled = process.env.CMS_AUTO_LOGIN === "true";
+const devAdminEmail = process.env.CMS_ADMIN_EMAIL || "admin@vodafonepay.local";
+const devAdminPassword = process.env.CMS_ADMIN_PASSWORD || "dev-admin-please-change";
+
 export default buildConfig({
   admin: {
     user: Users.slug,
     theme: "light",
+    ...(autoLoginEnabled
+      ? {
+          autoLogin: {
+            email: devAdminEmail,
+            password: devAdminPassword,
+            prefillOnly: false,
+          },
+        }
+      : {}),
     meta: {
       titleSuffix: " — Vodafone Pay CMS",
       icons: [{ url: "/favicon.ico" }],
@@ -39,7 +56,30 @@ export default buildConfig({
         Logo: "/components/AdminLogo#default",
         Icon: "/components/AdminIcon#default",
       },
+      beforeLogin: ["/components/LoginBrandPanel#default"],
     },
+  },
+  onInit: async (payload) => {
+    if (!autoLoginEnabled) return;
+    const existing = await payload.find({
+      collection: Users.slug,
+      limit: 1,
+      overrideAccess: true,
+    });
+    if (existing.totalDocs === 0) {
+      await payload.create({
+        collection: Users.slug,
+        overrideAccess: true,
+        data: {
+          email: devAdminEmail,
+          password: devAdminPassword,
+          role: "admin",
+        },
+      });
+      payload.logger.info(
+        `[CMS_AUTO_LOGIN] Seeded dev admin user (${devAdminEmail}) — login screen is bypassed.`,
+      );
+    }
   },
   collections: [
     Users,
