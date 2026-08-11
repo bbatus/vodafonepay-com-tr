@@ -22,7 +22,7 @@ export function ProductHero({
         />
       </div>
       <div className="bg-[#f3f4f6] px-6 py-8 text-center">
-        <p className="text-2xl font-bold text-black lg:text-3xl">{heading}</p>
+        <h1 className="text-2xl font-bold text-black lg:text-3xl">{heading}</h1>
       </div>
     </section>
   );
