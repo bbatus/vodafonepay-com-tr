@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 
 export const NavLinks: CollectionConfig = {
@@ -9,8 +10,12 @@ export const NavLinks: CollectionConfig = {
     defaultColumns: ["label", "href", "section", "order"],
     group: "Site Yapısı",
   },
+  versions: {
+    drafts: true,
+  },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
     create: newVerticalCreate,
     update: newVerticalReadWrite,
     delete: isNewVerticalMaker,
@@ -34,6 +39,7 @@ export const NavLinks: CollectionConfig = {
     { name: "order", type: "number", defaultValue: 0 },
   ],
   hooks: {
+    beforeOperation: [denyUnauthenticatedDraftRead],
     afterChange: [revalidateTag("nav-links")],
     afterDelete: [revalidateTagOnDelete("nav-links")],
   },

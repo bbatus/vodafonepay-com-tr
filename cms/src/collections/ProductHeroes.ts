@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 
 export const ProductHeroes: CollectionConfig = {
@@ -9,8 +10,12 @@ export const ProductHeroes: CollectionConfig = {
     defaultColumns: ["page", "heading"],
     group: "Ürün Sayfaları",
   },
+  versions: {
+    drafts: true,
+  },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
     create: newVerticalCreate,
     update: newVerticalReadWrite,
     delete: isNewVerticalMaker,
@@ -34,6 +39,7 @@ export const ProductHeroes: CollectionConfig = {
     { name: "heading", type: "text", required: true },
   ],
   hooks: {
+    beforeOperation: [denyUnauthenticatedDraftRead],
     afterChange: [revalidateTag("product-heroes")],
     afterDelete: [revalidateTagOnDelete("product-heroes")],
   },

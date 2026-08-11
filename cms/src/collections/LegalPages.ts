@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 
 export const LegalPages: CollectionConfig = {
@@ -11,8 +12,12 @@ export const LegalPages: CollectionConfig = {
     description:
       "Bu yasal sayfaların tablo/liste gibi yapısal kısımları kodda sabit kalır; burada yönetilen sadece giriş metnidir.",
   },
+  versions: {
+    drafts: true,
+  },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
     create: newVerticalCreate,
     update: newVerticalReadWrite,
     delete: isNewVerticalMaker,
@@ -35,6 +40,7 @@ export const LegalPages: CollectionConfig = {
     { name: "intro", type: "textarea", required: true, admin: { description: "Paragraflar arasına boş satır bırakın." } },
   ],
   hooks: {
+    beforeOperation: [denyUnauthenticatedDraftRead],
     afterChange: [revalidateTag("legal-pages")],
     afterDelete: [revalidateTagOnDelete("legal-pages")],
   },

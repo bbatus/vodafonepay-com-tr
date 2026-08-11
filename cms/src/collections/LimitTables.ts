@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 
 export const LimitTables: CollectionConfig = {
@@ -9,8 +10,12 @@ export const LimitTables: CollectionConfig = {
     defaultColumns: ["title", "order"],
     group: "Ücretler & Limitler",
   },
+  versions: {
+    drafts: true,
+  },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
     create: newVerticalCreate,
     update: newVerticalReadWrite,
     delete: isNewVerticalMaker,
@@ -32,6 +37,7 @@ export const LimitTables: CollectionConfig = {
     },
   ],
   hooks: {
+    beforeOperation: [denyUnauthenticatedDraftRead],
     afterChange: [revalidateTag("limit-tables")],
     afterDelete: [revalidateTagOnDelete("limit-tables")],
   },

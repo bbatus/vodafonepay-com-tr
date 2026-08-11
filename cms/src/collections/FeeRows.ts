@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 
 export const FeeRows: CollectionConfig = {
@@ -9,8 +10,12 @@ export const FeeRows: CollectionConfig = {
     defaultColumns: ["label", "value", "order"],
     group: "Ücretler & Limitler",
   },
+  versions: {
+    drafts: true,
+  },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
     create: newVerticalCreate,
     update: newVerticalReadWrite,
     delete: isNewVerticalMaker,
@@ -21,6 +26,7 @@ export const FeeRows: CollectionConfig = {
     { name: "order", type: "number", defaultValue: 0 },
   ],
   hooks: {
+    beforeOperation: [denyUnauthenticatedDraftRead],
     afterChange: [revalidateTag("fee-rows")],
     afterDelete: [revalidateTagOnDelete("fee-rows")],
   },
