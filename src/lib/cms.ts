@@ -83,7 +83,7 @@ export type CmsCampaign = z.infer<typeof campaignSchema>;
 
 export async function getCampaigns(): Promise<CmsCampaign[] | null> {
   const data = await cmsFetch(
-    "/campaigns?depth=1&limit=100&sort=-createdAt&where[status][not_equals]=expired",
+    "/campaigns?depth=1&limit=100&sort=-createdAt&where[campaignStatus][not_equals]=expired",
     "campaigns",
     listResponseSchema(campaignSchema)
   );

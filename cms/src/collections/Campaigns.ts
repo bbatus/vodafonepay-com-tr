@@ -40,7 +40,12 @@ export const Campaigns: CollectionConfig = {
       ],
     },
     {
-      name: "status",
+      // Named campaignStatus (not "status") to avoid colliding with
+      // Payload's own internal draft/published `_status` versioning field —
+      // both generate a Postgres enum keyed off the field name, and
+      // "status" collided with it (confirmed live: CREATE TABLE failed with
+      // "invalid input value for enum enum_campaigns_status: active").
+      name: "campaignStatus",
       type: "select",
       defaultValue: "active",
       options: [
