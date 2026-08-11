@@ -178,7 +178,7 @@ export type CmsBlogPost = z.infer<typeof blogPostSchema>;
 
 export async function getBlogPosts(): Promise<CmsBlogPost[] | null> {
   const data = await cmsFetch(
-    "/blog-posts?depth=1&limit=100&sort=-publishedDate",
+    "/blog-posts?depth=1&limit=100&sort=-publishedDate&where[postStatus][not_equals]=archived",
     "blog-posts",
     listResponseSchema(blogPostSchema)
   );

@@ -28,6 +28,18 @@ export const BlogPosts: CollectionConfig = {
     { name: "body", type: "richText" },
     { name: "category", type: "text" },
     { name: "publishedDate", type: "date", admin: { date: { pickerAppearance: "dayOnly" } } },
+    {
+      // Named postStatus (not "status") — see the same collision noted on
+      // Campaigns.campaignStatus.
+      name: "postStatus",
+      type: "select",
+      defaultValue: "active",
+      options: [
+        { label: "Aktif", value: "active" },
+        { label: "Arşivlendi", value: "archived" },
+      ],
+      admin: { description: "Arşivlenen yazı liste sayfasından kalkar, detay sayfası erişilebilir kalır" },
+    },
     { name: "seoTitle", type: "text" },
     { name: "seoDescription", type: "textarea" },
   ],
