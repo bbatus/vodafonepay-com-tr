@@ -19,6 +19,7 @@ const ALLOWED_TAGS = new Set([
   "content-blocks",
   "representatives",
   "cookie-rows",
+  "page-meta",
 ]);
 
 /** In-memory fixed-window rate limit — this is a single-instance internal webhook, not a public API, so a per-process counter is sufficient. */

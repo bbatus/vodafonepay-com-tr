@@ -8,7 +8,7 @@ import { AppFeatures } from "@/components/AppFeatures";
 import { HowToEarn } from "@/components/HowToEarn";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getContentBlocks, getFaqItems, getProductHero } from "@/lib/cms";
+import { getContentBlocks, getFaqItems, getPageMeta, getProductHero } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
@@ -68,12 +68,14 @@ export default async function VodafonePayUygulama() {
     ? cmsEarnSteps.map((s) => ({ icon: s.image?.url ?? "", title: s.title ?? "", description: s.text ?? "" }))
     : undefined;
 
+  const pageMeta = await getPageMeta("/vodafone-pay-uygulama");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Vodafone Pay Uygulama" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Vodafone Pay Uygulama"} />
       <ProductHero
         image={cmsHero?.image.url ?? "/images/uygulama-hero.jpg"}
         imageAlt={cmsHero?.image.alt || "Vodafone Pay Uygulaması"}

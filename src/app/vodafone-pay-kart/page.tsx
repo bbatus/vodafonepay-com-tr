@@ -9,7 +9,7 @@ import { WhereCanIBuy } from "@/components/WhereCanIBuy";
 import { VideoGuideSection } from "@/components/VideoGuideSection";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getContentBlocks, getFaqItems, getProductHero } from "@/lib/cms";
+import { getContentBlocks, getFaqItems, getPageMeta, getProductHero } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
@@ -63,12 +63,14 @@ export default async function VodafonePayKart() {
     ? cmsVideos.map((v) => ({ title: v.title ?? "", youtubeId: v.youtubeId ?? "" }))
     : undefined;
 
+  const pageMeta = await getPageMeta("/vodafone-pay-kart");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Vodafone Pay Kart" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Vodafone Pay Kart"} />
       <ProductHero
         image={cmsHero?.image.url ?? "/images/kart-hero.jpg"}
         imageAlt={cmsHero?.image.alt || "Vodafone Pay Kart"}

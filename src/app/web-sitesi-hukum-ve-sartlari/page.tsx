@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getLegalPage, textToParagraphs } from "@/lib/cms";
+import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = buildMetadata({
@@ -19,12 +19,14 @@ export default async function WebSitesiHukumVeSartlari() {
   const cmsPage = await getLegalPage("web-sitesi-hukum-ve-sartlari");
   const documents = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackDocuments;
 
+  const pageMeta = await getPageMeta("/web-sitesi-hukum-ve-sartlari");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Web Sitesi Kullanımı Hüküm ve Şartları" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Web Sitesi Kullanımı Hüküm ve Şartları"} />
 
       <section className="mx-auto w-full max-w-3xl px-4 pb-20">
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Hüküm ve Şartlar</h1>

@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getLegalPage, textToParagraphs } from "@/lib/cms";
+import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = buildMetadata({
@@ -24,13 +24,14 @@ export default async function SozlesmelerVeFormlar() {
   const cmsPage = await getLegalPage("sozlesmeler-ve-formlar");
   const documents = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackDocuments;
   const downloads = cmsPage?.documents ?? [];
+  const pageMeta = await getPageMeta("/sozlesmeler-ve-formlar");
 
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Sözleşmeler ve Formlar" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Sözleşmeler ve Formlar"} />
 
       <section className="mx-auto w-full max-w-3xl px-4 pb-20">
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Sözleşmeler ve Formlar</h1>

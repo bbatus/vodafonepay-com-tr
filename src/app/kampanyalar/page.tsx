@@ -6,7 +6,7 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import type { CardListItem } from "@/components/CardListGrid";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getCampaigns, getFaqItems } from "@/lib/cms";
+import { getCampaigns, getFaqItems, getPageMeta } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 import { CampaignsFilterableList } from "./CampaignsFilterableList";
 import { buildMetadata } from "@/lib/metadata";
@@ -70,12 +70,14 @@ export default async function Kampanyalar() {
     ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
     : fallbackFaqs;
 
+  const pageMeta = await getPageMeta("/kampanyalar");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Kampanyalar" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Kampanyalar"} />
 
       <section className="mx-auto w-full max-w-[1280px] px-4 pb-20">
         <div className="flex flex-col items-center justify-center lg:pt-8">

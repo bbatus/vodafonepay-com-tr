@@ -5,7 +5,7 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { cookieRows as fallbackCookieRows } from "./cookieRows";
-import { getCookieRows, getLegalPage, textToParagraphs } from "@/lib/cms";
+import { getCookieRows, getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = buildMetadata({
@@ -25,12 +25,14 @@ export default async function CerezPolitikasi() {
   const intro = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackIntro;
   const cookieRows = cmsCookieRows?.length ? cmsCookieRows : fallbackCookieRows;
 
+  const pageMeta = await getPageMeta("/cerez-politikasi");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Çerez Politikası" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Çerez Politikası"} />
 
       <section className="mx-auto w-full max-w-4xl px-4 pb-20">
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Çerez Politikası</h1>

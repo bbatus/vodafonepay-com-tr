@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getLegalPage, textToParagraphs } from "@/lib/cms";
+import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = buildMetadata({
@@ -79,12 +79,14 @@ export default async function GizlilikVeGuvenlikPolitikasi() {
   const cmsPage = await getLegalPage("gizlilik-ve-guvenlik-politikasi");
   const intro = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackIntro;
 
+  const pageMeta = await getPageMeta("/gizlilik-ve-guvenlik-politikasi");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Gizlilik ve Güvenlik Politikası" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Gizlilik ve Güvenlik Politikası"} />
 
       <section className="mx-auto w-full max-w-3xl px-4 pb-20">
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Gizlilik ve Güvenlik Politikası</h1>

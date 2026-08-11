@@ -11,7 +11,7 @@ import { BrandLogoGrid } from "@/components/BrandLogoGrid";
 import { LeadFormCta } from "@/components/LeadFormCta";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getContentBlocks, getFaqItems, getProductHero, getFeatureCards } from "@/lib/cms";
+import { getContentBlocks, getFaqItems, getFeatureCards, getPageMeta, getProductHero } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
@@ -146,12 +146,14 @@ export default async function FaturanaYansit() {
     ? cmsBrands.map((b) => ({ name: b.title ?? "", logo: b.image?.url ?? "" }))
     : undefined;
 
+  const pageMeta = await getPageMeta("/faturana-yansit");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Faturana Yansıt" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Faturana Yansıt"} />
       <ProductHero
         image={cmsHero?.image.url ?? "/images/fy-hero.jpg"}
         imageAlt={cmsHero?.image.alt || "Faturana Yansıt"}

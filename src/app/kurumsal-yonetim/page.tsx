@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getContactInfo } from "@/lib/cms";
+import { getContactInfo, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = buildMetadata({
@@ -103,13 +103,14 @@ export default async function KurumsalYonetim() {
       }
     : fallbackContact;
   const sicilBilgileri = buildSicilBilgileri(contact);
+  const pageMeta = await getPageMeta("/kurumsal-yonetim");
 
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Kurumsal Yönetim" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Kurumsal Yönetim"} />
 
       <section className="mx-auto w-full max-w-[1030px] px-4 pb-20">
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black lg:text-left">

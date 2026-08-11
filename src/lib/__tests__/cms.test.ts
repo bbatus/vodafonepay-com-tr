@@ -12,6 +12,7 @@ import {
   getLegalPage,
   getLimitTables,
   getNavLinks,
+  getPageMeta,
   getProductHero,
   getStepCards,
   textToParagraphs,
@@ -239,6 +240,17 @@ describe("cms.ts fetch-backed getters", () => {
 
     vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [] }));
     expect(await getLegalPage("cerez-politikasi")).toBeNull();
+  });
+
+  it("getPageMeta scopes the query by pageKey and returns the first doc, or null if none", async () => {
+    const doc = { id: "pm1", pageKey: "/aninda-bakiye", breadcrumbLabel: "Anında Bakiye" };
+    vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [doc] }));
+    expect(await getPageMeta("/aninda-bakiye")).toEqual(doc);
+    const calledUrl = vi.mocked(fetch).mock.calls[0][0] as string;
+    expect(calledUrl).toContain(`where[pageKey][equals]=${encodeURIComponent("/aninda-bakiye")}`);
+
+    vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [] }));
+    expect(await getPageMeta("/aninda-bakiye")).toBeNull();
   });
 
   it("getLegalPage passes through downloadable documents when present", async () => {

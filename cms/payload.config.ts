@@ -26,6 +26,7 @@ import { ContentBlocks } from "./src/collections/ContentBlocks";
 import { Representatives } from "./src/collections/Representatives";
 import { CookieRows } from "./src/collections/CookieRows";
 import { AuditLogs } from "./src/collections/AuditLogs";
+import { PageMeta } from "./src/collections/PageMeta";
 import { ContactInfo } from "./src/globals/ContactInfo";
 import { ROLES } from "./src/access/roles";
 import { env } from "./src/env";
@@ -125,6 +126,7 @@ export default buildConfig({
     Representatives,
     CookieRows,
     AuditLogs,
+    PageMeta,
   ],
   globals: [ContactInfo],
   editor: lexicalEditor(),

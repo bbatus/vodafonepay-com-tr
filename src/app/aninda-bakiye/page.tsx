@@ -8,7 +8,7 @@ import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getFaqItems, getProductHero, getFeatureCards, getStepCards } from "@/lib/cms";
+import { getFaqItems, getFeatureCards, getPageMeta, getProductHero, getStepCards } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
@@ -144,12 +144,14 @@ export default async function AnindaBakiye() {
     ? cmsSteps.map((s) => ({ number: s.number, text: s.text, image: s.image.url }))
     : fallbackSteps;
 
+  const pageMeta = await getPageMeta("/aninda-bakiye");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Anında Bakiye" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Anında Bakiye"} />
       <ProductHero
         image={cmsHero?.image.url ?? "/images/ab-hero.jpg"}
         imageAlt={cmsHero?.image.alt || "Anında Bakiye"}

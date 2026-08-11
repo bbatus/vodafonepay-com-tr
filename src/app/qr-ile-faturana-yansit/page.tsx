@@ -8,7 +8,7 @@ import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getFaqItems, getProductHero, getFeatureCards, getStepCards } from "@/lib/cms";
+import { getFaqItems, getFeatureCards, getPageMeta, getProductHero, getStepCards } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
@@ -95,12 +95,14 @@ export default async function QrIleFaturanaYansit() {
     ? cmsSteps.map((s) => ({ number: s.number, text: s.text, image: s.image.url }))
     : fallbackSteps;
 
+  const pageMeta = await getPageMeta("/qr-ile-faturana-yansit");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Qr ile Faturana Yansıt" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Qr ile Faturana Yansıt"} />
       <ProductHero
         image={cmsHero?.image.url ?? "/images/qr-hero.jpg"}
         imageAlt={cmsHero?.image.alt || "QR ile Faturana Yansıt"}

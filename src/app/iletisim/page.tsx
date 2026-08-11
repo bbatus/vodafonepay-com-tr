@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getContactInfo } from "@/lib/cms";
+import { getContactInfo, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = buildMetadata({
@@ -84,12 +84,14 @@ export default async function Iletisim() {
       : []),
   ];
 
+  const pageMeta = await getPageMeta("/iletisim");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="İletişim" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "İletişim"} />
 
       <section className="w-full bg-gradient-to-r from-vf-navy to-vf-red px-4 py-16 lg:px-16">
         <div className="mx-auto max-w-[1030px]">

@@ -477,6 +477,31 @@ export async function getCookieRows(): Promise<CmsCookieRow[] | null> {
   return data?.docs ?? null;
 }
 
+const pageMetaSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  pageKey: z.string(),
+  breadcrumbLabel: nullableString(),
+  seoTitle: nullableString(),
+  seoDescription: nullableString(),
+  ogImage: mediaSchema.nullable().optional().transform((v) => v ?? undefined),
+});
+export type CmsPageMeta = z.infer<typeof pageMetaSchema>;
+
+/**
+ * RFP §3.2.3/§3.2.4/§3.2.6: breadcrumb label + SEO fields for a static page,
+ * editable from the CMS without a deploy. Returns null (not an error) when
+ * no PageMeta document exists yet for this pageKey — callers fall back to
+ * their own hardcoded defaults, same pattern as every other getter here.
+ */
+export async function getPageMeta(pageKey: string): Promise<CmsPageMeta | null> {
+  const data = await cmsFetch(
+    `/page-meta?depth=1&limit=1&where[pageKey][equals]=${encodeURIComponent(pageKey)}`,
+    "page-meta",
+    listResponseSchema(pageMetaSchema)
+  );
+  return data?.docs?.[0] ?? null;
+}
+
 export function textToParagraphs(text: string): string[] {
   return text
     .split(/\n\s*\n/)
