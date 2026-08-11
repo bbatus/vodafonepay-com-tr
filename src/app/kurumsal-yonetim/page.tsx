@@ -4,11 +4,13 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Vodafone Pay Kurumsal Yönetim | Hakkımızda",
   description: "Vodafone Pay hakkında, vizyon, misyon, ortaklık yapısı ve yönetim kurulu bilgileri.",
-};
+  path: "/kurumsal-yonetim",
+});
 
 const missionItems = [
   "Vodafone ve Vodafone Grubu’nun yurtiçi ve yurtdışında geliştirmiş olduğu ticari tecrübesini en uygun şekilde değerlendirmek.",

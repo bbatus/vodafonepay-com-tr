@@ -7,11 +7,13 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getRepresentatives } from "@/lib/cms";
 import { TemsilciliklerimizForm } from "./TemsilciliklerimizForm";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "En Yakın Temsilciliklerimiz | Vodafone Pay",
   description: "İl ve ilçe seçerek size en yakın Vodafone Pay temsilciliğini bulun.",
-};
+  path: "/temsilciliklerimiz",
+});
 
 export default async function Temsilciliklerimiz() {
   const representatives = (await getRepresentatives()) ?? [];

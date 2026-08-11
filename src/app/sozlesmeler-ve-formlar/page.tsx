@@ -5,11 +5,13 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getLegalPage, textToParagraphs } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Sözleşmeler ve Formlar | Vodafone Pay",
   description: "Vodafone Pay sözleşme, form ve ticari koşullar belgelerine buradan ulaşabilirsiniz.",
-};
+  path: "/sozlesmeler-ve-formlar",
+});
 
 const fallbackDocuments = [
   "Tüketici Hakları Bilgi Formu için tıklayınız",

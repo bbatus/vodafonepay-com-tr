@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
@@ -8,6 +9,14 @@ import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
 import { campaignToCard, getCampaigns, getContentBlocks, getFaqItems } from "@/lib/cms";
 import type { StepProduct } from "@/types/homepage";
+import { buildMetadata } from "@/lib/metadata";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Vodafone Pay | Yeni Nesil Mobil Cüzdan",
+  description:
+    "Vodafone Pay ile cüzdanınıza bakış açınız kökten değişiyor, hazır mısınız? Vodafone Pay hakkında detaylı bilgi almak için tıklayın.",
+  path: "/",
+});
 
 export default async function Home() {
   const [cmsCampaigns, cmsFaqItems, cmsSteps, cmsHighlights] = await Promise.all([

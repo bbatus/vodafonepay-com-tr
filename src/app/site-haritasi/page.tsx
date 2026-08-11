@@ -5,11 +5,13 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Site Haritası | Vodafone Pay",
   description: "Vodafone Pay web sitesindeki tüm sayfalara bu site haritasından ulaşabilirsiniz.",
-};
+  path: "/site-haritasi",
+});
 
 const groups: { title: string; links: { label: string; href: string }[] }[] = [
   {

@@ -7,6 +7,7 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getCampaignBySlug, getCampaigns, richTextToParagraphs } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
 export async function generateStaticParams() {
   const campaigns = await getCampaigns();
@@ -19,10 +20,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const campaign = await getCampaignBySlug(slug);
   if (!campaign) return {};
-  return {
+  return buildMetadata({
     title: campaign.seoTitle || `${campaign.title} | Vodafone Pay`,
     description: campaign.seoDescription || campaign.description,
-  };
+    path: `/kampanyalar/${campaign.slug}`,
+    image: campaign.image.url,
+  });
 }
 
 export default async function KampanyaDetay({ params }: { params: Promise<{ slug: string }> }) {

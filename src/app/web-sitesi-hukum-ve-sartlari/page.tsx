@@ -5,11 +5,13 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getLegalPage, textToParagraphs } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Web Sitesi Kullanımı Hüküm ve Şartları | Vodafone Pay",
   description: "Vodafone Pay web sitesinin kullanımına ilişkin hüküm ve şartlar.",
-};
+  path: "/web-sitesi-hukum-ve-sartlari",
+});
 
 const fallbackDocuments = ["Hüküm ve Şartlar için tıklayınız"];
 

@@ -6,11 +6,13 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { DuyurularAccordion, type Announcement } from "./DuyurularAccordion";
 import { getAnnouncements, textToParagraphs } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Vodafone Pay Duyurular | Resmî Bildirimler ve Açıklamalar",
   description: "Vodafone Pay'e ait resmî duyurular, bildirimler ve açıklamalar.",
-};
+  path: "/duyurular",
+});
 
 export default async function Duyurular() {
   const cmsAnnouncements = await getAnnouncements();

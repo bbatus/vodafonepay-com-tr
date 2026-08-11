@@ -10,11 +10,13 @@ import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
 import { getFaqItems, getProductHero, getFeatureCards, getStepCards } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Anında Bakiye ile Sana Özel Mobil Ödeme Limiti | Vodafone Pay",
   description: "Size özel limitinizle dilediğiniz yerde harcama yapabilirsiniz!",
-};
+  path: "/aninda-bakiye",
+});
 
 const fallbackCards = [
   {

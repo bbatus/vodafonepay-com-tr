@@ -5,11 +5,13 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getLegalPage, textToParagraphs } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Bilgi Güvenliği | Vodafone Pay",
   description: "Vodafone Pay müşteri bilgileri ve hassas ödeme verilerinin güvenliği için alınması gereken önlemler.",
-};
+  path: "/bilgi-guvenligi",
+});
 
 const fallbackTips = [
   "Sizi arayan ve kendilerini avukat, polis, savcı, bankacı, sigortacı gibi tanıtan, sosyal medya/e-posta üzerinden arkadaşınız ya da ticaret yaptığınız şirket gibi davranan dolandırıcılar olabilir. Bu nedenle kiminle görüştüğünüze dikkat edin.",

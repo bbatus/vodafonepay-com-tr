@@ -5,11 +5,13 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getLegalPage, textToParagraphs } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Gizlilik ve Güvenlik Politikası | Vodafone Pay",
   description: "Vodafone Pay kişisel verilerin korunması, gizlilik ve güvenlik politikası aydınlatma metinleri.",
-};
+  path: "/gizlilik-ve-guvenlik-politikasi",
+});
 
 const fallbackIntro = [
   "6698 sayılı Kişisel Verilerin Korunması Kanunu (\"Kanun\") uyarınca, kişisel verileriniz; veri sorumlusu sıfatıyla, hizmet aldığınız Vodafone Elektronik Para ve Ödeme Hizmetleri A.Ş. (\"Vodafone\", \"Şirket\") tarafından aşağıda açıklanan amaç ve hukuki sebeplerle işlenecektir.",

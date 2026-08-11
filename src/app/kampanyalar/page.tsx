@@ -9,11 +9,13 @@ import { Footer } from "@/components/Footer";
 import { getCampaigns, getFaqItems } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 import { CampaignsFilterableList } from "./CampaignsFilterableList";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Nakit İade Kampanyaları | Pay'lilere Özel Fırsatlar | Vodafone Pay",
   description: "Vodafone Pay'in nakit iade ve indirim kampanyalarını incele, avantajlardan yararlan.",
-};
+  path: "/kampanyalar",
+});
 
 const fallbackFavorites: CardListItem[] = [
   { image: "/images/campaign-cesme.jpg", title: "Vodafone Pay ile Çeşme Plajlarında 1.000 TL Nakit İade!" },

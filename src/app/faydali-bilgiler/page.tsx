@@ -5,11 +5,13 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { FaydaliBilgilerAccordion } from "./FaydaliBilgilerAccordion";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Faydalı Bilgiler | Vodafone Pay",
   description: "Vodafone Pay kullanımına dair faydalı bilgiler.",
-};
+  path: "/faydali-bilgiler",
+});
 
 export default function FaydaliBilgiler() {
   return (

@@ -10,12 +10,13 @@ import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
 import { getContentBlocks, getFaqItems, getProductHero } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Vodafone Pay Uygulaması ve Avantajları | Vodafone Pay",
-  description:
-    "Vodafone Pay Uygulaması'nı indirerek tüm harcamalarınızı kolayca takip edebilir, kazandıran kampanyalara katılabilirsiniz.",
-};
+  description: "Vodafone Pay Uygulaması'nı indirerek tüm harcamalarınızı kolayca takip edebilir, kazandıran kampanyalara katılabilirsiniz.",
+  path: "/vodafone-pay-uygulama",
+});
 
 const fallbackFaqs: FaqItem[] = [
   {

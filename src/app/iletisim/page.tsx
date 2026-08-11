@@ -5,11 +5,13 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getContactInfo } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Vodafone Pay İletişim | Müşteri Hizmetleri",
   description: "Vodafone Pay şirket bilgileri, müşteri hizmetleri ve denetim mercii iletişim bilgileri.",
-};
+  path: "/iletisim",
+});
 
 const fallback = {
   companyName: "Vodafone Elektronik Para ve Ödeme A.Ş.",

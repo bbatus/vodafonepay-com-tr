@@ -7,6 +7,7 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getBlogPostBySlug, getBlogPosts, richTextToParagraphs } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
 export async function generateStaticParams() {
   const posts = await getBlogPosts();
@@ -17,10 +18,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const post = await getBlogPostBySlug(slug);
   if (!post) return {};
-  return {
+  return buildMetadata({
     title: post.seoTitle || `${post.title} | Vodafone Pay`,
     description: post.seoDescription || post.excerpt,
-  };
+    path: `/blog/${post.slug}`,
+    image: post.coverImage.url,
+  });
 }
 
 export default async function BlogYazisi({ params }: { params: Promise<{ slug: string }> }) {

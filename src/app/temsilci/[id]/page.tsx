@@ -7,15 +7,17 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getRepresentativeById } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const rep = await getRepresentativeById(id);
   if (!rep) return {};
-  return {
+  return buildMetadata({
     title: `${rep.businessName} | Vodafone Pay Temsilciliği`,
     description: rep.address,
-  };
+    path: `/temsilci/${id}`,
+  });
 }
 
 export default async function TemsilciDetay({ params }: { params: Promise<{ id: string }> }) {

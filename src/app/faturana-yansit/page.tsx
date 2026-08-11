@@ -13,11 +13,13 @@ import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
 import { getContentBlocks, getFaqItems, getProductHero, getFeatureCards } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Faturana Yansıt | Mobil Ödeme | Vodafone Pay",
   description: "Yalnızca cep telefonu numaranızı kullanarak indirimli alışverişin keyfini çıkarın!",
-};
+  path: "/faturana-yansit",
+});
 
 const fallbackCards = [
   {

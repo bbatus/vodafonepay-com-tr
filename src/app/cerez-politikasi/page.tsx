@@ -6,11 +6,13 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { cookieRows as fallbackCookieRows } from "./cookieRows";
 import { getCookieRows, getLegalPage, textToParagraphs } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Çerez Politikası | Vodafone Pay",
   description: "Vodafone Pay web sitesinde kullanılan çerezler, türleri ve yönetimi hakkında bilgi.",
-};
+  path: "/cerez-politikasi",
+});
 
 const fallbackIntro = [
   "Vodafone'da kişisel verileriniz güvence altındadır. Bu çerçevede Vodafone, kişisel verilerinizi tüm teknik ve idari tedbirleri alarak korur. Gerekli güvenlik düzeyi için bütün teknolojik imkanlar kullanılır.",

@@ -6,11 +6,13 @@ import type { CardListItem } from "@/components/CardListGrid";
 import { Footer } from "@/components/Footer";
 import { getBlogPosts } from "@/lib/cms";
 import { BlogFilterableList } from "./BlogFilterableList";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Bloglar | Vodafone Pay",
   description: "Vodafone Pay'den mobil ödeme, kart ve dijital cüzdan hakkında güncel blog yazıları.",
-};
+  path: "/blog",
+});
 
 const fallbackPosts: CardListItem[] = [
   { image: "/images/blog-01.jpg", title: "Ulaşım Kartı Bakiye Yükleme Yolları | Vodafone Pay" },
