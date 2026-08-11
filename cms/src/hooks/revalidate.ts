@@ -1,5 +1,4 @@
-import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from "payload";
-import type { GlobalAfterChangeHook } from "payload";
+import type { CollectionAfterChangeHook, CollectionAfterDeleteHook, GlobalAfterChangeHook } from "payload";
 
 /**
  * Notifies the main site's /api/revalidate route so a published change
@@ -26,20 +25,19 @@ async function pingRevalidate(tag: string) {
   }
 }
 
+/** Every collection/global hook below just needs to fire-and-forget pingRevalidate(tag) — only the Payload hook signature differs. */
+const makeRevalidateHook = (tag: string) => async () => {
+  await pingRevalidate(tag);
+};
+
 export function revalidateTag(tag: string): CollectionAfterChangeHook {
-  return async () => {
-    await pingRevalidate(tag);
-  };
+  return makeRevalidateHook(tag);
 }
 
 export function revalidateTagOnDelete(tag: string): CollectionAfterDeleteHook {
-  return async () => {
-    await pingRevalidate(tag);
-  };
+  return makeRevalidateHook(tag);
 }
 
 export function revalidateGlobalTag(tag: string): GlobalAfterChangeHook {
-  return async () => {
-    await pingRevalidate(tag);
-  };
+  return makeRevalidateHook(tag);
 }

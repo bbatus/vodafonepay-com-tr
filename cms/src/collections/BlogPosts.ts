@@ -1,5 +1,7 @@
 import type { CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
+import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 
 export const BlogPosts: CollectionConfig = {
   slug: "blog-posts",
@@ -12,7 +14,11 @@ export const BlogPosts: CollectionConfig = {
     drafts: true,
   },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
+    create: newVerticalCreate,
+    update: newVerticalReadWrite,
+    delete: isNewVerticalMaker,
   },
   fields: [
     { name: "title", type: "text", required: true },
@@ -26,6 +32,7 @@ export const BlogPosts: CollectionConfig = {
     { name: "seoDescription", type: "textarea" },
   ],
   hooks: {
+    beforeOperation: [denyUnauthenticatedDraftRead],
     afterChange: [revalidateTag("blog-posts")],
     afterDelete: [revalidateTagOnDelete("blog-posts")],
   },

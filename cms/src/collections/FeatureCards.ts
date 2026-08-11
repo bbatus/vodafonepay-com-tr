@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 
 export const FeatureCards: CollectionConfig = {
@@ -10,6 +11,9 @@ export const FeatureCards: CollectionConfig = {
   },
   access: {
     read: () => true,
+    create: newVerticalCreate,
+    update: newVerticalReadWrite,
+    delete: isNewVerticalMaker,
   },
   fields: [
     { name: "page", type: "text", required: true, admin: { description: "Örn: vodafone-pay-uygulama, faturana-yansit" } },

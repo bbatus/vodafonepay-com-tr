@@ -1,5 +1,5 @@
-import path from "path";
-import { fileURLToPath } from "url";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { s3Storage } from "@payloadcms/storage-s3";
@@ -20,6 +20,7 @@ import { StepCards } from "./src/collections/StepCards";
 import { Announcements } from "./src/collections/Announcements";
 import { LegalPages } from "./src/collections/LegalPages";
 import { ContactInfo } from "./src/globals/ContactInfo";
+import { ROLES } from "./src/access/roles";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -27,9 +28,18 @@ const dirname = path.dirname(filename);
 const siteUrl = process.env.SITE_URL || "http://localhost:3000";
 
 // TEMPORARY (local review only): set CMS_AUTO_LOGIN=true to skip the admin
-// login screen entirely, so the CMS UI/UX can be reviewed without a real
-// auth flow. Off unless explicitly enabled — flip CMS_AUTO_LOGIN off (or
-// remove it) to restore normal login. Never set this in a real deployment.
+// login screen, so the CMS UI/UX can be reviewed without a real auth flow.
+//
+// IMPORTANT — this is NOT scoped to the admin UI. Payload's `autoLogin`
+// treats every incoming request as authenticated as the dev user, including
+// raw unauthenticated REST/GraphQL calls with no session/cookie at all.
+// Confirmed by testing: with this on, `GET /api/campaigns/:id?draft=true`
+// from a cookie-less curl request returned as if logged in. That means ALL
+// access-control checks in this codebase (read/readVersions/create/update/
+// delete, the denyUnauthenticatedDraftRead hooks) are meaningless while this
+// flag is on — you cannot use it to test whether access control actually
+// works. Off unless explicitly enabled; never set this in a real deployment
+// or anywhere reachable from outside your own machine.
 const autoLoginEnabled = process.env.CMS_AUTO_LOGIN === "true";
 const devAdminEmail = process.env.CMS_ADMIN_EMAIL || "admin@vodafonepay.local";
 const devAdminPassword = process.env.CMS_ADMIN_PASSWORD || "dev-admin-please-change";
@@ -73,7 +83,7 @@ export default buildConfig({
         data: {
           email: devAdminEmail,
           password: devAdminPassword,
-          role: "admin",
+          role: ROLES.NEW_VERTICAL_MAKER,
         },
       });
       payload.logger.info(

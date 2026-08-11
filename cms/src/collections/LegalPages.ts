@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 
 export const LegalPages: CollectionConfig = {
@@ -12,6 +13,9 @@ export const LegalPages: CollectionConfig = {
   },
   access: {
     read: () => true,
+    create: newVerticalCreate,
+    update: newVerticalReadWrite,
+    delete: isNewVerticalMaker,
   },
   fields: [
     {

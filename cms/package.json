@@ -13,7 +13,9 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "generate:types": "payload generate:types",
-    "seed": "node scripts/seed-via-api.mjs"
+    "seed": "node scripts/seed-via-api.mjs",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.37.0",
@@ -26,14 +28,21 @@
     "payload": "^3.37.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "sharp": "^0.33.5"
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.10",
     "eslint": "^9",
     "eslint-config-next": "^16.2.6",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "dompurify": "^3.4.13",
+    "esbuild": "^0.25.12",
+    "undici": "^7.29.0"
   }
 }

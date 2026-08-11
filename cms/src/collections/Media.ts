@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { isNewVerticalMaker, mediaCreate, newVerticalReadWrite } from "@/access/roles";
 
 export const Media: CollectionConfig = {
   slug: "media",
@@ -7,6 +8,9 @@ export const Media: CollectionConfig = {
   },
   access: {
     read: () => true,
+    create: mediaCreate,
+    update: newVerticalReadWrite,
+    delete: isNewVerticalMaker,
   },
   fields: [
     {

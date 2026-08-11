@@ -1,5 +1,6 @@
 import type { GlobalConfig } from "payload";
 import { revalidateGlobalTag } from "@/hooks/revalidate";
+import { newVerticalReadWrite } from "@/access/roles";
 
 export const ContactInfo: GlobalConfig = {
   slug: "contact-info",
@@ -8,6 +9,7 @@ export const ContactInfo: GlobalConfig = {
   },
   access: {
     read: () => true,
+    update: newVerticalReadWrite,
   },
   fields: [
     { name: "companyName", type: "text", required: true },

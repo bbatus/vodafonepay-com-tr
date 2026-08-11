@@ -1,5 +1,7 @@
 import type { CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
+import { campaignsCreate, campaignsReadWrite, denyMakerPublish, isNewVerticalMaker } from "@/access/roles";
 
 export const Campaigns: CollectionConfig = {
   slug: "campaigns",
@@ -12,7 +14,11 @@ export const Campaigns: CollectionConfig = {
     drafts: true,
   },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
+    create: campaignsCreate,
+    update: campaignsReadWrite,
+    delete: isNewVerticalMaker,
   },
   fields: [
     { name: "title", type: "text", required: true },
@@ -42,6 +48,8 @@ export const Campaigns: CollectionConfig = {
     },
   ],
   hooks: {
+    beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeChange: [denyMakerPublish],
     afterChange: [revalidateTag("campaigns")],
     afterDelete: [revalidateTagOnDelete("campaigns")],
   },
