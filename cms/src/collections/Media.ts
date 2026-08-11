@@ -18,8 +18,18 @@ export const Media: CollectionConfig = {
       type: "text",
       required: true,
     },
+    {
+      name: "caption",
+      type: "text",
+    },
   ],
   upload: {
     mimeTypes: ["image/*"],
+    focalPoint: true,
+    imageSizes: [
+      { name: "thumbnail", width: 240, height: 180, position: "centre" },
+      { name: "card", width: 600, height: 400, position: "centre" },
+      { name: "hero", width: 1200, height: 630, position: "centre" },
+    ],
   },
 };
