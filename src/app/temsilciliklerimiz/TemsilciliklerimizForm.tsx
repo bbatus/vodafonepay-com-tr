@@ -1,22 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { IL_ILCE } from "@/data/il-ilce";
 
-const provinces = [
-  "ADANA", "ADIYAMAN", "AFYONKARAHİSAR", "AĞRI", "AKSARAY", "AMASYA", "ANKARA", "ANTALYA",
-  "ARDAHAN", "ARTVİN", "AYDIN", "BALIKESİR", "BARTIN", "BATMAN", "BAYBURT", "BİLECİK",
-  "BİNGÖL", "BİTLİS", "BOLU", "BURDUR", "BURSA", "ÇANAKKALE", "ÇANKIRI", "ÇORUM",
-  "DENİZLİ", "DİYARBAKIR", "DÜZCE", "EDİRNE", "ELAZIĞ", "ERZİNCAN", "ERZURUM", "ESKİŞEHİR",
-  "GAZİANTEP", "GİRESUN", "GÜMÜŞHANE", "HAKKARİ", "HATAY", "IĞDIR", "ISPARTA", "İSTANBUL",
-  "İZMİR", "KAHRAMANMARAŞ", "KARABÜK", "KARAMAN", "KARS", "KASTAMONU", "KAYSERİ", "KİLİS",
-  "KIRIKKALE", "KIRKLARELİ", "KIRŞEHİR", "KOCAELİ", "KONYA", "KÜTAHYA", "MALATYA", "MANİSA",
-  "MARDİN", "MERSİN", "MUĞLA", "MUŞ", "NEVŞEHİR", "NİĞDE", "ORDU", "OSMANİYE",
-  "RİZE", "SAKARYA", "SAMSUN", "ŞANLIURFA", "SİİRT", "SİNOP", "SİVAS", "ŞIRNAK",
-  "TEKİRDAĞ", "TOKAT", "TRABZON", "TUNCELİ", "UŞAK", "VAN", "YALOVA", "YOZGAT", "ZONGULDAK",
-];
+const provinces = Object.keys(IL_ILCE);
 
 export function TemsilciliklerimizForm() {
   const [il, setIl] = useState("");
+  const [ilce, setIlce] = useState("");
+
+  const districts = il ? IL_ILCE[il] : [];
+  const canSearch = Boolean(il && ilce);
+
+  const handleFind = () => {
+    if (!canSearch) return;
+    const query = encodeURIComponent(`Vodafone Mağaza ${ilce} ${il}`);
+    window.open(`https://www.google.com/maps/search/${query}`, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div className="mx-auto flex w-full max-w-[560px] flex-col gap-y-4 rounded-lg bg-white p-6 shadow-md">
@@ -27,7 +27,10 @@ export function TemsilciliklerimizForm() {
         <select
           id="il"
           value={il}
-          onChange={(e) => setIl(e.target.value)}
+          onChange={(e) => {
+            setIl(e.target.value);
+            setIlce("");
+          }}
           className="rounded border border-gray-300 px-4 py-3 text-sm text-black focus:border-vf-red focus:outline-none"
         >
           <option value="">İl seçiniz</option>
@@ -45,16 +48,25 @@ export function TemsilciliklerimizForm() {
         </label>
         <select
           id="ilce"
+          value={ilce}
+          onChange={(e) => setIlce(e.target.value)}
           disabled={!il}
           className="rounded border border-gray-300 px-4 py-3 text-sm text-black disabled:bg-gray-100 disabled:text-gray-400 focus:border-vf-red focus:outline-none"
         >
           <option value="">İlçe seçiniz</option>
+          {districts.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
         </select>
       </div>
 
       <button
         type="button"
-        className="mt-2 rounded bg-vf-red px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700"
+        onClick={handleFind}
+        disabled={!canSearch}
+        className="mt-2 rounded bg-vf-red px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-300"
       >
         Bul
       </button>
