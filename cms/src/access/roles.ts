@@ -81,12 +81,9 @@ export const campaignsReadWrite: Access = ({ req }) => {
 };
 
 /**
- * GROWTH_MAKER may create/edit campaigns but can never publish its own
- * work — segregation of duties, GROWTH_CHECKER (or a New Vertical role)
- * must flip status to published. NEW_VERTICAL_MAKER is also named "Maker"
- * in its LDAP role but its own role description explicitly grants direct
- * publish ("canlıya uygulayabilir"), so this restriction targets
- * GROWTH_MAKER specifically, not every role with "MAKER" in the name.
+ * Factory for a maker/checker segregation-of-duties hook: the given role may
+ * create/edit but can never flip `_status` to "published" itself — some
+ * other role (a checker, or a role with broader rights) must do that.
  *
  * Enforced as a `beforeChange` hook rather than access-control alone: we
  * learned the hard way on the draft-read leak (see denyUnauthenticatedDraftRead
@@ -94,10 +91,23 @@ export const campaignsReadWrite: Access = ({ req }) => {
  * draft/version operations does not reliably behave the way the docs
  * describe — a hook that inspects the actual incoming data and throws is
  * the only way we've verified actually holds up.
+ *
+ * Only GROWTH_MAKER uses this today. NEW_VERTICAL_MAKER is deliberately
+ * NOT wrapped in this — its role definition (given verbatim by the business,
+ * not something this codebase can redefine) explicitly grants it direct
+ * publish rights ("canlıya uygulayabilir"); NEW_VERTICAL_CHECKER exists as a
+ * separate update-without-create role, not as a publish gate on the maker.
+ * Applying this hook to NEW_VERTICAL_MAKER would silently violate that
+ * given role table, so it stays maker/checker-generic (any future role can
+ * reuse it) rather than hardcoded to the one case it currently covers.
  */
-export const denyMakerPublish: CollectionBeforeChangeHook = ({ data, req }) => {
-  if (roleOf(req) === ROLES.GROWTH_MAKER && data?._status === "published") {
-    throw new Forbidden(req.t);
-  }
-  return data;
-};
+export function denyRolePublish(blockedRole: RoleValue): CollectionBeforeChangeHook {
+  return ({ data, req }) => {
+    if (roleOf(req) === blockedRole && data?._status === "published") {
+      throw new Forbidden(req.t);
+    }
+    return data;
+  };
+}
+
+export const denyMakerPublish = denyRolePublish(ROLES.GROWTH_MAKER);
