@@ -26,6 +26,7 @@ export const FeatureCards: CollectionConfig = {
     { name: "icon", type: "upload", relationTo: "media", required: true },
     { name: "title", type: "text", required: true },
     { name: "text", type: "textarea", required: true },
+    { name: "deeplink", type: "text", admin: { description: "Kart tıklanınca gidilecek sayfa/deeplink (opsiyonel)." } },
     { name: "order", type: "number", defaultValue: 0 },
   ],
   hooks: {

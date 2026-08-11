@@ -345,6 +345,7 @@ const announcementSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   title: z.string(),
   body: z.string(),
+  deeplink: nullableString(),
   order: z.number(),
 });
 export type CmsAnnouncement = z.infer<typeof announcementSchema>;

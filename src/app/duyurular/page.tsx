@@ -19,6 +19,7 @@ export default async function Duyurular() {
   const items: Announcement[] | undefined = cmsAnnouncements?.length
     ? cmsAnnouncements.map((a) => ({
         title: a.title,
+        deeplink: a.deeplink,
         body: (
           <>
             {textToParagraphs(a.body).map((p, i) => (

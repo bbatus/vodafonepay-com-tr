@@ -24,6 +24,11 @@ export const Announcements: CollectionConfig = {
   fields: [
     { name: "title", type: "text", required: true, admin: { description: "Örn: 18.08.2026 02:00-08:00 Vodafone Pay Planlı Altyapı Çalışması" } },
     { name: "body", type: "textarea", required: true, admin: { description: "Paragraflar arasına boş satır bırakın." } },
+    {
+      name: "deeplink",
+      type: "text",
+      admin: { description: "Örn: /kampanyalar/{slug} veya bir uygulama deeplink'i — verilirse duyuru tıklanabilir olur." },
+    },
     { name: "order", type: "number", defaultValue: 0 },
   ],
   hooks: {

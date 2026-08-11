@@ -26,6 +26,7 @@ export const StepCards: CollectionConfig = {
     { name: "number", type: "text", required: true },
     { name: "text", type: "textarea", required: true },
     { name: "image", type: "upload", relationTo: "media", required: true },
+    { name: "deeplink", type: "text", admin: { description: "Adım tıklanınca gidilecek sayfa/deeplink (opsiyonel)." } },
     { name: "order", type: "number", defaultValue: 0 },
   ],
   hooks: {
