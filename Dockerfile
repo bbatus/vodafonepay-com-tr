@@ -5,11 +5,16 @@
 # ============================================
 
 # IMPORTANT: Node.js Version Maintenance
-# This Dockerfile defaults to Node.js 24.14.1-slim to match the repo's Node 24 baseline.
-# To ensure security and compatibility, update the NODE_VERSION ARG when the project's Node baseline changes.
-ARG NODE_VERSION=24.14.1-slim
+# Alpine base — far fewer OS packages than Debian slim means far fewer OS-level
+# CVEs (confirmed via Trivy: Debian slim carried 21 HIGH + 7 CRITICAL OS
+# findings on this exact image). Update the NODE_VERSION ARG when the
+# project's Node baseline changes.
+ARG NODE_VERSION=24-alpine
 
 FROM node:${NODE_VERSION} AS dependencies
+
+# Native deps (sharp, etc.) expect glibc-compatible shims on Alpine's musl libc.
+RUN apk add --no-cache libc6-compat
 
 # Set working directory
 WORKDIR /app
@@ -103,6 +108,14 @@ COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 # If you want to persist the fetch cache generated during the build so that
 # cached responses are available immediately on startup, uncomment this line:
 # COPY --from=builder --chown=node:node /app/.next/cache ./.next/cache
+
+# The runner only ever runs `node server.js` — npm itself is never invoked at
+# runtime, but the base image ships it anyway (it's needed in earlier build
+# stages). Its bundled dependencies carry their own CVEs (confirmed via
+# Trivy: brace-expansion, tar, undici, ip-address), so drop it entirely from
+# the shipped image rather than carry vulnerabilities for a tool this
+# container never uses.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 
 # Switch to non-root user for security best practices
 USER node
