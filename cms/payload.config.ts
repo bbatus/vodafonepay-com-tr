@@ -19,8 +19,10 @@ import { FeatureCards } from "./src/collections/FeatureCards";
 import { StepCards } from "./src/collections/StepCards";
 import { Announcements } from "./src/collections/Announcements";
 import { LegalPages } from "./src/collections/LegalPages";
+import { ContentBlocks } from "./src/collections/ContentBlocks";
 import { ContactInfo } from "./src/globals/ContactInfo";
 import { ROLES } from "./src/access/roles";
+import { env } from "./src/env";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -105,16 +107,17 @@ export default buildConfig({
     StepCards,
     Announcements,
     LegalPages,
+    ContentBlocks,
   ],
   globals: [ContactInfo],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || "",
+  secret: env.PAYLOAD_SECRET,
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI || "",
+      connectionString: env.DATABASE_URI,
     },
   }),
   sharp,

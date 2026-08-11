@@ -30,6 +30,9 @@ ENV NODE_ENV=production
 # loader expects the var to be present; a dummy value is fine at build time.
 ENV DATABASE_URI="postgres://build:build@localhost:5432/build"
 ENV PAYLOAD_SECRET="build-time-placeholder"
+# Required by src/env.ts's boot-time validation (payload.config.ts imports
+# it) — never used for anything real at build time, just needs to be present.
+ENV REVALIDATE_SECRET="build-time-placeholder"
 
 RUN npm run build
 
