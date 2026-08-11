@@ -24,7 +24,10 @@ export const Media: CollectionConfig = {
     },
   ],
   upload: {
-    mimeTypes: ["image/*"],
+    // RFP §3.1.2: video content must be supported too — the homepage's
+    // promo clip is a real example. PDFs go through the separate Documents
+    // collection instead (imageSizes/focalPoint below don't apply to them).
+    mimeTypes: ["image/*", "video/*"],
     focalPoint: true,
     imageSizes: [
       { name: "thumbnail", width: 240, height: 180, position: "centre" },

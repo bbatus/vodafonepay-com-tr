@@ -3,6 +3,8 @@ import { fileURLToPath } from "node:url";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { s3Storage } from "@payloadcms/storage-s3";
+import { tr } from "@payloadcms/translations/languages/tr";
+import { en } from "@payloadcms/translations/languages/en";
 import { buildConfig } from "payload";
 import sharp from "sharp";
 
@@ -50,6 +52,13 @@ const devAdminEmail = process.env.CMS_ADMIN_EMAIL || "admin@vodafonepay.local";
 const devAdminPassword = process.env.CMS_ADMIN_PASSWORD || "dev-admin-please-change";
 
 export default buildConfig({
+  // RFP §3.5.7: admin UI must be Turkish. Payload UI (menus, buttons,
+  // validation messages, dates) is now localized; `en` stays available as a
+  // fallback/switchable option for developer debugging.
+  i18n: {
+    supportedLanguages: { tr, en },
+    fallbackLanguage: "tr",
+  },
   admin: {
     user: Users.slug,
     theme: "light",
