@@ -22,8 +22,11 @@ export const Campaigns: CollectionConfig = {
   },
   fields: [
     { name: "title", type: "text", required: true },
+    { name: "slug", type: "text", required: true, unique: true, admin: { description: "URL için: /kampanyalar/{slug}" } },
     { name: "description", type: "textarea", required: true },
     { name: "image", type: "upload", relationTo: "media", required: true },
+    { name: "body", type: "richText", admin: { description: "Detay sayfasının gövde metni" } },
+    { name: "terms", type: "richText", admin: { description: "Katılım koşulları / kampanya esasları" } },
     {
       name: "category",
       type: "select",
@@ -36,9 +39,21 @@ export const Campaigns: CollectionConfig = {
         { label: "Kart", value: "kart" },
       ],
     },
+    {
+      name: "status",
+      type: "select",
+      defaultValue: "active",
+      options: [
+        { label: "Aktif", value: "active" },
+        { label: "Süresi doldu", value: "expired" },
+      ],
+      admin: { description: "Süresi dolan kampanya liste sayfalarından kalkar, detay sayfası erişilebilir kalır" },
+    },
     { name: "featured", type: "checkbox", defaultValue: false, label: "Bu ayın favorilerinde göster" },
     { name: "ctaLabel", type: "text", defaultValue: "Detayları gör" },
     { name: "ctaUrl", type: "text" },
+    { name: "seoTitle", type: "text" },
+    { name: "seoDescription", type: "textarea" },
     {
       type: "row",
       fields: [
