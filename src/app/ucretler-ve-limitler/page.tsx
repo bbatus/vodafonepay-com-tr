@@ -8,11 +8,15 @@ import { Footer } from "@/components/Footer";
 import { getFeeRows, getLimitTables, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Ücretler ve Limitler | Vodafone Pay",
-  description: "Vodafone Pay ürün ve hizmetlerine ait güncel ücret ve limit bilgileri.",
-  path: "/ucretler-ve-limitler",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/ucretler-ve-limitler");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Ücretler ve Limitler | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay ürün ve hizmetlerine ait güncel ücret ve limit bilgileri.",
+    path: "/ucretler-ve-limitler",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 export default async function UcretlerVeLimitler() {
   const [cmsFeeRows, cmsLimitTables] = await Promise.all([getFeeRows(), getLimitTables()]);

@@ -7,11 +7,15 @@ import { Footer } from "@/components/Footer";
 import { getContactInfo, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Vodafone Pay İletişim | Müşteri Hizmetleri",
-  description: "Vodafone Pay şirket bilgileri, müşteri hizmetleri ve denetim mercii iletişim bilgileri.",
-  path: "/iletisim",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/iletisim");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Vodafone Pay İletişim | Müşteri Hizmetleri",
+    description: pageMeta?.seoDescription || "Vodafone Pay şirket bilgileri, müşteri hizmetleri ve denetim mercii iletişim bilgileri.",
+    path: "/iletisim",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallback = {
   companyName: "Vodafone Elektronik Para ve Ödeme A.Ş.",

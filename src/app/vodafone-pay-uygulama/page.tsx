@@ -12,11 +12,15 @@ import { getContentBlocks, getFaqItems, getPageMeta, getProductHero } from "@/li
 import type { FaqItem } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Vodafone Pay Uygulaması ve Avantajları | Vodafone Pay",
-  description: "Vodafone Pay Uygulaması'nı indirerek tüm harcamalarınızı kolayca takip edebilir, kazandıran kampanyalara katılabilirsiniz.",
-  path: "/vodafone-pay-uygulama",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/vodafone-pay-uygulama");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Vodafone Pay Uygulaması ve Avantajları | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay Uygulaması'nı indirerek tüm harcamalarınızı kolayca takip edebilir, kazandıran kampanyalara katılabilirsiniz.",
+    path: "/vodafone-pay-uygulama",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackFaqs: FaqItem[] = [
   {

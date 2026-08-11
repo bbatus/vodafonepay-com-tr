@@ -8,11 +8,15 @@ import { Footer } from "@/components/Footer";
 import { buildMetadata } from "@/lib/metadata";
 import { getNavLinks, getPageMeta, type NavLinkSection } from "@/lib/cms";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Site Haritası | Vodafone Pay",
-  description: "Vodafone Pay web sitesindeki tüm sayfalara bu site haritasından ulaşabilirsiniz.",
-  path: "/site-haritasi",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/site-haritasi");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Site Haritası | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay web sitesindeki tüm sayfalara bu site haritasından ulaşabilirsiniz.",
+    path: "/site-haritasi",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 type Group = { title: string; links: { label: string; href: string }[] };
 

@@ -7,11 +7,15 @@ import { Footer } from "@/components/Footer";
 import { getContactInfo, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Vodafone Pay Kurumsal Yönetim | Hakkımızda",
-  description: "Vodafone Pay hakkında, vizyon, misyon, ortaklık yapısı ve yönetim kurulu bilgileri.",
-  path: "/kurumsal-yonetim",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/kurumsal-yonetim");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Vodafone Pay Kurumsal Yönetim | Hakkımızda",
+    description: pageMeta?.seoDescription || "Vodafone Pay hakkında, vizyon, misyon, ortaklık yapısı ve yönetim kurulu bilgileri.",
+    path: "/kurumsal-yonetim",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const missionItems = [
   "Vodafone ve Vodafone Grubu’nun yurtiçi ve yurtdışında geliştirmiş olduğu ticari tecrübesini en uygun şekilde değerlendirmek.",

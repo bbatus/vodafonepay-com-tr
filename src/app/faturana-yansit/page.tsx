@@ -15,11 +15,15 @@ import { getContentBlocks, getFaqItems, getFeatureCards, getPageMeta, getProduct
 import type { FaqItem } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Faturana Yansıt | Mobil Ödeme | Vodafone Pay",
-  description: "Yalnızca cep telefonu numaranızı kullanarak indirimli alışverişin keyfini çıkarın!",
-  path: "/faturana-yansit",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/faturana-yansit");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Faturana Yansıt | Mobil Ödeme | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Yalnızca cep telefonu numaranızı kullanarak indirimli alışverişin keyfini çıkarın!",
+    path: "/faturana-yansit",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackCards = [
   {

@@ -8,11 +8,15 @@ import { cookieRows as fallbackCookieRows } from "./cookieRows";
 import { getCookieRows, getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Çerez Politikası | Vodafone Pay",
-  description: "Vodafone Pay web sitesinde kullanılan çerezler, türleri ve yönetimi hakkında bilgi.",
-  path: "/cerez-politikasi",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/cerez-politikasi");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Çerez Politikası | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay web sitesinde kullanılan çerezler, türleri ve yönetimi hakkında bilgi.",
+    path: "/cerez-politikasi",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackIntro = [
   "Vodafone'da kişisel verileriniz güvence altındadır. Bu çerçevede Vodafone, kişisel verilerinizi tüm teknik ve idari tedbirleri alarak korur. Gerekli güvenlik düzeyi için bütün teknolojik imkanlar kullanılır.",

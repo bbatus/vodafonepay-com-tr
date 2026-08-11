@@ -13,11 +13,15 @@ import { getContentBlocks, getFaqItems, getPageMeta, getProductHero } from "@/li
 import type { FaqItem } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Vodafone Pay Kart",
-  description: "Vodafone Pay Sanal ve Fiziksel Kart ile harcamalarını kolayca ve güvenli bir şekilde gerçekleştirebilir, kazandığın nakit iadelerle daha fazla harcayabilirsin.",
-  path: "/vodafone-pay-kart",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/vodafone-pay-kart");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Vodafone Pay Kart",
+    description: pageMeta?.seoDescription || "Vodafone Pay Sanal ve Fiziksel Kart ile harcamalarını kolayca ve güvenli bir şekilde gerçekleştirebilir, kazandığın nakit iadelerle daha fazla harcayabilirsin.",
+    path: "/vodafone-pay-kart",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackFaqs: FaqItem[] = [
   {

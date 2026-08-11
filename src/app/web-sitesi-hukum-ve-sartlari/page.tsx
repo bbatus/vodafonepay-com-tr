@@ -7,11 +7,15 @@ import { Footer } from "@/components/Footer";
 import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Web Sitesi Kullanımı Hüküm ve Şartları | Vodafone Pay",
-  description: "Vodafone Pay web sitesinin kullanımına ilişkin hüküm ve şartlar.",
-  path: "/web-sitesi-hukum-ve-sartlari",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/web-sitesi-hukum-ve-sartlari");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Web Sitesi Kullanımı Hüküm ve Şartları | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay web sitesinin kullanımına ilişkin hüküm ve şartlar.",
+    path: "/web-sitesi-hukum-ve-sartlari",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackDocuments = ["Hüküm ve Şartlar için tıklayınız"];
 

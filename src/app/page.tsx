@@ -7,16 +7,21 @@ import { FeatureHighlights } from "@/components/FeatureHighlights";
 import { Campaigns } from "@/components/Campaigns";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { campaignToCard, getCampaigns, getContentBlocks, getFaqItems } from "@/lib/cms";
+import { campaignToCard, getCampaigns, getContentBlocks, getFaqItems, getPageMeta } from "@/lib/cms";
 import type { StepProduct } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Vodafone Pay | Yeni Nesil Mobil Cüzdan",
-  description:
-    "Vodafone Pay ile cüzdanınıza bakış açınız kökten değişiyor, hazır mısınız? Vodafone Pay hakkında detaylı bilgi almak için tıklayın.",
-  path: "/",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Vodafone Pay | Yeni Nesil Mobil Cüzdan",
+    description:
+      pageMeta?.seoDescription ||
+      "Vodafone Pay ile cüzdanınıza bakış açınız kökten değişiyor, hazır mısınız? Vodafone Pay hakkında detaylı bilgi almak için tıklayın.",
+    path: "/",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 export default async function Home() {
   const [cmsCampaigns, cmsFaqItems, cmsSteps, cmsHighlights] = await Promise.all([

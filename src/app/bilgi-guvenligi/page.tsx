@@ -7,11 +7,15 @@ import { Footer } from "@/components/Footer";
 import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Bilgi Güvenliği | Vodafone Pay",
-  description: "Vodafone Pay müşteri bilgileri ve hassas ödeme verilerinin güvenliği için alınması gereken önlemler.",
-  path: "/bilgi-guvenligi",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/bilgi-guvenligi");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Bilgi Güvenliği | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay müşteri bilgileri ve hassas ödeme verilerinin güvenliği için alınması gereken önlemler.",
+    path: "/bilgi-guvenligi",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackTips = [
   "Sizi arayan ve kendilerini avukat, polis, savcı, bankacı, sigortacı gibi tanıtan, sosyal medya/e-posta üzerinden arkadaşınız ya da ticaret yaptığınız şirket gibi davranan dolandırıcılar olabilir. Bu nedenle kiminle görüştüğünüze dikkat edin.",

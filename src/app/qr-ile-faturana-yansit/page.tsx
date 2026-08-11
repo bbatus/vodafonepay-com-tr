@@ -12,11 +12,15 @@ import { getFaqItems, getFeatureCards, getPageMeta, getProductHero, getStepCards
 import type { FaqItem } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "QR ile Faturana Yansıt | Vodafone Pay",
-  description: "Artık QR ile yapacağınız fiziksel harcamalarınızı Vodafone faturanıza yansıtabilir, üstelik harcama tutarınızı ilk çıkacak fatura döneminize kadar erteleyebilirsiniz!",
-  path: "/qr-ile-faturana-yansit",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/qr-ile-faturana-yansit");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "QR ile Faturana Yansıt | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Artık QR ile yapacağınız fiziksel harcamalarınızı Vodafone faturanıza yansıtabilir, üstelik harcama tutarınızı ilk çıkacak fatura döneminize kadar erteleyebilirsiniz!",
+    path: "/qr-ile-faturana-yansit",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackCards = [
   {

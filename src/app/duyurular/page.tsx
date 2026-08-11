@@ -8,11 +8,15 @@ import { DuyurularAccordion, type Announcement } from "./DuyurularAccordion";
 import { getAnnouncements, getPageMeta, textToParagraphs } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Vodafone Pay Duyurular | Resmî Bildirimler ve Açıklamalar",
-  description: "Vodafone Pay'e ait resmî duyurular, bildirimler ve açıklamalar.",
-  path: "/duyurular",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/duyurular");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Vodafone Pay Duyurular | Resmî Bildirimler ve Açıklamalar",
+    description: pageMeta?.seoDescription || "Vodafone Pay'e ait resmî duyurular, bildirimler ve açıklamalar.",
+    path: "/duyurular",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 export default async function Duyurular() {
   const cmsAnnouncements = await getAnnouncements();

@@ -7,11 +7,15 @@ import { Footer } from "@/components/Footer";
 import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Gizlilik ve Güvenlik Politikası | Vodafone Pay",
-  description: "Vodafone Pay kişisel verilerin korunması, gizlilik ve güvenlik politikası aydınlatma metinleri.",
-  path: "/gizlilik-ve-guvenlik-politikasi",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/gizlilik-ve-guvenlik-politikasi");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Gizlilik ve Güvenlik Politikası | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay kişisel verilerin korunması, gizlilik ve güvenlik politikası aydınlatma metinleri.",
+    path: "/gizlilik-ve-guvenlik-politikasi",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackIntro = [
   "6698 sayılı Kişisel Verilerin Korunması Kanunu (\"Kanun\") uyarınca, kişisel verileriniz; veri sorumlusu sıfatıyla, hizmet aldığınız Vodafone Elektronik Para ve Ödeme Hizmetleri A.Ş. (\"Vodafone\", \"Şirket\") tarafından aşağıda açıklanan amaç ve hukuki sebeplerle işlenecektir.",

@@ -12,11 +12,15 @@ import { getFaqItems, getFeatureCards, getPageMeta, getProductHero, getStepCards
 import type { FaqItem } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Anında Bakiye ile Sana Özel Mobil Ödeme Limiti | Vodafone Pay",
-  description: "Size özel limitinizle dilediğiniz yerde harcama yapabilirsiniz!",
-  path: "/aninda-bakiye",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/aninda-bakiye");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Anında Bakiye ile Sana Özel Mobil Ödeme Limiti | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Size özel limitinizle dilediğiniz yerde harcama yapabilirsiniz!",
+    path: "/aninda-bakiye",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackCards = [
   {

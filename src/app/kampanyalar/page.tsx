@@ -11,11 +11,15 @@ import type { FaqItem } from "@/types/homepage";
 import { CampaignsFilterableList } from "./CampaignsFilterableList";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Nakit İade Kampanyaları | Pay'lilere Özel Fırsatlar | Vodafone Pay",
-  description: "Vodafone Pay'in nakit iade ve indirim kampanyalarını incele, avantajlardan yararlan.",
-  path: "/kampanyalar",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/kampanyalar");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Nakit İade Kampanyaları | Pay'lilere Özel Fırsatlar | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay'in nakit iade ve indirim kampanyalarını incele, avantajlardan yararlan.",
+    path: "/kampanyalar",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackFavorites: CardListItem[] = [
   { image: "/images/campaign-cesme.jpg", title: "Vodafone Pay ile Çeşme Plajlarında 1.000 TL Nakit İade!" },

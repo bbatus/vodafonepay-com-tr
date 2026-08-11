@@ -8,11 +8,15 @@ import { FaydaliBilgilerAccordion } from "./FaydaliBilgilerAccordion";
 import { buildMetadata } from "@/lib/metadata";
 import { getPageMeta } from "@/lib/cms";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Faydalı Bilgiler | Vodafone Pay",
-  description: "Vodafone Pay kullanımına dair faydalı bilgiler.",
-  path: "/faydali-bilgiler",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/faydali-bilgiler");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Faydalı Bilgiler | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay kullanımına dair faydalı bilgiler.",
+    path: "/faydali-bilgiler",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 export default async function FaydaliBilgiler() {
   const pageMeta = await getPageMeta("/faydali-bilgiler");

@@ -7,11 +7,15 @@ import { Footer } from "@/components/Footer";
 import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Sözleşmeler ve Formlar | Vodafone Pay",
-  description: "Vodafone Pay sözleşme, form ve ticari koşullar belgelerine buradan ulaşabilirsiniz.",
-  path: "/sozlesmeler-ve-formlar",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/sozlesmeler-ve-formlar");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Sözleşmeler ve Formlar | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay sözleşme, form ve ticari koşullar belgelerine buradan ulaşabilirsiniz.",
+    path: "/sozlesmeler-ve-formlar",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackDocuments = [
   "Tüketici Hakları Bilgi Formu için tıklayınız",

@@ -9,11 +9,15 @@ import { getPageMeta, getRepresentatives } from "@/lib/cms";
 import { TemsilciliklerimizForm } from "./TemsilciliklerimizForm";
 import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = buildMetadata({
-  title: "En Yakın Temsilciliklerimiz | Vodafone Pay",
-  description: "İl ve ilçe seçerek size en yakın Vodafone Pay temsilciliğini bulun.",
-  path: "/temsilciliklerimiz",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/temsilciliklerimiz");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "En Yakın Temsilciliklerimiz | Vodafone Pay",
+    description: pageMeta?.seoDescription || "İl ve ilçe seçerek size en yakın Vodafone Pay temsilciliğini bulun.",
+    path: "/temsilciliklerimiz",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 export default async function Temsilciliklerimiz() {
   const representatives = (await getRepresentatives()) ?? [];
