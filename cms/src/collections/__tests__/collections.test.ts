@@ -14,6 +14,7 @@ import { NavLinks } from "@/collections/NavLinks";
 import { ProductHeroes } from "@/collections/ProductHeroes";
 import { StepCards } from "@/collections/StepCards";
 import { Users } from "@/collections/Users";
+import { AuditLogs } from "@/collections/AuditLogs";
 import { ContactInfo } from "@/globals/ContactInfo";
 import { ROLES } from "@/access/roles";
 
@@ -121,6 +122,19 @@ describe("Users", () => {
   });
 });
 
+describe("AuditLogs", () => {
+  it("is readable only by isNewVerticalMaker, and immutable via the API (no create/update/delete)", () => {
+    const maker = { user: { role: ROLES.NEW_VERTICAL_MAKER } } as unknown as PayloadRequest;
+    const checker = { user: { role: ROLES.NEW_VERTICAL_CHECKER } } as unknown as PayloadRequest;
+
+    expect(AuditLogs.access?.read?.({ req: maker } as never)).toBe(true);
+    expect(AuditLogs.access?.read?.({ req: checker } as never)).toBe(false);
+    expect(AuditLogs.access?.create?.({ req: maker } as never)).toBe(false);
+    expect(AuditLogs.access?.update?.({ req: maker } as never)).toBe(false);
+    expect(AuditLogs.access?.delete?.({ req: maker } as never)).toBe(false);
+  });
+});
+
 describe("ContactInfo (global)", () => {
   it("allows public read and role-gated update", () => {
     expect(ContactInfo.access?.read).toBeTypeOf("function");
@@ -136,6 +150,7 @@ describe("all collection slugs are unique", () => {
       Campaigns,
       Media,
       Users,
+      AuditLogs,
     ];
     const slugs = all.map((c) => c.slug);
     expect(new Set(slugs).size).toBe(slugs.length);

@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const StepCards: CollectionConfig = {
   slug: "step-cards",
@@ -29,7 +30,7 @@ export const StepCards: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    afterChange: [revalidateTag("step-cards")],
-    afterDelete: [revalidateTagOnDelete("step-cards")],
+    afterChange: [revalidateTag("step-cards"), auditAfterChange("step-cards")],
+    afterDelete: [revalidateTagOnDelete("step-cards"), auditAfterDelete("step-cards")],
   },
 };

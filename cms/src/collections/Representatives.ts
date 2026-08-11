@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const Representatives: CollectionConfig = {
   slug: "representatives",
@@ -29,7 +30,7 @@ export const Representatives: CollectionConfig = {
     { name: "qrCode", type: "upload", relationTo: "media" },
   ],
   hooks: {
-    afterChange: [revalidateTag("representatives")],
-    afterDelete: [revalidateTagOnDelete("representatives")],
+    afterChange: [revalidateTag("representatives"), auditAfterChange("representatives")],
+    afterDelete: [revalidateTagOnDelete("representatives"), auditAfterDelete("representatives")],
   },
 };

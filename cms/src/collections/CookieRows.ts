@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const CookieRows: CollectionConfig = {
   slug: "cookie-rows",
@@ -49,7 +50,7 @@ export const CookieRows: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    afterChange: [revalidateTag("cookie-rows")],
-    afterDelete: [revalidateTagOnDelete("cookie-rows")],
+    afterChange: [revalidateTag("cookie-rows"), auditAfterChange("cookie-rows")],
+    afterDelete: [revalidateTagOnDelete("cookie-rows"), auditAfterDelete("cookie-rows")],
   },
 };

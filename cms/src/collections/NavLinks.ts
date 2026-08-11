@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const NavLinks: CollectionConfig = {
   slug: "nav-links",
@@ -40,7 +41,7 @@ export const NavLinks: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    afterChange: [revalidateTag("nav-links")],
-    afterDelete: [revalidateTagOnDelete("nav-links")],
+    afterChange: [revalidateTag("nav-links"), auditAfterChange("nav-links")],
+    afterDelete: [revalidateTagOnDelete("nav-links"), auditAfterDelete("nav-links")],
   },
 };

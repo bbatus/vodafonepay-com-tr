@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 
@@ -45,7 +46,7 @@ export const BlogPosts: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    afterChange: [revalidateTag("blog-posts")],
-    afterDelete: [revalidateTagOnDelete("blog-posts")],
+    afterChange: [revalidateTag("blog-posts"), auditAfterChange("blog-posts")],
+    afterDelete: [revalidateTagOnDelete("blog-posts"), auditAfterDelete("blog-posts")],
   },
 };

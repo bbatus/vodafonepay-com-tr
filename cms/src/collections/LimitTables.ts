@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const LimitTables: CollectionConfig = {
   slug: "limit-tables",
@@ -38,7 +39,7 @@ export const LimitTables: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    afterChange: [revalidateTag("limit-tables")],
-    afterDelete: [revalidateTagOnDelete("limit-tables")],
+    afterChange: [revalidateTag("limit-tables"), auditAfterChange("limit-tables")],
+    afterDelete: [revalidateTagOnDelete("limit-tables"), auditAfterDelete("limit-tables")],
   },
 };

@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const FeatureCards: CollectionConfig = {
   slug: "feature-cards",
@@ -29,7 +30,7 @@ export const FeatureCards: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    afterChange: [revalidateTag("feature-cards")],
-    afterDelete: [revalidateTagOnDelete("feature-cards")],
+    afterChange: [revalidateTag("feature-cards"), auditAfterChange("feature-cards")],
+    afterDelete: [revalidateTagOnDelete("feature-cards"), auditAfterDelete("feature-cards")],
   },
 };

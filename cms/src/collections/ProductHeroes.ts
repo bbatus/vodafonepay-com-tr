@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const ProductHeroes: CollectionConfig = {
   slug: "product-heroes",
@@ -40,7 +41,7 @@ export const ProductHeroes: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    afterChange: [revalidateTag("product-heroes")],
-    afterDelete: [revalidateTagOnDelete("product-heroes")],
+    afterChange: [revalidateTag("product-heroes"), auditAfterChange("product-heroes")],
+    afterDelete: [revalidateTagOnDelete("product-heroes"), auditAfterDelete("product-heroes")],
   },
 };

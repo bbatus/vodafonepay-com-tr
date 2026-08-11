@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { campaignsCreate, campaignsReadWrite, denyMakerPublish, isNewVerticalMaker } from "@/access/roles";
 
@@ -70,7 +71,7 @@ export const Campaigns: CollectionConfig = {
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
     beforeChange: [denyMakerPublish],
-    afterChange: [revalidateTag("campaigns")],
-    afterDelete: [revalidateTagOnDelete("campaigns")],
+    afterChange: [revalidateTag("campaigns"), auditAfterChange("campaigns")],
+    afterDelete: [revalidateTagOnDelete("campaigns"), auditAfterDelete("campaigns")],
   },
 };

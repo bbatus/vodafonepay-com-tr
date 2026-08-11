@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, mediaCreate, newVerticalReadWrite } from "@/access/roles";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const Media: CollectionConfig = {
   slug: "media",
@@ -34,5 +35,9 @@ export const Media: CollectionConfig = {
       { name: "card", width: 600, height: 400, position: "centre" },
       { name: "hero", width: 1200, height: 630, position: "centre" },
     ],
+  },
+  hooks: {
+    afterChange: [auditAfterChange("media")],
+    afterDelete: [auditAfterDelete("media")],
   },
 };

@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 
@@ -42,7 +43,7 @@ export const FaqItems: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    afterChange: [revalidateTag("faq-items")],
-    afterDelete: [revalidateTagOnDelete("faq-items")],
+    afterChange: [revalidateTag("faq-items"), auditAfterChange("faq-items")],
+    afterDelete: [revalidateTagOnDelete("faq-items"), auditAfterDelete("faq-items")],
   },
 };

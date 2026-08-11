@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 /**
  * Generic content block for the several small, one-off sections that used to
@@ -59,7 +60,7 @@ export const ContentBlocks: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    afterChange: [revalidateTag("content-blocks")],
-    afterDelete: [revalidateTagOnDelete("content-blocks")],
+    afterChange: [revalidateTag("content-blocks"), auditAfterChange("content-blocks")],
+    afterDelete: [revalidateTagOnDelete("content-blocks"), auditAfterDelete("content-blocks")],
   },
 };

@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const LegalPages: CollectionConfig = {
   slug: "legal-pages",
@@ -53,7 +54,7 @@ export const LegalPages: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    afterChange: [revalidateTag("legal-pages")],
-    afterDelete: [revalidateTagOnDelete("legal-pages")],
+    afterChange: [revalidateTag("legal-pages"), auditAfterChange("legal-pages")],
+    afterDelete: [revalidateTagOnDelete("legal-pages"), auditAfterDelete("legal-pages")],
   },
 };

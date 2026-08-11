@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const FeeRows: CollectionConfig = {
   slug: "fee-rows",
@@ -27,7 +28,7 @@ export const FeeRows: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    afterChange: [revalidateTag("fee-rows")],
-    afterDelete: [revalidateTagOnDelete("fee-rows")],
+    afterChange: [revalidateTag("fee-rows"), auditAfterChange("fee-rows")],
+    afterDelete: [revalidateTagOnDelete("fee-rows"), auditAfterDelete("fee-rows")],
   },
 };

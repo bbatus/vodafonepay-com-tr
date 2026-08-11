@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, ROLE_OPTIONS, ROLES } from "@/access/roles";
+import { auditAfterChange, auditAfterDelete, writeAuditLog } from "@/hooks/audit";
 
 export const Users: CollectionConfig = {
   slug: "users",
@@ -33,4 +34,29 @@ export const Users: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    // RFP §7.2: login/logout must be audited. Failed-login attempts aren't
+    // logged here — Payload doesn't expose a hook for them, only its own
+    // internal lockout counters (see auth.maxLoginAttempts, not configured).
+    afterLogin: [
+      async ({ req, user }) => {
+        const typedUser = user as { email?: string; role?: string };
+        const email = typedUser.email ?? "unknown";
+        await writeAuditLog(req, {
+          action: "login",
+          summary: `${email} giriş yaptı`,
+          actorEmail: email,
+          actorRole: typedUser.role,
+        });
+      },
+    ],
+    afterLogout: [
+      async ({ req }) => {
+        const email = (req.user as { email?: string } | undefined)?.email ?? "unknown";
+        await writeAuditLog(req, { action: "logout", summary: `${email} çıkış yaptı` });
+      },
+    ],
+    afterChange: [auditAfterChange("users")],
+    afterDelete: [auditAfterDelete("users")],
+  },
 };
