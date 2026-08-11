@@ -24,9 +24,9 @@ export const Campaigns: CollectionConfig = {
     delete: isNewVerticalMaker,
   },
   fields: [
-    { name: "title", type: "text", required: true },
+    { name: "title", type: "text", required: true, localized: true },
     { name: "slug", type: "text", required: true, unique: true, admin: { description: "URL için: /kampanyalar/{slug}" } },
-    { name: "description", type: "textarea", required: true },
+    { name: "description", type: "textarea", required: true, localized: true },
     { name: "image", type: "upload", relationTo: "media", required: true },
     { name: "body", type: "richText", admin: { description: "Detay sayfasının gövde metni" } },
     { name: "terms", type: "richText", admin: { description: "Katılım koşulları / kampanya esasları" } },

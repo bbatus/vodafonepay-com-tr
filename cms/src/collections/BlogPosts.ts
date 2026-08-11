@@ -24,10 +24,10 @@ export const BlogPosts: CollectionConfig = {
     delete: isNewVerticalMaker,
   },
   fields: [
-    { name: "title", type: "text", required: true },
+    { name: "title", type: "text", required: true, localized: true },
     { name: "slug", type: "text", required: true, unique: true, admin: { description: "URL için: /blog/{slug}" } },
     { name: "coverImage", type: "upload", relationTo: "media", required: true },
-    { name: "excerpt", type: "textarea", required: true },
+    { name: "excerpt", type: "textarea", required: true, localized: true },
     { name: "body", type: "richText" },
     { name: "category", type: "text" },
     { name: "publishedDate", type: "date", admin: { date: { pickerAppearance: "dayOnly" } } },

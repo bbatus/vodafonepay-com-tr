@@ -62,6 +62,19 @@ export default buildConfig({
     supportedLanguages: { tr, en },
     fallbackLanguage: "tr",
   },
+  // RFP §3.2.14: multi-language content infrastructure. This is the CMS-side
+  // half only — a handful of fields on Campaigns/BlogPosts/Pages are marked
+  // `localized: true` to prove the mechanism (see those files), but the
+  // SITE itself has no locale-aware routing or language switcher yet (it's
+  // Turkish-only end to end today), and none of the existing Turkish
+  // content has an English translation entered. Building the site-side
+  // i18n routing layer is a separate, large frontend initiative — not
+  // attempted here.
+  localization: {
+    locales: ["tr", "en"],
+    defaultLocale: "tr",
+    fallback: true,
+  },
   admin: {
     user: Users.slug,
     theme: "light",

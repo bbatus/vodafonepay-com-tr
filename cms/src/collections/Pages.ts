@@ -115,7 +115,7 @@ export const Pages: CollectionConfig = {
     delete: isNewVerticalMaker,
   },
   fields: [
-    { name: "title", type: "text", required: true },
+    { name: "title", type: "text", required: true, localized: true },
     {
       name: "slug",
       type: "text",
