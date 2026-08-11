@@ -71,6 +71,7 @@ async function cmsFetch<T>(path: string, tag: string, schema: z.ZodType<T>): Pro
 const campaignSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   title: z.string(),
+  slug: nullableString(),
   description: z.string(),
   image: mediaSchema,
   category: z.string(),
@@ -82,11 +83,57 @@ export type CmsCampaign = z.infer<typeof campaignSchema>;
 
 export async function getCampaigns(): Promise<CmsCampaign[] | null> {
   const data = await cmsFetch(
-    "/campaigns?depth=1&limit=100&sort=-createdAt",
+    "/campaigns?depth=1&limit=100&sort=-createdAt&where[status][not_equals]=expired",
     "campaigns",
     listResponseSchema(campaignSchema)
   );
   return data?.docs ?? null;
+}
+
+/**
+ * Payload's lexical richText field stores a nested JSON document, not plain
+ * text. This is a minimal flattener (paragraph/heading/list-item text runs
+ * joined per block) — enough to render campaign/blog detail bodies without
+ * pulling in a full lexical-to-react renderer.
+ */
+export function richTextToParagraphs(node: unknown): string[] {
+  const root = (node as { root?: { children?: unknown[] } } | null | undefined)?.root;
+  if (!root?.children) return [];
+
+  const extractText = (n: unknown): string => {
+    if (!n || typeof n !== "object") return "";
+    const obj = n as { text?: string; children?: unknown[] };
+    if (typeof obj.text === "string") return obj.text;
+    if (Array.isArray(obj.children)) return obj.children.map(extractText).join("");
+    return "";
+  };
+
+  return root.children.map(extractText).map((t) => t.trim()).filter(Boolean);
+}
+
+const campaignDetailSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  title: z.string(),
+  slug: z.string(),
+  description: z.string(),
+  image: mediaSchema,
+  category: z.string(),
+  body: z.unknown().nullable().optional(),
+  terms: z.unknown().nullable().optional(),
+  seoTitle: nullableString(),
+  seoDescription: nullableString(),
+  startDate: nullableString(),
+  endDate: nullableString(),
+});
+export type CmsCampaignDetail = z.infer<typeof campaignDetailSchema>;
+
+export async function getCampaignBySlug(slug: string): Promise<CmsCampaignDetail | null> {
+  const data = await cmsFetch(
+    `/campaigns?depth=1&limit=1&where[slug][equals]=${encodeURIComponent(slug)}`,
+    "campaigns",
+    listResponseSchema(campaignDetailSchema)
+  );
+  return data?.docs?.[0] ?? null;
 }
 
 export function campaignToCard(c: CmsCampaign) {
@@ -95,7 +142,7 @@ export function campaignToCard(c: CmsCampaign) {
     description: c.description,
     image: c.image.url,
     imageAlt: c.image.alt || c.title,
-    href: c.ctaUrl || "/kampanyalar",
+    href: c.ctaUrl || (c.slug ? `/kampanyalar/${c.slug}` : "/kampanyalar"),
   };
 }
 

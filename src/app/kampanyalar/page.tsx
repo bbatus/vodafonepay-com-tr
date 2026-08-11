@@ -58,6 +58,7 @@ export default async function Kampanyalar() {
     image: c.image.url,
     title: c.title,
     description: c.description,
+    href: c.slug ? `/kampanyalar/${c.slug}` : undefined,
   });
 
   const favorites = cmsCampaigns ? cmsCampaigns.filter((c) => c.featured).map(toCard) : fallbackFavorites;

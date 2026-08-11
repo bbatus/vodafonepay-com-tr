@@ -40,6 +40,7 @@ describe("campaignToCard", () => {
   const base: CmsCampaign = {
     id: "1",
     title: "Kampanya",
+    slug: undefined,
     description: "Açıklama",
     image: { url: "/img.jpg", alt: "" },
     category: "genel",
@@ -58,13 +59,18 @@ describe("campaignToCard", () => {
     expect(card.imageAlt).toBe("Gerçek alt");
   });
 
-  it("falls back to /kampanyalar when ctaUrl is missing", () => {
+  it("falls back to /kampanyalar when neither ctaUrl nor slug is set", () => {
     const card = campaignToCard(base);
     expect(card.href).toBe("/kampanyalar");
   });
 
-  it("uses ctaUrl when provided", () => {
-    const card = campaignToCard({ ...base, ctaUrl: "/kampanyalar/ozel" });
+  it("falls back to the slug-based detail URL when ctaUrl is missing", () => {
+    const card = campaignToCard({ ...base, slug: "ornek-kampanya" });
+    expect(card.href).toBe("/kampanyalar/ornek-kampanya");
+  });
+
+  it("uses ctaUrl when provided, even if slug is also set", () => {
+    const card = campaignToCard({ ...base, slug: "ornek-kampanya", ctaUrl: "/kampanyalar/ozel" });
     expect(card.href).toBe("/kampanyalar/ozel");
   });
 });
