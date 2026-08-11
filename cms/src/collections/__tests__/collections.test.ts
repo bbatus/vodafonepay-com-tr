@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { PayloadRequest } from "payload";
 import { Announcements } from "@/collections/Announcements";
 import { BlogPosts } from "@/collections/BlogPosts";
 import { Campaigns } from "@/collections/Campaigns";
@@ -95,11 +96,28 @@ describe("Users", () => {
     }
   });
 
-  it("read requires authentication, create/delete are New Vertical maker-only", () => {
-    expect(Users.access?.read).toBeTypeOf("function");
+  it("create/delete are New Vertical maker-only", () => {
     expect(Users.access?.create).toBeTypeOf("function");
     expect(Users.access?.update).toBeTypeOf("function");
     expect(Users.access?.delete).toBeTypeOf("function");
+  });
+
+  it("read: New Vertical maker sees everyone, other roles only see their own record", () => {
+    const read = Users.access?.read;
+    expect(read).toBeTypeOf("function");
+    if (!read) return;
+
+    const maker = { user: { id: 1, role: ROLES.NEW_VERTICAL_MAKER } } as unknown as PayloadRequest;
+    const checker = { user: { id: 2, role: ROLES.GROWTH_CHECKER } } as unknown as PayloadRequest;
+
+    // Maker can browse the full list (no specific id) and any single record.
+    expect(read({ req: maker })).toBe(true);
+    expect(read({ req: maker, id: 2 })).toBe(true);
+
+    // A non-maker can only read their own record, not the full list or someone else's.
+    expect(read({ req: checker, id: 2 })).toBe(true);
+    expect(read({ req: checker, id: 1 })).toBe(false);
+    expect(read({ req: checker })).toBe(false);
   });
 });
 

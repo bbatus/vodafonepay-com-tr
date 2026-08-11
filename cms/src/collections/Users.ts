@@ -10,10 +10,12 @@ export const Users: CollectionConfig = {
   },
   auth: true,
   access: {
-    // Any authenticated user (Payload's own default) — user list/emails must
-    // never be public. Only isNewVerticalMaker may create/update/delete
-    // other accounts.
-    read: ({ req }) => Boolean(req.user),
+    // Payload's own default (`Boolean(req.user)`) let ANY authenticated
+    // user — including a checker/growth-maker role — list every CMS
+    // account's email. Narrowed to isNewVerticalMaker-or-self, matching the
+    // update rule below: everyone can see their own record, only
+    // isNewVerticalMaker can browse the full user list.
+    read: ({ req, id }) => isNewVerticalMaker({ req }) || req.user?.id === id,
     create: isNewVerticalMaker,
     update: ({ req, id }) => isNewVerticalMaker({ req }) || req.user?.id === id,
     delete: isNewVerticalMaker,
