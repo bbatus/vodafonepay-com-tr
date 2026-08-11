@@ -64,6 +64,14 @@ scripts/            # Asset download scripts
 - When launching Claude Code agent teams, ALWAYS have each teammate work in their own worktree branch and merge everyone's work at the end, resolving any merge conflicts smartly since you are basically serving the orchestrator role and have full context to our goals, work given, work achieved, and desired outcomes.
 - After editing `AGENTS.md`, run `bash scripts/sync-agent-rules.sh` to regenerate platform-specific instruction files.
 - After editing `.claude/skills/clone-website/SKILL.md`, run `node scripts/sync-skills.mjs` to regenerate the skill for all platforms.
+- **After any large component or code change** (new component, non-trivial refactor, new collection/route), run a SonarQube scan before committing/pushing:
+  1. `docker compose -f tools/sonarqube/docker-compose.yml up -d` (starts SonarQube on `http://localhost:9002` if not already running)
+  2. `SONAR_TOKEN=<token> scripts/sonar-scan.sh all` (or `web` / `cms` to scope it) — generate a token once from the SonarQube UI (My Account > Security)
+  3. Fix everything the scan reports before commit/push. The script exits non-zero if any open issue remains.
+  - This is a local/dev-only stack, not part of `docker-compose.yml`'s prod services — never expose it, never bundle it into a deploy.
+- **After any change to a Dockerfile or a dependency** (package.json/package-lock.json), run `scripts/trivy-scan.sh all` (Trivy — covers both container image and dependency/SCA scanning) and fix everything it reports before commit/push. Requires the app/cms images to be built first (`docker compose -p vodafonepaycomtr up -d --build app cms`).
+- Both Dockerfiles use `node:24-alpine` (not `-slim`) specifically because Trivy found the Debian-slim base carried far more OS-level CVEs; the runner stages also strip `npm`/`npx`/`corepack` since they're never invoked at runtime and their bundled deps carry their own CVEs. Don't revert either of these without re-running `scripts/trivy-scan.sh images` to confirm the tradeoff.
+- `npm test` / `npm run test:coverage` exist in both the root project and `cms/` (Vitest). Keep coverage reasonably close to what's there now (~50% root, CMS access/hooks/collections near-100%) — write tests for new logic (access control, hooks, data transforms) rather than letting coverage silently regress.
 
 # Website Inspection Guide
 

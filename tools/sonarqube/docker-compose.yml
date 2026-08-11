@@ -1,0 +1,32 @@
+# Local static-analysis stack — NOT part of the app's runtime/prod stack.
+# Start:  docker compose -f tools/sonarqube/docker-compose.yml up -d
+# Stop:   docker compose -f tools/sonarqube/docker-compose.yml down
+# UI:     http://localhost:9002 (default admin/admin, change on first login)
+#
+# Community Edition, embedded H2 database — fine for local code-quality
+# scans, not meant to be a durable system of record. If the volume is lost,
+# just re-scan; nothing here is authoritative data.
+services:
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    restart: unless-stopped
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    ports:
+      - "${SONARQUBE_PORT:-9002}:9000"
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+    networks:
+      - sonar-net
+
+networks:
+  sonar-net:
+    name: sonar-net
+
+volumes:
+  sonarqube-data:
+  sonarqube-extensions:
+  sonarqube-logs:
