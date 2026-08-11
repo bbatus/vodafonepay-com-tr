@@ -128,6 +128,7 @@ export function FaqCategoryFilter() {
         <div className="mt-8 flex flex-wrap justify-center gap-2">
           {categories.map((c) => (
             <button
+              type="button"
               key={c}
               onClick={() => setActive(c)}
               className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${

@@ -46,6 +46,7 @@ export function ImageSideCarousel({
       <div className="mt-6 flex justify-center gap-x-2">
         {slides.map((slide, i) => (
           <button
+            type="button"
             key={slide.image}
             aria-label={`${i + 1}. kart`}
             onClick={() => setActive(i)}

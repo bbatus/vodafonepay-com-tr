@@ -132,6 +132,7 @@ export function DuyurularAccordion({ items = fallbackAnnouncements }: { items?: 
         return (
           <div key={item.title}>
             <button
+              type="button"
               onClick={() => setOpenIndex(isOpen ? null : i)}
               className="flex w-full cursor-pointer items-center justify-between gap-x-4 rounded bg-white px-5 py-[22px] text-left shadow-[0px_2px_8px_0px_#00000029]"
             >

@@ -57,8 +57,8 @@ export default async function BilgiGuvenligi() {
         </p>
 
         <ul className="mt-6 flex flex-col gap-y-4">
-          {tips.map((tip, i) => (
-            <li key={i} className="flex gap-x-3 text-sm leading-6 text-gray-700">
+          {tips.map((tip) => (
+            <li key={tip} className="flex gap-x-3 text-sm leading-6 text-gray-700">
               <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-vf-red" />
               {tip}
             </li>

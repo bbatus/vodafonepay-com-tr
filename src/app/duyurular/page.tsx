@@ -20,7 +20,7 @@ export default async function Duyurular() {
         body: (
           <>
             {textToParagraphs(a.body).map((p, i) => (
-              <p key={i} className={i > 0 ? "mt-3" : undefined}>
+              <p key={p} className={i > 0 ? "mt-3" : undefined}>
                 {p}
               </p>
             ))}

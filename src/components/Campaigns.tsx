@@ -58,6 +58,7 @@ export function Campaigns({ campaigns = fallbackCampaigns }: { campaigns?: Campa
 
       <div className="mt-8 flex items-center justify-center gap-x-4">
         <button
+          type="button"
           aria-label="Önceki kampanya"
           onClick={() => setActive((i) => (i - 1 + campaigns.length) % campaigns.length)}
           className="rounded-full p-2 hover:bg-gray-100"
@@ -66,6 +67,7 @@ export function Campaigns({ campaigns = fallbackCampaigns }: { campaigns?: Campa
         </button>
         {campaigns.map((c, i) => (
           <button
+            type="button"
             key={c.title}
             aria-label={`Kampanya ${i + 1}`}
             onClick={() => setActive(i)}
@@ -73,6 +75,7 @@ export function Campaigns({ campaigns = fallbackCampaigns }: { campaigns?: Campa
           />
         ))}
         <button
+          type="button"
           aria-label="Sonraki kampanya"
           onClick={() => setActive((i) => (i + 1) % campaigns.length)}
           className="rounded-full p-2 hover:bg-gray-100"

@@ -28,14 +28,14 @@ export default async function WebSitesiHukumVeSartlari() {
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Hüküm ve Şartlar</h1>
 
         <ul className="mt-10 flex flex-col gap-y-3">
-          {documents.map((doc, i) => (
-            <li key={i}>
-              <a
-                href="#"
-                className="flex items-center justify-between rounded bg-white px-5 py-4 text-sm font-bold text-vf-red shadow-[0px_2px_8px_0px_#00000029] transition-colors hover:text-red-700"
+          {documents.map((doc) => (
+            <li key={doc}>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between rounded bg-white px-5 py-4 text-left text-sm font-bold text-vf-red shadow-[0px_2px_8px_0px_#00000029] transition-colors hover:text-red-700"
               >
                 {doc}
-              </a>
+              </button>
             </li>
           ))}
         </ul>

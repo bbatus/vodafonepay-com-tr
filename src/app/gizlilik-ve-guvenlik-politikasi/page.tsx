@@ -91,7 +91,7 @@ export default async function GizlilikVeGuvenlikPolitikasi() {
           <div>
             <h2 className="text-2xl font-bold text-black">Vodafone Yanımda Uygulaması İşlemlerine Dair Aydınlatma Metni</h2>
             {intro.map((p, i) => (
-              <p key={i} className={i === 0 ? "mt-4" : "mt-3"}>
+              <p key={p} className={i === 0 ? "mt-4" : "mt-3"}>
                 {p}
               </p>
             ))}

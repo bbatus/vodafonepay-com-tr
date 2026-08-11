@@ -35,8 +35,8 @@ export default async function CerezPolitikasi() {
         <div className="mt-10 flex flex-col gap-y-6 text-sm leading-6 text-gray-700">
           <div>
             <h2 className="text-xl font-bold text-black">Veri Sorumlusu Kimdir?</h2>
-            {intro.map((p, i) => (
-              <p key={i} className="mt-3">
+            {intro.map((p) => (
+              <p key={p} className="mt-3">
                 {p}
               </p>
             ))}

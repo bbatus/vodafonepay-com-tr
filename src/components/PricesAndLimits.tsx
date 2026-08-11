@@ -74,6 +74,7 @@ export function PricesAndLimits({
     <section className="mx-auto max-w-[1030px] px-4 py-16">
       <div className="flex w-full max-w-[300px] items-center gap-x-2 rounded-lg bg-vf-gray p-1">
         <button
+          type="button"
           onClick={() => setTab("ucretler")}
           className={`w-full rounded-md py-2.5 text-sm font-bold transition-colors ${
             tab === "ucretler" ? "bg-white text-black shadow-sm" : "text-gray-500"
@@ -82,6 +83,7 @@ export function PricesAndLimits({
           Ücretler
         </button>
         <button
+          type="button"
           onClick={() => setTab("limitler")}
           className={`w-full rounded-md py-2.5 text-sm font-bold transition-colors ${
             tab === "limitler" ? "bg-white text-black shadow-sm" : "text-gray-500"
@@ -119,10 +121,10 @@ export function PricesAndLimits({
                   </tr>
                 </thead>
                 <tbody>
-                  {table.rows.map((row, i) => (
-                    <tr key={i} className="border-b border-gray-200">
+                  {table.rows.map((row) => (
+                    <tr key={row.join("|")} className="border-b border-gray-200">
                       {row.map((cell, j) => (
-                        <td key={j} className={`py-3 pr-4 ${j === 0 ? "font-bold text-black" : "text-gray-600"}`}>
+                        <td key={`${row[0]}-${row[1]}-${cell}`} className={`py-3 pr-4 ${j === 0 ? "font-bold text-black" : "text-gray-600"}`}>
                           {cell}
                         </td>
                       ))}

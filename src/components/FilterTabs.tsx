@@ -11,6 +11,7 @@ export function FilterTabs() {
     <div className="hidden items-center gap-2 lg:flex">
       {filters.map((f) => (
         <button
+          type="button"
           key={f}
           onClick={() => setActive(f)}
           className={`rounded-full border px-5 py-2 text-sm font-bold transition-colors ${

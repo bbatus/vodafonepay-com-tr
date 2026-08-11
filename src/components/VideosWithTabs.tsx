@@ -21,6 +21,7 @@ export function VideosWithTabs() {
       <div className="mx-auto flex w-full max-w-3xl justify-center rounded-lg bg-vf-gray p-1">
         {tabs.map((tab, i) => (
           <button
+            type="button"
             key={tab.label}
             onClick={() => setActiveTab(i)}
             className={`flex-1 rounded-md px-4 py-3 text-sm font-bold transition-colors ${

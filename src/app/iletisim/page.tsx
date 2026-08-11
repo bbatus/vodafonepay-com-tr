@@ -22,7 +22,7 @@ const fallback = {
   tcmbPhone: "(0312) 507 5000",
   tcmbFax: "(0312) 507 5640",
   tcmbKep: "merkezbankasi@hs02.kep.tr",
-  pressRelationsUrl: "http://medyamerkezi.vodafone.com.tr/",
+  pressRelationsUrl: "https://medyamerkezi.vodafone.com.tr/",
 };
 
 export default async function Iletisim() {
@@ -37,7 +37,7 @@ export default async function Iletisim() {
     {
       label: "Vodafone Pay Müşteri Hizmetleri",
       value: info.customerServiceText.split("\n").map((line, i) => (
-        <span key={i}>
+        <span key={`${line}-${i}`}>
           {i > 0 && <br />}
           {line}
         </span>
@@ -50,7 +50,7 @@ export default async function Iletisim() {
           TÜRKİYE CUMHURİYET MERKEZ BANKASI
           <br />
           {info.tcmbAddress.split("\n").map((line, i) => (
-            <span key={i}>
+            <span key={`${line}-${i}`}>
               {line}
               <br />
             </span>
