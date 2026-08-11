@@ -3,6 +3,7 @@ import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { campaignsCreate, campaignsReadWrite, denyMakerPublish, isNewVerticalMaker } from "@/access/roles";
+import { sitePreviewUrl } from "@/lib/preview";
 
 export const Campaigns: CollectionConfig = {
   slug: "campaigns",
@@ -10,6 +11,7 @@ export const Campaigns: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "category", "featured", "startDate", "endDate", "_status"],
     group: "İçerik",
+    preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/kampanyalar/${doc.slug}`) : null),
   },
   versions: {
     drafts: true,

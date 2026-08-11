@@ -3,6 +3,7 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { sitePreviewUrl } from "@/lib/preview";
 
 /**
  * RFP §3.3 (Lifecycle Management) / §3.2.13 (drag-and-drop web page design):
@@ -101,6 +102,7 @@ export const Pages: CollectionConfig = {
     defaultColumns: ["title", "slug", "_status"],
     group: "İçerik",
     description: "Yeni sayfalar (kampanya landing, hub sayfası vb.) — geliştirici gerekmeden, blokları sürükleyip bırakarak oluşturulur.",
+    preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/${doc.slug}`) : null),
   },
   versions: {
     drafts: true,

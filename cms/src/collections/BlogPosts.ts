@@ -3,6 +3,7 @@ import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { sitePreviewUrl } from "@/lib/preview";
 
 export const BlogPosts: CollectionConfig = {
   slug: "blog-posts",
@@ -10,6 +11,7 @@ export const BlogPosts: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "category", "publishedDate", "_status"],
     group: "İçerik",
+    preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/blog/${doc.slug}`) : null),
   },
   versions: {
     drafts: true,
