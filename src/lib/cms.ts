@@ -443,6 +443,22 @@ export async function getRepresentativeById(id: string): Promise<CmsRepresentati
   return cmsFetch(`/representatives/${encodeURIComponent(id)}?depth=1`, "representatives", representativeSchema);
 }
 
+const cookieRowSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  name: z.string(),
+  provider: z.string(),
+  party: z.string(),
+  category: z.string(),
+  description: z.string(),
+  duration: z.string(),
+});
+export type CmsCookieRow = z.infer<typeof cookieRowSchema>;
+
+export async function getCookieRows(): Promise<CmsCookieRow[] | null> {
+  const data = await cmsFetch("/cookie-rows?depth=0&limit=200", "cookie-rows", listResponseSchema(cookieRowSchema));
+  return data?.docs ?? null;
+}
+
 export function textToParagraphs(text: string): string[] {
   return text
     .split(/\n\s*\n/)

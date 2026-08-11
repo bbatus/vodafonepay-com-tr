@@ -21,6 +21,7 @@ import { Announcements } from "./src/collections/Announcements";
 import { LegalPages } from "./src/collections/LegalPages";
 import { ContentBlocks } from "./src/collections/ContentBlocks";
 import { Representatives } from "./src/collections/Representatives";
+import { CookieRows } from "./src/collections/CookieRows";
 import { ContactInfo } from "./src/globals/ContactInfo";
 import { ROLES } from "./src/access/roles";
 import { env } from "./src/env";
@@ -110,6 +111,7 @@ export default buildConfig({
     LegalPages,
     ContentBlocks,
     Representatives,
+    CookieRows,
   ],
   globals: [ContactInfo],
   editor: lexicalEditor(),

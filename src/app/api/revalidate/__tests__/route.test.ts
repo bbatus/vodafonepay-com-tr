@@ -81,6 +81,7 @@ describe("POST /api/revalidate", () => {
       "contact-info",
       "content-blocks",
       "representatives",
+      "cookie-rows",
     ];
     for (const tag of tags) {
       const res = await POST(fakeRequest({ secret: "test-secret-value", body: { tag } }));

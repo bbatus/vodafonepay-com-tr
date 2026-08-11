@@ -4,8 +4,8 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { cookieRows } from "./cookieRows";
-import { getLegalPage, textToParagraphs } from "@/lib/cms";
+import { cookieRows as fallbackCookieRows } from "./cookieRows";
+import { getCookieRows, getLegalPage, textToParagraphs } from "@/lib/cms";
 
 export const metadata: Metadata = {
   title: "Çerez Politikası | Vodafone Pay",
@@ -19,8 +19,9 @@ const fallbackIntro = [
 ];
 
 export default async function CerezPolitikasi() {
-  const cmsPage = await getLegalPage("cerez-politikasi");
+  const [cmsPage, cmsCookieRows] = await Promise.all([getLegalPage("cerez-politikasi"), getCookieRows()]);
   const intro = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackIntro;
+  const cookieRows = cmsCookieRows?.length ? cmsCookieRows : fallbackCookieRows;
 
   return (
     <main className="flex min-h-screen flex-col">
