@@ -7,6 +7,7 @@ export interface CardListItem {
   title: string;
   description?: string;
   href?: string;
+  category?: string;
 }
 
 export function CardListGrid({
