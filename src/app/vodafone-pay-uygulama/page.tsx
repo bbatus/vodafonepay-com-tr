@@ -8,7 +8,7 @@ import { AppFeatures } from "@/components/AppFeatures";
 import { HowToEarn } from "@/components/HowToEarn";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getFaqItems, getProductHero } from "@/lib/cms";
+import { getContentBlocks, getFaqItems, getProductHero } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 
 export const metadata: Metadata = {
@@ -51,13 +51,21 @@ const fallbackFaqs: FaqItem[] = [
 ];
 
 export default async function VodafonePayUygulama() {
-  const [cmsFaqItems, cmsHero] = await Promise.all([
+  const [cmsFaqItems, cmsHero, cmsSlides, cmsEarnSteps] = await Promise.all([
     getFaqItems("vodafone-pay-uygulama"),
     getProductHero("vodafone-pay-uygulama"),
+    getContentBlocks("uygulama-ayricalikli"),
+    getContentBlocks("uygulama-nasil-kazanirim"),
   ]);
   const faqs: FaqItem[] = cmsFaqItems?.length
     ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
     : fallbackFaqs;
+  const slides = cmsSlides?.length
+    ? cmsSlides.map((s) => ({ image: s.image?.url ?? "", text: s.text ?? "" }))
+    : undefined;
+  const earnSteps = cmsEarnSteps?.length
+    ? cmsEarnSteps.map((s) => ({ icon: s.image?.url ?? "", title: s.title ?? "", description: s.text ?? "" }))
+    : undefined;
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -70,27 +78,29 @@ export default async function VodafonePayUygulama() {
         imageAlt={cmsHero?.image.alt || "Vodafone Pay Uygulaması"}
         heading={cmsHero?.heading ?? "Vodafone Pay Uygulaması'nı indir"}
       />
-      <AppFeatures />
+      <AppFeatures slides={slides} />
       <HowToEarn
         heading="Vodafone Pay ile Nasıl Kazanırım?"
         image="/images/step-nasil-kazanirim.png"
-        steps={[
-          {
-            icon: "/images/icon-bakiye-yukle.svg",
-            title: "Bakiye Yükle",
-            description: "Banka/kredi kartınızdan, EFT ile veya tüm ATM'lerden dilediğiniz kadar bakiye yükleyin.",
-          },
-          {
-            icon: "/images/icon-harca.svg",
-            title: "Harca",
-            description: "Tüm online ve fiziksel alışverişlerinizi Vodafone Pay Kart ile yapabilirsiniz.",
-          },
-          {
-            icon: "/images/icon-kazan.png",
-            title: "Kazan",
-            description: "Kampanya kapsamında yaptığınız tüm harcamalardan yüzlerce TL nakit iade kazanın!",
-          },
-        ]}
+        steps={
+          earnSteps ?? [
+            {
+              icon: "/images/icon-bakiye-yukle.svg",
+              title: "Bakiye Yükle",
+              description: "Banka/kredi kartınızdan, EFT ile veya tüm ATM'lerden dilediğiniz kadar bakiye yükleyin.",
+            },
+            {
+              icon: "/images/icon-harca.svg",
+              title: "Harca",
+              description: "Tüm online ve fiziksel alışverişlerinizi Vodafone Pay Kart ile yapabilirsiniz.",
+            },
+            {
+              icon: "/images/icon-kazan.png",
+              title: "Kazan",
+              description: "Kampanya kapsamında yaptığınız tüm harcamalardan yüzlerce TL nakit iade kazanın!",
+            },
+          ]
+        }
       />
       <Faq items={faqs} />
       <Footer />

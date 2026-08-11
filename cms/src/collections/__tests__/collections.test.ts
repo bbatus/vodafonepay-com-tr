@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Announcements } from "@/collections/Announcements";
 import { BlogPosts } from "@/collections/BlogPosts";
 import { Campaigns } from "@/collections/Campaigns";
+import { ContentBlocks } from "@/collections/ContentBlocks";
 import { FaqItems } from "@/collections/FaqItems";
 import { FeatureCards } from "@/collections/FeatureCards";
 import { FeeRows } from "@/collections/FeeRows";
@@ -29,6 +30,7 @@ const newVerticalOnly = [
   ["NavLinks", NavLinks],
   ["ProductHeroes", ProductHeroes],
   ["StepCards", StepCards],
+  ["ContentBlocks", ContentBlocks],
 ] as const;
 
 describe("New Vertical-only, drafts-enabled collections", () => {

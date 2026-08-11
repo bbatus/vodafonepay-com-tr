@@ -1,6 +1,11 @@
 import { ImageSideCarousel } from "@/components/ImageSideCarousel";
 
-const slides = [
+interface Slide {
+  image: string;
+  text: string;
+}
+
+const fallbackSlides: Slide[] = [
   {
     image: "/images/uygulama-ayricalikli-1.jpg",
     text: "Vodafone Pay Kart, Faturana Yansıt ve Vodafone Cüzdanım bakiyenizi ve harcamalarınızı yönetebilir, limitlerinizi güncelleyebilirsiniz",
@@ -15,7 +20,7 @@ const slides = [
   },
 ];
 
-export function AppFeatures() {
+export function AppFeatures({ slides = fallbackSlides }: { slides?: Slide[] }) {
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-16">
       <div className="mx-auto max-w-2xl text-center">

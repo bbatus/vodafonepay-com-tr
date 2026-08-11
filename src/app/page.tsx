@@ -6,21 +6,38 @@ import { FeatureHighlights } from "@/components/FeatureHighlights";
 import { Campaigns } from "@/components/Campaigns";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { campaignToCard, getCampaigns, getFaqItems } from "@/lib/cms";
+import { campaignToCard, getCampaigns, getContentBlocks, getFaqItems } from "@/lib/cms";
+import type { StepProduct } from "@/types/homepage";
 
 export default async function Home() {
-  const [cmsCampaigns, cmsFaqItems] = await Promise.all([getCampaigns(), getFaqItems("anasayfa")]);
+  const [cmsCampaigns, cmsFaqItems, cmsSteps, cmsHighlights] = await Promise.all([
+    getCampaigns(),
+    getFaqItems("anasayfa"),
+    getContentBlocks("anasayfa-steps"),
+    getContentBlocks("anasayfa-highlights"),
+  ]);
 
   const featuredCampaigns = cmsCampaigns?.filter((c) => c.featured).map(campaignToCard);
   const faqItems = cmsFaqItems?.map((f) => ({ question: f.question, answer: f.answer }));
+  const steps: StepProduct[] | undefined = cmsSteps?.length
+    ? cmsSteps.map((s) => ({
+        title: s.title ?? "",
+        description: s.text ?? "",
+        image: s.image?.url ?? "",
+        imageAlt: s.image?.alt || s.title || "",
+      }))
+    : undefined;
+  const highlights = cmsHighlights?.length
+    ? cmsHighlights.map((h) => ({ icon: h.image?.url ?? "", title: h.title ?? "", description: h.text ?? "" }))
+    : undefined;
 
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <Hero />
-      <StepPhones />
-      <FeatureHighlights />
+      <StepPhones steps={steps} />
+      <FeatureHighlights features={highlights} />
       <Campaigns campaigns={featuredCampaigns?.length ? featuredCampaigns : undefined} />
       <Faq items={faqItems?.length ? faqItems : undefined} />
       <Footer />

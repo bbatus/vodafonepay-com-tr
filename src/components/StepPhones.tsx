@@ -2,7 +2,7 @@ import Image from "next/image";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import type { StepProduct } from "@/types/homepage";
 
-const steps: StepProduct[] = [
+const fallbackSteps: StepProduct[] = [
   {
     title: "Vodafone Pay Uygulaması",
     description: "Ödemelerinizi kolayca, hızlı ve güvenle yönetmek için Vodafone Pay yanınızda!",
@@ -39,7 +39,7 @@ const steps: StepProduct[] = [
   },
 ];
 
-export function StepPhones() {
+export function StepPhones({ steps = fallbackSteps }: { steps?: StepProduct[] }) {
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-16 lg:px-0">
       <div className="mx-auto max-w-3xl text-center">

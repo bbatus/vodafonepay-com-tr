@@ -1,6 +1,11 @@
 import { ImageSideCarousel } from "@/components/ImageSideCarousel";
 
-const slides = [
+interface Slide {
+  image: string;
+  text: string;
+}
+
+const fallbackSlides: Slide[] = [
   {
     image: "/images/kart-earn-1.jpg",
     text: "Vodafone Pay Kart'ınıza banka/kredi kartı, EFT veya tüm ATM'lerden dilediğiniz kadar bakiye yükleyebilirsiniz.",
@@ -15,7 +20,7 @@ const slides = [
   },
 ];
 
-export function EarnWithCard() {
+export function EarnWithCard({ slides = fallbackSlides }: { slides?: Slide[] }) {
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-16">
       <h2 className="text-2xl font-bold text-black lg:text-4xl">Vodafone Pay Kart ile Kazan</h2>

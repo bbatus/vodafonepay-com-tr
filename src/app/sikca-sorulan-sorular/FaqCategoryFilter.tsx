@@ -18,7 +18,17 @@ const categories = [
 
 type Category = (typeof categories)[number];
 
-const faqsByCategory: Record<Exclude<Category, "Tümü">, FaqItem[]> = {
+/** Maps the CMS's FaqItems.category select values (see cms/src/collections/FaqItems.ts) to this page's display labels. */
+const CMS_CATEGORY_TO_LABEL: Record<string, Exclude<Category, "Tümü">> = {
+  anasayfa: "Anasayfa",
+  "aninda-bakiye": "Anında Bakiye",
+  "vodafone-pay-uygulama": "Vodafone Pay Uygulama",
+  kampanyalar: "Kampanyalar",
+  "vodafone-pay-kart": "Vodafone Pay Kart",
+  "qr-ile-faturana-yansit": "QR ile Faturana Yansıt",
+};
+
+const fallbackFaqsByCategory: Record<Exclude<Category, "Tümü">, FaqItem[]> = {
   Anasayfa: [
     {
       question: "Vodafone Pay Nedir?",
@@ -113,10 +123,22 @@ const faqsByCategory: Record<Exclude<Category, "Tümü">, FaqItem[]> = {
   ],
 };
 
-export function FaqCategoryFilter() {
+function groupByCategory(items: (FaqItem & { category: string })[]): Record<Exclude<Category, "Tümü">, FaqItem[]> {
+  const grouped: Record<string, FaqItem[]> = {};
+  for (const { question, answer, category } of items) {
+    const label = CMS_CATEGORY_TO_LABEL[category];
+    if (!label) continue;
+    grouped[label] ??= [];
+    grouped[label].push({ question, answer });
+  }
+  return grouped as Record<Exclude<Category, "Tümü">, FaqItem[]>;
+}
+
+export function FaqCategoryFilter({ items }: { items?: (FaqItem & { category: string })[] }) {
   const [active, setActive] = useState<Category>("Tümü");
 
-  const visibleCategories = active === "Tümü" ? categories.slice(1) : [active];
+  const faqsByCategory = items?.length ? groupByCategory(items) : fallbackFaqsByCategory;
+  const visibleCategories = (active === "Tümü" ? categories.slice(1) : [active]) as Exclude<Category, "Tümü">[];
 
   return (
     <>
@@ -141,7 +163,7 @@ export function FaqCategoryFilter() {
         </div>
       </section>
 
-      <Faq items={visibleCategories.flatMap((c) => faqsByCategory[c as Exclude<Category, "Tümü">])} showHeading={false} />
+      <Faq items={visibleCategories.flatMap((c) => faqsByCategory[c] ?? [])} showHeading={false} />
     </>
   );
 }
