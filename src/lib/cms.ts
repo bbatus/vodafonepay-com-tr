@@ -415,6 +415,34 @@ export async function getContactInfo(): Promise<CmsContactInfo | null> {
   return data?.companyName ? data : null;
 }
 
+const representativeSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  businessName: z.string(),
+  repCode: nullableString(),
+  activityDescription: nullableString(),
+  phone: nullableString(),
+  mersisNo: nullableString(),
+  address: z.string(),
+  province: z.string(),
+  district: z.string(),
+  authorizedPerson: nullableString(),
+  qrCode: mediaSchema.nullable().optional().transform((v) => v ?? undefined),
+});
+export type CmsRepresentative = z.infer<typeof representativeSchema>;
+
+export async function getRepresentatives(): Promise<CmsRepresentative[] | null> {
+  const data = await cmsFetch(
+    "/representatives?depth=1&limit=1000&sort=businessName",
+    "representatives",
+    listResponseSchema(representativeSchema)
+  );
+  return data?.docs ?? null;
+}
+
+export async function getRepresentativeById(id: string): Promise<CmsRepresentative | null> {
+  return cmsFetch(`/representatives/${encodeURIComponent(id)}?depth=1`, "representatives", representativeSchema);
+}
+
 export function textToParagraphs(text: string): string[] {
   return text
     .split(/\n\s*\n/)

@@ -17,6 +17,7 @@ const ALLOWED_TAGS = new Set([
   "legal-pages",
   "contact-info",
   "content-blocks",
+  "representatives",
 ]);
 
 /** In-memory fixed-window rate limit — this is a single-instance internal webhook, not a public API, so a per-process counter is sufficient. */

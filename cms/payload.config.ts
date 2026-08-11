@@ -20,6 +20,7 @@ import { StepCards } from "./src/collections/StepCards";
 import { Announcements } from "./src/collections/Announcements";
 import { LegalPages } from "./src/collections/LegalPages";
 import { ContentBlocks } from "./src/collections/ContentBlocks";
+import { Representatives } from "./src/collections/Representatives";
 import { ContactInfo } from "./src/globals/ContactInfo";
 import { ROLES } from "./src/access/roles";
 import { env } from "./src/env";
@@ -108,6 +109,7 @@ export default buildConfig({
     Announcements,
     LegalPages,
     ContentBlocks,
+    Representatives,
   ],
   globals: [ContactInfo],
   editor: lexicalEditor(),

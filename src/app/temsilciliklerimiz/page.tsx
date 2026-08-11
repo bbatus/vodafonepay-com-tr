@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
+import { getRepresentatives } from "@/lib/cms";
 import { TemsilciliklerimizForm } from "./TemsilciliklerimizForm";
 
 export const metadata: Metadata = {
@@ -12,7 +13,9 @@ export const metadata: Metadata = {
   description: "İl ve ilçe seçerek size en yakın Vodafone Pay temsilciliğini bulun.",
 };
 
-export default function Temsilciliklerimiz() {
+export default async function Temsilciliklerimiz() {
+  const representatives = (await getRepresentatives()) ?? [];
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
@@ -24,7 +27,7 @@ export default function Temsilciliklerimiz() {
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Temsilciliklerimiz</h1>
 
         <div className="mt-10">
-          <TemsilciliklerimizForm />
+          <TemsilciliklerimizForm representatives={representatives} />
         </div>
 
         <div className="mx-auto mt-12 flex w-full max-w-[560px] items-center justify-between gap-x-4 rounded-lg bg-vf-gray p-6">
