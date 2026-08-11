@@ -376,17 +376,23 @@ export type LegalPageSlug =
   | "sozlesmeler-ve-formlar"
   | "web-sitesi-hukum-ve-sartlari";
 
+const legalDocumentSchema = z.object({
+  label: z.string(),
+  file: z.object({ url: z.string() }),
+});
+
 const legalPageSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   slug: z.custom<LegalPageSlug>((v) => typeof v === "string"),
   title: z.string(),
   intro: z.string(),
+  documents: z.array(legalDocumentSchema).nullable().optional().transform((v) => v ?? []),
 });
 export type CmsLegalPage = z.infer<typeof legalPageSchema>;
 
 export async function getLegalPage(slug: LegalPageSlug): Promise<CmsLegalPage | null> {
   const data = await cmsFetch(
-    `/legal-pages?depth=0&limit=1&where[slug][equals]=${encodeURIComponent(slug)}`,
+    `/legal-pages?depth=1&limit=1&where[slug][equals]=${encodeURIComponent(slug)}`,
     "legal-pages",
     listResponseSchema(legalPageSchema)
   );

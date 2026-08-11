@@ -226,10 +226,23 @@ describe("cms.ts fetch-backed getters", () => {
   it("getLegalPage returns the first doc, or null if none", async () => {
     const doc = { id: "lp1", slug: "cerez-politikasi", title: "T", intro: "I" };
     vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [doc] }));
-    expect(await getLegalPage("cerez-politikasi")).toEqual(doc);
+    expect(await getLegalPage("cerez-politikasi")).toEqual({ ...doc, documents: [] });
 
     vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [] }));
     expect(await getLegalPage("cerez-politikasi")).toBeNull();
+  });
+
+  it("getLegalPage passes through downloadable documents when present", async () => {
+    const doc = {
+      id: "lp1",
+      slug: "sozlesmeler-ve-formlar",
+      title: "T",
+      intro: "I",
+      documents: [{ label: "Form", file: { url: "/docs/form.pdf" } }],
+    };
+    vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [doc] }));
+    const result = await getLegalPage("sozlesmeler-ve-formlar");
+    expect(result?.documents).toEqual([{ label: "Form", file: { url: "/docs/form.pdf" } }]);
   });
 
   it("getContactInfo returns the global when companyName is present", async () => {

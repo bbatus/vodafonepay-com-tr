@@ -8,6 +8,7 @@ import sharp from "sharp";
 
 import { Users } from "./src/collections/Users";
 import { Media } from "./src/collections/Media";
+import { Documents } from "./src/collections/Documents";
 import { Campaigns } from "./src/collections/Campaigns";
 import { FaqItems } from "./src/collections/FaqItems";
 import { BlogPosts } from "./src/collections/BlogPosts";
@@ -98,6 +99,7 @@ export default buildConfig({
   collections: [
     Users,
     Media,
+    Documents,
     Campaigns,
     FaqItems,
     BlogPosts,
@@ -135,6 +137,14 @@ export default buildConfig({
           // network address. Browsers can't resolve that host, so uploaded
           // file URLs are built from a separate, publicly reachable address
           // (the host-mapped MinIO port) instead of the client's default.
+          generateFileURL: ({ filename, prefix }) => {
+            const base = process.env.S3_PUBLIC_URL || process.env.S3_ENDPOINT || "";
+            const bucket = process.env.S3_BUCKET || "vodafonepaycomtr-media";
+            const key = prefix ? `${prefix}/${filename}` : filename;
+            return `${base}/${bucket}/${key}`;
+          },
+        },
+        documents: {
           generateFileURL: ({ filename, prefix }) => {
             const base = process.env.S3_PUBLIC_URL || process.env.S3_ENDPOINT || "";
             const bucket = process.env.S3_BUCKET || "vodafonepaycomtr-media";

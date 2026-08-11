@@ -23,6 +23,7 @@ const fallbackDocuments = [
 export default async function SozlesmelerVeFormlar() {
   const cmsPage = await getLegalPage("sozlesmeler-ve-formlar");
   const documents = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackDocuments;
+  const downloads = cmsPage?.documents ?? [];
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -35,16 +36,24 @@ export default async function SozlesmelerVeFormlar() {
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Sözleşmeler ve Formlar</h1>
 
         <ul className="mt-10 flex flex-col gap-y-3">
-          {documents.map((doc) => (
-            <li key={doc}>
-              <button
-                type="button"
-                className="flex w-full items-center justify-between rounded bg-white px-5 py-4 text-left text-sm font-bold text-vf-red shadow-[0px_2px_8px_0px_#00000029] transition-colors hover:text-red-700"
-              >
-                {doc}
-              </button>
-            </li>
-          ))}
+          {documents.map((doc, i) => {
+            const download = downloads[i];
+            const itemClassName =
+              "flex w-full items-center justify-between rounded bg-white px-5 py-4 text-left text-sm font-bold text-vf-red shadow-[0px_2px_8px_0px_#00000029] transition-colors hover:text-red-700";
+            return (
+              <li key={doc}>
+                {download ? (
+                  <a href={download.file.url} target="_blank" rel="noopener noreferrer" download className={itemClassName}>
+                    {doc}
+                  </a>
+                ) : (
+                  <button type="button" className={itemClassName}>
+                    {doc}
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </section>
 

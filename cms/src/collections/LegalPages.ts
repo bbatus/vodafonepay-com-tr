@@ -38,6 +38,18 @@ export const LegalPages: CollectionConfig = {
     },
     { name: "title", type: "text", required: true },
     { name: "intro", type: "textarea", required: true, admin: { description: "Paragraflar arasına boş satır bırakın." } },
+    {
+      name: "documents",
+      type: "array",
+      admin: {
+        description:
+          "Yalnızca Sözleşmeler ve Formlar sayfası için: indirilebilir belge listesi. Sırası, yukarıdaki 'Giriş Metni' alanındaki satır sırasıyla eşleşmeli (1. satır → 1. belge, vb.).",
+      },
+      fields: [
+        { name: "label", type: "text", required: true },
+        { name: "file", type: "upload", relationTo: "documents", required: true },
+      ],
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
