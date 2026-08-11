@@ -92,6 +92,15 @@ describe("cms.ts fetch-backed getters", () => {
     expect(await getCampaigns()).toEqual([doc]);
   });
 
+  it("getCampaigns excludes manually-expired campaigns and campaigns whose endDate has passed", async () => {
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
+    await getCampaigns();
+    const calledUrl = vi.mocked(fetch).mock.calls[0][0] as string;
+    expect(calledUrl).toContain("where[and][0][campaignStatus][not_equals]=expired");
+    expect(calledUrl).toContain("where[and][1][or][0][endDate][exists]=false");
+    expect(calledUrl).toContain("where[and][1][or][1][endDate][greater_than_equal]=");
+  });
+
   it("getCampaigns returns null when the response is not ok", async () => {
     vi.mocked(fetch).mockImplementation(() => notOk());
     expect(await getCampaigns()).toBeNull();

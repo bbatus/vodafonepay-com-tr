@@ -82,11 +82,22 @@ const campaignSchema = z.object({
 export type CmsCampaign = z.infer<typeof campaignSchema>;
 
 export async function getCampaigns(): Promise<CmsCampaign[] | null> {
-  const data = await cmsFetch(
-    "/campaigns?depth=1&limit=100&sort=-createdAt&where[campaignStatus][not_equals]=expired",
-    "campaigns",
-    listResponseSchema(campaignSchema)
-  );
+  // RFP §3.1.3: a campaign should drop off the list once its own endDate
+  // passes, without an editor having to remember to flip campaignStatus by
+  // hand. Manual campaignStatus="expired" still works as an override; this
+  // adds an automatic date-based expiry on top of it, evaluated fresh on
+  // every fetch (no cron/job scheduler needed — the ISR/ revalidate window
+  // already re-fetches this regularly).
+  const now = new Date().toISOString();
+  const query = [
+    "depth=1",
+    "limit=100",
+    "sort=-createdAt",
+    "where[and][0][campaignStatus][not_equals]=expired",
+    "where[and][1][or][0][endDate][exists]=false",
+    `where[and][1][or][1][endDate][greater_than_equal]=${encodeURIComponent(now)}`,
+  ].join("&");
+  const data = await cmsFetch(`/campaigns?${query}`, "campaigns", listResponseSchema(campaignSchema));
   return data?.docs ?? null;
 }
 
