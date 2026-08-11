@@ -185,6 +185,29 @@ export async function getBlogPosts(): Promise<CmsBlogPost[] | null> {
   return data?.docs ?? null;
 }
 
+const blogPostDetailSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  title: z.string(),
+  slug: z.string(),
+  coverImage: mediaSchema,
+  excerpt: z.string(),
+  body: z.unknown().nullable().optional(),
+  category: nullableString(),
+  publishedDate: nullableString(),
+  seoTitle: nullableString(),
+  seoDescription: nullableString(),
+});
+export type CmsBlogPostDetail = z.infer<typeof blogPostDetailSchema>;
+
+export async function getBlogPostBySlug(slug: string): Promise<CmsBlogPostDetail | null> {
+  const data = await cmsFetch(
+    `/blog-posts?depth=1&limit=1&where[slug][equals]=${encodeURIComponent(slug)}`,
+    "blog-posts",
+    listResponseSchema(blogPostDetailSchema)
+  );
+  return data?.docs?.[0] ?? null;
+}
+
 const feeRowSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   label: z.string(),

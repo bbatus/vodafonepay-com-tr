@@ -30,7 +30,7 @@ const fallbackPosts: CardListItem[] = [
 export default async function Blog() {
   const cmsPosts = await getBlogPosts();
   const posts: CardListItem[] = cmsPosts?.length
-    ? cmsPosts.map((p) => ({ image: p.coverImage.url, title: p.title, description: p.excerpt }))
+    ? cmsPosts.map((p) => ({ image: p.coverImage.url, title: p.title, description: p.excerpt, href: `/blog/${p.slug}` }))
     : fallbackPosts;
 
   return (
