@@ -11,8 +11,10 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
-      include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/app/**", "!src/app/api/**", "src/components/ui/**", "src/**/*.d.ts"],
+      // Page/layout files are thin data-fetching + JSX wrappers, not worth
+      // unit-testing directly; API routes have real logic (see revalidate).
+      include: ["src/lib/**/*.ts", "src/components/**/*.{ts,tsx}", "src/data/**/*.ts", "src/app/api/**/*.ts"],
+      exclude: ["src/components/ui/**", "src/**/*.d.ts"],
     },
   },
   resolve: {
