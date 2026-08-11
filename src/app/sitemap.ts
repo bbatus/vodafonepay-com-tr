@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getBlogPosts, getCampaigns, getRepresentatives } from "@/lib/cms";
+import { getBlogPosts, getCampaigns, getPages, getRepresentatives } from "@/lib/cms";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:3000";
 
@@ -28,10 +28,11 @@ const STATIC_ROUTES = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [campaigns, blogPosts, representatives] = await Promise.all([
+  const [campaigns, blogPosts, representatives, pages] = await Promise.all([
     getCampaigns(),
     getBlogPosts(),
     getRepresentatives(),
+    getPages(),
   ]);
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((path) => ({
@@ -51,5 +52,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${SITE_URL}/temsilci/${r.id}`,
   }));
 
-  return [...staticEntries, ...campaignEntries, ...blogEntries, ...representativeEntries];
+  const editorPageEntries: MetadataRoute.Sitemap = (pages ?? []).map((p) => ({
+    url: `${SITE_URL}/${p.slug}`,
+  }));
+
+  return [...staticEntries, ...campaignEntries, ...blogEntries, ...representativeEntries, ...editorPageEntries];
 }

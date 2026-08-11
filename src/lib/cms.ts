@@ -502,6 +502,87 @@ export async function getPageMeta(pageKey: string): Promise<CmsPageMeta | null> 
   return data?.docs?.[0] ?? null;
 }
 
+const heroBlockSchema = z.object({
+  blockType: z.literal("hero"),
+  id: z.string().optional(),
+  heading: z.string(),
+  subheading: nullableString(),
+  image: mediaSchema,
+  ctaLabel: nullableString(),
+  ctaUrl: nullableString(),
+});
+const richTextBlockSchema = z.object({
+  blockType: z.literal("richText"),
+  id: z.string().optional(),
+  heading: nullableString(),
+  body: z.unknown(),
+});
+const faqListBlockSchema = z.object({
+  blockType: z.literal("faqList"),
+  id: z.string().optional(),
+  heading: nullableString(),
+  category: nullableString(),
+});
+const campaignGridBlockSchema = z.object({
+  blockType: z.literal("campaignGrid"),
+  id: z.string().optional(),
+  heading: z.string(),
+  category: nullableString(),
+});
+const videoBlockSchema = z.object({
+  blockType: z.literal("video"),
+  id: z.string().optional(),
+  heading: nullableString(),
+  youtubeId: z.string(),
+});
+const logoGridBlockSchema = z.object({
+  blockType: z.literal("logoGrid"),
+  id: z.string().optional(),
+  heading: nullableString(),
+  logos: z.array(z.object({ name: z.string(), logo: mediaSchema, linkUrl: nullableString() })),
+});
+
+const pageBlockSchema = z.discriminatedUnion("blockType", [
+  heroBlockSchema,
+  richTextBlockSchema,
+  faqListBlockSchema,
+  campaignGridBlockSchema,
+  videoBlockSchema,
+  logoGridBlockSchema,
+]);
+export type CmsPageBlock = z.infer<typeof pageBlockSchema>;
+
+const pageSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  title: z.string(),
+  slug: z.string(),
+  layout: z.array(pageBlockSchema).nullable().optional().transform((v) => v ?? []),
+  seoTitle: nullableString(),
+  seoDescription: nullableString(),
+  ogImage: mediaSchema.nullable().optional().transform((v) => v ?? undefined),
+});
+export type CmsPage = z.infer<typeof pageSchema>;
+
+/**
+ * RFP §3.3: pages an editor builds entirely from the CMS (block-based),
+ * distinct from the ~20 hand-built routes under src/app. Consumed by
+ * src/app/[...slug]/page.tsx as a catch-all — Next.js resolves any more
+ * specific static route first, so this never shadows an existing page.
+ */
+export async function getPageBySlug(slug: string): Promise<CmsPage | null> {
+  const data = await cmsFetch(
+    `/pages?depth=2&limit=1&where[slug][equals]=${encodeURIComponent(slug)}`,
+    "pages",
+    listResponseSchema(pageSchema)
+  );
+  return data?.docs?.[0] ?? null;
+}
+
+export async function getPages(): Promise<CmsPage[] | null> {
+  const data = await cmsFetch("/pages?depth=0&limit=200", "pages", listResponseSchema(pageSchema));
+  return data?.docs ?? null;
+}
+
 export function textToParagraphs(text: string): string[] {
   return text
     .split(/\n\s*\n/)

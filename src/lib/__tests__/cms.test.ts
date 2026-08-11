@@ -12,7 +12,9 @@ import {
   getLegalPage,
   getLimitTables,
   getNavLinks,
+  getPageBySlug,
   getPageMeta,
+  getPages,
   getProductHero,
   getStepCards,
   textToParagraphs,
@@ -251,6 +253,34 @@ describe("cms.ts fetch-backed getters", () => {
 
     vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [] }));
     expect(await getPageMeta("/aninda-bakiye")).toBeNull();
+  });
+
+  it("getPageBySlug parses a page with a hero block and returns null if none", async () => {
+    const doc = {
+      id: "p1",
+      title: "Test Sayfası",
+      slug: "test-sayfasi",
+      layout: [{ blockType: "hero", heading: "Merhaba", image: media }],
+    };
+    vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [doc] }));
+    const result = await getPageBySlug("test-sayfasi");
+    expect(result?.layout).toHaveLength(1);
+    expect(result?.layout[0]).toMatchObject({ blockType: "hero", heading: "Merhaba" });
+
+    vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [] }));
+    expect(await getPageBySlug("test-sayfasi")).toBeNull();
+  });
+
+  it("getPageBySlug rejects an unrecognized blockType", async () => {
+    const doc = { id: "p1", title: "T", slug: "t", layout: [{ blockType: "not-real" }] };
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
+    expect(await getPageBySlug("t")).toBeNull();
+  });
+
+  it("getPages returns the full list of editor-built pages", async () => {
+    const doc = { id: "p1", title: "T", slug: "t", layout: [] };
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
+    expect(await getPages()).toEqual([doc]);
   });
 
   it("getLegalPage passes through downloadable documents when present", async () => {
