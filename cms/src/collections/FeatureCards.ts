@@ -10,6 +10,9 @@ export const FeatureCards: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "page", "order"],
     group: "Ürün Sayfaları",
+    components: {
+      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "feature-cards" } }],
+    },
   },
   versions: {
     drafts: true,

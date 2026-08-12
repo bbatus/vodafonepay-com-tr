@@ -10,6 +10,9 @@ export const StepCards: CollectionConfig = {
     useAsTitle: "text",
     defaultColumns: ["page", "number", "order"],
     group: "Ürün Sayfaları",
+    components: {
+      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "step-cards" } }],
+    },
   },
   versions: {
     drafts: true,
