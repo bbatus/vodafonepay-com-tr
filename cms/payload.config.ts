@@ -63,13 +63,22 @@ export default buildConfig({
     fallbackLanguage: "tr",
   },
   // RFP §3.2.14: multi-language content infrastructure. This is the CMS-side
-  // half only — a handful of fields on Campaigns/BlogPosts/Pages are marked
-  // `localized: true` to prove the mechanism (see those files), but the
-  // SITE itself has no locale-aware routing or language switcher yet (it's
-  // Turkish-only end to end today), and none of the existing Turkish
-  // content has an English translation entered. Building the site-side
-  // i18n routing layer is a separate, large frontend initiative — not
-  // attempted here.
+  // half only — Pages.title is marked `localized: true` to prove the
+  // mechanism (a brand-new, empty collection — safe to localize with no
+  // migration ambiguity). Campaigns/BlogPosts were deliberately NOT
+  // localized: both already have live data + versions.drafts version
+  // history, and converting an existing field to localized changes how
+  // Payload encodes the `_<collection>_v.snapshot` version column —
+  // confirmed live, this puts drizzle-kit's schema push into an
+  // interactive "is this a rename or a new column?" prompt that can't be
+  // answered non-interactively and will hang. Localizing fields on a
+  // collection with real history needs a deliberate, reviewed data
+  // migration, not a config flag.
+  //
+  // The SITE itself has no locale-aware routing or language switcher yet
+  // (it's Turkish-only end to end today), and no English translations have
+  // been entered — building the site-side i18n routing layer is a
+  // separate, large frontend initiative, not attempted here.
   localization: {
     locales: ["tr", "en"],
     defaultLocale: "tr",
