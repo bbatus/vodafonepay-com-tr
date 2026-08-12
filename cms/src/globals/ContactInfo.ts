@@ -7,6 +7,11 @@ export const ContactInfo: GlobalConfig = {
   slug: "contact-info",
   admin: {
     group: "Site Yapısı",
+    components: {
+      elements: {
+        beforeDocumentControls: [{ path: "/components/HelpButton#default", clientProps: { collection: "contact-info" } }],
+      },
+    },
   },
   access: {
     read: () => true,

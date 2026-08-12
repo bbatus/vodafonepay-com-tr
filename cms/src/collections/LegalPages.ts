@@ -12,6 +12,9 @@ export const LegalPages: CollectionConfig = {
     group: "Site Yapısı",
     description:
       "Bu yasal sayfaların tablo/liste gibi yapısal kısımları kodda sabit kalır; burada yönetilen sadece giriş metnidir.",
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "legal-pages" } }],
+    },
   },
   versions: {
     drafts: true,

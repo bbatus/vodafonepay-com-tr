@@ -10,6 +10,9 @@ export const Representatives: CollectionConfig = {
     defaultColumns: ["businessName", "province", "district", "phone"],
     group: "İçerik",
     description: "Temsilcilik/bayi kayıtları — /temsilciliklerimiz arama formu ve /temsilci/[id] detay sayfası bu veriyi kullanır.",
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "representatives" } }],
+    },
   },
   access: {
     read: () => true,

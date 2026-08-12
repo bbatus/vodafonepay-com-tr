@@ -12,6 +12,9 @@ export const BlogPosts: CollectionConfig = {
     defaultColumns: ["title", "category", "publishedDate", "_status"],
     group: "İçerik",
     preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/blog/${doc.slug}`) : null),
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "blog-posts" } }],
+    },
   },
   versions: {
     drafts: true,

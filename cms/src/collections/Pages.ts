@@ -103,6 +103,9 @@ export const Pages: CollectionConfig = {
     group: "İçerik",
     description: "Yeni sayfalar (kampanya landing, hub sayfası vb.) — geliştirici gerekmeden, blokları sürükleyip bırakarak oluşturulur.",
     preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/${doc.slug}`) : null),
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "pages" } }],
+    },
   },
   versions: {
     drafts: true,

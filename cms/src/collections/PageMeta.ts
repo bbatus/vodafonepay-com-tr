@@ -17,6 +17,9 @@ export const PageMeta: CollectionConfig = {
     defaultColumns: ["pageKey", "breadcrumbLabel", "seoTitle"],
     group: "Site Yapısı",
     description: "Sayfa başına breadcrumb metni ve SEO alanları. pageKey, sitedeki route ile birebir eşleşmeli (örn: /aninda-bakiye).",
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "page-meta" } }],
+    },
   },
   versions: {
     drafts: true,

@@ -11,6 +11,9 @@ export const CookieRows: CollectionConfig = {
     defaultColumns: ["name", "provider", "party", "category"],
     group: "Site Yapısı",
     description: "/cerez-politikasi sayfasındaki çerez tablosunun satırları.",
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "cookie-rows" } }],
+    },
   },
   versions: {
     drafts: true,

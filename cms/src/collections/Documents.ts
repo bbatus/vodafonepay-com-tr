@@ -9,6 +9,9 @@ export const Documents: CollectionConfig = {
   admin: {
     useAsTitle: "filename",
     group: "Sistem",
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "documents" } }],
+    },
   },
   access: {
     read: () => true,

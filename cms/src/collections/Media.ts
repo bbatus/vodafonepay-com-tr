@@ -6,6 +6,9 @@ export const Media: CollectionConfig = {
   slug: "media",
   admin: {
     group: "Sistem",
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "media" } }],
+    },
   },
   access: {
     read: () => true,

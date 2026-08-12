@@ -11,7 +11,10 @@ export const FaqItems: CollectionConfig = {
     defaultColumns: ["question", "category", "order", "_status"],
     group: "İçerik",
     components: {
-      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "faq-items", groupField: "category" } }],
+      beforeList: [
+        { path: "/components/HelpButton#default", clientProps: { collection: "faq-items" } },
+        { path: "/components/ReorderWidget#default", clientProps: { collection: "faq-items", groupField: "category" } },
+      ],
     },
   },
   versions: {

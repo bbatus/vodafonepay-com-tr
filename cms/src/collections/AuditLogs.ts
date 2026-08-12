@@ -16,6 +16,9 @@ export const AuditLogs: CollectionConfig = {
     defaultColumns: ["createdAt", "userEmail", "action", "collectionSlug", "summary"],
     group: "Sistem",
     description: "Salt okunur değişiklik kaydı — kimse bu kayıtları düzenleyemez veya silemez.",
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "audit-logs" } }],
+    },
   },
   access: {
     read: isNewVerticalMaker,

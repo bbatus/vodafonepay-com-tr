@@ -8,6 +8,9 @@ export const Users: CollectionConfig = {
     useAsTitle: "email",
     defaultColumns: ["email", "role"],
     group: "Sistem",
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "users" } }],
+    },
   },
   auth: true,
   access: {

@@ -11,7 +11,10 @@ export const FeeRows: CollectionConfig = {
     defaultColumns: ["label", "value", "order"],
     group: "Ücretler & Limitler",
     components: {
-      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "fee-rows" } }],
+      beforeList: [
+        { path: "/components/HelpButton#default", clientProps: { collection: "fee-rows" } },
+        { path: "/components/ReorderWidget#default", clientProps: { collection: "fee-rows" } },
+      ],
     },
   },
   versions: {

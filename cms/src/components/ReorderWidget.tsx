@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAdminLocale } from "./useAdminLocale";
+
+const STRINGS = {
+  tr: { title: "Sürükleyerek sırala", saving: "(kaydediliyor…)", loadError: "Liste yüklenemedi." },
+  en: { title: "Drag to reorder", saving: "(saving…)", loadError: "Failed to load list." },
+} as const;
 
 /**
  * RFP §3.1.6: content sorting. The `order` number field already existed on
@@ -64,6 +70,8 @@ function DraggableGroup({
   const [docs, setDocs] = useState(initialDocs);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const locale = useAdminLocale();
+  const strings = STRINGS[locale];
 
   const handleDrop = async (targetIndex: number) => {
     if (dragIndex === null || dragIndex === targetIndex) {
@@ -100,7 +108,7 @@ function DraggableGroup({
     <div style={{ marginBottom: "0.75rem" }}>
       {groupKey !== "__all__" && (
         <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: 4 }}>
-          {groupKey} {saving && "(kaydediliyor…)"}
+          {groupKey} {saving && strings.saving}
         </p>
       )}
       <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 4 }}>
@@ -132,13 +140,15 @@ export default function ReorderWidget({ collection, groupField }: { collection: 
   const router = useRouter();
   const [docs, setDocs] = useState<ReorderableDoc[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const locale = useAdminLocale();
+  const strings = STRINGS[locale];
 
   useEffect(() => {
     fetch(`/api/${collection}?depth=0&limit=200&sort=order`, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setDocs(data.docs ?? []))
-      .catch(() => setError("Liste yüklenemedi."));
-  }, [collection]);
+      .catch(() => setError(strings.loadError));
+  }, [collection, strings.loadError]);
 
   if (error) return <p style={{ color: "red", padding: "1rem" }}>{error}</p>;
   if (!docs || docs.length < 2) return null;
@@ -147,7 +157,7 @@ export default function ReorderWidget({ collection, groupField }: { collection: 
 
   return (
     <div style={{ margin: "1rem 0", padding: "1rem", border: "1px solid #e5e7eb", borderRadius: 8, background: "#fafafa" }}>
-      <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>Sürükleyerek sırala</p>
+      <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>{strings.title}</p>
       {groups.map(([groupKey, groupItems]) =>
         groupItems.length < 2 ? null : (
           <DraggableGroup

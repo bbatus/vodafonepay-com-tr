@@ -11,7 +11,10 @@ export const NavLinks: CollectionConfig = {
     defaultColumns: ["label", "href", "section", "order"],
     group: "Site Yapısı",
     components: {
-      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "nav-links", groupField: "section" } }],
+      beforeList: [
+        { path: "/components/HelpButton#default", clientProps: { collection: "nav-links" } },
+        { path: "/components/ReorderWidget#default", clientProps: { collection: "nav-links", groupField: "section" } },
+      ],
     },
   },
   versions: {

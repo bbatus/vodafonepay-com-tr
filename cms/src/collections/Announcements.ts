@@ -11,7 +11,10 @@ export const Announcements: CollectionConfig = {
     defaultColumns: ["title", "order", "_status"],
     group: "İçerik",
     components: {
-      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "announcements" } }],
+      beforeList: [
+        { path: "/components/HelpButton#default", clientProps: { collection: "announcements" } },
+        { path: "/components/ReorderWidget#default", clientProps: { collection: "announcements" } },
+      ],
     },
   },
   versions: {

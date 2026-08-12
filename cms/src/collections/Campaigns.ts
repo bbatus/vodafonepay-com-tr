@@ -12,6 +12,9 @@ export const Campaigns: CollectionConfig = {
     defaultColumns: ["title", "category", "featured", "startDate", "endDate", "_status"],
     group: "İçerik",
     preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/kampanyalar/${doc.slug}`) : null),
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "campaigns" } }],
+    },
   },
   versions: {
     drafts: true,

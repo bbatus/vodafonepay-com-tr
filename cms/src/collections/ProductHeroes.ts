@@ -10,6 +10,9 @@ export const ProductHeroes: CollectionConfig = {
     useAsTitle: "page",
     defaultColumns: ["page", "heading"],
     group: "Ürün Sayfaları",
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "product-heroes" } }],
+    },
   },
   versions: {
     drafts: true,

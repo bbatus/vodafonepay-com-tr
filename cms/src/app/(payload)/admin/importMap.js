@@ -12,6 +12,7 @@ import default_0 from "../../../components/AdminLogo";
 import default_1 from "../../../components/AdminIcon";
 import default_2 from "../../../components/LoginBrandPanel";
 import default_3 from "../../../components/ReorderWidget";
+import default_4 from "../../../components/HelpButton";
 import { S3ClientUploadHandler as S3ClientUploadHandler_2 } from "@payloadcms/storage-s3/client";
 
 export const importMap = {
@@ -19,5 +20,6 @@ export const importMap = {
   "/components/AdminIcon#default": default_1,
   "/components/LoginBrandPanel#default": default_2,
   "/components/ReorderWidget#default": default_3,
+  "/components/HelpButton#default": default_4,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_2,
 };
