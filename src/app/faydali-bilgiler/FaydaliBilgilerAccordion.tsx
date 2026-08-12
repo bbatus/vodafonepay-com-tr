@@ -9,6 +9,7 @@ export function FaydaliBilgilerAccordion() {
   return (
     <div>
       <button
+        type="button"
         onClick={() => setIsOpen((v) => !v)}
         className="flex w-full cursor-pointer items-center justify-between rounded bg-white px-5 py-[22px] text-left shadow-[0px_2px_8px_0px_#00000029]"
       >

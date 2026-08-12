@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { FaqChevronIcon } from "@/components/icons";
 
 export interface Announcement {
   title: string;
   body: React.ReactNode;
+  deeplink?: string;
 }
 
 const fallbackAnnouncements: Announcement[] = [
@@ -132,6 +134,7 @@ export function DuyurularAccordion({ items = fallbackAnnouncements }: { items?: 
         return (
           <div key={item.title}>
             <button
+              type="button"
               onClick={() => setOpenIndex(isOpen ? null : i)}
               className="flex w-full cursor-pointer items-center justify-between gap-x-4 rounded bg-white px-5 py-[22px] text-left shadow-[0px_2px_8px_0px_#00000029]"
             >
@@ -141,6 +144,11 @@ export function DuyurularAccordion({ items = fallbackAnnouncements }: { items?: 
             {isOpen && (
               <div className="rounded bg-gray-50 px-5 py-4">
                 <div className="text-sm leading-6 text-gray-700">{item.body}</div>
+                {item.deeplink && (
+                  <Link href={item.deeplink} className="mt-3 inline-block text-sm font-bold text-vf-red hover:underline">
+                    Devamını gör →
+                  </Link>
+                )}
               </div>
             )}
           </div>

@@ -1,5 +1,8 @@
 import type { CollectionConfig } from "payload";
+import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const LimitTables: CollectionConfig = {
   slug: "limit-tables",
@@ -7,9 +10,22 @@ export const LimitTables: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "order"],
     group: "Ücretler & Limitler",
+    components: {
+      beforeList: [
+        { path: "/components/HelpButton#default", clientProps: { collection: "limit-tables" } },
+        { path: "/components/ReorderWidget#default", clientProps: { collection: "limit-tables" } },
+      ],
+    },
+  },
+  versions: {
+    drafts: true,
   },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
+    create: newVerticalCreate,
+    update: newVerticalReadWrite,
+    delete: isNewVerticalMaker,
   },
   fields: [
     { name: "title", type: "text", required: true },
@@ -28,7 +44,8 @@ export const LimitTables: CollectionConfig = {
     },
   ],
   hooks: {
-    afterChange: [revalidateTag("limit-tables")],
-    afterDelete: [revalidateTagOnDelete("limit-tables")],
+    beforeOperation: [denyUnauthenticatedDraftRead],
+    afterChange: [revalidateTag("limit-tables"), auditAfterChange("limit-tables")],
+    afterDelete: [revalidateTagOnDelete("limit-tables"), auditAfterDelete("limit-tables")],
   },
 };

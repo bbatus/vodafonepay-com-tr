@@ -1,5 +1,8 @@
 import type { CollectionConfig } from "payload";
+import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const ProductHeroes: CollectionConfig = {
   slug: "product-heroes",
@@ -7,9 +10,19 @@ export const ProductHeroes: CollectionConfig = {
     useAsTitle: "page",
     defaultColumns: ["page", "heading"],
     group: "Ürün Sayfaları",
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "product-heroes" } }],
+    },
+  },
+  versions: {
+    drafts: true,
   },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
+    create: newVerticalCreate,
+    update: newVerticalReadWrite,
+    delete: isNewVerticalMaker,
   },
   fields: [
     {
@@ -30,7 +43,8 @@ export const ProductHeroes: CollectionConfig = {
     { name: "heading", type: "text", required: true },
   ],
   hooks: {
-    afterChange: [revalidateTag("product-heroes")],
-    afterDelete: [revalidateTagOnDelete("product-heroes")],
+    beforeOperation: [denyUnauthenticatedDraftRead],
+    afterChange: [revalidateTag("product-heroes"), auditAfterChange("product-heroes")],
+    afterDelete: [revalidateTagOnDelete("product-heroes"), auditAfterDelete("product-heroes")],
   },
 };

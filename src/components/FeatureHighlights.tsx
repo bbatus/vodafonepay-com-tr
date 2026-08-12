@@ -2,7 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronRightIcon } from "@/components/icons";
 
-const features = [
+interface Highlight {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+const fallbackFeatures: Highlight[] = [
   {
     icon: "/images/icon-payment.svg",
     title: "Akıllı Ödeme Yöntemleri",
@@ -20,7 +26,7 @@ const features = [
   },
 ];
 
-export function FeatureHighlights() {
+export function FeatureHighlights({ features = fallbackFeatures }: { features?: Highlight[] }) {
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-10">
       <div className="flex items-center gap-x-10">

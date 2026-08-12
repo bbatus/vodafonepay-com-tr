@@ -1,5 +1,8 @@
 import type { CollectionConfig } from "payload";
+import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const NavLinks: CollectionConfig = {
   slug: "nav-links",
@@ -7,9 +10,22 @@ export const NavLinks: CollectionConfig = {
     useAsTitle: "label",
     defaultColumns: ["label", "href", "section", "order"],
     group: "Site Yapısı",
+    components: {
+      beforeList: [
+        { path: "/components/HelpButton#default", clientProps: { collection: "nav-links" } },
+        { path: "/components/ReorderWidget#default", clientProps: { collection: "nav-links", groupField: "section" } },
+      ],
+    },
+  },
+  versions: {
+    drafts: true,
   },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
+    create: newVerticalCreate,
+    update: newVerticalReadWrite,
+    delete: isNewVerticalMaker,
   },
   fields: [
     { name: "label", type: "text", required: true },
@@ -30,7 +46,8 @@ export const NavLinks: CollectionConfig = {
     { name: "order", type: "number", defaultValue: 0 },
   ],
   hooks: {
-    afterChange: [revalidateTag("nav-links")],
-    afterDelete: [revalidateTagOnDelete("nav-links")],
+    beforeOperation: [denyUnauthenticatedDraftRead],
+    afterChange: [revalidateTag("nav-links"), auditAfterChange("nav-links")],
+    afterDelete: [revalidateTagOnDelete("nav-links"), auditAfterDelete("nav-links")],
   },
 };

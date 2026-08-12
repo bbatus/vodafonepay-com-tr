@@ -3,17 +3,23 @@ import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { FilterTabs } from "@/components/FilterTabs";
-import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
+import type { CardListItem } from "@/components/CardListGrid";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getCampaigns, getFaqItems } from "@/lib/cms";
+import { getCampaigns, getFaqItems, getPageMeta } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
+import { CampaignsFilterableList } from "./CampaignsFilterableList";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Nakit İade Kampanyaları | Pay'lilere Özel Fırsatlar | Vodafone Pay",
-  description: "Vodafone Pay'in nakit iade ve indirim kampanyalarını incele, avantajlardan yararlan.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/kampanyalar");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Nakit İade Kampanyaları | Pay'lilere Özel Fırsatlar | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay'in nakit iade ve indirim kampanyalarını incele, avantajlardan yararlan.",
+    path: "/kampanyalar",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackFavorites: CardListItem[] = [
   { image: "/images/campaign-cesme.jpg", title: "Vodafone Pay ile Çeşme Plajlarında 1.000 TL Nakit İade!" },
@@ -58,6 +64,8 @@ export default async function Kampanyalar() {
     image: c.image.url,
     title: c.title,
     description: c.description,
+    href: c.slug ? `/kampanyalar/${c.slug}` : undefined,
+    category: c.category,
   });
 
   const favorites = cmsCampaigns ? cmsCampaigns.filter((c) => c.featured).map(toCard) : fallbackFavorites;
@@ -66,23 +74,21 @@ export default async function Kampanyalar() {
     ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
     : fallbackFaqs;
 
+  const pageMeta = await getPageMeta("/kampanyalar");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Kampanyalar" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Kampanyalar"} />
 
       <section className="mx-auto w-full max-w-[1280px] px-4 pb-20">
         <div className="flex flex-col items-center justify-center lg:pt-8">
           <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Kampanyalar</h1>
-          <div className="my-6">
-            <FilterTabs />
-          </div>
         </div>
 
-        {favorites.length > 0 && <CardListGrid title="Bu ayın favorileri" items={favorites} />}
-        <CardListGrid title="Tüm Kampanyalar" items={allCampaigns} />
+        <CampaignsFilterableList favorites={favorites} allCampaigns={allCampaigns} />
       </section>
 
       <Faq items={faqs} />

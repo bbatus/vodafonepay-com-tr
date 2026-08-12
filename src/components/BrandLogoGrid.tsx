@@ -1,6 +1,11 @@
 import Image from "next/image";
 
-const brands = [
+interface Brand {
+  name: string;
+  logo: string;
+}
+
+const fallbackBrands: Brand[] = [
   { name: "Spotify", logo: "/images/logo-spotify.svg" },
   { name: "Youtube Premium", logo: "/images/logo-youtube.svg" },
   { name: "Google Play", logo: "/images/logo-googleplay.svg" },
@@ -12,7 +17,7 @@ const brands = [
   { name: "Tıkla Gelsin", logo: "/images/logo-tiklagelsin.png" },
 ];
 
-export function BrandLogoGrid() {
+export function BrandLogoGrid({ brands = fallbackBrands }: { brands?: Brand[] }) {
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-16">
       <div className="rounded-lg bg-white p-6 shadow-[0px_2px_12px_0px_#00000014] lg:p-10">

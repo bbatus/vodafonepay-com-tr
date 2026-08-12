@@ -1,5 +1,8 @@
 import type { CollectionConfig } from "payload";
+import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 
 export const StepCards: CollectionConfig = {
   slug: "step-cards",
@@ -7,19 +10,34 @@ export const StepCards: CollectionConfig = {
     useAsTitle: "text",
     defaultColumns: ["page", "number", "order"],
     group: "Ürün Sayfaları",
+    components: {
+      beforeList: [
+        { path: "/components/HelpButton#default", clientProps: { collection: "step-cards" } },
+        { path: "/components/ReorderWidget#default", clientProps: { collection: "step-cards", groupField: "page" } },
+      ],
+    },
+  },
+  versions: {
+    drafts: true,
   },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
+    create: newVerticalCreate,
+    update: newVerticalReadWrite,
+    delete: isNewVerticalMaker,
   },
   fields: [
     { name: "page", type: "text", required: true, admin: { description: "Örn: qr-ile-faturana-yansit, aninda-bakiye" } },
     { name: "number", type: "text", required: true },
     { name: "text", type: "textarea", required: true },
     { name: "image", type: "upload", relationTo: "media", required: true },
+    { name: "deeplink", type: "text", admin: { description: "Adım tıklanınca gidilecek sayfa/deeplink (opsiyonel)." } },
     { name: "order", type: "number", defaultValue: 0 },
   ],
   hooks: {
-    afterChange: [revalidateTag("step-cards")],
-    afterDelete: [revalidateTagOnDelete("step-cards")],
+    beforeOperation: [denyUnauthenticatedDraftRead],
+    afterChange: [revalidateTag("step-cards"), auditAfterChange("step-cards")],
+    afterDelete: [revalidateTagOnDelete("step-cards"), auditAfterDelete("step-cards")],
   },
 };

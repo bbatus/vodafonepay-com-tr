@@ -4,12 +4,18 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getLegalPage, textToParagraphs } from "@/lib/cms";
+import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Bilgi Güvenliği | Vodafone Pay",
-  description: "Vodafone Pay müşteri bilgileri ve hassas ödeme verilerinin güvenliği için alınması gereken önlemler.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/bilgi-guvenligi");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Bilgi Güvenliği | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay müşteri bilgileri ve hassas ödeme verilerinin güvenliği için alınması gereken önlemler.",
+    path: "/bilgi-guvenligi",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackTips = [
   "Sizi arayan ve kendilerini avukat, polis, savcı, bankacı, sigortacı gibi tanıtan, sosyal medya/e-posta üzerinden arkadaşınız ya da ticaret yaptığınız şirket gibi davranan dolandırıcılar olabilir. Bu nedenle kiminle görüştüğünüze dikkat edin.",
@@ -41,12 +47,14 @@ export default async function BilgiGuvenligi() {
   const cmsPage = await getLegalPage("bilgi-guvenligi");
   const tips = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackTips;
 
+  const pageMeta = await getPageMeta("/bilgi-guvenligi");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Bilgi Güvenliği" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Bilgi Güvenliği"} />
 
       <section className="mx-auto w-full max-w-3xl px-4 pb-20">
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Bilgi Güvenliği</h1>
@@ -57,8 +65,8 @@ export default async function BilgiGuvenligi() {
         </p>
 
         <ul className="mt-6 flex flex-col gap-y-4">
-          {tips.map((tip, i) => (
-            <li key={i} className="flex gap-x-3 text-sm leading-6 text-gray-700">
+          {tips.map((tip) => (
+            <li key={tip} className="flex gap-x-3 text-sm leading-6 text-gray-700">
               <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-vf-red" />
               {tip}
             </li>

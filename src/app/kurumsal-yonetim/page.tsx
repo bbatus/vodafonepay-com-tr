@@ -4,11 +4,18 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
+import { getContactInfo, getPageMeta } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Vodafone Pay Kurumsal Yönetim | Hakkımızda",
-  description: "Vodafone Pay hakkında, vizyon, misyon, ortaklık yapısı ve yönetim kurulu bilgileri.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/kurumsal-yonetim");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Vodafone Pay Kurumsal Yönetim | Hakkımızda",
+    description: pageMeta?.seoDescription || "Vodafone Pay hakkında, vizyon, misyon, ortaklık yapısı ve yönetim kurulu bilgileri.",
+    path: "/kurumsal-yonetim",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const missionItems = [
   "Vodafone ve Vodafone Grubu’nun yurtiçi ve yurtdışında geliştirmiş olduğu ticari tecrübesini en uygun şekilde değerlendirmek.",
@@ -18,18 +25,34 @@ const missionItems = [
   "Hissedarları ve müşterileri açısından sürekli yüksek değer yaratan ve sosyal sorumluluk sahibi bir marka oluşturmak.",
 ];
 
-const sicilBilgileri: [string, string][] = [
-  ["Şirket Unvanı", "Vodafone Elektronik Para ve Ödeme Hizmetleri A.Ş."],
-  ["Merkez Adresi", "Maslak Mah. Büyükdere Cad. Büyükdere 251 No: 251 Sarıyer"],
-  ["Kuruluş/Ticaret Siciline Tescil Tarihi", "22.01.2016"],
-  ["Ödenmiş Sermaye", "6.000.000.-TL"],
-  ["Ticaret Sicil No", "605026-0"],
-  ["Vergi Dairesi/Numarası", "Maslak Vergi Dairesi / 9250391491"],
-  ["Mersis Numarası", "0925039149100014"],
-  ["Telefon", "0212 942 21 21"],
-  ["E-Mail Adresi", "vodafoneelektronikpara@hs03.kep.tr"],
-  ["İnternet Adresi", "www.vodafonepay.com.tr"],
-];
+const fallbackContact = {
+  companyName: "Vodafone Elektronik Para ve Ödeme Hizmetleri A.Ş.",
+  address: "Maslak Mah. Büyükdere Cad. Büyükdere 251 No: 251 Sarıyer",
+  tradeRegistryNo: "605026-0",
+  phone: "0212 942 21 21",
+  kepAddress: "vodafoneelektronikpara@hs03.kep.tr",
+  tcmbAddress: "İdare Merkezi\nHacı Bayram Mah. İstiklal Cad. No:10 06050 Ulus Altındağ Ankara",
+  tcmbPhone: "(0312) 507 5000",
+  tcmbFax: "(0312) 507 5640",
+};
+
+/** These rows mix ContactInfo-sourced fields (company name/address/phone/KEP/registry no) with
+ * registry data that has no equivalent in the ContactInfo global (founding date, capital, tax
+ * office, mersis no) — the latter stay hardcoded here. */
+function buildSicilBilgileri(contact: typeof fallbackContact): [string, string][] {
+  return [
+    ["Şirket Unvanı", contact.companyName],
+    ["Merkez Adresi", contact.address],
+    ["Kuruluş/Ticaret Siciline Tescil Tarihi", "22.01.2016"],
+    ["Ödenmiş Sermaye", "6.000.000.-TL"],
+    ["Ticaret Sicil No", contact.tradeRegistryNo],
+    ["Vergi Dairesi/Numarası", "Maslak Vergi Dairesi / 9250391491"],
+    ["Mersis Numarası", "0925039149100014"],
+    ["Telefon", contact.phone],
+    ["E-Mail Adresi", contact.kepAddress],
+    ["İnternet Adresi", "www.vodafonepay.com.tr"],
+  ];
+}
 
 const executives: { name: string; bio: string }[] = [
   {
@@ -69,13 +92,29 @@ function Avatar({ name }: { name: string }) {
   );
 }
 
-export default function KurumsalYonetim() {
+export default async function KurumsalYonetim() {
+  const cmsContact = await getContactInfo();
+  const contact = cmsContact
+    ? {
+        companyName: cmsContact.companyName || fallbackContact.companyName,
+        address: cmsContact.address || fallbackContact.address,
+        tradeRegistryNo: cmsContact.tradeRegistryNo || fallbackContact.tradeRegistryNo,
+        phone: cmsContact.phone || fallbackContact.phone,
+        kepAddress: cmsContact.kepAddress || fallbackContact.kepAddress,
+        tcmbAddress: cmsContact.tcmbAddress || fallbackContact.tcmbAddress,
+        tcmbPhone: cmsContact.tcmbPhone || fallbackContact.tcmbPhone,
+        tcmbFax: cmsContact.tcmbFax || fallbackContact.tcmbFax,
+      }
+    : fallbackContact;
+  const sicilBilgileri = buildSicilBilgileri(contact);
+  const pageMeta = await getPageMeta("/kurumsal-yonetim");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Kurumsal Yönetim" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Kurumsal Yönetim"} />
 
       <section className="mx-auto w-full max-w-[1030px] px-4 pb-20">
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black lg:text-left">
@@ -167,13 +206,15 @@ export default function KurumsalYonetim() {
               <p className="text-sm leading-6 text-gray-700">
                 TÜRKİYE CUMHURİYETİ MERKEZ BANKASI
                 <br />
-                İdare Merkezi
+                {contact.tcmbAddress.split("\n").map((line, i) => (
+                  <span key={`${line}-${i}`}>
+                    {line}
+                    <br />
+                  </span>
+                ))}
+                Telefon: {contact.tcmbPhone}
                 <br />
-                Hacı Bayram Mah. İstiklal Cad. No:10 06050 Ulus Altındağ Ankara
-                <br />
-                Telefon: (0312) 507 5000
-                <br />
-                Faks: (0312) 507 5640
+                Faks: {contact.tcmbFax}
               </p>
               <p className="mt-4 text-sm leading-6 text-gray-700">
                 Vodafone Elektronik Para ve Ödeme Hizmetleri A.Ş., 6493 sayılı yasa kapsamında BDDK tarafından

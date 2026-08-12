@@ -2,15 +2,17 @@ import type { Metadata } from "next";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
-import { FilterTabs } from "@/components/FilterTabs";
-import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
+import type { CardListItem } from "@/components/CardListGrid";
 import { Footer } from "@/components/Footer";
 import { getBlogPosts } from "@/lib/cms";
+import { BlogFilterableList } from "./BlogFilterableList";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Bloglar | Vodafone Pay",
   description: "Vodafone Pay'den mobil ödeme, kart ve dijital cüzdan hakkında güncel blog yazıları.",
-};
+  path: "/blog",
+});
 
 const fallbackPosts: CardListItem[] = [
   { image: "/images/blog-01.jpg", title: "Ulaşım Kartı Bakiye Yükleme Yolları | Vodafone Pay" },
@@ -30,7 +32,13 @@ const fallbackPosts: CardListItem[] = [
 export default async function Blog() {
   const cmsPosts = await getBlogPosts();
   const posts: CardListItem[] = cmsPosts?.length
-    ? cmsPosts.map((p) => ({ image: p.coverImage.url, title: p.title, description: p.excerpt }))
+    ? cmsPosts.map((p) => ({
+        image: p.coverImage.url,
+        title: p.title,
+        description: p.excerpt,
+        href: `/blog/${p.slug}`,
+        category: p.category,
+      }))
     : fallbackPosts;
 
   return (
@@ -42,12 +50,9 @@ export default async function Blog() {
       <section className="mx-auto w-full max-w-[1280px] px-4 pb-20">
         <div className="flex flex-col items-center justify-center lg:pt-8">
           <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Blog</h1>
-          <div className="my-6">
-            <FilterTabs />
-          </div>
         </div>
 
-        <CardListGrid title="Tüm Bloglar" items={posts} linkLabel="Devamını oku" />
+        <BlogFilterableList posts={posts} />
       </section>
 
       <Footer />

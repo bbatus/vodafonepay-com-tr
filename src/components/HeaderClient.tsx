@@ -21,6 +21,7 @@ export function HeaderClient({
     <header className="sticky -top-px z-[999] bg-white">
       <div className="flex items-center justify-between px-4 py-3 shadow-md lg:hidden">
         <button
+          type="button"
           aria-label="Menüyü aç"
           className="rounded-md p-2 transition-colors hover:bg-gray-100"
           onClick={() => setMenuOpen(true)}
@@ -42,7 +43,7 @@ export function HeaderClient({
             onMouseEnter={() => setProductsOpen(true)}
             onMouseLeave={() => setProductsOpen(false)}
           >
-            <button className="text-xl font-normal text-black transition-colors hover:text-vf-red">
+            <button type="button" className="text-xl font-normal text-black transition-colors hover:text-vf-red">
               Ürünler
             </button>
             {productsOpen && (
@@ -73,11 +74,14 @@ export function HeaderClient({
 
       {menuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div
+          <button
+            type="button"
+            aria-label="Menüyü kapat"
             className="absolute inset-0 bg-black/50 transition-opacity"
             onClick={() => setMenuOpen(false)}
           />
           <button
+            type="button"
             aria-label="Menüyü kapat"
             className="absolute right-4 top-20 z-50 rounded-md bg-black p-3 text-white shadow-lg transition-colors hover:bg-gray-100"
             onClick={() => setMenuOpen(false)}
@@ -90,6 +94,7 @@ export function HeaderClient({
           >
             <div className="px-4 pb-4 pt-20">
               <button
+                type="button"
                 onClick={() => setMobileProductsOpen((v) => !v)}
                 className="mb-2 flex w-full items-center justify-between border-b border-gray-200 px-4 py-3 text-left text-lg font-normal transition-colors hover:bg-gray-50"
               >

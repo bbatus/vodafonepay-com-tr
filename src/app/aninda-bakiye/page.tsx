@@ -8,13 +8,19 @@ import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getFaqItems, getProductHero, getFeatureCards, getStepCards } from "@/lib/cms";
+import { getFaqItems, getFeatureCards, getPageMeta, getProductHero, getStepCards } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Anında Bakiye ile Sana Özel Mobil Ödeme Limiti | Vodafone Pay",
-  description: "Size özel limitinizle dilediğiniz yerde harcama yapabilirsiniz!",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/aninda-bakiye");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Anında Bakiye ile Sana Özel Mobil Ödeme Limiti | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Size özel limitinizle dilediğiniz yerde harcama yapabilirsiniz!",
+    path: "/aninda-bakiye",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackCards = [
   {
@@ -142,12 +148,14 @@ export default async function AnindaBakiye() {
     ? cmsSteps.map((s) => ({ number: s.number, text: s.text, image: s.image.url }))
     : fallbackSteps;
 
+  const pageMeta = await getPageMeta("/aninda-bakiye");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Anında Bakiye" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Anında Bakiye"} />
       <ProductHero
         image={cmsHero?.image.url ?? "/images/ab-hero.jpg"}
         imageAlt={cmsHero?.image.alt || "Anında Bakiye"}

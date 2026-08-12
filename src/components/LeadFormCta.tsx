@@ -12,12 +12,12 @@ export function LeadFormCta() {
           <p className="text-sm font-bold">
             Vodafone Pay ile Faturana Yansıt üye işyerimiz olun, Vodafone Pay avantajlarından yararlanın.
           </p>
-          <a
-            href="#"
+          <button
+            type="button"
             className="w-full max-w-[160px] rounded-md bg-vf-red px-4 py-2 text-center text-sm font-bold text-white transition-opacity hover:opacity-80"
           >
             Formu doldurun
-          </a>
+          </button>
         </div>
       </div>
     </section>

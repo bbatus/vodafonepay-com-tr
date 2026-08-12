@@ -15,7 +15,7 @@ export function AppDownloadBanner() {
         <Image src="/images/vpay-logo.svg" alt="Vodafone Pay" width={32} height={32} className="rounded bg-vf-red p-1" />
         <span className="text-sm text-white underline">Vodafone Pay uygulamasını indir</span>
       </div>
-      <button aria-label="Kapat" onClick={() => setVisible(false)}>
+      <button type="button" aria-label="Kapat" onClick={() => setVisible(false)}>
         <CloseIcon className="h-5 w-5 text-white" />
       </button>
     </div>

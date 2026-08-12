@@ -4,13 +4,19 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { cookieRows } from "./cookieRows";
-import { getLegalPage, textToParagraphs } from "@/lib/cms";
+import { cookieRows as fallbackCookieRows } from "./cookieRows";
+import { getCookieRows, getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Çerez Politikası | Vodafone Pay",
-  description: "Vodafone Pay web sitesinde kullanılan çerezler, türleri ve yönetimi hakkında bilgi.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/cerez-politikasi");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Çerez Politikası | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay web sitesinde kullanılan çerezler, türleri ve yönetimi hakkında bilgi.",
+    path: "/cerez-politikasi",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackIntro = [
   "Vodafone'da kişisel verileriniz güvence altındadır. Bu çerçevede Vodafone, kişisel verilerinizi tüm teknik ve idari tedbirleri alarak korur. Gerekli güvenlik düzeyi için bütün teknolojik imkanlar kullanılır.",
@@ -19,15 +25,18 @@ const fallbackIntro = [
 ];
 
 export default async function CerezPolitikasi() {
-  const cmsPage = await getLegalPage("cerez-politikasi");
+  const [cmsPage, cmsCookieRows] = await Promise.all([getLegalPage("cerez-politikasi"), getCookieRows()]);
   const intro = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackIntro;
+  const cookieRows = cmsCookieRows?.length ? cmsCookieRows : fallbackCookieRows;
+
+  const pageMeta = await getPageMeta("/cerez-politikasi");
 
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Çerez Politikası" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Çerez Politikası"} />
 
       <section className="mx-auto w-full max-w-4xl px-4 pb-20">
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Çerez Politikası</h1>
@@ -35,8 +44,8 @@ export default async function CerezPolitikasi() {
         <div className="mt-10 flex flex-col gap-y-6 text-sm leading-6 text-gray-700">
           <div>
             <h2 className="text-xl font-bold text-black">Veri Sorumlusu Kimdir?</h2>
-            {intro.map((p, i) => (
-              <p key={i} className="mt-3">
+            {intro.map((p) => (
+              <p key={p} className="mt-3">
                 {p}
               </p>
             ))}

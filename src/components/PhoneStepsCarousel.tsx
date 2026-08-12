@@ -70,18 +70,19 @@ export function PhoneStepsCarousel({ heading, steps }: { heading: string; steps:
       </div>
 
       <div className="mt-8 flex items-center justify-center gap-x-4">
-        <button aria-label="Önceki adım" onClick={goPrev} className="rounded-full p-2 hover:bg-gray-100">
+        <button type="button" aria-label="Önceki adım" onClick={goPrev} className="rounded-full p-2 hover:bg-gray-100">
           <ChevronLeftIcon className="h-5 w-5" />
         </button>
         {steps.map((s, i) => (
           <button
+            type="button"
             key={s.number}
             aria-label={`Adım ${s.number}`}
             onClick={() => setActive(i)}
             className={`h-2 w-2 rounded-full transition-colors ${i === active ? "bg-vf-red" : "bg-gray-300"}`}
           />
         ))}
-        <button aria-label="Sonraki adım" onClick={goNext} className="rounded-full p-2 hover:bg-gray-100">
+        <button type="button" aria-label="Sonraki adım" onClick={goNext} className="rounded-full p-2 hover:bg-gray-100">
           <ChevronRightIcon className="h-5 w-5" />
         </button>
       </div>

@@ -11,13 +11,19 @@ import { BrandLogoGrid } from "@/components/BrandLogoGrid";
 import { LeadFormCta } from "@/components/LeadFormCta";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getFaqItems, getProductHero, getFeatureCards } from "@/lib/cms";
+import { getContentBlocks, getFaqItems, getFeatureCards, getPageMeta, getProductHero } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Faturana Yansıt | Mobil Ödeme | Vodafone Pay",
-  description: "Yalnızca cep telefonu numaranızı kullanarak indirimli alışverişin keyfini çıkarın!",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/faturana-yansit");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Faturana Yansıt | Mobil Ödeme | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Yalnızca cep telefonu numaranızı kullanarak indirimli alışverişin keyfini çıkarın!",
+    path: "/faturana-yansit",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackCards = [
   {
@@ -124,10 +130,12 @@ const fallbackFaqs: FaqItem[] = [
 ];
 
 export default async function FaturanaYansit() {
-  const [cmsFaqItems, cmsHero, cmsCards] = await Promise.all([
+  const [cmsFaqItems, cmsHero, cmsCards, cmsEarnSteps, cmsBrands] = await Promise.all([
     getFaqItems("faturana-yansit"),
     getProductHero("faturana-yansit"),
     getFeatureCards("faturana-yansit"),
+    getContentBlocks("faturana-yansit-nasil-kazanirim"),
+    getContentBlocks("brand-logos"),
   ]);
   const faqs: FaqItem[] = cmsFaqItems?.length
     ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
@@ -135,13 +143,21 @@ export default async function FaturanaYansit() {
   const cards = cmsCards?.length
     ? cmsCards.map((c) => ({ icon: c.icon.url, title: c.title, text: c.text }))
     : fallbackCards;
+  const cmsSteps = cmsEarnSteps?.length
+    ? cmsEarnSteps.map((s) => ({ icon: s.image?.url ?? "", title: s.title ?? "", description: s.text ?? "" }))
+    : earnSteps;
+  const brands = cmsBrands?.length
+    ? cmsBrands.map((b) => ({ name: b.title ?? "", logo: b.image?.url ?? "" }))
+    : undefined;
+
+  const pageMeta = await getPageMeta("/faturana-yansit");
 
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Faturana Yansıt" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Faturana Yansıt"} />
       <ProductHero
         image={cmsHero?.image.url ?? "/images/fy-hero.jpg"}
         imageAlt={cmsHero?.image.alt || "Faturana Yansıt"}
@@ -153,8 +169,8 @@ export default async function FaturanaYansit() {
         cards={cards}
       />
       <VideosWithTabs />
-      <HowToEarn heading="Nasıl Kullanırım?" image="/images/fy-nasil-kazanirim.png" steps={earnSteps} invertIcons={false} />
-      <BrandLogoGrid />
+      <HowToEarn heading="Nasıl Kullanırım?" image="/images/fy-nasil-kazanirim.png" steps={cmsSteps} invertIcons={false} />
+      <BrandLogoGrid brands={brands} />
       <LeadFormCta />
       <Faq items={faqs} />
       <Footer />

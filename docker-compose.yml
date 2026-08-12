@@ -154,6 +154,11 @@ services:
       - S3_BUCKET=${S3_BUCKET:-vodafonepaycomtr-media}
       - S3_ACCESS_KEY_ID=${MINIO_ROOT_USER:-payload}
       - S3_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-payload-minio-secret}
+      # TEMPORARY (local review only) — skips the admin login screen. See
+      # cms/payload.config.ts. Leave unset/false for a normal login flow.
+      - CMS_AUTO_LOGIN=${CMS_AUTO_LOGIN:-false}
+      - CMS_ADMIN_EMAIL=${CMS_ADMIN_EMAIL:-admin@vodafonepay.local}
+      - CMS_ADMIN_PASSWORD=${CMS_ADMIN_PASSWORD:-dev-admin-please-change}
     depends_on:
       postgres:
         condition: service_healthy

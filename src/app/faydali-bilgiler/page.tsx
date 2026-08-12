@@ -5,19 +5,28 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { FaydaliBilgilerAccordion } from "./FaydaliBilgilerAccordion";
+import { buildMetadata } from "@/lib/metadata";
+import { getPageMeta } from "@/lib/cms";
 
-export const metadata: Metadata = {
-  title: "Faydalı Bilgiler | Vodafone Pay",
-  description: "Vodafone Pay kullanımına dair faydalı bilgiler.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/faydali-bilgiler");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Faydalı Bilgiler | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay kullanımına dair faydalı bilgiler.",
+    path: "/faydali-bilgiler",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
-export default function FaydaliBilgiler() {
+export default async function FaydaliBilgiler() {
+  const pageMeta = await getPageMeta("/faydali-bilgiler");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Faydalı Bilgiler" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Faydalı Bilgiler"} />
 
       <section className="mx-auto w-full max-w-[1030px] px-4">
         <div className="flex items-center justify-between overflow-hidden rounded-lg bg-gradient-to-r from-black to-vf-red px-8 py-16">

@@ -4,12 +4,18 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getLegalPage, textToParagraphs } from "@/lib/cms";
+import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Gizlilik ve Güvenlik Politikası | Vodafone Pay",
-  description: "Vodafone Pay kişisel verilerin korunması, gizlilik ve güvenlik politikası aydınlatma metinleri.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/gizlilik-ve-guvenlik-politikasi");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Gizlilik ve Güvenlik Politikası | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay kişisel verilerin korunması, gizlilik ve güvenlik politikası aydınlatma metinleri.",
+    path: "/gizlilik-ve-guvenlik-politikasi",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallbackIntro = [
   "6698 sayılı Kişisel Verilerin Korunması Kanunu (\"Kanun\") uyarınca, kişisel verileriniz; veri sorumlusu sıfatıyla, hizmet aldığınız Vodafone Elektronik Para ve Ödeme Hizmetleri A.Ş. (\"Vodafone\", \"Şirket\") tarafından aşağıda açıklanan amaç ve hukuki sebeplerle işlenecektir.",
@@ -77,12 +83,14 @@ export default async function GizlilikVeGuvenlikPolitikasi() {
   const cmsPage = await getLegalPage("gizlilik-ve-guvenlik-politikasi");
   const intro = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackIntro;
 
+  const pageMeta = await getPageMeta("/gizlilik-ve-guvenlik-politikasi");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Gizlilik ve Güvenlik Politikası" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Gizlilik ve Güvenlik Politikası"} />
 
       <section className="mx-auto w-full max-w-3xl px-4 pb-20">
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Gizlilik ve Güvenlik Politikası</h1>
@@ -91,7 +99,7 @@ export default async function GizlilikVeGuvenlikPolitikasi() {
           <div>
             <h2 className="text-2xl font-bold text-black">Vodafone Yanımda Uygulaması İşlemlerine Dair Aydınlatma Metni</h2>
             {intro.map((p, i) => (
-              <p key={i} className={i === 0 ? "mt-4" : "mt-3"}>
+              <p key={p} className={i === 0 ? "mt-4" : "mt-3"}>
                 {p}
               </p>
             ))}

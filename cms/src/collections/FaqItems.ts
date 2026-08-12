@@ -1,5 +1,8 @@
 import type { CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
+import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 
 export const FaqItems: CollectionConfig = {
   slug: "faq-items",
@@ -7,12 +10,22 @@ export const FaqItems: CollectionConfig = {
     useAsTitle: "question",
     defaultColumns: ["question", "category", "order", "_status"],
     group: "İçerik",
+    components: {
+      beforeList: [
+        { path: "/components/HelpButton#default", clientProps: { collection: "faq-items" } },
+        { path: "/components/ReorderWidget#default", clientProps: { collection: "faq-items", groupField: "category" } },
+      ],
+    },
   },
   versions: {
     drafts: true,
   },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
+    create: newVerticalCreate,
+    update: newVerticalReadWrite,
+    delete: isNewVerticalMaker,
   },
   fields: [
     { name: "question", type: "text", required: true },
@@ -35,7 +48,8 @@ export const FaqItems: CollectionConfig = {
     { name: "order", type: "number", defaultValue: 0 },
   ],
   hooks: {
-    afterChange: [revalidateTag("faq-items")],
-    afterDelete: [revalidateTagOnDelete("faq-items")],
+    beforeOperation: [denyUnauthenticatedDraftRead],
+    afterChange: [revalidateTag("faq-items"), auditAfterChange("faq-items")],
+    afterDelete: [revalidateTagOnDelete("faq-items"), auditAfterDelete("faq-items")],
   },
 };

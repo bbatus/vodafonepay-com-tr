@@ -1,4 +1,9 @@
-const videos = [
+interface Video {
+  title: string;
+  youtubeId: string;
+}
+
+const fallbackVideos: Video[] = [
   {
     title: "Vodafone Pay Uygulaması üzerinden kare kod ile Türkiye'deki tüm ATM'lerden nasıl para çekersin?",
     youtubeId: "7CCEsOaoH2A",
@@ -9,7 +14,7 @@ const videos = [
   },
 ];
 
-export function VideoGuideSection() {
+export function VideoGuideSection({ videos = fallbackVideos }: { videos?: Video[] }) {
   return (
     <section
       className="bg-cover bg-center px-4 py-16 lg:px-[52px]"

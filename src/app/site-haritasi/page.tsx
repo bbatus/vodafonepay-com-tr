@@ -5,13 +5,31 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
+import { buildMetadata } from "@/lib/metadata";
+import { getNavLinks, getPageMeta, type NavLinkSection } from "@/lib/cms";
 
-export const metadata: Metadata = {
-  title: "Site Haritası | Vodafone Pay",
-  description: "Vodafone Pay web sitesindeki tüm sayfalara bu site haritasından ulaşabilirsiniz.",
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/site-haritasi");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Site Haritası | Vodafone Pay",
+    description: pageMeta?.seoDescription || "Vodafone Pay web sitesindeki tüm sayfalara bu site haritasından ulaşabilirsiniz.",
+    path: "/site-haritasi",
+    image: pageMeta?.ogImage?.url,
+  });
+}
+
+type Group = { title: string; links: { label: string; href: string }[] };
+
+/** Same sections Header/Footer already read via getNavLinks() — reusing them here means
+ * editing a nav link in the CMS keeps this page in sync instead of drifting from a separate copy. */
+const SECTION_TO_GROUP_TITLE: Record<string, string> = {
+  "header-products": "Ürünler",
+  "header-main": "İçerikler",
+  "footer-kurumsal": "Kurumsal",
+  "footer-yasal": "Yasal",
 };
 
-const groups: { title: string; links: { label: string; href: string }[] }[] = [
+const fallbackGroups: Group[] = [
   {
     title: "Ürünler",
     links: [
@@ -53,13 +71,29 @@ const groups: { title: string; links: { label: string; href: string }[] }[] = [
   },
 ];
 
-export default function SiteHaritasi() {
+export default async function SiteHaritasi() {
+  const cmsNavLinks = await getNavLinks();
+
+  const groups: Group[] = cmsNavLinks?.length
+    ? (Object.keys(SECTION_TO_GROUP_TITLE) as NavLinkSection[])
+        .map((section) => ({
+          title: SECTION_TO_GROUP_TITLE[section],
+          links: cmsNavLinks
+            .filter((l) => l.section === section)
+            .sort((a, b) => a.order - b.order)
+            .map((l) => ({ label: l.label, href: l.href })),
+        }))
+        .filter((group) => group.links.length > 0)
+    : fallbackGroups;
+
+  const pageMeta = await getPageMeta("/site-haritasi");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="Site Haritası" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Site Haritası"} />
 
       <section className="mx-auto w-full max-w-[1030px] px-4 pb-20">
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black lg:text-left">Site Haritası</h1>

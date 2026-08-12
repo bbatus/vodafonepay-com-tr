@@ -23,6 +23,13 @@ const vodafoneBold = localFont({
   display: "swap",
 });
 
+// Fallback for the ~15% of taps Universal Links miss (app not installed yet,
+// user long-pressed instead of tapping, in-app browsers that ignore
+// associated domains). Only renders once a real Apple App Store id is
+// configured — see src/app/.well-known/apple-app-site-association/route.ts
+// for the actual Safari→app handoff fix.
+const appleAppId = process.env.NEXT_PUBLIC_APPLE_APP_STORE_ID;
+
 export const metadata: Metadata = {
   title: "Vodafone Pay | Yeni Nesil Mobil Cüzdan",
   description:
@@ -30,6 +37,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/seo/favicon.ico",
   },
+  ...(appleAppId
+    ? { other: { "apple-itunes-app": `app-id=${appleAppId}` } }
+    : {}),
 };
 
 export default function RootLayout({

@@ -1,13 +1,21 @@
 import type { GlobalConfig } from "payload";
 import { revalidateGlobalTag } from "@/hooks/revalidate";
+import { auditGlobalAfterChange } from "@/hooks/audit";
+import { newVerticalReadWrite } from "@/access/roles";
 
 export const ContactInfo: GlobalConfig = {
   slug: "contact-info",
   admin: {
     group: "Site Yapısı",
+    components: {
+      elements: {
+        beforeDocumentControls: [{ path: "/components/HelpButton#default", clientProps: { collection: "contact-info" } }],
+      },
+    },
   },
   access: {
     read: () => true,
+    update: newVerticalReadWrite,
   },
   fields: [
     { name: "companyName", type: "text", required: true },
@@ -23,6 +31,6 @@ export const ContactInfo: GlobalConfig = {
     { name: "pressRelationsUrl", type: "text" },
   ],
   hooks: {
-    afterChange: [revalidateGlobalTag("contact-info")],
+    afterChange: [revalidateGlobalTag("contact-info"), auditGlobalAfterChange("contact-info")],
   },
 };

@@ -1,5 +1,9 @@
 import type { CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
+import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { sitePreviewUrl } from "@/lib/preview";
 
 export const BlogPosts: CollectionConfig = {
   slug: "blog-posts",
@@ -7,12 +11,20 @@ export const BlogPosts: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "category", "publishedDate", "_status"],
     group: "İçerik",
+    preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/blog/${doc.slug}`) : null),
+    components: {
+      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "blog-posts" } }],
+    },
   },
   versions: {
     drafts: true,
   },
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
+    create: newVerticalCreate,
+    update: newVerticalReadWrite,
+    delete: isNewVerticalMaker,
   },
   fields: [
     { name: "title", type: "text", required: true },
@@ -22,11 +34,24 @@ export const BlogPosts: CollectionConfig = {
     { name: "body", type: "richText" },
     { name: "category", type: "text" },
     { name: "publishedDate", type: "date", admin: { date: { pickerAppearance: "dayOnly" } } },
+    {
+      // Named postStatus (not "status") — see the same collision noted on
+      // Campaigns.campaignStatus.
+      name: "postStatus",
+      type: "select",
+      defaultValue: "active",
+      options: [
+        { label: "Aktif", value: "active" },
+        { label: "Arşivlendi", value: "archived" },
+      ],
+      admin: { description: "Arşivlenen yazı liste sayfasından kalkar, detay sayfası erişilebilir kalır" },
+    },
     { name: "seoTitle", type: "text" },
     { name: "seoDescription", type: "textarea" },
   ],
   hooks: {
-    afterChange: [revalidateTag("blog-posts")],
-    afterDelete: [revalidateTagOnDelete("blog-posts")],
+    beforeOperation: [denyUnauthenticatedDraftRead],
+    afterChange: [revalidateTag("blog-posts"), auditAfterChange("blog-posts")],
+    afterDelete: [revalidateTagOnDelete("blog-posts"), auditAfterDelete("blog-posts")],
   },
 };

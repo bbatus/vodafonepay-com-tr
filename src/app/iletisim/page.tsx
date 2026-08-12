@@ -4,12 +4,18 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getContactInfo } from "@/lib/cms";
+import { getContactInfo, getPageMeta } from "@/lib/cms";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Vodafone Pay İletişim | Müşteri Hizmetleri",
-  description: "Vodafone Pay şirket bilgileri, müşteri hizmetleri ve denetim mercii iletişim bilgileri.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const pageMeta = await getPageMeta("/iletisim");
+  return buildMetadata({
+    title: pageMeta?.seoTitle || "Vodafone Pay İletişim | Müşteri Hizmetleri",
+    description: pageMeta?.seoDescription || "Vodafone Pay şirket bilgileri, müşteri hizmetleri ve denetim mercii iletişim bilgileri.",
+    path: "/iletisim",
+    image: pageMeta?.ogImage?.url,
+  });
+}
 
 const fallback = {
   companyName: "Vodafone Elektronik Para ve Ödeme A.Ş.",
@@ -22,7 +28,7 @@ const fallback = {
   tcmbPhone: "(0312) 507 5000",
   tcmbFax: "(0312) 507 5640",
   tcmbKep: "merkezbankasi@hs02.kep.tr",
-  pressRelationsUrl: "http://medyamerkezi.vodafone.com.tr/",
+  pressRelationsUrl: "https://medyamerkezi.vodafone.com.tr/",
 };
 
 export default async function Iletisim() {
@@ -37,7 +43,7 @@ export default async function Iletisim() {
     {
       label: "Vodafone Pay Müşteri Hizmetleri",
       value: info.customerServiceText.split("\n").map((line, i) => (
-        <span key={i}>
+        <span key={`${line}-${i}`}>
           {i > 0 && <br />}
           {line}
         </span>
@@ -50,7 +56,7 @@ export default async function Iletisim() {
           TÜRKİYE CUMHURİYET MERKEZ BANKASI
           <br />
           {info.tcmbAddress.split("\n").map((line, i) => (
-            <span key={i}>
+            <span key={`${line}-${i}`}>
               {line}
               <br />
             </span>
@@ -82,12 +88,14 @@ export default async function Iletisim() {
       : []),
   ];
 
+  const pageMeta = await getPageMeta("/iletisim");
+
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current="İletişim" />
+      <Breadcrumb current={pageMeta?.breadcrumbLabel || "İletişim"} />
 
       <section className="w-full bg-gradient-to-r from-vf-navy to-vf-red px-4 py-16 lg:px-16">
         <div className="mx-auto max-w-[1030px]">
