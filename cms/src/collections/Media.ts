@@ -5,6 +5,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const Media: CollectionConfig = {
   slug: "media",
   admin: {
+    hideAPIURL: true,
     group: "Sistem",
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "media" } }],

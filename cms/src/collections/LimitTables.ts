@@ -7,6 +7,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const LimitTables: CollectionConfig = {
   slug: "limit-tables",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "order"],
     group: "Ücretler & Limitler",

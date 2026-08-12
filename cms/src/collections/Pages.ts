@@ -98,6 +98,7 @@ const LogoGridBlock: Block = {
 export const Pages: CollectionConfig = {
   slug: "pages",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "slug", "_status"],
     group: "İçerik",

@@ -6,6 +6,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const Representatives: CollectionConfig = {
   slug: "representatives",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "businessName",
     defaultColumns: ["businessName", "province", "district", "phone"],
     group: "İçerik",

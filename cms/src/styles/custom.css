@@ -30,15 +30,28 @@
 }
 
 :root {
+  /* Full ramp (every stop Payload itself defines, not just the round
+     numbers) — components like Pill/Dropzone/Checkbox read the in-between
+     150/250/... stops directly, and any stop left undefined here silently
+     falls back to Payload's default blue ramp instead of red, producing
+     mismatched blue-bg/red-text combinations (seen on status pills). */
   --theme-success-50: #fdeaea;
   --theme-success-100: #fad0d0;
+  --theme-success-150: #f8baba;
   --theme-success-200: #f5a3a3;
+  --theme-success-250: #f28c8c;
   --theme-success-300: #ef7575;
+  --theme-success-350: #ed5e5e;
   --theme-success-400: #ea4747;
+  --theme-success-450: #e82424;
   --theme-success-500: #e60000;
+  --theme-success-550: #d90000;
   --theme-success-600: #cc0000;
+  --theme-success-650: #c00000;
   --theme-success-700: #b30000;
+  --theme-success-750: #a60000;
   --theme-success-800: #990000;
+  --theme-success-850: #8d0000;
   --theme-success-900: #800000;
   --theme-success-950: #660000;
 
@@ -76,12 +89,27 @@ a {
 .btn--style-primary {
   background: var(--vf-red) !important;
   border-color: var(--vf-red) !important;
+  color: #fff !important;
   box-shadow: 0 1px 2px rgba(230, 0, 0, 0.25);
 }
 
 .btn--style-primary:hover {
   background: var(--vf-red-dark) !important;
+  color: #fff !important;
   box-shadow: 0 4px 10px rgba(230, 0, 0, 0.3);
+}
+
+/* Payload's own disabled state swaps --color to a near-black elevation
+   shade for readability against its default light-grey disabled
+   background — but the rule above forces the red brand background
+   unconditionally, so a disabled primary button ended up with that
+   near-black text sitting on red instead of white. Give disabled buttons
+   a genuinely disabled (dim, non-brand) look instead. */
+.btn--style-primary.btn--disabled {
+  background: var(--theme-elevation-150) !important;
+  border-color: var(--theme-elevation-150) !important;
+  color: var(--theme-elevation-450) !important;
+  box-shadow: none;
 }
 
 .btn--style-secondary {
@@ -370,4 +398,28 @@ a {
 .pill--style-light.pill--has-bg-color {
   background: var(--theme-success-50);
   color: var(--vf-red-dark);
+}
+
+/* ---------------------------------------------------------------------
+   Toast notifications
+--------------------------------------------------------------------- */
+
+/* Payload's own success-toast styling reads --theme-success-*, which this
+   file repoints to the red brand ramp for buttons/nav/pills. That made a
+   genuinely successful action (save/publish/delete) render in the same red
+   as an error toast. Give the success toast its own real green, independent
+   of the brand ramp, without touching --theme-success-* itself (still
+   needed red everywhere else above). */
+.payload-toast-item.toast-success {
+  color: #15803d;
+  border-color: #86efac;
+  background-color: #f0fdf4;
+}
+
+.payload-toast-item.toast-success .payload-toast-close-button {
+  color: #16a34a;
+}
+
+.payload-toast-item.toast-success .payload-toast-close-button:hover {
+  color: #86efac;
 }

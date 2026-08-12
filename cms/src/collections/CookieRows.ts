@@ -7,6 +7,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const CookieRows: CollectionConfig = {
   slug: "cookie-rows",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "name",
     defaultColumns: ["name", "provider", "party", "category"],
     group: "Site Yapısı",

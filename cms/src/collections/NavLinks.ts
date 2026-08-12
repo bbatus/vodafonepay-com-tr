@@ -7,6 +7,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const NavLinks: CollectionConfig = {
   slug: "nav-links",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "label",
     defaultColumns: ["label", "href", "section", "order"],
     group: "Site Yapısı",

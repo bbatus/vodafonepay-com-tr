@@ -7,6 +7,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const StepCards: CollectionConfig = {
   slug: "step-cards",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "text",
     defaultColumns: ["page", "number", "order"],
     group: "Ürün Sayfaları",

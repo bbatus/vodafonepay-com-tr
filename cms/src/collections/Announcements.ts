@@ -7,6 +7,7 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 export const Announcements: CollectionConfig = {
   slug: "announcements",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "order", "_status"],
     group: "İçerik",

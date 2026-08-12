@@ -13,7 +13,9 @@ import default_1 from "../../../components/AdminIcon";
 import default_2 from "../../../components/LoginBrandPanel";
 import default_3 from "../../../components/ReorderWidget";
 import default_4 from "../../../components/HelpButton";
+import default_5 from "../../../components/DashboardWidgets";
 import { S3ClientUploadHandler as S3ClientUploadHandler_2 } from "@payloadcms/storage-s3/client";
+import { CollectionCards as CollectionCards_1 } from "@payloadcms/next/rsc";
 
 export const importMap = {
   "/components/AdminLogo#default": default_0,
@@ -21,5 +23,7 @@ export const importMap = {
   "/components/LoginBrandPanel#default": default_2,
   "/components/ReorderWidget#default": default_3,
   "/components/HelpButton#default": default_4,
+  "/components/DashboardWidgets#default": default_5,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_2,
+  "@payloadcms/next/rsc#CollectionCards": CollectionCards_1,
 };

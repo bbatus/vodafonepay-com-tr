@@ -7,6 +7,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const FeeRows: CollectionConfig = {
   slug: "fee-rows",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "label",
     defaultColumns: ["label", "value", "order"],
     group: "Ücretler & Limitler",

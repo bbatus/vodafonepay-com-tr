@@ -7,6 +7,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const ProductHeroes: CollectionConfig = {
   slug: "product-heroes",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "page",
     defaultColumns: ["page", "heading"],
     group: "Ürün Sayfaları",

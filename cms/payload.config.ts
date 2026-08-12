@@ -139,6 +139,7 @@ export default buildConfig({
         Icon: "/components/AdminIcon#default",
       },
       beforeLogin: ["/components/LoginBrandPanel#default"],
+      beforeDashboard: ["/components/DashboardWidgets#default"],
     },
   },
   onInit: async (payload) => {

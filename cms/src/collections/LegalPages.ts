@@ -7,6 +7,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const LegalPages: CollectionConfig = {
   slug: "legal-pages",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "slug"],
     group: "Site Yapısı",

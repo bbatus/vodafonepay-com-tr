@@ -8,6 +8,7 @@ import { sitePreviewUrl } from "@/lib/preview";
 export const Campaigns: CollectionConfig = {
   slug: "campaigns",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "category", "featured", "startDate", "endDate", "_status"],
     group: "İçerik",

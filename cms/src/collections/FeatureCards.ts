@@ -7,6 +7,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const FeatureCards: CollectionConfig = {
   slug: "feature-cards",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "page", "order"],
     group: "Ürün Sayfaları",

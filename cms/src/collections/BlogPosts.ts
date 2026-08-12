@@ -8,6 +8,7 @@ import { sitePreviewUrl } from "@/lib/preview";
 export const BlogPosts: CollectionConfig = {
   slug: "blog-posts",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "category", "publishedDate", "_status"],
     group: "İçerik",

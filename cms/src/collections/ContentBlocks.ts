@@ -16,6 +16,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const ContentBlocks: CollectionConfig = {
   slug: "content-blocks",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["page", "blockType", "title", "order"],
     group: "İçerik",

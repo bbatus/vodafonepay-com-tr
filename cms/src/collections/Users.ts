@@ -5,6 +5,7 @@ import { auditAfterChange, auditAfterDelete, writeAuditLog } from "@/hooks/audit
 export const Users: CollectionConfig = {
   slug: "users",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "email",
     defaultColumns: ["email", "role"],
     group: "Sistem",

@@ -12,6 +12,7 @@ import { isNewVerticalMaker } from "@/access/roles";
 export const AuditLogs: CollectionConfig = {
   slug: "audit-logs",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "summary",
     defaultColumns: ["createdAt", "userEmail", "action", "collectionSlug", "summary"],
     group: "Sistem",

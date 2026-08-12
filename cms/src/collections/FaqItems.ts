@@ -7,6 +7,7 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 export const FaqItems: CollectionConfig = {
   slug: "faq-items",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "question",
     defaultColumns: ["question", "category", "order", "_status"],
     group: "İçerik",

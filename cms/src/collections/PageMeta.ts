@@ -13,6 +13,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const PageMeta: CollectionConfig = {
   slug: "page-meta",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "pageKey",
     defaultColumns: ["pageKey", "breadcrumbLabel", "seoTitle"],
     group: "Site Yapısı",

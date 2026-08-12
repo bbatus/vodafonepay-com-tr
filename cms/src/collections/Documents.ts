@@ -7,6 +7,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 export const Documents: CollectionConfig = {
   slug: "documents",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "filename",
     group: "Sistem",
     components: {
