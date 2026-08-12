@@ -168,10 +168,15 @@ a {
   font-weight: 600;
 }
 
+.nav-group {
+  margin-bottom: 1.25rem;
+}
+
 .nav-group__toggle {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 0.75rem;
+  font-weight: 600;
   color: var(--theme-elevation-400);
 }
 
@@ -198,8 +203,39 @@ a {
 }
 
 /* ---------------------------------------------------------------------
-   Tables
+   List views (collection tables)
 --------------------------------------------------------------------- */
+
+.list-header__title {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.btn--style-pill {
+  border-radius: 999px;
+}
+
+.btn--style-pill.btn--icon-style-without-border {
+  background: var(--vf-red);
+  color: #fff;
+  border-color: var(--vf-red);
+}
+
+.btn--style-pill.btn--icon-style-without-border:hover {
+  background: var(--vf-red-dark);
+}
+
+.search-bar {
+  border: 1px solid var(--theme-elevation-100);
+}
+
+.table {
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-m);
+  background: var(--theme-bg);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
 
 .table table thead th {
   background: #fafafa;
@@ -208,10 +244,28 @@ a {
   text-transform: uppercase;
   font-size: 0.7rem;
   letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--theme-elevation-100);
+}
+
+.table table tbody tr {
+  border-bottom: 1px solid var(--theme-elevation-100);
+}
+
+.table table tbody tr:last-child {
+  border-bottom: none;
 }
 
 .table table tbody tr:hover {
   background: var(--theme-success-50);
+}
+
+.table table tbody tr td a {
+  color: var(--theme-elevation-800);
+  font-weight: 500;
+}
+
+.table table tbody tr td a:hover {
+  color: var(--vf-red);
 }
 
 /* ---------------------------------------------------------------------

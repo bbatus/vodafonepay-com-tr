@@ -140,6 +140,12 @@ services:
       - DATABASE_URI=postgres://${POSTGRES_USER:-payload}:${POSTGRES_PASSWORD:-payload}@postgres:5432/${POSTGRES_DB:-vodafonepaycms}
       - PAYLOAD_SECRET=${PAYLOAD_SECRET:-dev-payload-secret-change-me}
       - SITE_URL=${SITE_URL:-http://localhost:3000}
+      - CMS_PORT=${CMS_PORT:-3010}
+      # Extra origin the admin panel is trusted from (e.g. this machine's LAN
+      # IP, for logging in from a phone on the same network) — without this,
+      # Payload's CSRF check silently rejects auth from any origin besides
+      # SITE_URL, which looks like "login succeeds but nothing ever loads".
+      - CMS_LAN_URL=${CMS_LAN_URL:-}
       - SITE_REVALIDATE_URL=http://app:3000/api/revalidate
       - REVALIDATE_SECRET=${REVALIDATE_SECRET:-dev-revalidate-secret}
       - S3_ENDPOINT=http://minio:9000

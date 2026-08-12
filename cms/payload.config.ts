@@ -25,6 +25,23 @@ const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 const siteUrl = process.env.SITE_URL || "http://localhost:3000";
+const cmsPort = process.env.CMS_PORT || "3010";
+
+// The CMS is reachable from more than one origin in local/dev use (localhost,
+// the machine's LAN IP for testing from a phone, etc). Payload's cookie-auth
+// extraction rejects any Origin not in this list, which — since it only had
+// the frontend's origin before — silently broke "logged in but every request
+// looks unauthenticated" when accessing the admin panel from a LAN IP.
+const trustedOrigins = Array.from(
+  new Set(
+    [
+      siteUrl,
+      `http://localhost:${cmsPort}`,
+      `http://127.0.0.1:${cmsPort}`,
+      process.env.CMS_LAN_URL,
+    ].filter((v): v is string => Boolean(v))
+  )
+);
 
 export default buildConfig({
   admin: {
@@ -68,8 +85,8 @@ export default buildConfig({
     },
   }),
   sharp,
-  cors: [siteUrl],
-  csrf: [siteUrl],
+  cors: trustedOrigins,
+  csrf: trustedOrigins,
   plugins: [
     s3Storage({
       collections: {
