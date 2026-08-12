@@ -10,6 +10,9 @@ export const Announcements: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "order", "_status"],
     group: "İçerik",
+    components: {
+      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "announcements" } }],
+    },
   },
   versions: {
     drafts: true,

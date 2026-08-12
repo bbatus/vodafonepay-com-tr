@@ -10,6 +10,9 @@ export const LimitTables: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "order"],
     group: "Ücretler & Limitler",
+    components: {
+      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "limit-tables" } }],
+    },
   },
   versions: {
     drafts: true,

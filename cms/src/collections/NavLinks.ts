@@ -10,6 +10,9 @@ export const NavLinks: CollectionConfig = {
     useAsTitle: "label",
     defaultColumns: ["label", "href", "section", "order"],
     group: "Site Yapısı",
+    components: {
+      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "nav-links", groupField: "section" } }],
+    },
   },
   versions: {
     drafts: true,

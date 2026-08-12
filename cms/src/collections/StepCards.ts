@@ -11,7 +11,7 @@ export const StepCards: CollectionConfig = {
     defaultColumns: ["page", "number", "order"],
     group: "Ürün Sayfaları",
     components: {
-      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "step-cards" } }],
+      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "step-cards", groupField: "page" } }],
     },
   },
   versions: {

@@ -10,6 +10,9 @@ export const FeeRows: CollectionConfig = {
     useAsTitle: "label",
     defaultColumns: ["label", "value", "order"],
     group: "Ücretler & Limitler",
+    components: {
+      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "fee-rows" } }],
+    },
   },
   versions: {
     drafts: true,

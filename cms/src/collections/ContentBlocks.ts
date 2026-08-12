@@ -22,7 +22,7 @@ export const ContentBlocks: CollectionConfig = {
     description:
       "StepPhones/AppFeatures/EarnWithCard/FeatureHighlights/VideoGuideSection/VideosWithTabs/BrandLogoGrid gibi tekil bileşenlerin içerik blokları. `page` alanı hangi bileşen/sayfaya ait olduğunu belirler.",
     components: {
-      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "content-blocks" } }],
+      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "content-blocks", groupField: "page" } }],
     },
   },
   versions: {

@@ -5,12 +5,19 @@ import { useRouter } from "next/navigation";
 
 /**
  * RFP §3.1.6: content sorting. The `order` number field already existed on
- * every page-scoped collection (FeeRows/StepCards/FeatureCards/
- * ContentBlocks), but editors had to type a number and guess at ordering
- * relative to siblings — no drag-and-drop. Payload's own drag-reorder only
- * applies to array/blocks SUB-fields inside one document, not to a list of
- * separate collection documents, so this is a real custom admin component
- * (injected via `admin.components.beforeList`) rather than a config flag.
+ * every collection that renders as an ordered list (StepCards/FeatureCards/
+ * ContentBlocks/FaqItems/NavLinks/Announcements/FeeRows/LimitTables), but
+ * editors had to type a number and guess at ordering relative to siblings —
+ * no drag-and-drop. Payload's own drag-reorder only applies to array/blocks
+ * SUB-fields inside one document, not to a list of separate collection
+ * documents, so this is a real custom admin component (injected via
+ * `admin.components.beforeList`) rather than a config flag.
+ *
+ * `groupField` scopes reordering to siblings that actually compete for the
+ * same `order` sequence (e.g. StepCards' `page`, NavLinks' `section`,
+ * FaqItems' `category`) — dragging can only reorder within one group, never
+ * across unrelated ones. Collections with a single flat list (FeeRows,
+ * LimitTables, Announcements) omit it and get one group.
  *
  * Native HTML5 drag events are used instead of pulling in a drag-and-drop
  * library — this widget's interaction surface (reorder a flat list) doesn't
@@ -23,18 +30,19 @@ type ReorderableDoc = {
   label?: string;
   text?: string;
   name?: string;
+  question?: string;
   order: number;
-  page?: string;
+  [key: string]: unknown;
 };
 
 function labelOf(doc: ReorderableDoc): string {
-  return doc.title || doc.label || doc.name || doc.text || `#${doc.id}`;
+  return doc.title || doc.label || doc.name || doc.text || doc.question || `#${doc.id}`;
 }
 
-function groupByPage(docs: ReorderableDoc[]): [string, ReorderableDoc[]][] {
+function groupDocs(docs: ReorderableDoc[], groupField?: string): [string, ReorderableDoc[]][] {
   const groups = new Map<string, ReorderableDoc[]>();
   for (const doc of docs) {
-    const key = doc.page ?? "__all__";
+    const key = (groupField && typeof doc[groupField] === "string" ? (doc[groupField] as string) : undefined) ?? "__all__";
     const list = groups.get(key) ?? [];
     list.push(doc);
     groups.set(key, list);
@@ -44,12 +52,12 @@ function groupByPage(docs: ReorderableDoc[]): [string, ReorderableDoc[]][] {
 
 function DraggableGroup({
   collection,
-  pageKey,
+  groupKey,
   initialDocs,
   onSaved,
 }: {
   collection: string;
-  pageKey: string;
+  groupKey: string;
   initialDocs: ReorderableDoc[];
   onSaved: () => void;
 }) {
@@ -90,7 +98,11 @@ function DraggableGroup({
 
   return (
     <div style={{ marginBottom: "0.75rem" }}>
-      {pageKey !== "__all__" && <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: 4 }}>{pageKey} {saving && "(kaydediliyor…)"}</p>}
+      {groupKey !== "__all__" && (
+        <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: 4 }}>
+          {groupKey} {saving && "(kaydediliyor…)"}
+        </p>
+      )}
       <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 4 }}>
         {docs.map((doc, i) => (
           <li
@@ -116,7 +128,7 @@ function DraggableGroup({
   );
 }
 
-export default function ReorderWidget({ collection }: { collection: string }) {
+export default function ReorderWidget({ collection, groupField }: { collection: string; groupField?: string }) {
   const router = useRouter();
   const [docs, setDocs] = useState<ReorderableDoc[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -131,18 +143,18 @@ export default function ReorderWidget({ collection }: { collection: string }) {
   if (error) return <p style={{ color: "red", padding: "1rem" }}>{error}</p>;
   if (!docs || docs.length < 2) return null;
 
-  const groups = groupByPage(docs);
+  const groups = groupDocs(docs, groupField);
 
   return (
     <div style={{ margin: "1rem 0", padding: "1rem", border: "1px solid #e5e7eb", borderRadius: 8, background: "#fafafa" }}>
       <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>Sürükleyerek sırala</p>
-      {groups.map(([pageKey, groupDocs]) =>
-        groupDocs.length < 2 ? null : (
+      {groups.map(([groupKey, groupItems]) =>
+        groupItems.length < 2 ? null : (
           <DraggableGroup
-            key={pageKey}
+            key={groupKey}
             collection={collection}
-            pageKey={pageKey}
-            initialDocs={groupDocs}
+            groupKey={groupKey}
+            initialDocs={groupItems}
             onSaved={() => router.refresh()}
           />
         )

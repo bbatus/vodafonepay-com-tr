@@ -11,7 +11,7 @@ export const FeatureCards: CollectionConfig = {
     defaultColumns: ["title", "page", "order"],
     group: "Ürün Sayfaları",
     components: {
-      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "feature-cards" } }],
+      beforeList: [{ path: "/components/ReorderWidget#default", clientProps: { collection: "feature-cards", groupField: "page" } }],
     },
   },
   versions: {
