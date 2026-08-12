@@ -36,6 +36,24 @@ const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 const siteUrl = process.env.SITE_URL || "http://localhost:3000";
+const cmsPort = process.env.CMS_PORT || "3010";
+
+// The CMS admin panel's own origin was never in this list — only the
+// frontend's SITE_URL was. Payload's CSRF check runs on every mutating
+// request (PATCH/POST/DELETE) and, on an origin mismatch, doesn't throw a
+// distinct CSRF error — it silently drops the cookie-derived user, so the
+// request proceeds as unauthenticated and every access-control check fails
+// closed. Confirmed live: with CMS_AUTO_LOGIN off, every write (save
+// draft, publish, delete) from the admin UI itself 403'd with req.user
+// undefined, while reads kept working (no CSRF check on GET). Also covers
+// the LAN IP case (opening the admin from a phone on the same network).
+const trustedOrigins = Array.from(
+  new Set(
+    [siteUrl, `http://localhost:${cmsPort}`, `http://127.0.0.1:${cmsPort}`, process.env.CMS_LAN_URL].filter(
+      (v): v is string => Boolean(v)
+    )
+  )
+);
 
 // TEMPORARY (local review only): set CMS_AUTO_LOGIN=true to skip the admin
 // login screen, so the CMS UI/UX can be reviewed without a real auth flow.
@@ -54,7 +72,22 @@ const autoLoginEnabled = process.env.CMS_AUTO_LOGIN === "true";
 const devAdminEmail = process.env.CMS_ADMIN_EMAIL || "admin@vodafonepay.local";
 const devAdminPassword = process.env.CMS_ADMIN_PASSWORD || "dev-admin-please-change";
 
+// Without an explicit serverURL, Payload doesn't know its own
+// externally-reachable address and falls back to whatever it's actually
+// bound to inside the container — here, `localhost:3000` (the Next.js
+// server's internal listen port), never the `3010` the docker-compose
+// port mapping exposes it as. The admin UI's own save/publish actions run
+// through a server-side call that builds its request from this value; with
+// it wrong, that call reconstructs a `localhost:3000` request carrying
+// none of the browser's cookies, so every write 403s with an empty
+// req.user while reads (which don't go through this path) keep working —
+// confirmed live: CMS_AUTO_LOGIN masked this because its fallback
+// auto-auths on any failed auth extraction, so this was never exercised
+// until real login was tested.
+const cmsServerUrl = process.env.CMS_SERVER_URL || `http://localhost:${cmsPort}`;
+
 export default buildConfig({
+  serverURL: cmsServerUrl,
   // RFP §3.5.7: admin UI must be Turkish. Payload UI (menus, buttons,
   // validation messages, dates) is now localized; `en` stays available as a
   // fallback/switchable option for developer debugging.
@@ -164,8 +197,8 @@ export default buildConfig({
     },
   }),
   sharp,
-  cors: [siteUrl],
-  csrf: [siteUrl],
+  cors: trustedOrigins,
+  csrf: trustedOrigins,
   plugins: [
     s3Storage({
       collections: {

@@ -29,10 +29,21 @@ ENV NODE_ENV=production
 # A DATABASE_URI isn't needed to produce the build output, but Payload's config
 # loader expects the var to be present; a dummy value is fine at build time.
 ENV DATABASE_URI="postgres://build:build@localhost:5432/build"
-ENV PAYLOAD_SECRET="build-time-placeholder"
-# Required by src/env.ts's boot-time validation (payload.config.ts imports
-# it) — never used for anything real at build time, just needs to be present.
-ENV REVALIDATE_SECRET="build-time-placeholder"
+# `next build` (via @payloadcms/next's withPayload) evaluates payload.config.ts
+# at build time to generate the admin panel/type output, and that evaluation
+# gets baked into the standalone server bundle — confirmed live: with a
+# placeholder here, the RUNTIME container kept signing/verifying JWTs against
+# this build-time value regardless of the real PAYLOAD_SECRET passed via
+# docker-compose's `environment:` at container start, so every login
+# succeeded but every subsequent request's signature check silently failed
+# ("logged in but every write 403s with an empty user"). These must be the
+# SAME real secret used at runtime — pass them as build args (falls back to a
+# placeholder only for builds that don't care about a working admin panel,
+# e.g. CI image-scanning).
+ARG PAYLOAD_SECRET="build-time-placeholder"
+ARG REVALIDATE_SECRET="build-time-placeholder"
+ENV PAYLOAD_SECRET=${PAYLOAD_SECRET}
+ENV REVALIDATE_SECRET=${REVALIDATE_SECRET}
 
 RUN npm run build
 
