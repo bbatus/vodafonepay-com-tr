@@ -64,13 +64,21 @@ export function auditAfterChange(collectionSlug: string): CollectionAfterChangeH
   return async ({ req, operation, doc, previousDoc }) => {
     const wasPublished = previousDoc?._status === "published";
     const isPublished = doc?._status === "published";
-    const action = operation === "create" ? "create" : !wasPublished && isPublished ? "publish" : "update";
+    let action: "create" | "publish" | "update";
+    if (operation === "create") {
+      action = "create";
+    } else if (!wasPublished && isPublished) {
+      action = "publish";
+    } else {
+      action = "update";
+    }
     const title = doc?.title ?? doc?.label ?? doc?.name ?? doc?.businessName ?? doc?.email ?? String(doc?.id ?? "");
+    const actionVerb = { create: "oluşturuldu", publish: "yayınlandı", update: "güncellendi" }[action];
     await writeAuditLog(req, {
       action,
       collectionSlug,
       documentId: String(doc?.id ?? ""),
-      summary: `${collectionSlug}: "${title}" ${action === "create" ? "oluşturuldu" : action === "publish" ? "yayınlandı" : "güncellendi"}`,
+      summary: `${collectionSlug}: "${title}" ${actionVerb}`,
     });
     return doc;
   };

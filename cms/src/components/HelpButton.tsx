@@ -61,8 +61,8 @@ export default function HelpButton({ collection }: { collection: string }) {
             <>
               <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>{content.title}</p>
               <ol style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: 6 }}>
-                {content.steps.map((step, i) => (
-                  <li key={i} style={{ fontSize: "0.875rem", color: "#374151" }}>
+                {content.steps.map((step) => (
+                  <li key={step} style={{ fontSize: "0.875rem", color: "#374151" }}>
                     {step}
                   </li>
                 ))}
@@ -75,8 +75,8 @@ export default function HelpButton({ collection }: { collection: string }) {
                 {locale === "tr" ? `Sizin yetkiniz (${permissions.roleLabel})` : `Your permissions (${permissions.roleLabel})`}
               </p>
               <ul style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: 6 }}>
-                {permissions.lines.map((line, i) => (
-                  <li key={i} style={{ fontSize: "0.875rem", color: "#374151" }}>
+                {permissions.lines.map((line) => (
+                  <li key={line} style={{ fontSize: "0.875rem", color: "#374151" }}>
                     {line}
                   </li>
                 ))}

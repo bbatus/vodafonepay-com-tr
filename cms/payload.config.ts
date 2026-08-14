@@ -136,6 +136,10 @@ export default buildConfig({
       titleSuffix: " — Vodafone Pay CMS",
       icons: [{ url: "/favicon.ico" }],
     },
+    // RFP feedback 4a: the header icon otherwise only supports Payload's
+    // "default" (generic silhouette) or "gravatar" — neither reads our own
+    // users.avatar upload field.
+    avatar: { Component: "/components/UserAvatarIcon#default" },
     components: {
       graphics: {
         Logo: "/components/AdminLogo#default",
@@ -159,6 +163,11 @@ export default buildConfig({
         // the actual routes, not just the UI link.
         forgot: { Component: "/components/ForgotPasswordDisabled#default" },
         reset: { Component: "/components/ForgotPasswordDisabled#default" },
+        // RFP feedback 4a-4f: replaces the default Account view body (read-only
+        // email/role, working avatar upload without alt/caption friction, a
+        // single language switcher) — see CustomAccountView.tsx for why a full
+        // replacement was necessary rather than patching individual fields.
+        account: { Component: "/components/CustomAccountView#default" },
       },
     },
   },

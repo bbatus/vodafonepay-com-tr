@@ -26,7 +26,7 @@ export default function LocalePreferenceSync() {
     if (!preferred) return;
     sessionStorage.setItem(SYNC_FLAG, "1");
 
-    const match = document.cookie.match(/(?:^|; )payload-lng=([^;]*)/);
+    const match = /(?:^|; )payload-lng=([^;]*)/.exec(document.cookie);
     const current = match ? decodeURIComponent(match[1]) : null;
     if (current !== preferred) {
       document.cookie = `payload-lng=${preferred}; path=/; max-age=${60 * 60 * 24 * 365}`;

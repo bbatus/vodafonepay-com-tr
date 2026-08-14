@@ -13,7 +13,7 @@ let inFlight: Promise<Record<string, Row>> | null = null;
 
 async function loadTranslations(): Promise<Record<string, Row>> {
   if (cache) return cache;
-  if (inFlight) return inFlight;
+  if (inFlight !== null) return inFlight;
   inFlight = fetch("/api/translations?limit=500&depth=0", { credentials: "same-origin" })
     .then((res) => (res.ok ? res.json() : { docs: [] }))
     .then((data: { docs?: Row[] }) => {

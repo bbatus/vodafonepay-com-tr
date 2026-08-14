@@ -25,7 +25,12 @@ export const Users: CollectionConfig = {
     defaultColumns: ["email", "role"],
     group: "Sistem",
     components: {
-      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "users" } }],
+      // RFP feedback: "users listesinde export alabilmeliydik" — see
+      // UsersExportButton.tsx for why CSV (not a real .xlsx) was the choice.
+      beforeList: [
+        { path: "/components/HelpButton#default", clientProps: { collection: "users" } },
+        "/components/UsersExportButton#default",
+      ],
     },
   },
   // RFP feedback 3.3: "remember me" was requested, but Payload 3.x's login
@@ -51,6 +56,20 @@ export const Users: CollectionConfig = {
     delete: isNewVerticalMaker,
   },
   fields: [
+    {
+      // RFP feedback 4c: nobody edits their OWN email — Payload auto-injects
+      // this field for any auth-enabled collection, but redefining it here
+      // (same name) lets mergeBaseFields (payload/dist/fields/mergeBaseFields.js)
+      // deep-merge our access rule on top of Payload's base field instead of
+      // replacing it, so email/username login machinery is untouched. Same
+      // self-vs-other split as the role field below — New Vertical Maker can
+      // still fix another user's email; nobody can edit their own via the UI.
+      name: "email",
+      type: "email",
+      access: {
+        update: ({ req, id }) => req.user?.id !== id,
+      },
+    },
     {
       name: "role",
       type: "select",

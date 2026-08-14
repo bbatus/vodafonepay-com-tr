@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth, useConfig, useDocumentInfo, useForm, useFormModified, useLocale } from "@payloadcms/ui";
 import { formatAdminURL } from "payload/shared";
 import { useAdminLocale } from "./useAdminLocale";
@@ -65,6 +65,25 @@ export default function RoleAwarePublishButton() {
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
 
+  // RFP feedback: the confirm-before-publish modal's iframe was stuck at its
+  // 420px minHeight (a flex:1 child can't grow inside a column whose own
+  // height is unconstrained — only maxHeight was set) so the preview showed
+  // mostly the site's header/nav/app-download banner, with the actual
+  // campaign content scrolled out of view. Scrolling over the iframe also
+  // scrolled the admin page behind the modal instead, since nothing locked
+  // background scroll while a modal was open. Fixing both: give the modal a
+  // real height so the iframe actually fills it, and lock body scroll while
+  // either modal is open.
+  const modalOpen = confirming || showRejectForm;
+  useEffect(() => {
+    if (!modalOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [modalOpen]);
+
   // Mirrors Payload's own PublishButton canPublish check (minus upload-status
   // and scheduled-publish edge cases this collection doesn't use).
   const canPublish = modified || (unpublishedVersionCount ?? 0) > 0 || !hasPublishedDoc;
@@ -73,7 +92,8 @@ export default function RoleAwarePublishButton() {
     setPublishing(true);
     try {
       const params = new URLSearchParams({ depth: "0", locale: localeCode || "" }).toString();
-      const path = globalSlug ? `/globals/${globalSlug}` : `/${collectionSlug}${id ? `/${id}` : ""}`;
+      const idSegment = id ? `/${id}` : "";
+      const path = globalSlug ? `/globals/${globalSlug}` : `/${collectionSlug}${idSegment}`;
       const action = formatAdminURL({ apiRoute: config.routes.api, path: `${path}?${params}` as `/${string}` });
       const result = await submit({ action, overrides: { _status: "published" } });
       if (result) {
@@ -102,7 +122,8 @@ export default function RoleAwarePublishButton() {
     setRejecting(true);
     try {
       const params = new URLSearchParams({ depth: "0", locale: localeCode || "" }).toString();
-      const path = `/${collectionSlug}${id ? `/${id}` : ""}`;
+      const idSegment = id ? `/${id}` : "";
+      const path = `/${collectionSlug}${idSegment}`;
       const action = formatAdminURL({ apiRoute: config.routes.api, path: `${path}?${params}` as `/${string}` });
       const result = await submit({
         action,
@@ -266,13 +287,14 @@ export default function RoleAwarePublishButton() {
               borderRadius: "var(--style-radius-l)",
               padding: "1.5rem",
               width: "min(960px, 100%)",
+              height: "90vh",
               maxHeight: "90vh",
               display: "flex",
               flexDirection: "column",
               gap: "1rem",
             }}
           >
-            <div>
+            <div style={{ flexShrink: 0 }}>
               <p style={{ fontWeight: 600, fontSize: "1.1rem", margin: 0 }}>{t.heading}</p>
               <p style={{ color: "var(--theme-elevation-500)", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>{t.body}</p>
             </div>
@@ -281,7 +303,7 @@ export default function RoleAwarePublishButton() {
               <iframe
                 src={previewHref}
                 title="preview"
-                style={{ flex: 1, minHeight: 420, border: "1px solid var(--theme-elevation-150)", borderRadius: "var(--style-radius-m)" }}
+                style={{ flex: "1 1 auto", minHeight: 0, border: "1px solid var(--theme-elevation-150)", borderRadius: "var(--style-radius-m)" }}
               />
             ) : (
               <p style={{ color: "var(--theme-elevation-450)" }}>{t.noPreview}</p>

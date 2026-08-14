@@ -412,6 +412,59 @@ Her madde için birlikte şu alanları dolduracağız:
 
 ---
 
+## Bölüm 4 — İkinci tur geri bildirim (14.08.2026)
+
+### 4.1
+> campaigns altındaki kampanyaların son create olana göre sıralanması lazım. listenin.
+
+- **Durum:** Tamamlandı
+- **DoD:** Campaigns listesi (hem Payload'ın kendi collection görünümü hem İçerik Yönetimi sekmesi) en son OLUŞTURULAN kampanya en üstte olacak şekilde sıralanmalı.
+- **Nasıl fixlendi:** `cms/src/collections/Campaigns.ts`'e üst seviye `defaultSort: "-createdAt"` eklendi (ilk denemede `admin` bloğunun içine konmuştu — Payload'ın `CollectionConfig` tipinde `defaultSort` üst seviyede olmalı, typecheck bunu yakaladı). `cms/src/components/ContentManagementApp.tsx`'in fetch'indeki `sort` parametresi `-updatedAt`'ten `-createdAt`'e çevrildi (liste kolonundaki "Güncellendi" değeri kasıtlı olarak değiştirilmedi — sadece sıralama).
+- **Test edildi mi:** Evet. Docker rebuild sonrası `test-nv-maker` ile `/admin/collections/campaigns`'a gidilip en üstteki kaydın en son oluşturulan taslak (`<Title yok>`) olduğu ekran görüntüsüyle doğrulandı.
+- **Yorumlarım:**
+
+### 4.2
+> Yeni olustur dedim zorunlu alanlar var title url adı Description image category. bunlar zorunlu olsun. aslında ben bunları girdi taslagı kaydet dedi mesela onaya gönder demesi lazımdı. yani yayınla zaten makerlarda kapalı ama onların da kaydedebilmesi ardından tüm zorunlu alanlar okeyse onaya gönder butonuna basarsa ancak checkerlara gitmesi lazım anladın mı?
+
+- **Durum:** Tamamlandı
+- **DoD:** (1) "Taslağı Kaydet" zorunlu alanlar (title/slug/description/image/category) eksikken artık sessizce kabul etmemeli, net bir hata göstermeli. (2) Growth Maker için buton metni "Onaya Gönder" olmalı (yayınlayamadığı için "kaydet" yanıltıcıydı — asıl anlamı Checker'ın onay kuyruğuna girmesi).
+- **Nasıl fixlendi:** Kök sebep: Payload'da `versions.drafts: true` (kısayol) varsayılan olarak `validate: false` demek — taslak kaydında zorunlu alan kontrolü tamamen atlanıyor (`node_modules/payload/dist/versions/types.d.ts` okunarak doğrulandı). `cms/src/collections/Campaigns.ts`: `versions.drafts` → `{ validate: true }` yapıldı. Yeni `cms/src/components/SaveOrSubmitButton.tsx`: Payload'ın varsayılan `SaveDraftButton`'ının submit mantığı birebir kopyalanarak (`@payloadcms/ui`'nin kendi kaynağı okunarak) yazıldı — tek fark, varsayılanın aksine `skipValidation` GÖNDERMİYOR (client-side doğrulama da çalışsın diye) ve etiketi role'e göre koşullu: Growth Maker için "Onaya Gönder", diğerleri için normal "Taslağı Kaydet". `Campaigns.ts`'in `admin.components.edit.SaveDraftButton`'ına bağlandı, `translationDefaults.ts`'e `saveOrSubmit.*` anahtarları eklendi, `importMap.js`'e elle kaydedildi.
+- **Test edildi mi:** Evet, iki roldeki gerçek davranışıyla: (1) `test-nv-maker` ile yeni kampanya formunda hiçbir alan doldurulmadan "Taslağı Kaydet"e basıldı — 5 eksik alanı (Title, URL Adı, Description, Image, Category) tek tek listeleyen kırmızı bir hata kutusu çıktı, kayıt OLUŞMADI. (2) `test-growth-maker` ile aynı forma girildi — buton "Onaya Gönder" olarak göründü (NV Maker'da hâlâ "Taslağı Kaydet").
+- **Yorumlarım:**
+
+### 4.3
+> http://localhost:3010/admin/collections/campaigns/33 browseri kullanarak burada değişiklikleri yayınla buttonuna basmanı istiyorum. açılan preview sayfasının ne kadar kötü oldugunu ekrna görüntüleriyle kendin görürsen fixleyebilirsin
+
+- **Durum:** Tamamlandı
+- **DoD:** Yayınlama onayı modalındaki gömülü preview iframe'i gerçek boyutunda, kullanılabilir görünmeli; arka plandaki admin sayfası modal açıkken kaymamalı.
+- **Nasıl fixlendi:** İki gerçek bug, tarayıcıda ekran görüntüsüyle bulundu: (1) `RoleAwarePublishButton.tsx`'teki modal `maxHeight: 90vh` taşıyordu ama kendi `height`'ı YOKTU — flex column'da kendi yüksekliği tanımsız bir kapsayıcı içindeki `flex:1` çocuk büyüyemiyor, bu yüzden iframe her zaman `minHeight:420px`'te sıkışıp kalıyordu ve önizlemede sadece sitenin üst kısmı (menü + "uygulamayı indir" bandı + dev logo) görünüyordu, asıl kampanya içeriği kadraj dışındaydı. Modal'a `height: 90vh` eklenerek flex'in gerçekten büyümesi sağlandı (iframe 420px'ten ~508px'e çıktı). (2) Modal üzerinde fare tekerleğiyle kaydırma denendiğinde iframe içeriği DEĞİL, ARKA PLANDAKİ admin sayfası kayıyordu (modal açıkken body scroll'u kilitli değildi) — `useEffect` ile modal açıkken `document.body.style.overflow = "hidden"` set edilip kapanınca geri alınıyor.
+- **Test edildi mi:** Evet. `test-nv-maker` ile kampanya 33'te "Değişiklikleri Yayınla"ya basılıp modal açıldı; `iframe.getBoundingClientRect()` ile yükseklik 420→508px doğrulandı; modal üzerinde scroll denendiğinde `window.scrollY` fix öncesi 0→300 (arka plan kaymış), fix sonrası 0→0 (arka plan sabit) olarak ölçüldü.
+- **Yorumlarım:**
+
+### 4.4
+> Profil kısmım baya bozuk kanka, profil fotoğrafı yüklenmiyor gidiyor mediaya yüklüyor sağ üstte profil fotoğrafının güncellenmesi lazımdı profil fotosu eklerken caption alt istiyor istememeli. hala epostayı field olarak düzenlenebilir koymuşuz adam epostasını düzenleyemiyor ki!! parolayı değiştir hesabı etkinleştir kısımları hala duruyor silinmeliydi. role seçebiliyor gibi duruyor durmamalı bunun sadece aktif rolü gözükmeliydi. [...] hem burada dil değişimi var hem onun hemen atlında ayarlarda türkçe en dil seçimi var 2 tane!!!
+
+- **Durum:** Tamamlandı
+- **DoD:** (a) Avatar yüklendiğinde sağ üst köşedeki ikon güncellensin. (b) Avatar yüklerken Alt/Caption istenmesin. (c) E-posta gerçekten (sunucu tarafında da) kilitli olsun, sadece UI'da değil. (d) "Parolayı Değiştir" / "Hesabı Etkinleştir" tamamen kaldırılsın. (e) Role sadece düz metin olarak görünsün, interaktif görünmesin. (f) Tek bir dil değiştirici kalsın (Payload'ın kendi "Ayarlar" bloğu kaldırılsın, üst bardaki geçici "Yerel ayar" dropdown'a dokunulmasın).
+- **Nasıl fixlendi:** Payload'ın varsayılan Account sayfası, bu 6 maddenin hiçbirini tek tek "kapatmaya" izin vermiyor (Auth bloğu — email/change-password/force-unlock — auth-enabled her collection'da otomatik render oluyor; "Ayarlar" bloğu da `AccountView`'ın kendi `AfterFields` prop'una sabitlenmiş). Bu yüzden Account sayfasının GÖVDESİ tamamen özel bir component'le değiştirildi (`admin.components.views.account.Component` — Payload'ın bunun için native, desteklenen bir extension noktası olduğu `node_modules/payload/dist/config/types.d.ts`'ten doğrulandı):
+  - `cms/src/components/CustomAccountView.tsx` (server) + `cms/src/components/AccountForm.tsx` (client): email ve role artık düz `<div>` (input/select DEĞİL) olarak render ediliyor — (c) ve (e). Auth bloğu hiç render edilmediği için "Parolayı Değiştir"/"Hesabı Etkinleştir" hiç mount olmuyor — (d). `AfterFields`/Settings hiç tüketilmediği için Payload'ın "Ayarlar" bloğu da hiç mount olmuyor — (f), tek kalan dil seçici bizim `preferredLocale` alanımız.
+  - Avatar yükleme, Payload'ın admin upload çekmecesini hiç kullanmıyor — doğrudan `fetch('/api/media', {method:'POST', body: formData})`. Payload'ın REST upload endpoint'i ek alanları SADECE `_payload` adlı bir JSON-string form alanından okuyor (düz `formData.append('alt', ...)` sessizce yok sayılıyor — bu ilk denemede "Lütfen geçersiz alanı düzeltin: Alt" hatasına yol açtı, `node_modules/payload/dist/utilities/addDataAndFileToRequest.js` okunarak kök sebep bulundu); `_payload: JSON.stringify({alt: "..."})` ile otomatik/anlamlı bir alt metni sessizce gönderiliyor, kullanıcıya hiç sorulmuyor — (b). Başarılı yüklemeden sonra `window.location.reload()` çağrılıyor.
+  - `cms/src/components/UserAvatarIcon.tsx` (yeni) + `payload.config.ts`'te `admin.avatar: { Component: ... }`: sağ üstteki ikon, Payload'ın varsayılanında SADECE "default" (jenerik silüet) veya "gravatar" destekliyordu — `users.avatar` alanını hiç okumuyordu (bu, 4a'nın asıl kök sebebiydi, "refresh eksikliği" değil). Artık `useAuth().user.avatar.url`'i okuyup gerçek fotoğrafı 25x25 yuvarlak olarak gösteriyor, yoksa aynı boyutta jenerik ikona düşüyor — (a).
+  - `cms/src/collections/Users.ts`: Payload'ın auto-inject ettiği `email` alanı aynı isimle yeniden tanımlandı (`mergeBaseFields` bunu deep-merge ediyor, login/hash mekanizmasına dokunmuyor — `node_modules/payload/dist/fields/mergeBaseFields.js` okunarak doğrulandı) ve `access.update: ({req,id}) => req.user?.id !== id` eklendi — `role` alanındaki mevcut self-lock deseniyle birebir aynı — (c)'nin gerçek sunucu-taraflı kilidi.
+- **Test edildi mi:** Evet, uçtan uca. UI: `test-nv-maker` ile `/admin/account` açıldı — email/role düz metin kutuları olarak göründü, "Parolayı Değiştir"/"Hesabı Etkinleştir" hiç yok, tek bir "Dil Tercihi" seçici var (JS ile `document.querySelectorAll` sayıldı — `.payload-settings`, `#change-password`, `#force-unlock` hepsi 0/false). Avatar: sentetik bir PNG (canvas'tan üretilip `DataTransfer` ile input'a bağlandı) yüklendi — network sekmesinde önce "Lütfen geçersiz alanı düzeltin: Alt" hatası yakalandı, `_payload` fix'i sonrası hem hesap sayfasındaki önizleme hem sağ üstteki header ikonu YENİ fotoğrafı gösterdi. Sunucu-taraflı kilit: `fetch(PATCH /api/users/{id}, {email:"hacked@evil.example"})` ve aynı şekilde `role` denendi — ikisi de 200 döndü (sessizce reddedildi, Payload'ın field-access davranışı) ama `/api/users/me` sonrası değerler DEĞİŞMEMİŞ olarak doğrulandı — gerçek bir sunucu-taraflı kilit, sadece UI kozmetiği değil. Dil tercihi kaydetme (en→tr) ayrıca test edildi, "Dil tercihi kaydedildi" mesajıyla çalıştı.
+- **Yorumlarım:**
+
+### 4.5
+> users listesinde export alabilmeliydik excel ya da pdf ya da word gibi. türkçe karakterleri destekleyecek şekilde.
+
+- **Durum:** Tamamlandı
+- **DoD:** Users listesinde bir "Dışa Aktar" butonu olmalı, indirilen dosya Türkçe karakterleri (ç,ğ,ı,ö,ş,ü) bozmadan Excel'de doğru açılmalı.
+- **Nasıl fixlendi:** Gerçek bir `.xlsx` için `xlsx` (SheetJS) paketi değerlendirildi ama npm registry'deki güncel sürümü 2 adet düzeltilmemiş yüksek-önem açığı taşıyor (prototype pollution + ReDoS — SheetJS düzeltmeleri npm dışında kendi CDN'lerine taşımış); bu repo'nun sıfır-bilinen-açık politikasıyla (AGENTS.md, R-13/R-14) uyuşmadığı için kuruldu, `npm audit` ile doğrulanıp hemen `npm uninstall` edildi. Onun yerine yeni `cms/src/components/UsersExportButton.tsx`: Users listesinin üstüne bir "Dışa Aktar (CSV)" butonu ekliyor (`admin.components.beforeList`, `HelpButton`'ın yanına). `/api/users`'tan tüm kullanıcıları çekip noktalı virgülle ayrılmış (Türkçe Excel'in varsayılan liste ayıracı) ve UTF-8 BOM'lu (`﻿` — BOM olmadan Excel dosyayı ANSI/Windows-1254 sanıp Türkçe karakterleri bozuyor) bir CSV üretip tarayıcıda indiriyor. Sütunlar: E-posta, Rol (insan-okur etiket), Dil Tercihi, Oluşturulma, Güncellenme.
+- **Test edildi mi:** Evet. `URL.createObjectURL` geçici olarak yamalanarak üretilen CSV'nin ham içeriği okundu — başlık satırı ve tüm satırlar (`Türkçe`, `tüm alanlar`, `sadece Campaigns`, `Güncellenme` gibi Türkçe karakterli değerler dahil) doğru, bozulmamış olarak doğrulandı.
+- **Yorumlarım:**
+
+---
+
 ## İlerleme Özeti
 
 | # | Madde (kısa başlık) | Durum |
@@ -444,3 +497,8 @@ Her madde için birlikte şu alanları dolduracağız:
 | 3.10 | Content Management tek sayfa (tab'lı) | Tamamlandı |
 | 3.11 | Waiting approvals sayfası (onaylı/reddedilen/tümü sayaçları) | Tamamlandı |
 | 3.12 | Login sayfası hero metni | Tamamlandı |
+| 4.1 | Kampanya listesi en son oluşturulana göre sıralansın | Tamamlandı |
+| 4.2 | Taslak kaydette zorunlu alan doğrulaması + "Onaya Gönder" etiketi | Tamamlandı |
+| 4.3 | Yayınlama onayı modalındaki bozuk preview | Tamamlandı |
+| 4.4 | Profil sayfası: avatar, alt zorunluluğu, email/role kilidi, parola/etkinleştir kaldırma, tek dil değiştirici | Tamamlandı |
+| 4.5 | Users listesi export (CSV, TR karakter destekli) | Tamamlandı |

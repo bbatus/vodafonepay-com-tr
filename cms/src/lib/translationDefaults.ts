@@ -137,6 +137,34 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "contentManagement.draft": { tr: "Taslak", en: "Draft" },
   "contentManagement.edit": { tr: "Düzenle", en: "Edit" },
   "contentManagement.delete": { tr: "Sil", en: "Delete" },
+
+  "saveOrSubmit.saveDraft": { tr: "Taslağı Kaydet", en: "Save Draft" },
+  "saveOrSubmit.submitForReview": { tr: "Onaya Gönder", en: "Submit for Review" },
+
+  "accountForm.email": { tr: "E-posta", en: "Email" },
+  "accountForm.role": { tr: "Rol", en: "Role" },
+  "accountForm.roleDescription": {
+    tr: "vodafone.local LDAP / AccessPoint rolünüz. Rolünüzü siz değiştiremezsiniz — gerekiyorsa bir New Vertical Maker değiştirebilir.",
+    en: "Your vodafone.local LDAP / AccessPoint role. You cannot change your own role — a New Vertical Maker can if needed.",
+  },
+  "accountForm.avatar": { tr: "Profil Fotoğrafı", en: "Profile Photo" },
+  "accountForm.avatarHint": { tr: "En fazla 2MB — MinIO'da saklanır.", en: "Up to 2MB — stored in MinIO." },
+  "accountForm.avatarUploading": { tr: "Yükleniyor…", en: "Uploading…" },
+  "accountForm.avatarSaved": { tr: "Profil fotoğrafı güncellendi.", en: "Profile photo updated." },
+  "accountForm.avatarError": { tr: "Fotoğraf yüklenemedi.", en: "Couldn't upload photo." },
+  "accountForm.locale": { tr: "Dil Tercihi", en: "Language Preference" },
+  "accountForm.localeDescription": {
+    tr: "Her girişte panel bu dilde açılır — üstteki geçici dil değiştiriciden farklı olarak kalıcıdır.",
+    en: "The panel opens in this language every time you log in — unlike the temporary switcher above, this one persists.",
+  },
+  "accountForm.save": { tr: "Kaydet", en: "Save" },
+  "accountForm.localeSaved": { tr: "Dil tercihi kaydedildi.", en: "Language preference saved." },
+  "accountForm.localeError": { tr: "Kaydedilemedi.", en: "Couldn't save." },
+
+  "usersExport.button": { tr: "Dışa Aktar (CSV)", en: "Export (CSV)" },
+  "usersExport.exporting": { tr: "Hazırlanıyor…", en: "Preparing…" },
+  "usersExport.done": { tr: "Liste indirildi.", en: "List downloaded." },
+  "usersExport.error": { tr: "Liste indirilemedi.", en: "Couldn't download list." },
 };
 
 export function applyPlaceholder(template: string, n: number): string {

@@ -36,43 +36,48 @@ export default function LoginHistoryField() {
       .catch(() => setEntries([]));
   }, [user]);
 
+  const dateLocale = locale === "tr" ? "tr-TR" : "en-US";
+
+  let body: React.ReactNode;
+  if (entries === null) {
+    body = <p style={{ fontSize: "0.8rem", color: "var(--theme-elevation-450)" }}>{t("loginHistory.loading")}</p>;
+  } else if (entries.length === 0) {
+    body = <p style={{ fontSize: "0.8rem", color: "var(--theme-elevation-450)" }}>{t("loginHistory.empty")}</p>;
+  } else {
+    body = (
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: "left", padding: "0.35rem 0.5rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
+              {t("loginHistory.date")}
+            </th>
+            <th style={{ textAlign: "left", padding: "0.35rem 0.5rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
+              {t("loginHistory.ip")}
+            </th>
+            <th style={{ textAlign: "left", padding: "0.35rem 0.5rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
+              {t("loginHistory.userAgent")}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map((e) => (
+            <tr key={`${e.createdAt}-${e.ip ?? ""}`} style={{ borderTop: "1px solid var(--theme-elevation-100)" }}>
+              <td style={{ padding: "0.35rem 0.5rem", whiteSpace: "nowrap" }}>{new Date(e.createdAt).toLocaleString(dateLocale)}</td>
+              <td style={{ padding: "0.35rem 0.5rem" }}>{e.ip ?? "—"}</td>
+              <td style={{ padding: "0.35rem 0.5rem", maxWidth: 320, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={e.userAgent}>
+                {e.userAgent ?? "—"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  }
+
   return (
     <div style={{ margin: "0.5rem 0 1rem" }}>
       <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>{t("loginHistory.title")}</p>
-      {entries === null ? (
-        <p style={{ fontSize: "0.8rem", color: "var(--theme-elevation-450)" }}>{t("loginHistory.loading")}</p>
-      ) : entries.length === 0 ? (
-        <p style={{ fontSize: "0.8rem", color: "var(--theme-elevation-450)" }}>{t("loginHistory.empty")}</p>
-      ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: "left", padding: "0.35rem 0.5rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
-                {t("loginHistory.date")}
-              </th>
-              <th style={{ textAlign: "left", padding: "0.35rem 0.5rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
-                {t("loginHistory.ip")}
-              </th>
-              <th style={{ textAlign: "left", padding: "0.35rem 0.5rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
-                {t("loginHistory.userAgent")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((e, i) => (
-              <tr key={i} style={{ borderTop: "1px solid var(--theme-elevation-100)" }}>
-                <td style={{ padding: "0.35rem 0.5rem", whiteSpace: "nowrap" }}>
-                  {new Date(e.createdAt).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")}
-                </td>
-                <td style={{ padding: "0.35rem 0.5rem" }}>{e.ip ?? "—"}</td>
-                <td style={{ padding: "0.35rem 0.5rem", maxWidth: 320, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={e.userAgent}>
-                  {e.userAgent ?? "—"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      {body}
     </div>
   );
 }

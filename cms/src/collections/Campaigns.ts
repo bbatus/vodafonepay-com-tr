@@ -72,6 +72,8 @@ export const Campaigns: CollectionConfig = {
   // for 1.2 started catching it. Removed rather than fixed: it has no real
   // use for this content team.
   disableDuplicate: true,
+  // RFP feedback: liste en son oluşturulan kampanya en üstte olacak şekilde sıralanmalı.
+  defaultSort: "-createdAt",
   admin: {
     hideAPIURL: true,
     useAsTitle: "title",
@@ -86,11 +88,17 @@ export const Campaigns: CollectionConfig = {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "campaigns" } }],
       edit: {
         PublishButton: "/components/RoleAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
       },
     },
   },
   versions: {
-    drafts: true,
+    // RFP feedback: "Taslağı Kaydet" was silently accepting drafts with
+    // missing required fields (title/slug/description/image/category) —
+    // Payload's default is to skip field validation on draft saves.
+    // `validate: true` enforces the same required-field rules on drafts
+    // that already apply on publish.
+    drafts: { validate: true },
   },
   access: {
     read: publishedOrAuthenticated,

@@ -198,8 +198,8 @@ export default async function DashboardWidgets({
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
             <tbody>
-              {logins.map((entry, i) => (
-                <tr key={i}>
+              {logins.map((entry) => (
+                <tr key={`${entry.userEmail}-${entry.createdAt}`}>
                   <td style={{ padding: "0.35rem 1rem" }}>{entry.userEmail}</td>
                   <td style={{ padding: "0.35rem 1rem", color: "var(--theme-elevation-500)" }}>
                     {entry.userRole ? ROLE_LABELS[entry.userRole]?.[locale] ?? entry.userRole : ""}

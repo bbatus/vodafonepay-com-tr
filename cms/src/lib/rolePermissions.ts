@@ -101,6 +101,99 @@ function isKnownRole(role: string | undefined): role is RoleValue {
   return role === NV_MAKER || role === NV_CHECKER || role === G_MAKER || role === G_CHECKER;
 }
 
+/** `locale === "tr" ? tr : en`, extracted so no call site needs a nested ternary. */
+function pick(locale: "tr" | "en", tr: string, en: string): string {
+  return locale === "tr" ? tr : en;
+}
+
+function auditLogsSummaryLines(locale: "tr" | "en"): string[] {
+  return [
+    pick(
+      locale,
+      "Bu liste tamamen salt-okunurdur — New Vertical — Maker dahil hiç kimse buradan bir kayıt ekleyemez, düzenleyemez veya silemez. Kayıtlar yalnızca sistem tarafından otomatik oluşturulur; bu, denetim izinin güvenilir kalması için kasıtlıdır.",
+      "This list is entirely read-only — no one, including New Vertical — Maker, can add, edit, or delete an entry here. Entries are only ever written automatically by the system; this is deliberate, so the audit trail stays trustworthy."
+    ),
+  ];
+}
+
+function usersSummaryLines(role: RoleValue, locale: "tr" | "en"): string[] {
+  if (role === NV_MAKER) {
+    return [
+      pick(
+        locale,
+        "Yeni kullanıcı oluşturabilir, herhangi bir kullanıcının rolünü değiştirebilir ve kullanıcı silebilirsiniz — kullanıcı yönetimi tamamen sizin yetkinizdedir.",
+        "You can create new users, change any user's role, and delete users — user management is entirely within your authority."
+      ),
+    ];
+  }
+  return [
+    pick(
+      locale,
+      "Yalnızca KENDİ kullanıcı kaydınızı görüntüleyip düzenleyebilirsiniz (örn. şifrenizi değiştirmek). Başka bir kullanıcıyı göremez, değiştiremez veya silemezsiniz — kullanıcı/rol yönetimi yalnızca New Vertical — Maker rolüne aittir.",
+      "You can only view and edit YOUR OWN user record (e.g. to change your password). You cannot see, change, or delete any other user — user/role management belongs to the New Vertical — Maker role only."
+    ),
+  ];
+}
+
+function contactInfoSummaryLines(flags: PermissionFlags, locale: "tr" | "en"): string[] {
+  if (flags.update) {
+    return [
+      pick(
+        locale,
+        "Bu, tek bir kayıttan oluşan bir 'global' — sitedeki tüm sayfaların kullandığı iletişim bilgilerini düzenleyebilirsiniz.",
+        "This is a single-record 'global' — you can edit the contact info used across every page on the site."
+      ),
+    ];
+  }
+  return [
+    pick(
+      locale,
+      "Bu bölümü DÜZENLEYEMEZSİNİZ — site geneli iletişim bilgileri yalnızca New Vertical rolündeki kullanıcılar tarafından yönetilir.",
+      "You CANNOT edit this section — site-wide contact info is managed only by users with a New Vertical role."
+    ),
+  ];
+}
+
+/** The generic create/update/publish/delete copy shared by every "standard-shaped" category. */
+function genericSummaryLines(flags: PermissionFlags, hasDrafts: boolean, locale: "tr" | "en"): string[] {
+  const createLine = flags.create
+    ? pick(locale, "Yeni kayıt oluşturabilirsiniz.", "You can create new records.")
+    : pick(
+        locale,
+        "Yeni kayıt OLUŞTURAMAZSINIZ — bu, rolünüzün 'maker' değil 'checker'/salt-okunur tarafında olmasından kaynaklanır; sadece mevcut kayıtları inceleyip (yetkiniz varsa) onaylarsınız.",
+        "You CANNOT create new records — this is because your role sits on the 'checker'/read-only side, not 'maker'; you only review (and, if permitted, approve) existing records."
+      );
+
+  const updateLine = flags.update
+    ? pick(locale, "Var olan kayıtları düzenleyebilirsiniz.", "You can edit existing records.")
+    : pick(
+        locale,
+        "Var olan kayıtları DÜZENLEYEMEZSİNİZ — bu içerik sizin sorumluluk alanınızda değil, yalnızca görüntüleyebilirsiniz.",
+        "You CANNOT edit existing records — this content isn't in your area of responsibility; you can only view it."
+      );
+
+  let publishLine: string | null = null;
+  if (hasDrafts && flags.publish) {
+    publishLine = pick(locale, "Değişiklikleri yayınlayabilirsiniz (taslaktan canlıya alabilirsiniz).", "You can publish changes (move a draft live).");
+  } else if (hasDrafts && flags.update) {
+    publishLine = pick(
+      locale,
+      "Kaydedebilirsiniz ama YAYINLAYAMAZSINIZ — maker/checker ayrımı gereği kendi değişikliğinizi kendiniz onaylayamazsınız; başka bir yetkili (checker) yayınlamalı.",
+      "You can save changes but CANNOT publish them — under the maker/checker separation of duties, you can't approve your own change; another authorized user (a checker) must publish it."
+    );
+  }
+
+  const deleteLine = flags.delete
+    ? pick(locale, "Kayıt silebilirsiniz.", "You can delete records.")
+    : pick(
+        locale,
+        "Kayıt SİLEMEZSİNİZ — silme yetkisi kazara/yetkisiz veri kaybını önlemek için yalnızca New Vertical — Maker rolüne verilmiştir.",
+        "You CANNOT delete records — delete access is restricted to the New Vertical — Maker role only, to prevent accidental or unauthorized data loss."
+      );
+
+  return [createLine, updateLine, ...(publishLine ? [publishLine] : []), deleteLine];
+}
+
 /**
  * Builds the "sizin yetkiniz" text HelpButton shows: what this specific
  * user can/cannot do in this specific collection, and — for the "cannot"
@@ -109,6 +202,11 @@ function isKnownRole(role: string | undefined): role is RoleValue {
  * content, versus a Growth Maker looking at Campaigns understanding why
  * "Publish" is greyed out for them specifically (maker/checker segregation
  * of duties) rather than for everyone.
+ *
+ * Each category with copy that doesn't fit the generic create/update/
+ * publish/delete framing (audit-logs is read-only for everyone, users is
+ * self-only, contact-info has no create/delete concept) gets its own small
+ * line-builder above instead of another branch inline here.
  */
 export function getRolePermissionSummary(
   collectionSlug: string,
@@ -120,113 +218,24 @@ export function getRolePermissionSummary(
 
   const flags = MATRIX[category][role];
   const roleLabel = ROLE_NAME[role][locale];
-  const hasDrafts = DRAFT_ENABLED_COLLECTIONS.has(collectionSlug);
-  const lines: string[] = [];
 
   if (!flags.view) {
-    lines.push(
-      locale === "tr"
-        ? "Bu bölümü göremezsiniz — sol menüde de listelenmez. Yalnızca New Vertical — Maker rolü erişebilir."
-        : "You cannot see this section — it isn't even listed in the left menu. Only the New Vertical — Maker role can access it."
-    );
-    return { roleLabel, lines };
+    return {
+      roleLabel,
+      lines: [
+        pick(
+          locale,
+          "Bu bölümü göremezsiniz — sol menüde de listelenmez. Yalnızca New Vertical — Maker rolü erişebilir.",
+          "You cannot see this section — it isn't even listed in the left menu. Only the New Vertical — Maker role can access it."
+        ),
+      ],
+    };
   }
 
-  // Audit Logs: read-only for EVERYONE (even New Vertical — Maker) — this
-  // isn't a maker/checker distinction, it's a deliberate "nobody edits
-  // history" rule, so the generic create/update/delete copy below (which
-  // explains gaps in terms of role tier) would be actively misleading here.
-  if (category === "audit-logs") {
-    lines.push(
-      locale === "tr"
-        ? "Bu liste tamamen salt-okunurdur — New Vertical — Maker dahil hiç kimse buradan bir kayıt ekleyemez, düzenleyemez veya silemez. Kayıtlar yalnızca sistem tarafından otomatik oluşturulur; bu, denetim izinin güvenilir kalması için kasıtlıdır."
-        : "This list is entirely read-only — no one, including New Vertical — Maker, can add, edit, or delete an entry here. Entries are only ever written automatically by the system; this is deliberate, so the audit trail stays trustworthy."
-    );
-    return { roleLabel, lines };
-  }
+  if (category === "audit-logs") return { roleLabel, lines: auditLogsSummaryLines(locale) };
+  if (category === "users") return { roleLabel, lines: usersSummaryLines(role, locale) };
+  if (category === "contact-info") return { roleLabel, lines: contactInfoSummaryLines(flags, locale) };
 
-  // Users: create/delete are global (only NV Maker), but "update" is
-  // self-only for every other role — the generic flag text below would
-  // wrongly read as "you can edit any user's record."
-  if (category === "users") {
-    if (role === NV_MAKER) {
-      lines.push(
-        locale === "tr"
-          ? "Yeni kullanıcı oluşturabilir, herhangi bir kullanıcının rolünü değiştirebilir ve kullanıcı silebilirsiniz — kullanıcı yönetimi tamamen sizin yetkinizdedir."
-          : "You can create new users, change any user's role, and delete users — user management is entirely within your authority."
-      );
-    } else {
-      lines.push(
-        locale === "tr"
-          ? "Yalnızca KENDİ kullanıcı kaydınızı görüntüleyip düzenleyebilirsiniz (örn. şifrenizi değiştirmek). Başka bir kullanıcıyı göremez, değiştiremez veya silemezsiniz — kullanıcı/rol yönetimi yalnızca New Vertical — Maker rolüne aittir."
-          : "You can only view and edit YOUR OWN user record (e.g. to change your password). You cannot see, change, or delete any other user — user/role management belongs to the New Vertical — Maker role only."
-      );
-    }
-    return { roleLabel, lines };
-  }
-
-  // Contact Info is a Payload "global" — a single record with no
-  // create/delete concept at all (for anyone), so the generic create/delete
-  // copy below (which frames a "no" as a role-tier restriction) doesn't
-  // apply here; only "can you update it" is meaningful.
-  if (category === "contact-info") {
-    lines.push(
-      flags.update
-        ? locale === "tr"
-          ? "Bu, tek bir kayıttan oluşan bir 'global' — sitedeki tüm sayfaların kullandığı iletişim bilgilerini düzenleyebilirsiniz."
-          : "This is a single-record 'global' — you can edit the contact info used across every page on the site."
-        : locale === "tr"
-          ? "Bu bölümü DÜZENLEYEMEZSİNİZ — site geneli iletişim bilgileri yalnızca New Vertical rolündeki kullanıcılar tarafından yönetilir."
-          : "You CANNOT edit this section — site-wide contact info is managed only by users with a New Vertical role."
-    );
-    return { roleLabel, lines };
-  }
-
-  if (flags.create) {
-    lines.push(locale === "tr" ? "Yeni kayıt oluşturabilirsiniz." : "You can create new records.");
-  } else {
-    lines.push(
-      locale === "tr"
-        ? "Yeni kayıt OLUŞTURAMAZSINIZ — bu, rolünüzün 'maker' değil 'checker'/salt-okunur tarafında olmasından kaynaklanır; sadece mevcut kayıtları inceleyip (yetkiniz varsa) onaylarsınız."
-        : "You CANNOT create new records — this is because your role sits on the 'checker'/read-only side, not 'maker'; you only review (and, if permitted, approve) existing records."
-    );
-  }
-
-  if (flags.update) {
-    lines.push(locale === "tr" ? "Var olan kayıtları düzenleyebilirsiniz." : "You can edit existing records.");
-  } else {
-    lines.push(
-      locale === "tr"
-        ? "Var olan kayıtları DÜZENLEYEMEZSİNİZ — bu içerik sizin sorumluluk alanınızda değil, yalnızca görüntüleyebilirsiniz."
-        : "You CANNOT edit existing records — this content isn't in your area of responsibility; you can only view it."
-    );
-  }
-
-  if (hasDrafts) {
-    if (flags.publish) {
-      lines.push(
-        locale === "tr"
-          ? "Değişiklikleri yayınlayabilirsiniz (taslaktan canlıya alabilirsiniz)."
-          : "You can publish changes (move a draft live)."
-      );
-    } else if (flags.update) {
-      lines.push(
-        locale === "tr"
-          ? "Kaydedebilirsiniz ama YAYINLAYAMAZSINIZ — maker/checker ayrımı gereği kendi değişikliğinizi kendiniz onaylayamazsınız; başka bir yetkili (checker) yayınlamalı."
-          : "You can save changes but CANNOT publish them — under the maker/checker separation of duties, you can't approve your own change; another authorized user (a checker) must publish it."
-      );
-    }
-  }
-
-  if (flags.delete) {
-    lines.push(locale === "tr" ? "Kayıt silebilirsiniz." : "You can delete records.");
-  } else {
-    lines.push(
-      locale === "tr"
-        ? "Kayıt SİLEMEZSİNİZ — silme yetkisi kazara/yetkisiz veri kaybını önlemek için yalnızca New Vertical — Maker rolüne verilmiştir."
-        : "You CANNOT delete records — delete access is restricted to the New Vertical — Maker role only, to prevent accidental or unauthorized data loss."
-    );
-  }
-
-  return { roleLabel, lines };
+  const hasDrafts = DRAFT_ENABLED_COLLECTIONS.has(collectionSlug);
+  return { roleLabel, lines: genericSummaryLines(flags, hasDrafts, locale) };
 }

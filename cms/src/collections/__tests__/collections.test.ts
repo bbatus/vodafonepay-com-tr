@@ -65,8 +65,8 @@ describe("Campaigns — dual-scope New Vertical + Growth", () => {
     expect(Campaigns.hooks?.beforeOperation?.length).toBeGreaterThan(0);
   });
 
-  it("versions.drafts is enabled (required for the maker/checker workflow)", () => {
-    expect(Campaigns.versions).toEqual({ drafts: true });
+  it("versions.drafts is enabled with validation (required fields enforced even on draft save)", () => {
+    expect(Campaigns.versions).toEqual({ drafts: { validate: true } });
   });
 });
 

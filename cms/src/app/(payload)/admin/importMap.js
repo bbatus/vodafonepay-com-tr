@@ -23,6 +23,10 @@ import default_11 from "../../../components/LoginHistoryField";
 import default_12 from "../../../components/LocalePreferenceSync";
 import default_13 from "../../../components/ContentManagementView";
 import default_14 from "../../../components/ContentManagementNavLink";
+import default_15 from "../../../components/SaveOrSubmitButton";
+import default_16 from "../../../components/UserAvatarIcon";
+import default_17 from "../../../components/CustomAccountView";
+import default_18 from "../../../components/UsersExportButton";
 import { S3ClientUploadHandler as S3ClientUploadHandler_2 } from "@payloadcms/storage-s3/client";
 import { CollectionCards as CollectionCards_1 } from "@payloadcms/next/rsc";
 
@@ -42,6 +46,10 @@ export const importMap = {
   "/components/LocalePreferenceSync#default": default_12,
   "/components/ContentManagementView#default": default_13,
   "/components/ContentManagementNavLink#default": default_14,
+  "/components/SaveOrSubmitButton#default": default_15,
+  "/components/UserAvatarIcon#default": default_16,
+  "/components/CustomAccountView#default": default_17,
+  "/components/UsersExportButton#default": default_18,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_2,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_1,
 };

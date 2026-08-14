@@ -11,6 +11,7 @@ type Doc = {
   id: string | number;
   _status?: string;
   updatedAt?: string;
+  createdAt?: string;
   [key: string]: unknown;
 };
 
@@ -54,7 +55,7 @@ export default function ContentManagementApp() {
       limit: String(PAGE_SIZE),
       page: String(page),
       depth: "0",
-      sort: "-updatedAt",
+      sort: "-createdAt",
     });
     if (search.trim()) {
       params.set(`where[${tab.titleField}][contains]`, search.trim());
@@ -98,7 +99,7 @@ export default function ContentManagementApp() {
 
   const deleteOne = async (id: string | number) => {
     if (!window.confirm(t("contentManagement.confirmDelete"))) return;
-    const res = await fetch(`/api/${tab.slug}/${id}`, { method: "DELETE", credentials: "same-origin" });
+    const res = await fetch(`/api/${tab.slug}/${String(id)}`, { method: "DELETE", credentials: "same-origin" });
     if (!res.ok) {
       window.alert(t("contentManagement.deleteError"));
       return;
@@ -110,7 +111,10 @@ export default function ContentManagementApp() {
     if (selected.size === 0) return;
     if (!window.confirm(t("contentManagement.confirmBulkDelete"))) return;
     const results = await Promise.allSettled(
-      Array.from(selected).map((id) => fetch(`/api/${tab.slug}/${id}`, { method: "DELETE", credentials: "same-origin" }))
+      Array.from(selected).map((selectedId) => {
+        const selectedIdStr = String(selectedId);
+        return fetch(`/api/${tab.slug}/${selectedIdStr}`, { method: "DELETE", credentials: "same-origin" });
+      })
     );
     const failed = results.filter((r) => r.status === "rejected" || (r.status === "fulfilled" && !r.value.ok)).length;
     if (failed > 0) window.alert(t("contentManagement.deleteError"));
@@ -121,6 +125,89 @@ export default function ContentManagementApp() {
   const titleOf = (doc: Doc): string => {
     const value = doc[tab.titleField];
     return typeof value === "string" && value ? value : String(doc.id);
+  };
+
+  const renderListBody = () => {
+    if (loading) {
+      return <p style={{ margin: "1rem", color: "var(--theme-elevation-450)", fontSize: "0.875rem" }}>{t("contentManagement.loading")}</p>;
+    }
+    if (error) {
+      return <p style={{ margin: "1rem", color: "var(--theme-error-500)", fontSize: "0.875rem" }}>{error}</p>;
+    }
+    if (docs.length === 0) {
+      return <p style={{ margin: "1rem", color: "var(--theme-elevation-450)", fontSize: "0.875rem" }}>{t("contentManagement.empty")}</p>;
+    }
+    return (
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+        <thead>
+          <tr style={{ borderBottom: "1px solid var(--theme-elevation-100)" }}>
+            <th style={{ width: 32, padding: "0.5rem 0.75rem" }} />
+            <th style={{ textAlign: "left", padding: "0.5rem 0.75rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
+              {t("contentManagement.colTitle")}
+            </th>
+            {tab.hasDraft && (
+              <th style={{ textAlign: "left", padding: "0.5rem 0.75rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
+                {t("contentManagement.colStatus")}
+              </th>
+            )}
+            <th style={{ textAlign: "left", padding: "0.5rem 0.75rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
+              {t("contentManagement.colUpdated")}
+            </th>
+            <th style={{ padding: "0.5rem 0.75rem" }} />
+          </tr>
+        </thead>
+        <tbody>
+          {docs.map((doc) => {
+            const docId = String(doc.id);
+            const dateLocale = locale === "tr" ? "tr-TR" : "en-US";
+            return (
+              <tr key={docId} style={{ borderBottom: "1px solid var(--theme-elevation-50)" }}>
+                <td style={{ padding: "0.5rem 0.75rem" }}>
+                  <input type="checkbox" checked={selected.has(doc.id)} onChange={() => toggleSelected(doc.id)} />
+                </td>
+                <td style={{ padding: "0.5rem 0.75rem" }}>
+                  <Link href={`/admin/collections/${tab.slug}/${docId}`} style={{ color: "var(--theme-text)", fontWeight: 500 }}>
+                    {titleOf(doc)}
+                  </Link>
+                </td>
+                {tab.hasDraft && (
+                  <td style={{ padding: "0.5rem 0.75rem" }}>
+                    <span
+                      style={{
+                        padding: "0.15rem 0.5rem",
+                        borderRadius: "var(--style-radius-s)",
+                        fontSize: "0.75rem",
+                        background: doc._status === "published" ? "var(--theme-success-100)" : "var(--theme-elevation-100)",
+                        color: doc._status === "published" ? "var(--theme-success-600)" : "var(--theme-elevation-600)",
+                      }}
+                    >
+                      {doc._status === "published" ? t("contentManagement.published") : t("contentManagement.draft")}
+                    </span>
+                  </td>
+                )}
+                <td style={{ padding: "0.5rem 0.75rem", color: "var(--theme-elevation-500)", whiteSpace: "nowrap" }}>
+                  {doc.updatedAt ? new Date(doc.updatedAt).toLocaleDateString(dateLocale) : "—"}
+                </td>
+                <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", whiteSpace: "nowrap" }}>
+                  <Link href={`/admin/collections/${tab.slug}/${docId}`} style={{ marginRight: "0.75rem" }}>
+                    {t("contentManagement.edit")}
+                  </Link>
+                  {tab.canDelete(role) && (
+                    <button
+                      type="button"
+                      onClick={() => deleteOne(doc.id)}
+                      style={{ background: "none", border: "none", color: "var(--theme-error-500)", cursor: "pointer", padding: 0, font: "inherit" }}
+                    >
+                      {t("contentManagement.delete")}
+                    </button>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    );
   };
 
   return (
@@ -187,79 +274,7 @@ export default function ContentManagementApp() {
       </div>
 
       <div className="card" style={{ padding: 0 }}>
-        {loading ? (
-          <p style={{ margin: "1rem", color: "var(--theme-elevation-450)", fontSize: "0.875rem" }}>{t("contentManagement.loading")}</p>
-        ) : error ? (
-          <p style={{ margin: "1rem", color: "var(--theme-error-500)", fontSize: "0.875rem" }}>{error}</p>
-        ) : docs.length === 0 ? (
-          <p style={{ margin: "1rem", color: "var(--theme-elevation-450)", fontSize: "0.875rem" }}>{t("contentManagement.empty")}</p>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--theme-elevation-100)" }}>
-                <th style={{ width: 32, padding: "0.5rem 0.75rem" }} />
-                <th style={{ textAlign: "left", padding: "0.5rem 0.75rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
-                  {t("contentManagement.colTitle")}
-                </th>
-                {tab.hasDraft && (
-                  <th style={{ textAlign: "left", padding: "0.5rem 0.75rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
-                    {t("contentManagement.colStatus")}
-                  </th>
-                )}
-                <th style={{ textAlign: "left", padding: "0.5rem 0.75rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
-                  {t("contentManagement.colUpdated")}
-                </th>
-                <th style={{ padding: "0.5rem 0.75rem" }} />
-              </tr>
-            </thead>
-            <tbody>
-              {docs.map((doc) => (
-                <tr key={doc.id} style={{ borderBottom: "1px solid var(--theme-elevation-50)" }}>
-                  <td style={{ padding: "0.5rem 0.75rem" }}>
-                    <input type="checkbox" checked={selected.has(doc.id)} onChange={() => toggleSelected(doc.id)} />
-                  </td>
-                  <td style={{ padding: "0.5rem 0.75rem" }}>
-                    <Link href={`/admin/collections/${tab.slug}/${doc.id}`} style={{ color: "var(--theme-text)", fontWeight: 500 }}>
-                      {titleOf(doc)}
-                    </Link>
-                  </td>
-                  {tab.hasDraft && (
-                    <td style={{ padding: "0.5rem 0.75rem" }}>
-                      <span
-                        style={{
-                          padding: "0.15rem 0.5rem",
-                          borderRadius: "var(--style-radius-s)",
-                          fontSize: "0.75rem",
-                          background: doc._status === "published" ? "var(--theme-success-100)" : "var(--theme-elevation-100)",
-                          color: doc._status === "published" ? "var(--theme-success-600)" : "var(--theme-elevation-600)",
-                        }}
-                      >
-                        {doc._status === "published" ? t("contentManagement.published") : t("contentManagement.draft")}
-                      </span>
-                    </td>
-                  )}
-                  <td style={{ padding: "0.5rem 0.75rem", color: "var(--theme-elevation-500)", whiteSpace: "nowrap" }}>
-                    {doc.updatedAt ? new Date(doc.updatedAt).toLocaleDateString(locale === "tr" ? "tr-TR" : "en-US") : "—"}
-                  </td>
-                  <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", whiteSpace: "nowrap" }}>
-                    <Link href={`/admin/collections/${tab.slug}/${doc.id}`} style={{ marginRight: "0.75rem" }}>
-                      {t("contentManagement.edit")}
-                    </Link>
-                    {tab.canDelete(role) && (
-                      <button
-                        type="button"
-                        onClick={() => deleteOne(doc.id)}
-                        style={{ background: "none", border: "none", color: "var(--theme-error-500)", cursor: "pointer", padding: 0, font: "inherit" }}
-                      >
-                        {t("contentManagement.delete")}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        {renderListBody()}
       </div>
 
       {totalPages > 1 && (
