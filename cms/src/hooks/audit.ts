@@ -16,6 +16,11 @@ function ipOf(req: PayloadRequest): string | undefined {
   );
 }
 
+/** RFP feedback 3.5: profile login history shows the browser/device (Mozilla/5.0 ...). */
+function userAgentOf(req: PayloadRequest): string | undefined {
+  return req.headers?.get?.("user-agent") || undefined;
+}
+
 export async function writeAuditLog(req: PayloadRequest, entry: {
   action: string;
   collectionSlug?: string;
@@ -38,6 +43,7 @@ export async function writeAuditLog(req: PayloadRequest, entry: {
         documentId: entry.documentId,
         summary: entry.summary,
         ip: ipOf(req),
+        userAgent: userAgentOf(req),
       },
     });
   } catch (err) {

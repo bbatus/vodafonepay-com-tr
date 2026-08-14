@@ -103,22 +103,23 @@ describe("Users", () => {
     expect(Users.access?.delete).toBeTypeOf("function");
   });
 
-  it("read: New Vertical maker sees everyone, other roles only see their own record", () => {
+  it("read: every authenticated role can browse the full user list (RFP feedback 3.4)", () => {
     const read = Users.access?.read;
     expect(read).toBeTypeOf("function");
     if (!read) return;
 
     const maker = { user: { id: 1, role: ROLES.NEW_VERTICAL_MAKER } } as unknown as PayloadRequest;
     const checker = { user: { id: 2, role: ROLES.GROWTH_CHECKER } } as unknown as PayloadRequest;
+    const anonymous = {} as unknown as PayloadRequest;
 
-    // Maker can browse the full list (no specific id) and any single record.
+    // Every authenticated role — not just NV Maker — can browse the full list.
     expect(read({ req: maker })).toBe(true);
     expect(read({ req: maker, id: 2 })).toBe(true);
+    expect(read({ req: checker })).toBe(true);
+    expect(read({ req: checker, id: 1 })).toBe(true);
 
-    // A non-maker can only read their own record, not the full list or someone else's.
-    expect(read({ req: checker, id: 2 })).toBe(true);
-    expect(read({ req: checker, id: 1 })).toBe(false);
-    expect(read({ req: checker })).toBe(false);
+    // Only an unauthenticated request is denied.
+    expect(read({ req: anonymous })).toBe(false);
   });
 });
 

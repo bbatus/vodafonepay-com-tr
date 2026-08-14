@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 /** Every tag the CMS actually calls revalidateTag/revalidateGlobalTag with — see cms/src/collections/*.ts and cms/src/globals/*.ts. */
 const ALLOWED_TAGS = new Set([
   "campaigns",
+  "categories",
   "faq-items",
   "blog-posts",
   "fee-rows",

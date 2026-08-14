@@ -121,6 +121,37 @@ a {
   color: var(--vf-red);
 }
 
+/* RFP feedback 2.7: the list-select bulk-action row (Düzenle/Yayınla/
+   Yayından Kaldır/Sil, shown once a row checkbox is ticked) uses Payload's
+   `.btn--style-none` variant — no border, no background, just plain text —
+   so it read as inert labels rather than clickable actions. Give this one
+   toolbar real button chrome; every other `.btn--style-none` use in the
+   admin (icon-only buttons, etc.) is untouched since this only targets the
+   bulk-action row's own class. */
+.list-selection__button {
+  border: 1px solid var(--theme-elevation-150) !important;
+  border-radius: var(--style-radius-s);
+  padding: 0.35rem 0.85rem !important;
+  background: white;
+  transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease;
+}
+
+.list-selection__button:hover {
+  border-color: var(--vf-red) !important;
+  color: var(--vf-red);
+}
+
+/* The destructive one (Sil) gets the danger treatment used elsewhere for delete actions. */
+.list-selection__button.delete-documents__toggle {
+  border-color: var(--vf-red) !important;
+  color: var(--vf-red);
+}
+
+.list-selection__button.delete-documents__toggle:hover {
+  background: var(--vf-red) !important;
+  color: #fff;
+}
+
 /* ---------------------------------------------------------------------
    Login screen
 --------------------------------------------------------------------- */
@@ -214,42 +245,31 @@ a {
   color: rgba(255, 255, 255, 0.78);
 }
 
-.vf-login-panel__features {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--base) * 0.5);
+.vf-login-panel__hero {
   position: relative;
   z-index: 1;
-}
-
-.vf-login-panel__card {
   display: flex;
-  align-items: flex-start;
-  gap: calc(var(--base) * 0.65);
-  padding: calc(var(--base) * 0.75);
-  border-radius: var(--style-radius-m);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  flex-direction: column;
+  gap: calc(var(--base) * 0.6);
+  max-width: 30rem;
 }
 
-.vf-login-panel__card-icon {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  margin-top: 1px;
-}
-
-.vf-login-panel__card-title {
-  margin: 0 0 2px;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.vf-login-panel__card-desc {
+.vf-login-panel__hero-headline {
   margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.72);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 2.25rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.vf-login-panel__hero-subheadline {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 400;
+  font-size: 1.05rem;
+  line-height: 1.5;
 }
 
 .vf-login-panel__status {
@@ -273,6 +293,13 @@ a {
   border-radius: var(--style-radius-l);
   padding: calc(var(--base) * 1.75);
   box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.18);
+}
+
+/* RFP feedback 3.4: forgot-password is disabled (LDAP will own identity
+   later) — the route itself is overridden in payload.config.ts, this just
+   removes the now-dead link from the login form. */
+.login__form > a[href*="/forgot"] {
+  display: none;
 }
 
 .field-type input {

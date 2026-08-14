@@ -46,7 +46,7 @@ describe("campaignToCard", () => {
     slug: undefined,
     description: "Açıklama",
     image: { url: "/img.jpg", alt: "" },
-    category: "genel",
+    category: { label: "Genel", slug: "genel" },
     featured: true,
     ctaLabel: undefined,
     ctaUrl: undefined,
@@ -90,7 +90,7 @@ describe("cms.ts fetch-backed getters", () => {
   });
 
   it("getCampaigns returns docs on success", async () => {
-    const doc = { id: "1", title: "T", description: "D", image: media, category: "genel", featured: true };
+    const doc = { id: "1", title: "T", description: "D", image: media, category: { label: "Genel", slug: "genel" }, featured: true };
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
     expect(await getCampaigns()).toEqual([doc]);
   });
@@ -132,7 +132,7 @@ describe("cms.ts fetch-backed getters", () => {
       title: "T",
       description: "D",
       image: { url: "/i.jpg", alt: null },
-      category: "genel",
+      category: { label: "Genel", slug: "genel" },
       featured: true,
       ctaLabel: null,
       ctaUrl: null,

@@ -34,13 +34,31 @@ function listResponseSchema<T extends z.ZodTypeAny>(doc: T) {
  * cause) so a broken CMS integration is visible instead of just quietly
  * falling back to stale/hardcoded content.
  */
-async function cmsFetch<T>(path: string, tag: string, schema: z.ZodType<T>): Promise<T | null> {
+/**
+ * `preview` fetches draft content (RFP feedback 1.7) — authenticated via
+ * `PREVIEW_SECRET` instead of a logged-in session (the site has none), and
+ * never cached: draft content is by definition not the page's normal
+ * public/publishable state, and Next's tag-based revalidation only ever
+ * targets the published fetch.
+ */
+async function cmsFetch<T>(
+  path: string,
+  tag: string,
+  schema: z.ZodType<T>,
+  options?: { preview?: boolean }
+): Promise<T | null> {
   let res: Response;
   try {
-    res = await fetch(`${CMS_API_URL}${path}`, {
-      next: { tags: [tag], revalidate: 3600 },
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    });
+    res = await fetch(`${CMS_API_URL}${path}`, options?.preview
+      ? {
+          headers: { "x-preview-secret": process.env.PREVIEW_SECRET || "" },
+          cache: "no-store",
+          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+        }
+      : {
+          next: { tags: [tag], revalidate: 3600 },
+          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+        });
   } catch (err) {
     console.error(`[cms] fetch failed for "${path}" (tag: ${tag}):`, err instanceof Error ? err.message : err);
     return null;
@@ -68,13 +86,16 @@ async function cmsFetch<T>(path: string, tag: string, schema: z.ZodType<T>): Pro
   return parsed.data;
 }
 
+/** RFP feedback 1.3: category used to be a free-text value on the doc itself — now a relationship, populated via depth=1. */
+const campaignCategorySchema = z.object({ label: z.string(), slug: z.string() });
+
 const campaignSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   title: z.string(),
   slug: nullableString(),
   description: z.string(),
   image: mediaSchema,
-  category: z.string(),
+  category: campaignCategorySchema.nullable(),
   featured: z.boolean(),
   ctaLabel: nullableString(),
   ctaUrl: nullableString(),
@@ -128,7 +149,7 @@ const campaignDetailSchema = z.object({
   slug: z.string(),
   description: z.string(),
   image: mediaSchema,
-  category: z.string(),
+  category: campaignCategorySchema.nullable(),
   body: z.unknown().nullable().optional(),
   terms: z.unknown().nullable().optional(),
   seoTitle: nullableString(),
@@ -138,11 +159,13 @@ const campaignDetailSchema = z.object({
 });
 export type CmsCampaignDetail = z.infer<typeof campaignDetailSchema>;
 
-export async function getCampaignBySlug(slug: string): Promise<CmsCampaignDetail | null> {
+export async function getCampaignBySlug(slug: string, options?: { preview?: boolean }): Promise<CmsCampaignDetail | null> {
+  const draftParam = options?.preview ? "&draft=true" : "";
   const data = await cmsFetch(
-    `/campaigns?depth=1&limit=1&where[slug][equals]=${encodeURIComponent(slug)}`,
+    `/campaigns?depth=1&limit=1&where[slug][equals]=${encodeURIComponent(slug)}${draftParam}`,
     "campaigns",
-    listResponseSchema(campaignDetailSchema)
+    listResponseSchema(campaignDetailSchema),
+    { preview: options?.preview }
   );
   return data?.docs?.[0] ?? null;
 }

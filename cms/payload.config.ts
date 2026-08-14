@@ -12,6 +12,7 @@ import { Users } from "./src/collections/Users";
 import { Media } from "./src/collections/Media";
 import { Documents } from "./src/collections/Documents";
 import { Campaigns } from "./src/collections/Campaigns";
+import { Categories } from "./src/collections/Categories";
 import { FaqItems } from "./src/collections/FaqItems";
 import { BlogPosts } from "./src/collections/BlogPosts";
 import { FeeRows } from "./src/collections/FeeRows";
@@ -28,9 +29,11 @@ import { CookieRows } from "./src/collections/CookieRows";
 import { AuditLogs } from "./src/collections/AuditLogs";
 import { PageMeta } from "./src/collections/PageMeta";
 import { Pages } from "./src/collections/Pages";
+import { Translations } from "./src/collections/Translations";
 import { ContactInfo } from "./src/globals/ContactInfo";
 import { ROLES } from "./src/access/roles";
 import { env } from "./src/env";
+import { TRANSLATION_DEFAULTS } from "./src/lib/translationDefaults";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -140,9 +143,46 @@ export default buildConfig({
       },
       beforeLogin: ["/components/LoginBrandPanel#default"],
       beforeDashboard: ["/components/DashboardWidgets#default"],
+      beforeNav: ["/components/SidebarLogo#default", "/components/LocalePreferenceSync#default"],
+      afterNavLinks: ["/components/WaitingApprovalsNavLink#default"],
+      views: {
+        waitingApprovals: {
+          Component: "/components/WaitingApprovalsView#default",
+          path: "/waiting-approvals",
+        },
+        // RFP feedback 3.4: disable self-service password reset (LDAP will
+        // own identity later) — overriding the built-in view keys blocks
+        // the actual routes, not just the UI link.
+        forgot: { Component: "/components/ForgotPasswordDisabled#default" },
+        reset: { Component: "/components/ForgotPasswordDisabled#default" },
+      },
     },
   },
   onInit: async (payload) => {
+    // RFP feedback 3.2: seed the DB-backed translations collection with any
+    // KEY that doesn't already exist yet — runs every boot, but only ever
+    // inserts missing keys (e.g. new code defaults added after the first
+    // deploy), never touches/overwrites a row an editor already customized.
+    const existingRows = await payload.find({
+      collection: Translations.slug,
+      limit: 1000,
+      depth: 0,
+      select: { key: true },
+      overrideAccess: true,
+    });
+    const existingKeys = new Set(existingRows.docs.map((d) => (d as { key: string }).key));
+    const missing = Object.entries(TRANSLATION_DEFAULTS).filter(([key]) => !existingKeys.has(key));
+    if (missing.length > 0) {
+      for (const [key, value] of missing) {
+        await payload.create({
+          collection: Translations.slug,
+          overrideAccess: true,
+          data: { key, tr: value.tr, en: value.en },
+        });
+      }
+      payload.logger.info(`[translations] Seeded ${missing.length} new default translation row(s).`);
+    }
+
     if (!autoLoginEnabled) return;
     const existing = await payload.find({
       collection: Users.slug,
@@ -169,6 +209,7 @@ export default buildConfig({
     Media,
     Documents,
     Campaigns,
+    Categories,
     FaqItems,
     BlogPosts,
     FeeRows,
@@ -185,6 +226,7 @@ export default buildConfig({
     AuditLogs,
     PageMeta,
     Pages,
+    Translations,
   ],
   globals: [ContactInfo],
   editor: lexicalEditor(),

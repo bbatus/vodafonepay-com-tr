@@ -22,7 +22,14 @@ export const AuditLogs: CollectionConfig = {
     },
   },
   access: {
-    read: isNewVerticalMaker,
+    // RFP feedback 3.5: profile page shows the current user's OWN recent
+    // login history — needs read access to their own entries specifically,
+    // not the full log (still isNewVerticalMaker-only for that).
+    read: ({ req }) => {
+      if (isNewVerticalMaker({ req })) return true;
+      if (req.user?.email) return { userEmail: { equals: req.user.email } };
+      return false;
+    },
     create: () => false,
     update: () => false,
     delete: () => false,
@@ -41,6 +48,7 @@ export const AuditLogs: CollectionConfig = {
         { label: "Oluşturuldu", value: "create" },
         { label: "Güncellendi", value: "update" },
         { label: "Yayınlandı", value: "publish" },
+        { label: "Reddedildi", value: "rejected" },
         { label: "Silindi", value: "delete" },
       ],
     },
@@ -48,5 +56,6 @@ export const AuditLogs: CollectionConfig = {
     { name: "documentId", type: "text" },
     { name: "summary", type: "text", required: true },
     { name: "ip", type: "text" },
+    { name: "userAgent", type: "text", label: "User Agent" },
   ],
 };

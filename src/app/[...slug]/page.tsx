@@ -95,7 +95,7 @@ async function BlockRenderer({ block }: { block: CmsPageBlock }) {
 
     case "campaignGrid": {
       const campaigns = await getCampaigns();
-      const filtered = block.category ? campaigns?.filter((c) => c.category === block.category) : campaigns;
+      const filtered = block.category ? campaigns?.filter((c) => c.category?.slug === block.category) : campaigns;
       const items: CardListItem[] = (filtered ?? []).map((c) => {
         const card = campaignToCard(c);
         return { image: card.image, title: card.title, description: card.description, href: card.href };

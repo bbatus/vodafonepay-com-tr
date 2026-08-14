@@ -6,6 +6,7 @@ const validEnv = {
   DATABASE_URI: "postgres://user:pass@host:5432/db",
   PAYLOAD_SECRET: "a-real-random-secret",
   REVALIDATE_SECRET: "another-real-secret",
+  PREVIEW_SECRET: "yet-another-real-secret",
 };
 
 async function loadEnv() {
@@ -58,6 +59,17 @@ describe("env validation", () => {
       CMS_AUTO_LOGIN: undefined,
     };
     await expect(loadEnv()).rejects.toThrow(/REVALIDATE_SECRET is unset or still the dev placeholder/);
+  });
+
+  it("refuses to boot in production with the dev-placeholder PREVIEW_SECRET", async () => {
+    process.env = {
+      ...process.env,
+      ...validEnv,
+      NODE_ENV: "production",
+      PREVIEW_SECRET: "dev-preview-secret",
+      CMS_AUTO_LOGIN: undefined,
+    };
+    await expect(loadEnv()).rejects.toThrow(/PREVIEW_SECRET is unset or still the dev placeholder/);
   });
 
   it("allows dev-placeholder secrets in production when CMS_AUTO_LOGIN is on (local review mode)", async () => {

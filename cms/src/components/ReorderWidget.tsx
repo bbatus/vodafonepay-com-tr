@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
-
-const STRINGS = {
-  tr: { title: "Sürükleyerek sırala", saving: "(kaydediliyor…)", loadError: "Liste yüklenemedi." },
-  en: { title: "Drag to reorder", saving: "(saving…)", loadError: "Failed to load list." },
-} as const;
+import { useDbStrings } from "./useDbStrings";
+import { ROLES } from "@/access/roles";
 
 /**
  * RFP §3.1.6: content sorting. The `order` number field already existed on
@@ -71,7 +69,8 @@ function DraggableGroup({
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const locale = useAdminLocale();
-  const strings = STRINGS[locale];
+  const t = useDbStrings(locale);
+  const strings = { title: t("reorderWidget.title"), saving: t("reorderWidget.saving"), loadError: t("reorderWidget.loadError") };
 
   const handleDrop = async (targetIndex: number) => {
     if (dragIndex === null || dragIndex === targetIndex) {
@@ -141,15 +140,30 @@ export default function ReorderWidget({ collection, groupField }: { collection: 
   const [docs, setDocs] = useState<ReorderableDoc[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const locale = useAdminLocale();
-  const strings = STRINGS[locale];
+  const t = useDbStrings(locale);
+  const strings = { title: t("reorderWidget.title"), saving: t("reorderWidget.saving"), loadError: t("reorderWidget.loadError") };
+  const { user } = useAuth();
+  const role = (user as { role?: string } | undefined)?.role;
+  // Every collection this widget is wired into (see admin.components.beforeList
+  // in each collection config) uses newVerticalReadWrite for `update` — only
+  // NV Maker/Checker can actually write. Everyone else (Growth roles, who
+  // still land on these list pages because `read` is public/authenticated)
+  // used to see the same draggable list and could drag an item into a new
+  // position — the UI updated optimistically, but every PATCH the drag
+  // issued 403'd server-side, so the "reorder" silently never saved. Hiding
+  // the widget for roles with no real write access here is more honest than
+  // a control that visually works but does nothing.
+  const canReorder = role === ROLES.NEW_VERTICAL_MAKER || role === ROLES.NEW_VERTICAL_CHECKER;
 
   useEffect(() => {
+    if (!canReorder) return;
     fetch(`/api/${collection}?depth=0&limit=200&sort=order`, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setDocs(data.docs ?? []))
       .catch(() => setError(strings.loadError));
-  }, [collection, strings.loadError]);
+  }, [canReorder, collection, strings.loadError]);
 
+  if (!canReorder) return null;
   if (error) return <p style={{ color: "red", padding: "1rem" }}>{error}</p>;
   if (!docs || docs.length < 2) return null;
 

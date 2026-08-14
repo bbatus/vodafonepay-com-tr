@@ -73,3 +73,16 @@ Notasyon: ✅ Karşılanıyor · 🟡 Kısmi/bilinçli sınırlı · ❌ Açık,
 - Custom admin bileşenlerinin (ReorderWidget vb.) locale-aware hale getirilmesi ve bunun bundan sonraki her yeni component için kural olarak benimsenmesi
 - Her collection için "Yardım (?)" butonu — sayfa bazlı adım adım kullanım kılavuzu
 - 4 test kullanıcısıyla tarayıcıda uçtan uca RBAC/CRUD akış testi (şifre sıfırlama kullanıcıdan bekleniyor)
+
+---
+
+## 6. LDAP kimlik doğrulama planı (RFP feedback 3.4 — henüz İMPLEMENT EDİLMEDİ, sadece plan)
+
+Kullanıcının 3.4 maddesinde tarif ettiği hedef mimari — bu bölüm gelecekte LDAP entegrasyonuna başlarken referans olsun diye yazıldı, bu oturumda kod olarak kurulmadı:
+
+- **Kimlik kaynağı:** vodafone.local LDAP / AccessPoint. CMS kullanıcı hesapları artık burada yönetilecek, `users` collection'ında elle oluşturulmayacak.
+- **Giriş kuralı:** Bir LDAP kullanıcısı CMS'e SADECE şu ikisi doğruysa girebilir: (1) LDAP'ta hesabı var VE (2) 4 tanımlı rolden birine (`ROLES` — `access/roles.ts`) sahip. Rolü olmayan/4 rol dışı bir LDAP kullanıcısı giriş yapamaz.
+- **Rol yönetimi CMS dışında:** Rol ataması LDAP/AccessPoint tarafında yapılacak, CMS admin panelinden bir kullanıcının rolü değiştirilemeyecek (bugün `isNewVerticalMaker` bunu yapabiliyor — LDAP bağlandığında bu yetki kaldırılmalı).
+- **Self-servis tamamen kapalı:** Parola, e-posta, hesap aktif/pasif durumu — hiçbiri CMS içinden değiştirilemeyecek (LDAP'ın sorumluluğu). Bu, 3.5'teki profil sayfası sadeleştirmesiyle örtüşüyor.
+- **Şu an neden yapılmadı:** Gerçek bir LDAP sunucusu/AccessPoint entegrasyon bilgisi (host, bind DN, arama filtresi) olmadan Payload'a bir `authStrategy` eklemek test edilemeyen, sahte bir entegrasyon olurdu. Bu oturumda sadece LDAP gelene kadar makul olan iki parça yapıldı: forgot-password kapatıldı (`views.forgot`/`views.reset` override — `cms/src/components/ForgotPasswordDisabled.tsx`) ve Users listesi tüm rollere salt-okunur açıldı (`cms/src/collections/Users.ts`).
+- **LDAP bağlanınca yapılacaklar (sıralı):** (1) Payload'a custom bir `authStrategy` eklenip LDAP bind/arama ile doğrulama yapılacak; (2) `users` collection'ının `password`/`role` alanları LDAP'tan senkronlanacak şekilde salt-okunur yapılacak (bugünkü `role` select alanı ve `auth: true` şifre girişi kaldırılacak); (3) `isNewVerticalMaker`'ın Users üzerindeki create/update/delete yetkisi kaldırılacak (LDAP artık tek doğruluk kaynağı); (4) mevcut 4 test kullanıcısı (`docs/TEST-USERS.MD`) gerçek LDAP hesaplarıyla değiştirilecek.

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { draftMode } from "next/headers";
 import Image from "next/image";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
+import { PreviewBanner } from "@/components/PreviewBanner";
 import { getCampaignBySlug, getCampaigns, richTextToParagraphs } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
@@ -30,7 +32,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function KampanyaDetay({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const campaign = await getCampaignBySlug(slug);
+  const { isEnabled: isPreview } = await draftMode();
+  const campaign = await getCampaignBySlug(slug, { preview: isPreview });
   if (!campaign) notFound();
 
   const bodyParagraphs = richTextToParagraphs(campaign.body);
@@ -38,6 +41,7 @@ export default async function KampanyaDetay({ params }: { params: Promise<{ slug
 
   return (
     <main className="flex min-h-screen flex-col">
+      {isPreview && <PreviewBanner path={`/kampanyalar/${slug}`} />}
       <AppDownloadBanner />
       <Header />
       <StickyQr />
