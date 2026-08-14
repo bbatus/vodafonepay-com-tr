@@ -108,6 +108,35 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "loginHistory.date": { tr: "Tarih", en: "Date" },
   "loginHistory.ip": { tr: "IP Adresi", en: "IP Address" },
   "loginHistory.userAgent": { tr: "Cihaz / Tarayıcı", en: "Device / Browser" },
+
+  "contentManagement.navLabel": { tr: "İçerik Yönetimi", en: "Content Management" },
+  "contentManagement.title": { tr: "İçerik Yönetimi", en: "Content Management" },
+  "contentManagement.searchPlaceholder": { tr: "Ara...", en: "Search..." },
+  "contentManagement.recordCount": { tr: "kayıt", en: "records" },
+  "contentManagement.addNew": { tr: "Yeni Ekle", en: "Add New" },
+  "contentManagement.deleteSelected": { tr: "Seçilenleri Sil", en: "Delete Selected" },
+  "contentManagement.loading": { tr: "Yükleniyor…", en: "Loading…" },
+  "contentManagement.loadError": { tr: "Liste yüklenemedi.", en: "Failed to load list." },
+  "contentManagement.deleteError": {
+    tr: "Silinemedi — yetkiniz olmayabilir.",
+    en: "Couldn't delete — you may not have permission.",
+  },
+  "contentManagement.confirmDelete": {
+    tr: "Bu kaydı silmek istediğinize emin misiniz?",
+    en: "Are you sure you want to delete this record?",
+  },
+  "contentManagement.confirmBulkDelete": {
+    tr: "Seçilen kayıtları silmek istediğinize emin misiniz?",
+    en: "Are you sure you want to delete the selected records?",
+  },
+  "contentManagement.empty": { tr: "Kayıt bulunamadı.", en: "No records found." },
+  "contentManagement.colTitle": { tr: "Başlık", en: "Title" },
+  "contentManagement.colStatus": { tr: "Durum", en: "Status" },
+  "contentManagement.colUpdated": { tr: "Güncellendi", en: "Updated" },
+  "contentManagement.published": { tr: "Yayında", en: "Published" },
+  "contentManagement.draft": { tr: "Taslak", en: "Draft" },
+  "contentManagement.edit": { tr: "Düzenle", en: "Edit" },
+  "contentManagement.delete": { tr: "Sil", en: "Delete" },
 };
 
 export function applyPlaceholder(template: string, n: number): string {

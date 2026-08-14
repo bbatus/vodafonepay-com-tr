@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TRANSLATION_DEFAULTS } from "@/lib/translationDefaults";
 import type { AdminLocale } from "./useAdminLocale";
 
@@ -33,6 +33,14 @@ async function loadTranslations(): Promise<Record<string, Row>> {
  * `/api/translations` fetch resolves, any key that has a DB row re-renders
  * with the DB-editable value. A component never breaks if the DB has no row
  * for a key or the fetch fails — it just keeps showing the code default.
+ *
+ * The returned `t` is wrapped in `useCallback` (stable across renders
+ * unless `rows`/`locale` actually change) — confirmed live this matters:
+ * an early version returned a plain inline function, and a consumer that
+ * put `t` in a `useEffect`/`useCallback` dependency array (ContentManagementApp.tsx)
+ * got a new `t` every render, which re-ran the effect, which set state,
+ * which re-rendered, forever — an infinite fetch loop that took down the
+ * browser tab with net::ERR_INSUFFICIENT_RESOURCES.
  */
 export function useDbStrings(locale: AdminLocale) {
   const [rows, setRows] = useState<Record<string, Row> | null>(cache);
@@ -47,9 +55,12 @@ export function useDbStrings(locale: AdminLocale) {
     };
   }, []);
 
-  return function t(key: string): string {
-    const dbValue = rows?.[key]?.[locale];
-    if (dbValue) return dbValue;
-    return TRANSLATION_DEFAULTS[key]?.[locale] ?? key;
-  };
+  return useCallback(
+    (key: string): string => {
+      const dbValue = rows?.[key]?.[locale];
+      if (dbValue) return dbValue;
+      return TRANSLATION_DEFAULTS[key]?.[locale] ?? key;
+    },
+    [rows, locale]
+  );
 }

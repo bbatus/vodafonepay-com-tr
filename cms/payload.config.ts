@@ -144,8 +144,12 @@ export default buildConfig({
       beforeLogin: ["/components/LoginBrandPanel#default"],
       beforeDashboard: ["/components/DashboardWidgets#default"],
       beforeNav: ["/components/SidebarLogo#default", "/components/LocalePreferenceSync#default"],
-      afterNavLinks: ["/components/WaitingApprovalsNavLink#default"],
+      afterNavLinks: ["/components/ContentManagementNavLink#default", "/components/WaitingApprovalsNavLink#default"],
       views: {
+        contentManagement: {
+          Component: "/components/ContentManagementView#default",
+          path: "/content-management",
+        },
         waitingApprovals: {
           Component: "/components/WaitingApprovalsView#default",
           path: "/waiting-approvals",

@@ -21,6 +21,8 @@ import default_9 from "../../../components/WaitingApprovalsNavLink";
 import default_10 from "../../../components/ForgotPasswordDisabled";
 import default_11 from "../../../components/LoginHistoryField";
 import default_12 from "../../../components/LocalePreferenceSync";
+import default_13 from "../../../components/ContentManagementView";
+import default_14 from "../../../components/ContentManagementNavLink";
 import { S3ClientUploadHandler as S3ClientUploadHandler_2 } from "@payloadcms/storage-s3/client";
 import { CollectionCards as CollectionCards_1 } from "@payloadcms/next/rsc";
 
@@ -38,6 +40,8 @@ export const importMap = {
   "/components/ForgotPasswordDisabled#default": default_10,
   "/components/LoginHistoryField#default": default_11,
   "/components/LocalePreferenceSync#default": default_12,
+  "/components/ContentManagementView#default": default_13,
+  "/components/ContentManagementNavLink#default": default_14,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_2,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_1,
 };
