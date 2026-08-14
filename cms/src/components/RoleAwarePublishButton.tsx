@@ -278,38 +278,38 @@ export default function RoleAwarePublishButton() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "2rem",
+            padding: "0.75rem",
           }}
         >
           <div
             style={{
               background: "white",
               borderRadius: "var(--style-radius-l)",
-              padding: "1.5rem",
-              width: "min(960px, 100%)",
-              height: "90vh",
-              maxHeight: "90vh",
+              padding: "1rem",
+              width: "min(1600px, 98vw)",
+              height: "98vh",
+              maxHeight: "98vh",
               display: "flex",
               flexDirection: "column",
-              gap: "1rem",
+              gap: "0.5rem",
             }}
           >
-            <div style={{ flexShrink: 0 }}>
-              <p style={{ fontWeight: 600, fontSize: "1.1rem", margin: 0 }}>{t.heading}</p>
-              <p style={{ color: "var(--theme-elevation-500)", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>{t.body}</p>
+            <div style={{ flexShrink: 0, display: "flex", alignItems: "baseline", gap: "0.75rem", flexWrap: "wrap" }}>
+              <p style={{ fontWeight: 600, fontSize: "1rem", margin: 0 }}>{t.heading}</p>
+              <p style={{ color: "var(--theme-elevation-500)", fontSize: "0.8rem", margin: 0 }}>{t.body}</p>
             </div>
 
             {previewHref ? (
               <iframe
                 src={previewHref}
                 title="preview"
-                style={{ flex: "1 1 auto", minHeight: 0, border: "1px solid var(--theme-elevation-150)", borderRadius: "var(--style-radius-m)" }}
+                style={{ flex: "1 1 auto", minHeight: 0, width: "100%", border: "1px solid var(--theme-elevation-150)", borderRadius: "var(--style-radius-m)" }}
               />
             ) : (
               <p style={{ color: "var(--theme-elevation-450)" }}>{t.noPreview}</p>
             )}
 
-            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", flexShrink: 0 }}>
               <button
                 type="button"
                 className="btn btn--style-secondary btn--size-medium"
