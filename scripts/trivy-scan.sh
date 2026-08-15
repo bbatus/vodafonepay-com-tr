@@ -45,7 +45,7 @@ scan_deps() {
 }
 
 if [ "$TARGET" = "images" ] || [ "$TARGET" = "all" ]; then
-  scan_image "ai-website-cloner:latest"
+  scan_image "vodafonepaycomtr:latest"
   scan_image "vodafonepaycomtr-cms:latest"
 fi
 

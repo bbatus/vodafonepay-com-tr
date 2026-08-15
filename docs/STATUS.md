@@ -15,7 +15,7 @@ tek tek açmaya gerek yok — her birinin ne işe yaradığı en altta [§5](#5-
 - **Kök dizin** — Next.js 16 pazarlama sitesi (`vodafonepaycomtr`), App Router + Turbopack, Tailwind v4.
 - **`cms/`** — Payload CMS 3.87 admin paneli, ayrı Docker container, Postgres + MinIO.
 
-Docker Compose servisleri: `ai-website-cloner` (site, :3000), `vodafonepaycomtr-cms` (cms, :3010),
+Docker Compose servisleri: `vodafonepaycomtr` (site, :3000), `vodafonepaycomtr-cms` (cms, :3010),
 `vodafonepaycms-postgres`, `vodafonepaycms-minio`. Hepsi `docker compose -p vodafonepaycomtr` ile.
 
 ---

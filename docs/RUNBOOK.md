@@ -18,8 +18,7 @@ docker compose -p vodafonepaycomtr up -d
 ```
 
 Kontrol listesi:
-- [ ] `docker compose -p vodafonepaycomtr ps` → `vodafonepaycomtr-cms`, `ai-website-cloner` (=`app` servisi,
-      isim şablon kalıntısı, kafa karıştırmasın), `vodafonepaycms-postgres`, `vodafonepaycms-minio` hepsi `healthy`
+- [ ] `docker compose -p vodafonepaycomtr ps` → `vodafonepaycomtr-cms`, `vodafonepaycomtr` (=`app` servisi), `vodafonepaycms-postgres`, `vodafonepaycms-minio` hepsi `healthy`
 - [ ] `.env` dosyasında `CMS_AUTO_LOGIN=false` (veya satır yok) — **açıksa test geçersizdir**, gerçek
       login akışını test edemezsiniz (her istek otomatik admin olarak authenticate olur)
 - [ ] `http://localhost:3010/admin/login` gerçek bir login formu gösteriyor (auto-login yoksa doğrudan
