@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import type { CardListItem } from "@/components/CardListGrid";
+import { ContentUnavailable } from "@/components/ContentUnavailable";
 import { Footer } from "@/components/Footer";
-import { getBlogPosts } from "@/lib/cms";
+import { getBlogPosts, getCategories } from "@/lib/cms";
 import { BlogFilterableList } from "./BlogFilterableList";
 import { buildMetadata } from "@/lib/metadata";
 
@@ -14,32 +16,30 @@ export const metadata: Metadata = buildMetadata({
   path: "/blog",
 });
 
-const fallbackPosts: CardListItem[] = [
-  { image: "/images/blog-01.jpg", title: "Ulaşım Kartı Bakiye Yükleme Yolları | Vodafone Pay" },
-  { image: "/images/blog-02.jpg", title: "Ön Ödemeli Kart Nedir?" },
-  { image: "/images/blog-03.jpg", title: "Kart Limiti Artırma Nasıl Yapılır? | Vodafone Pay" },
-  { image: "/images/blog-04.jpg", title: "Online Alışverişlerimi Faturama Nasıl Yansıtabilirim?" },
-  { image: "/images/blog-05.jpg", title: "Dijital Mobil Cüzdan Nedir, Nasıl Kullanılır? | Vodafone Pay" },
-  { image: "/images/blog-06.jpg", title: "Vodafone Pay Kart Nedir? | Vodafone Pay" },
-  { image: "/images/blog-07.jpg", title: "Vodafone Pay Mobil Ödeme Nasıl Kullanılır?" },
-  { image: "/images/blog-08.jpg", title: "İstanbulkart Bakiye Yükleme Nasıl Yapılır? | Vodafone Pay" },
-  { image: "/images/blog-09.jpg", title: "Mobil Ödeme ile Alışveriş Nasıl Yapılır? | Vodafone Pay" },
-  { image: "/images/blog-10.jpg", title: "7878 Mesajı Nedir? | Vodafone Pay" },
-  { image: "/images/blog-11.jpg", title: "Cashback (Nakit İade) Nedir? | Vodafone Pay" },
-  { image: "/images/blog-12.jpg", title: "Sanal Kredi Kartı Nedir? | Vodafone Pay" },
-];
-
 export default async function Blog() {
-  const cmsPosts = await getBlogPosts();
-  const posts: CardListItem[] = cmsPosts?.length
-    ? cmsPosts.map((p) => ({
-        image: p.coverImage.url,
-        title: p.title,
-        description: p.excerpt,
-        href: `/blog/${p.slug}`,
-        category: p.category,
-      }))
-    : fallbackPosts;
+  // E3: previously fell back to 12 hardcoded fake posts whenever the CMS
+  // was unreachable — same bug class as kampanyalar's fallback (see
+  // ContentUnavailable.tsx). `null` = CMS fetch/parse failed, `[]` = CMS
+  // reachable but genuinely has zero posts; shown differently so a dead
+  // CMS is actually visible instead of silently masked.
+  const [cmsPosts, categories] = await Promise.all([getBlogPosts(), getCategories()]);
+  const posts: CardListItem[] = (cmsPosts ?? []).map((p) => ({
+    id: p.id,
+    image: p.coverImage.url,
+    title: p.title,
+    description: p.excerpt,
+    href: `/blog/${p.slug}`,
+    category: p.category,
+  }));
+
+  let content: ReactNode;
+  if (cmsPosts === null) {
+    content = <ContentUnavailable variant="error" />;
+  } else if (posts.length === 0) {
+    content = <ContentUnavailable variant="empty" />;
+  } else {
+    content = <BlogFilterableList posts={posts} categories={categories ?? []} />;
+  }
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -52,7 +52,7 @@ export default async function Blog() {
           <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Blog</h1>
         </div>
 
-        <BlogFilterableList posts={posts} />
+        {content}
       </section>
 
       <Footer />

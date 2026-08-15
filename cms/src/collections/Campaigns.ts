@@ -1,5 +1,5 @@
 import type { Access, CollectionAfterChangeHook, CollectionBeforeChangeHook, CollectionConfig, Where } from "payload";
-import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
+import { revalidateCampaignPaths, revalidateCampaignPathsOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete, writeAuditLog } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { campaignsCreate, campaignsReadWrite, denyMakerPublish, isNewVerticalMaker, ROLES } from "@/access/roles";
@@ -282,7 +282,7 @@ export const Campaigns: CollectionConfig = {
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
     beforeChange: [setCreatedBy, manageReviewCycle, denyMakerPublish],
-    afterChange: [revalidateTag("campaigns"), auditAfterChange("campaigns"), auditRejection],
-    afterDelete: [revalidateTagOnDelete("campaigns"), auditAfterDelete("campaigns")],
+    afterChange: [revalidateCampaignPaths, auditAfterChange("campaigns"), auditRejection],
+    afterDelete: [revalidateCampaignPathsOnDelete, auditAfterDelete("campaigns")],
   },
 };

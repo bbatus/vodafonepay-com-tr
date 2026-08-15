@@ -1,8 +1,32 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionBeforeValidateHook, CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { dbLabel } from "@/lib/collectionLabels";
+import { turkishSlugify, uniqueSlug } from "@/lib/slugify";
+
+/**
+ * E1: slug is now auto-generated from `label` — never typed by hand, so a
+ * category name can't drift from the technical key the site's FilterTabs
+ * mapping relies on. Only fires on CREATE: an existing category's slug is
+ * deliberately never re-derived, even if the label changes later, because
+ * the site filters campaigns by slug — silently changing it out from under
+ * an already-published campaign would break its category filter with no
+ * warning.
+ */
+const generateSlug: CollectionBeforeValidateHook = async ({ data, operation, req }) => {
+  if (operation !== "create" || !data?.label) return data;
+  const base = turkishSlugify(data.label as string);
+  data.slug = await uniqueSlug(base, async (candidate) => {
+    const { totalDocs } = await req.payload.count({
+      collection: "categories",
+      where: { slug: { equals: candidate } },
+      overrideAccess: true,
+    });
+    return totalDocs > 0;
+  });
+  return data;
+};
 
 /**
  * RFP feedback item 1.3: Campaigns' category used to be a hardcoded
@@ -46,20 +70,17 @@ export const Categories: CollectionConfig = {
       admin: { description: "Filtre sekmesinde ve kampanya listesinde görünen isim. Örnek: Kart" },
     },
     {
+      // E1: auto-generated from `label` on create (see generateSlug above)
+      // — readOnly so no one can hand-type a value that drifts from what
+      // the site's FilterTabs mapping actually indexes on.
       name: "slug",
       type: "text",
       required: true,
       unique: true,
       admin: {
-        description:
-          "Sabit kod referansı — kaydedildikten sonra değiştirmeyin. Sadece küçük harf, rakam ve tire (-). Örnek: kart",
-      },
-      validate: (value: unknown) => {
-        if (typeof value !== "string" || value.length === 0) return "Zorunlu alan";
-        if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(value)) {
-          return "Sadece küçük harf, rakam ve tire (-) kullanabilirsiniz. Örnek: kart";
-        }
-        return true;
+        position: "sidebar",
+        readOnly: true,
+        description: "Otomatik üretilir (isimden) — teknik referans, kaydedildikten sonra değişmez.",
       },
     },
     {
@@ -70,6 +91,7 @@ export const Categories: CollectionConfig = {
     },
   ],
   hooks: {
+    beforeValidate: [generateSlug],
     afterChange: [revalidateTag("categories"), auditAfterChange("categories")],
     afterDelete: [revalidateTagOnDelete("categories"), auditAfterDelete("categories")],
   },

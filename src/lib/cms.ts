@@ -89,6 +89,20 @@ async function cmsFetch<T>(
 /** RFP feedback 1.3: category used to be a free-text value on the doc itself — now a relationship, populated via depth=1. */
 const campaignCategorySchema = z.object({ label: z.string(), slug: z.string() });
 
+const categorySchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  label: z.string(),
+  slug: z.string(),
+  order: z.number(),
+});
+export type CmsCategory = z.infer<typeof categorySchema>;
+
+/** E2: FilterTabs.tsx reads this instead of a hardcoded label/slug list — a category is add/rename-able from the CMS with no code change. */
+export async function getCategories(): Promise<CmsCategory[] | null> {
+  const data = await cmsFetch("/categories?depth=0&limit=100&sort=order", "categories", listResponseSchema(categorySchema));
+  return data?.docs ?? null;
+}
+
 const campaignSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   title: z.string(),
@@ -174,6 +188,7 @@ export async function getCampaignBySlug(slug: string, options?: { preview?: bool
 
 export function campaignToCard(c: CmsCampaign) {
   return {
+    id: c.id,
     title: c.title,
     description: c.description,
     image: c.image.url,

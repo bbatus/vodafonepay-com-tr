@@ -68,8 +68,8 @@ export default async function KampanyaDetay({ params }: { params: Promise<{ slug
 
         {bodyParagraphs.length > 0 && (
           <div className="mt-8 space-y-4 text-base text-gray-700">
-            {bodyParagraphs.map((p, i) => (
-              <p key={i}>{p}</p>
+            {bodyParagraphs.map((p) => (
+              <p key={p}>{p}</p>
             ))}
           </div>
         )}
@@ -78,8 +78,8 @@ export default async function KampanyaDetay({ params }: { params: Promise<{ slug
           <div className="mt-10">
             <h2 className="text-xl font-bold text-black">Kampanya Koşulları</h2>
             <div className="mt-3 space-y-2 text-sm text-gray-600">
-              {termsParagraphs.map((p, i) => (
-                <p key={i}>{p}</p>
+              {termsParagraphs.map((p) => (
+                <p key={p}>{p}</p>
               ))}
             </div>
           </div>

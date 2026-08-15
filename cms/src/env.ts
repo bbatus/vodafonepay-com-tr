@@ -60,3 +60,18 @@ if (isProduction && !isLocalDev) {
 }
 
 export const env = parsed.data;
+
+/**
+ * E3: SITE_REVALIDATE_URL isn't required to boot (the site's own ISR
+ * interval is a fallback), but a missing value means every publish
+ * silently degrades to that slower fallback — pingRevalidate() already
+ * console.warns per-call, which is easy to miss in a scrolling log. This
+ * is a single, loud, one-time boot warning so a misconfigured deployment
+ * is obvious in the startup logs, not just discoverable by noticing stale
+ * content later.
+ */
+if (!process.env.SITE_REVALIDATE_URL) {
+  console.warn(
+    "[env] SITE_REVALIDATE_URL is not set — published changes will only appear on the site after its normal ISR interval, not immediately. See .env.example."
+  );
+}

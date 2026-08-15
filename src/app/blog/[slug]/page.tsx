@@ -56,8 +56,8 @@ export default async function BlogYazisi({ params }: { params: Promise<{ slug: s
 
         {bodyParagraphs.length > 0 && (
           <div className="mt-8 space-y-4 text-base text-gray-700">
-            {bodyParagraphs.map((p, i) => (
-              <p key={i}>{p}</p>
+            {bodyParagraphs.map((p) => (
+              <p key={p}>{p}</p>
             ))}
           </div>
         )}

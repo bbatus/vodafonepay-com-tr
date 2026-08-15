@@ -1,5 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 
 /** Every tag the CMS actually calls revalidateTag/revalidateGlobalTag with — see cms/src/collections/*.ts and cms/src/globals/*.ts. */
@@ -23,6 +23,22 @@ const ALLOWED_TAGS = new Set([
   "page-meta",
   "pages",
 ]);
+
+/**
+ * E3: `revalidateTag` alone leaves a page's HTML shell stale until the next
+ * natural request after the tag'd fetch reruns — this is what let
+ * /kampanyalar keep showing a removed/edited campaign for a while after a
+ * publish. `revalidatePath` forces the actual route segment to rebuild.
+ * Path allowlist (not a free-text path) for the same reason ALLOWED_TAGS
+ * exists: this endpoint is reachable with only a shared secret, not scoped
+ * per-caller, so accepting an arbitrary path would let a leaked secret
+ * force-rebuild routes outside the CMS's own concern.
+ */
+const ALLOWED_PATH_PATTERNS: RegExp[] = [/^\/$/, /^\/kampanyalar$/, /^\/kampanyalar\/[a-z0-9-]+$/, /^\/blog$/, /^\/blog\/[a-z0-9-]+$/];
+
+function isAllowedPath(path: string): boolean {
+  return ALLOWED_PATH_PATTERNS.some((pattern) => pattern.test(path));
+}
 
 /** In-memory fixed-window rate limit — this is a single-instance internal webhook, not a public API, so a per-process counter is sufficient. */
 const RATE_LIMIT_MAX = 30;
@@ -70,6 +86,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Unknown tag" }, { status: 400 });
   }
 
+  const rawPaths = Array.isArray(body?.paths) ? body.paths : [];
+  const paths: string[] = rawPaths.filter((p: unknown): p is string => typeof p === "string");
+  const invalidPath = paths.find((p) => !isAllowedPath(p));
+  if (invalidPath) {
+    return NextResponse.json({ message: `Unknown path: ${invalidPath}` }, { status: 400 });
+  }
+
   revalidateTag(tag, "max");
-  return NextResponse.json({ revalidated: true, tag, now: Date.now() });
+  for (const path of paths) {
+    revalidatePath(path);
+  }
+  return NextResponse.json({ revalidated: true, tag, paths, now: Date.now() });
 }

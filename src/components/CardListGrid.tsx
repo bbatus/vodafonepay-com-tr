@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ChevronRightIcon } from "@/components/icons";
 
 export interface CardListItem {
+  /** Stable identity for React's key — falls back to `title` only when the source has no real id (e.g. hardcoded fallback content). */
+  id?: string;
   image: string;
   title: string;
   description?: string;
@@ -56,7 +58,7 @@ export function CardListGrid({
       <h2 className="text-center text-2xl font-bold lg:text-left lg:text-[28px]">{title}</h2>
       <div className="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:mt-10 lg:grid-cols-3">
         {items.map((item) => (
-          <CardListCard key={item.title} item={item} linkLabel={linkLabel} />
+          <CardListCard key={item.id ?? item.title} item={item} linkLabel={linkLabel} />
         ))}
       </div>
     </div>
