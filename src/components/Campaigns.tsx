@@ -51,7 +51,7 @@ export function Campaigns({ campaigns = fallbackCampaigns }: { campaigns?: Campa
           <span className="text-[25px] font-bold leading-8 text-black">{campaign.title}</span>
           <p className="text-base text-gray-600">{campaign.description}</p>
           <a href={campaign.href} className="text-sm font-bold text-vf-red">
-            Detayları gör
+            {campaign.linkLabel || "Detayları gör"}
           </a>
         </div>
       </div>

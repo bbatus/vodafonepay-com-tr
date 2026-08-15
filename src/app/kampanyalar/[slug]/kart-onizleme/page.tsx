@@ -28,6 +28,7 @@ export default async function KampanyaKartOnizleme({ params }: { params: Promise
             title: campaign.title,
             description: campaign.description,
             category: campaign.category?.slug,
+            linkLabel: campaign.ctaLabel,
           }}
         />
       </div>

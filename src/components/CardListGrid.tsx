@@ -8,6 +8,8 @@ export interface CardListItem {
   description?: string;
   href?: string;
   category?: string;
+  /** Per-card override for the CTA text (e.g. campaign.ctaLabel from the CMS) — falls back to the grid's shared `linkLabel` when unset. */
+  linkLabel?: string;
 }
 
 /**
@@ -17,13 +19,14 @@ export interface CardListItem {
  */
 export function CardListCard({ item, linkLabel = "Detayları gör" }: { item: CardListItem; linkLabel?: string }) {
   const cardClassName = "w-full max-w-[361px] cursor-pointer overflow-hidden rounded-md bg-white p-5 text-left shadow-md";
+  const label = item.linkLabel || linkLabel;
   const content = (
     <>
       <Image src={item.image} alt={item.title} width={361} height={240} className="h-[240px] w-full rounded object-cover" />
       <h3 className="mt-4 text-lg font-bold text-black">{item.title}</h3>
       {item.description && <p className="mt-2 text-sm text-gray-600">{item.description}</p>}
       <span className="mt-2 inline-flex items-center gap-x-1 text-sm font-bold text-vf-red">
-        {linkLabel} <ChevronRightIcon className="h-3 w-3" />
+        {label} <ChevronRightIcon className="h-3 w-3" />
       </span>
     </>
   );

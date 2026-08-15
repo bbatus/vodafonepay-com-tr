@@ -156,6 +156,8 @@ const campaignDetailSchema = z.object({
   seoDescription: nullableString(),
   startDate: nullableString(),
   endDate: nullableString(),
+  ctaLabel: nullableString(),
+  ctaUrl: nullableString(),
 });
 export type CmsCampaignDetail = z.infer<typeof campaignDetailSchema>;
 
@@ -177,6 +179,7 @@ export function campaignToCard(c: CmsCampaign) {
     image: c.image.url,
     imageAlt: c.image.alt || c.title,
     href: c.ctaUrl || (c.slug ? `/kampanyalar/${c.slug}` : "/kampanyalar"),
+    linkLabel: c.ctaLabel,
   };
 }
 
