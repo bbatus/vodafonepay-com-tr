@@ -22,6 +22,16 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+/**
+ * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
+ *
+ * Checked against the live DB: the CMS collection behind this section has ZERO
+ * rows, so unlike the FAQ/announcement/campaign fallbacks removed in this
+ * round, this array is not dead code that only fires on an outage — it IS what
+ * the site currently renders. Deleting it would blank a working section rather
+ * than reveal a masked failure. Remove it in the same change that seeds the
+ * collection; see the round report's "kalan fallback'ler" table.
+ */
 const fallbackCards = [
   {
     icon: "/images/icon-size-limit.png",
@@ -49,39 +59,6 @@ const fallbackSteps = [
   { number: "06", text: "Tebrikler! QR harcamanız başarıyla faturanıza yansıtıldı.", image: "/images/qr-step-6.png" },
 ];
 
-const fallbackFaqs: FaqItem[] = [
-  {
-    question: "Faturana Yansıt Nedir?",
-    answer:
-      "Faturana Yansıt, alışverişlerinizi hızlı ve güvenli bir şekilde gerçekleştirmenizi sağlayan alternatif bir ödeme yöntemidir. Faturalı veya faturasız fark etmeksizin, kredi kartı veya banka kartına ihtiyaç duymadan Faturana Yansıt ile harcama yapabilirsiniz.",
-  },
-  {
-    question: "QR ile Faturana Yansıt nedir?",
-    answer:
-      "Vodafone Pay Uygulaması'nda TR Kare kod (QR) ile ödemede Faturana Yansıt'ı hem faturalı hem faturasız Vodafone mobil müşterileri kullanabilir. Ödeme tutarı, işlem ücreti ve Faturana Yansıt hizmet bedeli işlem onayın sonrası Vodafone mobil faturasına yansıtılacak ya da faturasız hatlar için TL bakiyesinden düşülecektir.",
-  },
-  {
-    question: "QR ile Faturana Yansıt nasıl kullanılır?",
-    answer:
-      "Vodafone Pay Uygulaması ana sayfasında yer alan QR ikonuna tıkladıktan sonra \"QR ile Ödeme\" seçeneğini seçip POS cihazında yer alan TR Kare Kod'u (QR) okutmalısınız. Faturana Yansıt işlem ücreti, ödeme tutarı üzerinden %3 olarak hesaplanır.",
-  },
-  {
-    question: "Faturana Yansıt'ı kullanarak yaptığım ödememde işlem detayına nasıl ulaşabilirim?",
-    answer:
-      "Vodafone Pay Uygulaması ana sayfasında yer alan Faturana Yansıt butonuna tıklayarak açılan İşlemler ekranında Faturana Yansıt harcama detaylarını görüntüleyebilirsin.",
-  },
-  {
-    question: "TR Kare Kod (QR) ile ödemede Faturana Yansıt limitim neden düşük?",
-    answer:
-      "Faturana Yansıt limitleri müşteri özelinde belirlenmekte olup Vodafone Pay'de hesabını doğrulayan müşteriler, daha yüksek limitlerden faydalanabilirler.",
-  },
-  {
-    question: "QR ile ödemede Anında Bakiye ile öde nasıl kullanılır?",
-    answer:
-      "POS cihazında yer alan TR Kare Kod'u (QR) okuttuktan sonra karşınıza çıkan işlem ekranında ödeme yöntemi olarak Anında Bakiye'yi seçerek işleme devam edebilirsiniz.",
-  },
-];
-
 export default async function QrIleFaturanaYansit() {
   const [cmsFaqItems, cmsHero, cmsCards, cmsSteps] = await Promise.all([
     getFaqItems("qr-ile-faturana-yansit"),
@@ -89,9 +66,9 @@ export default async function QrIleFaturanaYansit() {
     getFeatureCards("qr-ile-faturana-yansit"),
     getStepCards("qr-ile-faturana-yansit"),
   ]);
-  const faqs: FaqItem[] = cmsFaqItems?.length
-    ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
-    : fallbackFaqs;
+  // RFP feedback 5.0: no hardcoded FAQ fallback — an empty CMS result renders
+  // no FAQ section at all rather than copy nobody can edit.
+  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer }));
   const cards = cmsCards?.length
     ? cmsCards.map((c) => ({ icon: c.icon.url, title: c.title, text: c.text }))
     : fallbackCards;

@@ -502,3 +502,61 @@ Her madde için birlikte şu alanları dolduracağız:
 | 4.3 | Yayınlama onayı modalındaki bozuk preview | Tamamlandı |
 | 4.4 | Profil sayfası: avatar, alt zorunluluğu, email/role kilidi, parola/etkinleştir kaldırma, tek dil değiştirici | Tamamlandı |
 | 4.5 | Users listesi export (CSV, TR karakter destekli) | Tamamlandı |
+
+
+
+Yeniler : 
+
+
+mesela test kategorisi vardı ekledigim categories kısmına product bir kategori ekleyebilsin istemiştim. sonra o kategroide bir kampanya yarattım mesela a description verdim.  gidip kategoriyi silebildim hemen onun yerıne o kampanyayı önce silmem lazımdı çünkü ona bağlıydı anladın mı? ve kategoriyi silerken falan emin misiniz gibi bir evet hayır box cıkmalıydı onayladıgında bu kontrolü yapıp tekrar silinemediğinin nedenini hata mesajında UI da vermeliydi diye düşünüyorum. Böyle çalışmayan bu componentin eksik oldugu ve olması gereken yerler varsa analiz et ve bunları fixle. 
+
+
+
+ayrıca kampanyalar sayfasında tümüne tıkladıgımda bu ayın favorileri ve altında favori olmayan tüm kampanyalar listeleniyor bu doğru davranış fakat örnegin anında bakiye seçtim sadece ve sadece anında bakiye kategorililier gözükmeli favoriler kısmı olmamalı anladın mı? 
+
+
+
+Kampanya Tarihi14.07.2026 - 15.08.2026https://www.vodafonepay.com.tr/kampanyalar/pazaramada-50-indirim
+
+şeklinde UI da nasıl ekleniyor gidip bak kampanya tarihi eklendiğinde. kampanya kartının altında tutmuşlar güzel gözüküyor.
+
+
+
+yayında bir kampanya varsa ve bu edit edilmeye calisiliyorsa bence önce durumu pasife çekilmeli gibi bir path vermeliyiz kullanıcıya. aktfi kampanyayı güncellemek için öncelikle pasife çekmelisiniz gibi. sonra onaya gitmeli pasife çekilme onayı verilirse mesela ilgili düzenleme yapılabilir. ama ilk düzenlendiği tarih neydiyse orada kalmalı yani mesela ben bu kampanyayı 3 ay önce çıktım ama descriptionunu değiştiricem. pasife aldım değiştirdim tekrar yayınladım en üste çıkmamamlı bu kampanya. ilk created at tarihini kullanmalı anladın mı? yoksa ondan sonra üretilen yeni kampanyaların önüne geçer listelemede. 
+
+
+
+
+
+sık sorulanlar listesi order a göre listelenmeli basic olarak listede. order i 1 den baslamalı yani list bileşenimiz
+
+
+
+test-nv-maker kişiler hesap kilidi olan kişileri görebilmeli sadece onlar user listesinde varolan userlarda bir kiliidi olan varsa yanlış login denemesinden dolayı o kişinin kilidini kaldırabilmeli user in db de user değerlerinde locked değeri de işte atıyorum değişmeli. test nv maker da bunu yapabileceği geliştirme ve bunu yapabileceği ekstra ekranı ekleyelim user collectionuna ama sadece bu role sahip kullanıcılar yapabilsin.
+
+
+
+ tr en degisim yapıldıgında ya anasayfadaki topbardaki üstteki seçenekten yapabiliyor gibi bunu kapatalım. sadece profildeki ayardan yapabilisn,  ekstra olarak sayfaların locals değerleri dinamik olarak değişmiyor hatta hiç değişmiyor gibiler. 
+
+
+
+epostamı hatırla değil de remember me yazsa daha iyi her ne kadar sadece epostayı hatırlarsa da okey remember me olması daha iyi. 
+
+
+
+content management sayfası tab li haliyle kalsın bence. her user burayı görebilsin ama hiçbir user content management sidebardan gidip burada bir edit vs yapamasın sadece temiz bir rapor sayfası olsun burası listelesin ne collectionumuz var ve onun altında ne değerlerimiz var şeklimde tüm collectionların özet sayfası olsun anladın mı olmayan gereken tableri ekleyeliöm yani buraya. 
+
+
+
+One platform for all your need. daha iyi sanki. 
+
+Manage campaigns, pages, and every piece of site content from a single panel. Approval workflows, roles, and audit trails built in — no migration, no lock-in.
+
+burada da vodafonepaycomtr websiteniz altındaki .... leri daha kolay yönetin! gibi bir yazı olabilir. kreatif ol. 
+
+
+
+ekstra olarak campaigns sayfasında da türkçe karakterleri destekleyecek şekilde ne değerlerimiz varsa tüm sütunlarla birlikte csv alabilmeliyiz exportu ekleyelim. 
+
+
+

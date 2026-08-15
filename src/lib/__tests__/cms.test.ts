@@ -50,6 +50,8 @@ describe("campaignToCard", () => {
     featured: true,
     ctaLabel: undefined,
     ctaUrl: undefined,
+    startDate: undefined,
+    endDate: undefined,
   };
 
   it("falls back to the campaign title as image alt when alt is empty", () => {

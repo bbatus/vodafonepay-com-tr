@@ -4,13 +4,12 @@ import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import type { CardListItem } from "@/components/CardListGrid";
 import { ContentUnavailable } from "@/components/ContentUnavailable";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
 import { getCampaigns, getCategories, getFaqItems, getPageMeta } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
-import { CampaignsFilterableList } from "./CampaignsFilterableList";
+import { CampaignsFilterableList, type FilterableCampaign } from "./CampaignsFilterableList";
 import { buildMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -22,14 +21,6 @@ export async function generateMetadata(): Promise<Metadata> {
     image: pageMeta?.ogImage?.url,
   });
 }
-
-const fallbackFaqs: FaqItem[] = [
-  {
-    question: "Vodafone Pay kampanyalarına nasıl katılabilirim?",
-    answer:
-      "Vodafone Pay Uygulaması üzerinden kampanyaları inceleyerek katılmak istedikleriniz için \"Kampanyaya Katıl\" butonuna tıklayabilir veya kampanya esaslarında yer alan yönlendirmeleri uygulayarak kampanyalara katılabilirsiniz. Hesabını oluşturduktan sonra kampanya şartlarını sağlayarak faydalanabilirsin.",
-  },
-];
 
 export default async function Kampanyalar() {
   // E3: this page used to fall back to 3+19 hardcoded fake campaigns
@@ -45,7 +36,10 @@ export default async function Kampanyalar() {
     getCategories(),
   ]);
 
-  const toCard = (c: NonNullable<typeof cmsCampaigns>[number]): CardListItem => ({
+  // RFP feedback 5.2: ONE list carrying the `featured` flag, not two
+  // pre-split arrays — see CampaignsFilterableList for why the split had to
+  // move out of here.
+  const campaigns: FilterableCampaign[] = (cmsCampaigns ?? []).map((c) => ({
     id: c.id,
     image: c.image.url,
     title: c.title,
@@ -53,23 +47,21 @@ export default async function Kampanyalar() {
     href: c.ctaUrl || (c.slug ? `/kampanyalar/${c.slug}` : undefined),
     category: c.category?.slug,
     linkLabel: c.ctaLabel,
-  });
-
-  const favorites = (cmsCampaigns ?? []).filter((c) => c.featured).map(toCard);
-  const allCampaigns = (cmsCampaigns ?? []).filter((c) => !c.featured).map(toCard);
-  const faqs: FaqItem[] = cmsFaqItems?.length
-    ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
-    : fallbackFaqs;
+    startDate: c.startDate,
+    endDate: c.endDate,
+    featured: c.featured,
+  }));
+  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer }));
 
   const pageMeta = await getPageMeta("/kampanyalar");
 
   let content: ReactNode;
   if (cmsCampaigns === null) {
     content = <ContentUnavailable variant="error" />;
-  } else if (favorites.length === 0 && allCampaigns.length === 0) {
+  } else if (campaigns.length === 0) {
     content = <ContentUnavailable variant="empty" />;
   } else {
-    content = <CampaignsFilterableList favorites={favorites} allCampaigns={allCampaigns} categories={categories ?? []} />;
+    content = <CampaignsFilterableList campaigns={campaigns} categories={categories ?? []} />;
   }
 
   return (

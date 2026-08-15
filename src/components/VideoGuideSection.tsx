@@ -3,18 +3,17 @@ interface Video {
   youtubeId: string;
 }
 
-const fallbackVideos: Video[] = [
-  {
-    title: "Vodafone Pay Uygulaması üzerinden kare kod ile Türkiye'deki tüm ATM'lerden nasıl para çekersin?",
-    youtubeId: "7CCEsOaoH2A",
-  },
-  {
-    title: "Vodafone Pay Uygulaması üzerinden kare kod (QR) ile nasıl ödeme yapabilirsin?",
-    youtubeId: "0BCJdFpVCSw",
-  },
-];
+/**
+ * RFP feedback 5.0 (fallback masking audit): this section used to fall back to
+ * a hardcoded copy of its content whenever the CMS returned nothing, so an
+ * outage or an empty collection looked identical to a healthy page and no one
+ * could tell the CMS had stopped feeding it. The prop is required now and an
+ * empty list renders nothing — see docs for which collections still keep a
+ * fallback (the ones with zero rows, where the fallback IS the live content).
+ */
+export function VideoGuideSection({ videos }: { videos: Video[] }) {
+  if (videos.length === 0) return null;
 
-export function VideoGuideSection({ videos = fallbackVideos }: { videos?: Video[] }) {
   return (
     <section
       className="bg-cover bg-center px-4 py-16 lg:px-[52px]"

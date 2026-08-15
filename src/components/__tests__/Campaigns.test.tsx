@@ -35,8 +35,10 @@ describe("Campaigns", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("falls back to its own default campaigns when none are given", () => {
-    render(<Campaigns />);
-    expect(screen.getByText(/Vodafone Pay ile Çeşme Plajlarında/)).toBeInTheDocument();
+  // RFP feedback 5.0: there is deliberately no hardcoded default any more —
+  // an empty list must render nothing rather than mask a dead CMS.
+  it("renders nothing rather than hardcoded campaigns when the list is empty", () => {
+    const { container } = render(<Campaigns campaigns={[]} />);
+    expect(container).toBeEmptyDOMElement();
   });
 });

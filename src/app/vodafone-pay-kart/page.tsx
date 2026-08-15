@@ -23,33 +23,6 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-const fallbackFaqs: FaqItem[] = [
-  {
-    question: "Vodafone Pay Kart Nedir?",
-    answer:
-      "Vodafone Pay Kart herhangi bir banka müşterisi olmadan ve hangi operatör müşterisi olduğunuz fark etmeksizin kullanabileceğiniz ön ödemeli bir karttır.",
-  },
-  {
-    question: "Vodafone Pay Kart Nasıl Alınır?",
-    answer:
-      "Fiziksel ve sanal kart olmak üzere 2 tür Vodafone Pay Kart bulunur. Fiziksel Vodafone Pay Kart sahibi olmak için Vodafone Mağazalarını ziyaret ederek kartı satın alabilir, Vodafone Pay Sanal Kart kullanmak için ise Vodafone Pay Uygulaması'nı indirebilirsiniz.",
-  },
-  {
-    question: "Vodafone Pay Kart Nasıl Kullanılır?",
-    answer:
-      "Vodafone Pay Kart'larınıza uygulama aracılığıyla bakiye yükledikten sonra uygulama içerisindeki tüm işlemleri gerçekleştirebilir, kartlarınızı online alışverişlerde kullanabilirsiniz. Fiziksel mağazalardaki alışverişlerinizi de QR ile Ödeme veya Vodafone Pay Fiziksel Kart ile gerçekleştirebilirsiniz.",
-  },
-  {
-    question: "Vodafone Pay Kart Limiti Ne Kadar?",
-    answer: "Vodafone Pay hesabı doğrulanmış müşterilerin aylık limitleri 75.000 TL; hesabı doğrulanmamış müşterilerin limitleri 2.000 TL'dir.",
-  },
-  {
-    question: "Vodafone Pay Kart Ücretli mi?",
-    answer:
-      "Vodafone Pay Sanal Kartınızı Vodafone Pay Uygulaması üzerinden ücretsiz şekilde edinebilirsiniz. Vodafone Pay Fiziksel Kartınızı ise Vodafone Mağazalarından satın alabilirsiniz. Güncel Vodafone Pay Kart fiyatları hakkında mağazalarımızdan detaylı bilgi alabilirsiniz.",
-  },
-];
-
 export default async function VodafonePayKart() {
   const [cmsFaqItems, cmsHero, cmsSlides, cmsVideos] = await Promise.all([
     getFaqItems("vodafone-pay-kart"),
@@ -57,15 +30,12 @@ export default async function VodafonePayKart() {
     getContentBlocks("kart-earn"),
     getContentBlocks("kart-video-guide"),
   ]);
-  const faqs: FaqItem[] = cmsFaqItems?.length
-    ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
-    : fallbackFaqs;
-  const slides = cmsSlides?.length
-    ? cmsSlides.map((s) => ({ image: s.image?.url ?? "", text: s.text ?? "" }))
-    : undefined;
-  const videos = cmsVideos?.length
-    ? cmsVideos.map((v) => ({ title: v.title ?? "", youtubeId: v.youtubeId ?? "" }))
-    : undefined;
+  // RFP feedback 5.0: faq-items and content-blocks are both seeded for this
+  // page, so these fallbacks only ever fired on a CMS failure — masking it.
+  // An empty result now renders no section instead of hardcoded copy.
+  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer }));
+  const slides = (cmsSlides ?? []).map((s) => ({ image: s.image?.url ?? "", text: s.text ?? "" }));
+  const videos = (cmsVideos ?? []).map((v) => ({ title: v.title ?? "", youtubeId: v.youtubeId ?? "" }));
 
   const pageMeta = await getPageMeta("/vodafone-pay-kart");
 

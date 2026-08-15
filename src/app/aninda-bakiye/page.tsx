@@ -22,6 +22,16 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+/**
+ * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
+ *
+ * Checked against the live DB: the CMS collection behind this section has ZERO
+ * rows, so unlike the FAQ/announcement/campaign fallbacks removed in this
+ * round, this array is not dead code that only fires on an outage — it IS what
+ * the site currently renders. Deleting it would blank a working section rather
+ * than reveal a masked failure. Remove it in the same change that seeds the
+ * collection; see the round report's "kalan fallback'ler" table.
+ */
 const fallbackCards = [
   {
     icon: "/images/icon-size-limit3.png",
@@ -49,88 +59,6 @@ const fallbackSteps = [
   { number: "06", text: "GSM numaranıza gelen 4 haneli onay kodunu girerek yükleme işleminizi tamamlayın.", image: "/images/ab-step-6.jpg" },
 ];
 
-const fallbackFaqs: FaqItem[] = [
-  {
-    question: "Anında Bakiye nedir? Kimler kullanabilir?",
-    answer:
-      "Anında Bakiye, Vodafone Pay tarafından sana özel olarak tanımlanan Faturana Yansıt limitini Vodafone Pay Sanal Kart'ına aktarabileceğin bir hizmettir. Yüklediğin Anında Bakiye'yi Vodafone Pay Sanal Kart aracılığıyla dilediğin yerde kullanabilirsin.",
-  },
-  {
-    question: "Anında Bakiye'yi kimler kullanabilir?",
-    answer:
-      "Anında Bakiye'yi hem faturalı hem faturasız Vodafone müşterileri kullanabilir. Kullanabilmek için 18 yaşından büyük olman ve hattın yasal sahibi olman yeterlidir.",
-  },
-  {
-    question: "Anında Bakiye'yi nasıl kullanabilirim?",
-    answer: "Ana ekranda görülen \"Hemen al!\" butonuna tıklayarak ihtiyacın olan tutarı sanal kartına yükleyebilirsin.",
-  },
-  {
-    question: "Anında Bakiye alırken Faturana Yansıt yöntemini açmam gerekli midir?",
-    answer:
-      "Evet, bu işlemin yapılabilmesi için Faturana Yansıt yöntemi açık olmalıdır. Sana özel tanımlanan Anında Bakiye, Vodafone faturana yansıtılarak ya da TL bakiyenden düşülerek tahsil edilir.",
-  },
-  {
-    question: "Anında Bakiye ile yapacağım işlemlerde bir limit var mıdır?",
-    answer:
-      "Anında Bakiye'ni Vodafone Pay limitlerin ve Faturana Yansıt limitlerin dahilinde kullanabilirsin. Bakiye yükleme ve harcama için tek seferlik, günlük ve aylık limit 1.250 TL'dir.",
-  },
-  {
-    question: "Anında Bakiye ile yapılan işlemler ücretli mi?",
-    answer:
-      "Anında Bakiye yüklemelerinde komisyon uygulanır. Ek olarak Anında Bakiye alınabilmesi için gerekli Faturana Yansıt Yöntemi'nin hizmet bedeline web sitemizden ulaşabilirsin.",
-  },
-  {
-    question: "Anında Bakiye'me tanımlanan tutarı nasıl geri öderim?",
-    answer:
-      "Yüklenen Anında Bakiye tutarı, işlem ücreti ve Faturana Yansıt hizmet bedeli Vodafone Pay uygulamana kayıtlı GSM'e ait en yakın tarihli Vodafone faturana yansıtılacak ya da faturasız hatlar için TL bakiyenden düşülecektir.",
-  },
-  {
-    question: "Anında Bakiye'mi nerelerde kullanabilirim?",
-    answer: "Sana özel tanımlanan Anında Bakiye'ni yurtiçi ve yurtdışında Visa kart geçerli olan tüm kurum ve platformlarda kullanabilirsin.",
-  },
-  {
-    question: "Anında Bakiye'mi TR Kare Kod (QR) işlemlerinde kullanabilir miyim?",
-    answer: "Anında Bakiye'ni QR ile ödeme sayfasında kullanabilirsin.",
-  },
-  {
-    question: "Anında Bakiye'mi Ulaşım Kartlarına yaptığım yüklemelerde kullanabilir miyim?",
-    answer: "Anında Bakiye'ni, İşlemler menüsünde bulunan ulaşım kartlarına yükleme yapmak için kullanabilirsin.",
-  },
-  {
-    question: "Anında Bakiye'mi fatura ödemelerinde kullanabilir miyim?",
-    answer:
-      "Anında Bakiye özelinde hesabına tanımlanan tutarı İnternet&TV, Su, Elektrik, Doğalgaz ve Telekom için yaptığın fatura ödemelerinde kolayca kullanabilirsin. Anında Bakiye alırken kullandığın Vodafone'a ait telefon hattının faturasını Anında Bakiye ile ödeyemezsin.",
-  },
-  {
-    question: "Anında Bakiye'mi Kolay Paket ve Cep TL yüklemelerinde kullanabilir miyim?",
-    answer: "Anında Bakiye'ni Vodafone hattına Kolay Paket tanımlamalarında ve Cep TL yüklemelerinde ödeme yöntemi olarak kullanabilirsin.",
-  },
-  {
-    question: "Anında Bakiye ile hangi işlemleri yapabilirim?",
-    answer:
-      "Anında Bakiye'ni yurtiçi ve yurtdışında Visa kart geçerli olan tüm kurum ve platformlarda kullanabilir, kurum faturalarını ödeyebilir, Vodafone Kolay Paket, Cep TL ve Ulaşım Kartları yüklemelerinde kullanabilirsin.",
-  },
-  {
-    question: "Anında Bakiye'mi Cüzdanım'a, diğer banka/kredi kartlarıma ya da diğer Vodafone Pay kartlarıma aktarabilir miyim?",
-    answer:
-      "Hayır, Anında Bakiye'ne özel tanımlanan tutar Cüzdanım'a, diğer banka hesapları/kredi kartlarına ya da diğer Vodafone Pay Sanal/Fiziksel kartlarına aktarılamaz ve nakit olarak çekilemez.",
-  },
-  {
-    question: "Anında Bakiye'yi iptal/iade edebilir miyim?",
-    answer: "Müşteri hizmetlerini arayarak iptal/iade işlemlerini yapabilirsin.",
-  },
-  {
-    question: "Anında Bakiye işlem ve kart detaylarına nasıl ulaşabilirim?",
-    answer:
-      "Uygulama Ana Sayfasında bulunan Anında Bakiye butonuna tıklandığında işlem detaylarını, \"Detayları Gör\" butonuna tıklandığında ise kart detaylarını görüntüleyebilirsin.",
-  },
-  {
-    question: "Anında Bakiye kartımın Son Kullanma Tarihi (SKT) dolarsa ne yapmalıyım?",
-    answer:
-      "Herhangi bir işleme gerek yoktur. Uygulama ilk giriş esnasında SKT'si dolan kartının yerine otomatik olarak yeni bir sanal kart oluşturulur ve mevcut bakiye yeni karta otomatik olarak aktarılır.",
-  },
-];
-
 export default async function AnindaBakiye() {
   const [cmsFaqItems, cmsHero, cmsCards, cmsSteps] = await Promise.all([
     getFaqItems("aninda-bakiye"),
@@ -138,9 +66,9 @@ export default async function AnindaBakiye() {
     getFeatureCards("aninda-bakiye"),
     getStepCards("aninda-bakiye"),
   ]);
-  const faqs: FaqItem[] = cmsFaqItems?.length
-    ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
-    : fallbackFaqs;
+  // RFP feedback 5.0: no hardcoded FAQ fallback — an empty CMS result renders
+  // no FAQ section at all rather than copy nobody can edit.
+  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer }));
   const cards = cmsCards?.length
     ? cmsCards.map((c) => ({ icon: c.icon.url, title: c.title, text: c.text }))
     : fallbackCards;

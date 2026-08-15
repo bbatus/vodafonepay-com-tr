@@ -113,6 +113,10 @@ const campaignSchema = z.object({
   featured: z.boolean(),
   ctaLabel: nullableString(),
   ctaUrl: nullableString(),
+  // RFP feedback 5.3: the listing cards render "Kampanya Tarihi" now, so the
+  // list query has to carry the dates the detail query already did.
+  startDate: nullableString(),
+  endDate: nullableString(),
 });
 export type CmsCampaign = z.infer<typeof campaignSchema>;
 
@@ -195,6 +199,8 @@ export function campaignToCard(c: CmsCampaign) {
     imageAlt: c.image.alt || c.title,
     href: c.ctaUrl || (c.slug ? `/kampanyalar/${c.slug}` : "/kampanyalar"),
     linkLabel: c.ctaLabel,
+    startDate: c.startDate,
+    endDate: c.endDate,
   };
 }
 

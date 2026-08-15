@@ -5,33 +5,17 @@ import Image from "next/image";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import type { CampaignCard } from "@/types/homepage";
 
-const fallbackCampaigns: CampaignCard[] = [
-  {
-    title: "Vodafone Pay ile Çeşme Plajlarında 1.000 TL Nakit İade!",
-    description:
-      "Çeşme'de bulunan ALMare, Playa, Fly Inn ve OM Paparazzi plajlarından birinde yapacağın tek seferde 2.000 TL ve üzeri harcamana 1.000 TL nakit iade!",
-    image: "/images/campaign-cesme.jpg",
-    imageAlt: "Kampanya görseli",
-    href: "/kampanyalar",
-  },
-  {
-    title: "1 TL'ye Hayat Su Kapında!",
-    description:
-      "Hayat Su'da \"Vodafone Pay ile Faturana Yansıt\" ile sipariş ver, damacana su siparişini 1 TL'ye satın alma fırsatını yakala!",
-    image: "/images/campaign-hayat-su.jpg",
-    imageAlt: "Kampanya görseli",
-    href: "/kampanyalar",
-  },
-  {
-    title: "Market Harcamana 100 TL İndirim",
-    description: "Market harcamanı ilk kez QR ile faturana yansıt, 100 TL indirim kazan!",
-    image: "/images/campaign-market.jpg",
-    imageAlt: "Kampanya görseli",
-    href: "/kampanyalar",
-  },
-];
+/**
+ * RFP feedback 5.0 (fallback masking audit): this section used to fall back to
+ * a hardcoded copy of its content whenever the CMS returned nothing, so an
+ * outage or an empty collection looked identical to a healthy page and no one
+ * could tell the CMS had stopped feeding it. The prop is required now and an
+ * empty list renders nothing — see docs for which collections still keep a
+ * fallback (the ones with zero rows, where the fallback IS the live content).
+ */
+export function Campaigns({ campaigns }: { campaigns: CampaignCard[] }) {
+  if (campaigns.length === 0) return null;
 
-export function Campaigns({ campaigns = fallbackCampaigns }: { campaigns?: CampaignCard[] }) {
   const [active, setActive] = useState(0);
   const campaign = campaigns[active];
 

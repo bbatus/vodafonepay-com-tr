@@ -22,39 +22,6 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-const fallbackFaqs: FaqItem[] = [
-  {
-    question: "Vodafone Pay Uygulaması Nedir?",
-    answer:
-      "Vodafone Pay Uygulaması, herhangi bir banka müşterisi olmadan ve hangi operatörü kullandığınız fark etmeden finansal işlemlerinizi tek bir uygulama içerisinden yönetmenizi sağlayan yeni nesil bir mobil cüzdan uygulamasıdır. Vodafone Pay Uygulaması ile Vodafone Pay Kart, Faturana Yansıt ve Vodafone Cüzdanım bakiyenizi ve harcamalarınızı yönetebilirsiniz.",
-  },
-  {
-    question: "Vodafone Pay Uygulaması ile Neler Yapabilirsiniz?",
-    answer:
-      "Vodafone Pay Uygulaması kullanıcılarına kolay ve güvenli ödeme imkânı sunar. Özellikle 18 yaşından küçük kullanıcılar için online alışveriş yapmanın en pratik yoludur. Vodafone Pay Uygulamasında Vodafone faturasız hat kullanıcıları için nakit iade kazanabileceği Vodafone Kolay Paketler bulunur. Aynı zamanda uygulama ile kolay bir şekilde faturasız hattınıza TL yükleyebilirsiniz.",
-  },
-  {
-    question: "Vodafone Pay Uygulaması Nasıl Kullanılır?",
-    answer:
-      "Vodafone Pay uygulamasını kullanabilmek için öncelikle Google Play Store ya da App Store üzerinden Vodafone Pay uygulamasını indirmeniz gerekir. Uygulamaya kaydolmak için 12 yaşından büyük bir kullanıcı olmalısınız. Kayıt ekranına TCKN, ad, soyad, doğum tarihi, uyruk, cep telefonu numarası, meslek ve e-posta bilgilerinizi girerek uygulamaya kaydolmalısınız.",
-  },
-  {
-    question: "Vodafone Pay Uygulamasıyla Sanal Kart Nasıl Üretilir?",
-    answer:
-      "Vodafone Pay uygulamasına kaydolduktan sonra uygulama size otomatik olarak bir Vodafone Pay Sanal Kart oluşturur. Yeni bir sanal kart oluşturmak için 'Varlıklarım' alanının altında yer alan 'Vodafone Pay Kart Ekle' alanına dokunup 'Vodafone Pay Sanal' sekmesini seçmeniz ve 'Kart Ekle' butonuna dokunmanız yeterlidir.",
-  },
-  {
-    question: "Vodafone Pay Uygulamasında Hangi İşlemleri Takip Edebilirim?",
-    answer:
-      "Vodafone Cüzdanım ya da Vodafone Pay Kart'a bakiye yükleyebilir, kartlarınız arasında bakiye aktarımı gerçekleştirebilir, faturasız hatlara Kolay Paket ve TL yükleyebilir, fatura ödemelerinizi gerçekleştirebilir ve tüm harcamalarınızı takip edebilirsiniz.",
-  },
-  {
-    question: "Vodafone Pay Uygulamasında Kampanyaları Takip Edebilir miyim?",
-    answer:
-      "Vodafone Pay uygulamasına giriş yaptıktan sonra ana sayfada yer alan Kampanyalar başlığı altında güncel kampanyaları görebilir, 'Tümü' sekmesine tıklayarak tüm kampanyaları detaylı şekilde inceleyebilirsiniz.",
-  },
-];
-
 export default async function VodafonePayUygulama() {
   const [cmsFaqItems, cmsHero, cmsSlides, cmsEarnSteps] = await Promise.all([
     getFaqItems("vodafone-pay-uygulama"),
@@ -62,12 +29,14 @@ export default async function VodafonePayUygulama() {
     getContentBlocks("uygulama-ayricalikli"),
     getContentBlocks("uygulama-nasil-kazanirim"),
   ]);
-  const faqs: FaqItem[] = cmsFaqItems?.length
-    ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
-    : fallbackFaqs;
-  const slides = cmsSlides?.length
-    ? cmsSlides.map((s) => ({ image: s.image?.url ?? "", text: s.text ?? "" }))
-    : undefined;
+  // RFP feedback 5.0: no hardcoded FAQ fallback — an empty CMS result renders
+  // no FAQ section at all rather than copy nobody can edit.
+  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer }));
+  // RFP feedback 5.0: content-blocks ARE seeded for this page, so the old
+  // `: undefined` branch only ever fired on a CMS failure — where it made the
+  // component fall back to hardcoded copy. Empty now means the section is
+  // simply not rendered.
+  const slides = (cmsSlides ?? []).map((s) => ({ image: s.image?.url ?? "", text: s.text ?? "" }));
   const earnSteps = cmsEarnSteps?.length
     ? cmsEarnSteps.map((s) => ({ icon: s.image?.url ?? "", title: s.title ?? "", description: s.text ?? "" }))
     : undefined;

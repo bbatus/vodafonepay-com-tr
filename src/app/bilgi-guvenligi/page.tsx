@@ -17,6 +17,16 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+/**
+ * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
+ *
+ * Checked against the live DB: the CMS collection behind this section has ZERO
+ * rows, so unlike the FAQ/announcement/campaign fallbacks removed in this
+ * round, this array is not dead code that only fires on an outage — it IS what
+ * the site currently renders. Deleting it would blank a working section rather
+ * than reveal a masked failure. Remove it in the same change that seeds the
+ * collection; see the round report's "kalan fallback'ler" table.
+ */
 const fallbackTips = [
   "Sizi arayan ve kendilerini avukat, polis, savcı, bankacı, sigortacı gibi tanıtan, sosyal medya/e-posta üzerinden arkadaşınız ya da ticaret yaptığınız şirket gibi davranan dolandırıcılar olabilir. Bu nedenle kiminle görüştüğünüze dikkat edin.",
   "Vodafone Pay uygulamasındaki cep telefonu ve e-posta bilgilerinizin, her zaman güncel olmasına dikkat edin.",
