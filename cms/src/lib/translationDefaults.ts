@@ -109,6 +109,14 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "loginHistory.ip": { tr: "IP Adresi", en: "IP Address" },
   "loginHistory.userAgent": { tr: "Cihaz / Tarayıcı", en: "Device / Browser" },
 
+  "mediaFilterTabs.all": { tr: "Tümü", en: "All" },
+  "mediaFilterTabs.images": { tr: "Görseller", en: "Images" },
+  "mediaFilterTabs.videos": { tr: "Videolar", en: "Videos" },
+
+  "mediaUsage.title": { tr: "Kullanıldığı Yerler", en: "Used In" },
+  "mediaUsage.loading": { tr: "Aranıyor…", en: "Searching…" },
+  "mediaUsage.empty": { tr: "Herhangi bir içerikte kullanılmıyor.", en: "Not used in any content." },
+
   "contentManagement.navLabel": { tr: "İçerik Yönetimi", en: "Content Management" },
   "contentManagement.title": { tr: "İçerik Yönetimi", en: "Content Management" },
   "contentManagement.searchPlaceholder": { tr: "Ara...", en: "Search..." },

@@ -28,6 +28,8 @@ import default_16 from "../../../components/UserAvatarIcon";
 import default_17 from "../../../components/CustomAccountView";
 import default_18 from "../../../components/UsersExportButton";
 import default_19 from "../../../components/AuditLogsExportButton";
+import default_20 from "../../../components/MediaFilterTabs";
+import default_21 from "../../../components/MediaUsageField";
 import { S3ClientUploadHandler as S3ClientUploadHandler_2 } from "@payloadcms/storage-s3/client";
 import { CollectionCards as CollectionCards_1 } from "@payloadcms/next/rsc";
 
@@ -52,6 +54,8 @@ export const importMap = {
   "/components/CustomAccountView#default": default_17,
   "/components/UsersExportButton#default": default_18,
   "/components/AuditLogsExportButton#default": default_19,
+  "/components/MediaFilterTabs#default": default_20,
+  "/components/MediaUsageField#default": default_21,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_2,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_1,
 };

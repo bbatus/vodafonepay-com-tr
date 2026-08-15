@@ -364,6 +364,48 @@ a {
   border-radius: var(--style-radius-m);
 }
 
+/* RFP feedback C1: Media list Tümü/Görseller/Videolar tabs. */
+.media-filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.media-filter-tabs__tab {
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-l);
+  background: var(--theme-bg);
+  color: var(--theme-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.media-filter-tabs__tab--active {
+  background: var(--vf-red);
+  border-color: var(--vf-red);
+  color: #fff;
+}
+
+/* RFP feedback C2: "Kullanıldığı yerler" automatic usage list, Media sidebar. */
+.media-usage-field {
+  margin-bottom: 1.5rem;
+}
+
+.media-usage-field__list {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+}
+
+.media-usage-field__list li {
+  margin-bottom: 0.25rem;
+}
+
+.media-usage-field__list a {
+  color: var(--vf-red);
+}
+
 /* ---------------------------------------------------------------------
    Top bar / step nav (breadcrumb)
 --------------------------------------------------------------------- */
