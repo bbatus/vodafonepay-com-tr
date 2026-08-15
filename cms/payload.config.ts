@@ -149,15 +149,11 @@ export default buildConfig({
       beforeLogin: ["/components/LoginBrandPanel#default"],
       beforeDashboard: ["/components/DashboardWidgets#default"],
       beforeNav: ["/components/SidebarLogo#default", "/components/LocalePreferenceSync#default"],
-      afterNavLinks: ["/components/ContentManagementNavLink#default", "/components/WaitingApprovalsNavLink#default"],
+      afterNavLinks: ["/components/ContentManagementNavLink#default"],
       views: {
         contentManagement: {
           Component: "/components/ContentManagementView#default",
           path: "/content-management",
-        },
-        waitingApprovals: {
-          Component: "/components/WaitingApprovalsView#default",
-          path: "/waiting-approvals",
         },
         // RFP feedback 3.4: disable self-service password reset (LDAP will
         // own identity later) — overriding the built-in view keys blocks

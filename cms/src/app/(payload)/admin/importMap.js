@@ -16,8 +16,6 @@ import default_4 from "../../../components/HelpButton";
 import default_5 from "../../../components/DashboardWidgets";
 import default_6 from "../../../components/RoleAwarePublishButton";
 import default_7 from "../../../components/SidebarLogo";
-import default_8 from "../../../components/WaitingApprovalsView";
-import default_9 from "../../../components/WaitingApprovalsNavLink";
 import default_10 from "../../../components/ForgotPasswordDisabled";
 import default_11 from "../../../components/LoginHistoryField";
 import default_12 from "../../../components/LocalePreferenceSync";
@@ -42,8 +40,6 @@ export const importMap = {
   "/components/DashboardWidgets#default": default_5,
   "/components/RoleAwarePublishButton#default": default_6,
   "/components/SidebarLogo#default": default_7,
-  "/components/WaitingApprovalsView#default": default_8,
-  "/components/WaitingApprovalsNavLink#default": default_9,
   "/components/ForgotPasswordDisabled#default": default_10,
   "/components/LoginHistoryField#default": default_11,
   "/components/LocalePreferenceSync#default": default_12,

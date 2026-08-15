@@ -88,7 +88,7 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
         "Bu liste salt-okunurdur — hiçbir kayıt buradan elle eklenemez, değiştirilemez veya silinemez.",
         "Her kayıt: hangi kullanıcının, hangi collection'da, hangi kaydı, ne zaman değiştirdiğini gösterir.",
         "Login/logout olayları da burada kullanıcı e-postası ve IP ile birlikte tutulur.",
-        "Yalnızca New Vertical — Exec Content (Checker) rolündeki kullanıcılar bu listeyi görebilir.",
+        "Yalnızca New Vertical — Maker rolü tüm kayıtları görür — diğer roller sadece kendi hesaplarıyla yaptıkları işlemleri görür.",
       ],
     },
     en: {
@@ -97,7 +97,7 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
         "This list is read-only — nothing here can be manually added, edited, or deleted.",
         "Each entry shows which user changed which record in which collection, and when.",
         "Login/logout events are also recorded here, together with the user's email and IP.",
-        "Only users with the New Vertical — Exec Content (Checker) role can view this list.",
+        "Only the New Vertical — Maker role sees every entry — other roles only see actions performed by their own account.",
       ],
     },
   },

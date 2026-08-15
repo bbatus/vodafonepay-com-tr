@@ -57,24 +57,6 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
     en: "Manage campaigns, pages, and every piece of site content from a single panel. Approval workflows, roles, and audit trails built in — no migration, no lock-in.",
   },
 
-  "waitingApprovalsNavLink.label": { tr: "Bekleyen Onaylar", en: "Waiting Approvals" },
-
-  "waitingApprovals.title": { tr: "Bekleyen Onaylar", en: "Waiting Approvals" },
-  "waitingApprovals.approved": { tr: "Onaylanan", en: "Approved" },
-  "waitingApprovals.rejected": { tr: "Reddedilen", en: "Rejected" },
-  "waitingApprovals.total": { tr: "Toplam Açılan", en: "Total Opened" },
-  "waitingApprovals.pendingTitle": { tr: "Cevap Bekleyen Kampanyalar", en: "Campaigns Awaiting Response" },
-  "waitingApprovals.pendingEmpty": {
-    tr: "Şu an cevap bekleyen bir kampanya yok.",
-    en: "Nothing is awaiting a response right now.",
-  },
-  "waitingApprovals.openedBy": { tr: "Açan kullanıcı", en: "Opened by" },
-  "waitingApprovals.review": { tr: "İncele →", en: "Review →" },
-  "waitingApprovals.noAccess": {
-    tr: "Bu sayfa sadece kampanyaları onaylayabilen/reddedebilen kullanıcılar içindir.",
-    en: "This page is only for users who can approve/reject campaigns.",
-  },
-
   "dashboardWidgets.summaryTitle": { tr: "İçerik Özeti", en: "Content Summary" },
   "dashboardWidgets.pendingTitle": { tr: "Onay Bekleyen Taslaklar", en: "Pending Drafts" },
   "dashboardWidgets.pendingBody": {
@@ -95,6 +77,11 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "dashboardWidgets.ip": { tr: "IP", en: "IP" },
   "dashboardWidgets.distinctUsers": { tr: "farklı kullanıcı", en: "distinct users" },
   "dashboardWidgets.openedBy": { tr: "Açan kullanıcı", en: "Opened by" },
+  "dashboardWidgets.ownDraftsTitle": { tr: "Taslaklarınız", en: "Your Drafts" },
+  "dashboardWidgets.ownDraftsEmpty": { tr: "Şu anda incelemede veya reddedilmiş taslağınız yok.", en: "You have no drafts currently pending or rejected." },
+  "dashboardWidgets.ownDraftsPending": { tr: "İncelemede", en: "Pending review" },
+  "dashboardWidgets.ownDraftsRejected": { tr: "Reddedildi", en: "Rejected" },
+  "dashboardWidgets.editCta": { tr: "Düzenle →", en: "Edit →" },
 
   "forgotPasswordDisabled.title": { tr: "Parola sıfırlama kapalı", en: "Password reset is disabled" },
   "forgotPasswordDisabled.body": {

@@ -77,10 +77,14 @@ const MATRIX: Record<Category, Record<RoleValue, PermissionFlags>> = {
     [G_CHECKER]: { view: true, create: false, update: true, publish: false, delete: false },
   },
   "audit-logs": {
+    // AuditLogs.ts's real access.read: true for NV Maker (sees everything),
+    // a `{ userEmail: { equals: req.user.email } }` Where for everyone else
+    // (self-scoped, not blocked) — so it IS listed in the sidebar for every
+    // role, just filtered. `view: false` here would be a lie (D4 fix).
     [NV_MAKER]: { view: true, create: false, update: false, publish: false, delete: false },
-    [NV_CHECKER]: { view: false, create: false, update: false, publish: false, delete: false },
-    [G_MAKER]: { view: false, create: false, update: false, publish: false, delete: false },
-    [G_CHECKER]: { view: false, create: false, update: false, publish: false, delete: false },
+    [NV_CHECKER]: { view: true, create: false, update: false, publish: false, delete: false },
+    [G_MAKER]: { view: true, create: false, update: false, publish: false, delete: false },
+    [G_CHECKER]: { view: true, create: false, update: false, publish: false, delete: false },
   },
   "contact-info": {
     [NV_MAKER]: { view: true, create: false, update: true, publish: false, delete: false },
@@ -106,14 +110,21 @@ function pick(locale: "tr" | "en", tr: string, en: string): string {
   return locale === "tr" ? tr : en;
 }
 
-function auditLogsSummaryLines(locale: "tr" | "en"): string[] {
-  return [
-    pick(
-      locale,
-      "Bu liste tamamen salt-okunurdur — New Vertical — Maker dahil hiç kimse buradan bir kayıt ekleyemez, düzenleyemez veya silemez. Kayıtlar yalnızca sistem tarafından otomatik oluşturulur; bu, denetim izinin güvenilir kalması için kasıtlıdır.",
-      "This list is entirely read-only — no one, including New Vertical — Maker, can add, edit, or delete an entry here. Entries are only ever written automatically by the system; this is deliberate, so the audit trail stays trustworthy."
-    ),
-  ];
+function auditLogsSummaryLines(role: RoleValue, locale: "tr" | "en"): string[] {
+  const readOnlyLine = pick(
+    locale,
+    "Bu liste tamamen salt-okunurdur — New Vertical — Maker dahil hiç kimse buradan bir kayıt ekleyemez, düzenleyemez veya silemez. Kayıtlar yalnızca sistem tarafından otomatik oluşturulur; bu, denetim izinin güvenilir kalması için kasıtlıdır.",
+    "This list is entirely read-only — no one, including New Vertical — Maker, can add, edit, or delete an entry here. Entries are only ever written automatically by the system; this is deliberate, so the audit trail stays trustworthy."
+  );
+  if (role === NV_MAKER) {
+    return [readOnlyLine];
+  }
+  const scopedLine = pick(
+    locale,
+    "Sadece kendi hesabınızla yaptığınız işlemleri görürsünüz — diğer kullanıcıların kayıtları listelenmez. Tüm kayıtları sadece New Vertical — Maker görebilir.",
+    "You only see actions performed by your own account — other users' entries aren't listed. Only New Vertical — Maker can see every entry."
+  );
+  return [scopedLine, readOnlyLine];
 }
 
 function usersSummaryLines(role: RoleValue, locale: "tr" | "en"): string[] {
@@ -232,7 +243,7 @@ export function getRolePermissionSummary(
     };
   }
 
-  if (category === "audit-logs") return { roleLabel, lines: auditLogsSummaryLines(locale) };
+  if (category === "audit-logs") return { roleLabel, lines: auditLogsSummaryLines(role, locale) };
   if (category === "users") return { roleLabel, lines: usersSummaryLines(role, locale) };
   if (category === "contact-info") return { roleLabel, lines: contactInfoSummaryLines(flags, locale) };
 

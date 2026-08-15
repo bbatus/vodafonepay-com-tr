@@ -10,6 +10,7 @@ import {
 } from "@/lib/collectionLabels";
 import { loadDbStrings } from "@/lib/loadDbStrings";
 import { applyPlaceholder } from "@/lib/translationDefaults";
+import { loadOwnDrafts, loadPendingCampaigns, type OwnDraft } from "@/lib/campaignApprovals";
 
 type CollectionStat = {
   slug: string;
@@ -63,37 +64,6 @@ async function loadCollectionStats(payload: Payload, slugs: string[], locale: "t
     })
   );
   return stats;
-}
-
-type PendingCampaign = { id: string | number; title: string; createdByEmail?: string };
-
-async function loadPendingCampaigns(payload: Payload): Promise<PendingCampaign[]> {
-  // See the identical comment in WaitingApprovalsView.tsx's loadPending —
-  // `findVersions` (not `find`, even with `draft: true`) is required both
-  // to avoid `denyUnauthenticatedDraftRead` blocking this unauthenticated
-  // Local API call, and to see a Maker's plain draft resubmission (the base
-  // "campaigns" table only reflects the latest PUBLISH).
-  const { docs } = await payload.findVersions({
-    collection: "campaigns",
-    where: { and: [{ latest: { equals: true } }, { "version._status": { equals: "draft" } }] },
-    sort: "-updatedAt",
-    limit: 20,
-    // RFP feedback 3.8: "hangi user bu talebi açmış altında yazsın" —
-    // depth: 1 populates `createdBy` (a relationship) instead of just its id.
-    depth: 1,
-    overrideAccess: true,
-  });
-  return docs.map((d) => {
-    const doc = d as unknown as {
-      parent: string | number;
-      version: { title?: string; createdBy?: { email?: string } | string | null };
-    };
-    return {
-      id: doc.parent,
-      title: doc.version.title ?? String(doc.parent),
-      createdByEmail: typeof doc.version.createdBy === "object" && doc.version.createdBy ? doc.version.createdBy.email : undefined,
-    };
-  });
 }
 
 async function loadRecentLogins(payload: Payload): Promise<LoginEntry[]> {
@@ -153,13 +123,17 @@ export default async function DashboardWidgets({
   i18n,
 }: {
   payload: Payload;
-  user?: { email?: string; role?: string };
+  user?: { id?: string | number; email?: string; role?: string };
   i18n: I18nClient;
 }) {
   const locale: "tr" | "en" = i18n?.language === "en" ? "en" : "tr";
   const role = user?.role;
   const isNewVertical = role === ROLES.NEW_VERTICAL_MAKER || role === ROLES.NEW_VERTICAL_CHECKER;
-  const isGrowthChecker = role === ROLES.GROWTH_CHECKER;
+  // D1: both Checker roles review Campaigns (see the "campaigns" MATRIX
+  // category in rolePermissions.ts — publish:true for both), so both get
+  // the straight-to-review list, not just Growth Checker.
+  const isCheckerRole = role === ROLES.NEW_VERTICAL_CHECKER || role === ROLES.GROWTH_CHECKER;
+  const isMakerRole = role === ROLES.NEW_VERTICAL_MAKER || role === ROLES.GROWTH_MAKER;
   const collectionSlugs = isNewVertical ? NEW_VERTICAL_DASHBOARD_COLLECTIONS : GROWTH_DASHBOARD_COLLECTIONS;
 
   const tt = await loadDbStrings(payload, locale);
@@ -178,6 +152,11 @@ export default async function DashboardWidgets({
     openedBy: tt("dashboardWidgets.openedBy"),
     ip: tt("dashboardWidgets.ip"),
     distinctUsers: tt("dashboardWidgets.distinctUsers"),
+    ownDraftsTitle: tt("dashboardWidgets.ownDraftsTitle"),
+    ownDraftsEmpty: tt("dashboardWidgets.ownDraftsEmpty"),
+    ownDraftsPending: tt("dashboardWidgets.ownDraftsPending"),
+    ownDraftsRejected: tt("dashboardWidgets.ownDraftsRejected"),
+    editCta: tt("dashboardWidgets.editCta"),
   };
 
   // RFP feedback 3.6/3.7: "her kullanıcı için" — recent logins (with IP) are
@@ -217,11 +196,10 @@ export default async function DashboardWidgets({
     </>
   );
 
-  // RFP feedback 2.4: Growth Checker's only real job on this dashboard is
+  // RFP feedback 2.4 / D1: a Checker's only real job on this dashboard is
   // "is there something to approve" — the generic content-summary cards
-  // (which, for Growth, only ever contain the single Campaigns card anyway)
   // added nothing actionable. Straight-to-review list instead of stat cards.
-  if (isGrowthChecker) {
+  if (isCheckerRole) {
     const pending = await loadPendingCampaigns(payload);
     return (
       <div style={{ margin: "0 0 1.5rem" }}>
@@ -258,8 +236,42 @@ export default async function DashboardWidgets({
 
   const totalDrafts = stats.reduce((sum, s) => sum + (s.draft ?? 0), 0);
 
+  // D1: a Maker's own in-flight Campaigns drafts — pending review or sent
+  // back rejected — surfaced directly instead of making them dig through
+  // the Campaigns list to find what needs a resubmit.
+  const ownDrafts: OwnDraft[] = isMakerRole && user?.id ? await loadOwnDrafts(payload, user.id) : [];
+  const ownDraftsWidget = isMakerRole ? (
+    <>
+      <p style={{ fontWeight: 600, margin: "0 0 0.25rem" }}>{t.ownDraftsTitle}</p>
+      <div className="card" style={{ padding: "0.5rem 0", maxWidth: 640, marginBottom: "1.5rem" }}>
+        {ownDrafts.length === 0 ? (
+          <p style={{ margin: "0.5rem 1rem", color: "var(--theme-elevation-500)", fontSize: "0.875rem" }}>{t.ownDraftsEmpty}</p>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+            <tbody>
+              {ownDrafts.map((d) => (
+                <tr key={d.id}>
+                  <td style={{ padding: "0.5rem 1rem" }}>{d.title}</td>
+                  <td style={{ padding: "0.5rem 1rem", color: d.reviewStatus === "rejected" ? "var(--vf-red)" : "var(--theme-elevation-500)" }}>
+                    {d.reviewStatus === "rejected" ? t.ownDraftsRejected : t.ownDraftsPending}
+                  </td>
+                  <td style={{ padding: "0.5rem 1rem", textAlign: "right" }}>
+                    <a href={`/admin/collections/campaigns/${d.id}`} style={{ color: "var(--vf-red)", fontWeight: 600, whiteSpace: "nowrap" }}>
+                      {t.editCta}
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </>
+  ) : null;
+
   return (
     <div style={{ margin: "0 0 1rem" }}>
+      {ownDraftsWidget}
       {totalDrafts > 0 && (
         <div
           className="card"
