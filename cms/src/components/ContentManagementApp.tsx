@@ -153,6 +153,11 @@ export default function ContentManagementApp() {
   const renderCell = (doc: Doc, column: ReportColumn) => {
     const value = doc[column.key];
     if (value === null || value === undefined || value === "") return "—";
+    // A `select` field's stored value ("pending", "step") is a database token,
+    // not something to show a reader in either language.
+    if (column.values && typeof value === "string" && column.values[value]) {
+      return column.values[value][locale];
+    }
     switch (column.type) {
       case "date":
         return new Date(String(value)).toLocaleDateString(dateLocale);

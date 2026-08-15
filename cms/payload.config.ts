@@ -194,20 +194,46 @@ export default buildConfig({
       collection: Translations.slug,
       limit: 1000,
       depth: 0,
-      select: { key: true },
       overrideAccess: true,
     });
-    const existingKeys = new Set(existingRows.docs.map((d) => (d as { key: string }).key));
-    const missing = Object.entries(TRANSLATION_DEFAULTS).filter(([key]) => !existingKeys.has(key));
-    if (missing.length > 0) {
-      for (const [key, value] of missing) {
+    const existingTranslations = new Map(
+      (existingRows.docs as unknown as { id: string | number; key: string; tr: string; en: string; isCustomized?: boolean }[]).map(
+        (row) => [row.key, row]
+      )
+    );
+
+    let created = 0;
+    let refreshed = 0;
+    for (const [key, value] of Object.entries(TRANSLATION_DEFAULTS)) {
+      const row = existingTranslations.get(key);
+      if (!row) {
         await payload.create({
           collection: Translations.slug,
           overrideAccess: true,
           data: { key, tr: value.tr, en: value.en },
         });
+        created += 1;
+        continue;
       }
-      payload.logger.info(`[translations] Seeded ${missing.length} new default translation row(s).`);
+      // Changing a string in translationDefaults.ts used to be a silent no-op
+      // once the row had been seeded — the old seeder only ever INSERTED
+      // missing keys, so an updated default never reached the running panel
+      // (found while verifying the new login copy: the code said one thing and
+      // the screen still said the old one). Rows an editor actually touched
+      // are still never overwritten; `isCustomized` is what separates the two
+      // (see Translations.ts).
+      if (row.isCustomized) continue;
+      if (row.tr === value.tr && row.en === value.en) continue;
+      await payload.update({
+        collection: Translations.slug,
+        id: row.id,
+        overrideAccess: true,
+        data: { tr: value.tr, en: value.en },
+      });
+      refreshed += 1;
+    }
+    if (created > 0 || refreshed > 0) {
+      payload.logger.info(`[translations] Seeded ${created} new row(s), refreshed ${refreshed} un-customized row(s) from code defaults.`);
     }
     await refreshLabelCache(payload);
 
@@ -266,6 +292,16 @@ export default buildConfig({
     pool: {
       connectionString: env.DATABASE_URI,
     },
+    // Payload's dev-mode schema push is drizzle-kit's INTERACTIVE push. In this
+    // project it reliably stops on a prompt nobody can answer — "is this enum
+    // created or renamed?", "accept possible data loss?" — and a `next dev`
+    // that's blocked on stdin looks exactly like a hung server (documented as
+    // R-10, and hit again this round). Set PAYLOAD_DB_PUSH=false to run the CMS
+    // in dev against an already-migrated database and skip that entirely.
+    //
+    // Default is unchanged (push on in dev) so nobody's normal workflow moves;
+    // this is an opt-out for the case where the schema was applied by hand.
+    push: process.env.PAYLOAD_DB_PUSH !== "false",
   }),
   sharp,
   cors: trustedOrigins,

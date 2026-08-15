@@ -1,6 +1,20 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
 import { isNewVerticalMaker } from "@/access/roles";
 import { dbLabel, refreshLabelCache } from "@/lib/collectionLabels";
+
+/**
+ * Marks a row as "an editor typed this", which is what lets `onInit` tell the
+ * difference between a row it seeded itself and one someone deliberately
+ * customized (see payload.config.ts).
+ *
+ * The discriminator is `req.user`: the seeder writes with `overrideAccess:
+ * true` and no authenticated user, while every save from the admin panel or
+ * the REST API carries one.
+ */
+const markCustomized: CollectionBeforeChangeHook = ({ data, req }) => {
+  if (req.user) data.isCustomized = true;
+  return data;
+};
 
 /**
  * RFP feedback 3.2: "localization için kullandığımız her şeyi bi database
@@ -50,8 +64,23 @@ export const Translations: CollectionConfig = {
     },
     { name: "tr", type: "text", required: true, label: "Türkçe" },
     { name: "en", type: "text", required: true, label: "English" },
+    {
+      name: "isCustomized",
+      type: "checkbox",
+      defaultValue: false,
+      label: { tr: "Elle düzenlendi", en: "Edited by hand" },
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description: {
+          tr: "İşaretliyse bu satırı bir editör değiştirmiştir ve koddaki varsayılan güncellemeleri artık bu satırın üzerine yazmaz.",
+          en: "When checked, an editor changed this row and code-default updates will no longer overwrite it.",
+        },
+      },
+    },
   ],
   hooks: {
+    beforeChange: [markCustomized],
     // Collection/group labels are read from a module-level cache (see
     // collectionLabels.ts) rather than a fresh DB query on every sidebar
     // render — refresh it whenever a row actually changes.

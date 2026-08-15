@@ -34,6 +34,12 @@ export type ReportColumn = {
   key: string;
   label: { tr: string; en: string };
   type?: "text" | "date" | "bool" | "status" | "relation";
+  /**
+   * Display text for a `select` field's raw stored values. Without this the
+   * report prints the database value ("pending", "expired") straight at the
+   * reader, which is neither Turkish nor English.
+   */
+  values?: Record<string, { tr: string; en: string }>;
 };
 
 export type ReportCollection = {
@@ -61,7 +67,14 @@ export const REPORT_COLLECTIONS: ReportCollection[] = [
     columns: [
       { key: "category", label: { tr: "Kategori", en: "Category" }, type: "relation" },
       STATUS,
-      { key: "reviewStatus", label: { tr: "İnceleme", en: "Review" } },
+      {
+        key: "reviewStatus",
+        label: { tr: "İnceleme", en: "Review" },
+        values: {
+          pending: { tr: "İncelemede", en: "Pending" },
+          rejected: { tr: "Reddedildi", en: "Rejected" },
+        },
+      },
       { key: "featured", label: { tr: "Öne Çıkan", en: "Featured" }, type: "bool" },
       { key: "endDate", label: { tr: "Bitiş", en: "End" }, type: "date" },
       UPDATED,
@@ -100,7 +113,22 @@ export const REPORT_COLLECTIONS: ReportCollection[] = [
     slug: "content-blocks",
     titleField: "title",
     hasDraft: true,
-    columns: [PAGE, { key: "blockType", label: { tr: "Blok Tipi", en: "Block Type" } }, ORDER, STATUS, UPDATED],
+    columns: [
+      PAGE,
+      {
+        key: "blockType",
+        label: { tr: "Blok Tipi", en: "Block Type" },
+        values: {
+          step: { tr: "Adım", en: "Step" },
+          slide: { tr: "Slayt", en: "Slide" },
+          video: { tr: "Video", en: "Video" },
+          logo: { tr: "Logo", en: "Logo" },
+        },
+      },
+      ORDER,
+      STATUS,
+      UPDATED,
+    ],
   },
   {
     slug: "pages",
@@ -196,7 +224,11 @@ export const REPORT_COLLECTIONS: ReportCollection[] = [
     hasDraft: false,
     depth: 1,
     columns: [
-      { key: "mediaType", label: { tr: "Tür", en: "Type" } },
+      {
+        key: "mediaType",
+        label: { tr: "Tür", en: "Type" },
+        values: { image: { tr: "Görsel", en: "Image" }, video: { tr: "Video", en: "Video" } },
+      },
       { key: "alt", label: { tr: "Alt Metin", en: "Alt Text" } },
       { key: "uploadedBy", label: { tr: "Yükleyen", en: "Uploaded By" }, type: "relation" },
       UPDATED,

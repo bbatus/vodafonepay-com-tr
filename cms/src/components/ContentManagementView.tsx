@@ -1,6 +1,7 @@
 import type { Payload, PayloadRequest } from "payload";
 import type { I18nClient } from "@payloadcms/translations";
 import { DefaultTemplate } from "@payloadcms/next/templates";
+import { loadDbStrings } from "@/lib/loadDbStrings";
 import ContentManagementApp from "./ContentManagementApp";
 
 /**
@@ -21,7 +22,14 @@ export default async function ContentManagementView(props: {
   };
 }) {
   const { payload, i18n, initPageResult } = props;
+  // Payload does NOT redirect an anonymous visitor away from a top-level
+  // custom view the way it does for its own collection views — confirmed live:
+  // this page rendered its full collection summary with no session cookie at
+  // all, showing the public/published counts. Every count still came from
+  // access-checked API calls (nothing private leaked), but a report page that
+  // greets logged-out visitors is not what "her user burayı görebilsin" meant.
   const user = (initPageResult?.req as PayloadRequest | undefined)?.user;
+  const t = await loadDbStrings(payload, i18n.language === "en" ? "en" : "tr");
   const permissions = initPageResult?.permissions as Parameters<typeof DefaultTemplate>[0]["permissions"];
   const visibleEntities = (initPageResult?.visibleEntities ?? { collections: [], globals: [] }) as Parameters<
     typeof DefaultTemplate
@@ -39,7 +47,7 @@ export default async function ContentManagementView(props: {
       visibleEntities={visibleEntities}
       viewType="content-management"
     >
-      <ContentManagementApp />
+      {user ? <ContentManagementApp /> : <p className="cm-error">{t("contentManagement.loginRequired")}</p>}
     </DefaultTemplate>
   );
 }

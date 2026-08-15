@@ -149,6 +149,10 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "contentManagement.searchPlaceholder": { tr: "Ara...", en: "Search..." },
   "contentManagement.recordCount": { tr: "kayıt", en: "records" },
   "contentManagement.loading": { tr: "Yükleniyor…", en: "Loading…" },
+  "contentManagement.loginRequired": {
+    tr: "Bu sayfayı görmek için giriş yapmalısınız.",
+    en: "You need to sign in to view this page.",
+  },
   "contentManagement.noAccess": {
     tr: "Bu koleksiyonu görüntüleme yetkiniz yok.",
     en: "You don't have permission to view this collection.",
