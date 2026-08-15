@@ -4,6 +4,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { dbLabel } from "@/lib/collectionLabels";
+import { assignNextOrder, ORDER_FIELD_DESCRIPTION } from "@/hooks/ordering";
 
 export const FaqItems: CollectionConfig = {
   slug: "faq-items",
@@ -11,6 +12,9 @@ export const FaqItems: CollectionConfig = {
     singular: dbLabel("collectionLabel.faq-items.singular", { tr: "Sık Sorulan Soru", en: "FAQ Item" }),
     plural: dbLabel("collectionLabel.faq-items.plural", { tr: "Sık Sorulanlar", en: "FAQ Items" }),
   },
+  // RFP feedback 5.5: the list must reflect the `order` field (and the
+  // drag-to-reorder widget's saved sequence), not Payload's fallback order.
+  defaultSort: "order",
   admin: {
     hideAPIURL: true,
     useAsTitle: "question",
@@ -51,10 +55,18 @@ export const FaqItems: CollectionConfig = {
         { label: "Kampanyalar", value: "kampanyalar" },
       ],
     },
-    { name: "order", type: "number", defaultValue: 0 },
+    {
+      name: "order",
+      type: "number",
+      label: { tr: "Sıra", en: "Order" },
+      defaultValue: 1,
+      min: 1,
+      admin: { description: ORDER_FIELD_DESCRIPTION },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeChange: [assignNextOrder("faq-items", ["category"])],
     afterChange: [revalidateTag("faq-items"), auditAfterChange("faq-items")],
     afterDelete: [revalidateTagOnDelete("faq-items"), auditAfterDelete("faq-items")],
   },

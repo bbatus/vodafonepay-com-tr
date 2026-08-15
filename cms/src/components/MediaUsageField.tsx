@@ -5,29 +5,28 @@ import Link from "next/link";
 import { useDocumentInfo } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
+import { REFERENCE_MAP } from "@/hooks/referentialIntegrity";
+import { COLLECTION_LABELS } from "@/lib/collectionLabels";
 
-type UsageHit = { collectionSlug: string; collectionLabel: string; docId: string | number; docTitle: string };
+type UsageHit = { collectionSlug: string; docId: string | number; docTitle: string };
 
 /**
- * RFP feedback C2: automatic "Kullanıldığı yerler" list, alongside the
- * manual `usageNote` field. Only covers TOP-LEVEL upload/relationTo:"media"
- * fields (see the list below) — several other collections reference media
- * from inside `blocks`/`array` fields (e.g. Pages.layout blocks), which
- * Payload's REST `where` can't cleanly target with a flat query, so those
- * are deliberately left out rather than silently under- or over-matching.
+ * RFP feedback C2: automatic "Kullanıldığı yerler" list, alongside the manual
+ * `usageNote` field.
+ *
+ * Reads the SAME reference map the delete guard uses
+ * (hooks/referentialIntegrity.ts) so this panel and the "can't delete, still
+ * in use" error can never disagree about what counts as a usage — previously
+ * this component carried its own hand-maintained copy of the field list, with
+ * hardcoded Turkish collection labels that never switched to English.
+ *
+ * That old copy also skipped Pages' `blocks` fields on the assumption that
+ * Payload's flat `where` couldn't target them. Verified live that it can:
+ * `where[layout.image][equals]=N` and `where[layout.logos.logo][equals]=N`
+ * both match correctly through the polymorphic blocks array and the array
+ * nested inside it — so those references are now covered here too.
  */
-const MEDIA_REFERENCING_FIELDS: { collectionSlug: string; field: string; collectionLabel: string; titleField: string }[] = [
-  { collectionSlug: "campaigns", field: "image", collectionLabel: "Kampanyalar", titleField: "title" },
-  { collectionSlug: "blog-posts", field: "coverImage", collectionLabel: "Blog Yazıları", titleField: "title" },
-  { collectionSlug: "content-blocks", field: "image", collectionLabel: "İçerik Blokları", titleField: "title" },
-  { collectionSlug: "feature-cards", field: "icon", collectionLabel: "Özellik Kartları", titleField: "title" },
-  { collectionSlug: "step-cards", field: "image", collectionLabel: "Adım Kartları", titleField: "text" },
-  { collectionSlug: "product-heroes", field: "image", collectionLabel: "Ürün Vitrinleri", titleField: "page" },
-  { collectionSlug: "representatives", field: "qrCode", collectionLabel: "Temsilciler", titleField: "businessName" },
-  { collectionSlug: "page-meta", field: "ogImage", collectionLabel: "Sayfa SEO", titleField: "pageKey" },
-  { collectionSlug: "pages", field: "ogImage", collectionLabel: "Sayfalar", titleField: "title" },
-  { collectionSlug: "users", field: "avatar", collectionLabel: "Kullanıcılar", titleField: "email" },
-];
+const MEDIA_SOURCES = REFERENCE_MAP.media;
 
 export default function MediaUsageField() {
   const { id } = useDocumentInfo();
@@ -40,21 +39,20 @@ export default function MediaUsageField() {
     let cancelled = false;
 
     Promise.all(
-      MEDIA_REFERENCING_FIELDS.map(async ({ collectionSlug, field, collectionLabel, titleField }) => {
+      MEDIA_SOURCES.map(async ({ collection, path, titleField }) => {
         const params = new URLSearchParams({
-          [`where[${field}][equals]`]: String(id),
+          [`where[${path}][equals]`]: String(id),
           limit: "10",
           depth: "0",
         });
         try {
-          const res = await fetch(`/api/${collectionSlug}?${params.toString()}`, { credentials: "same-origin" });
+          const res = await fetch(`/api/${collection}?${params.toString()}`, { credentials: "same-origin" });
           if (!res.ok) return [];
           const data = (await res.json()) as { docs?: Record<string, unknown>[] };
           return (data.docs ?? []).map((doc): UsageHit => {
             const docId = doc.id as string | number;
             return {
-              collectionSlug,
-              collectionLabel,
+              collectionSlug: collection,
               docId,
               docTitle: (doc[titleField] as string | undefined) ?? String(docId),
             };
@@ -64,7 +62,19 @@ export default function MediaUsageField() {
         }
       })
     ).then((results) => {
-      if (!cancelled) setHits(results.flat());
+      if (cancelled) return;
+      // The same page can match through more than one path (e.g. a hero image
+      // that's also the OG image) — show it once.
+      const flat = results.flat();
+      const seen = new Set<string>();
+      setHits(
+        flat.filter((hit) => {
+          const key = `${hit.collectionSlug}-${String(hit.docId)}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        })
+      );
     });
 
     return () => {
@@ -72,28 +82,29 @@ export default function MediaUsageField() {
     };
   }, [id]);
 
+  if (!id) return null;
+
   let body: React.ReactNode;
-  if (!id) {
-    body = null;
-  } else if (hits === null) {
+  if (hits === null) {
     body = <p className="field-description">{t("mediaUsage.loading")}</p>;
   } else if (hits.length === 0) {
     body = <p className="field-description">{t("mediaUsage.empty")}</p>;
   } else {
     body = (
-      <ul className="media-usage-field__list">
-        {hits.map((hit) => (
-          <li key={`${hit.collectionSlug}-${hit.docId}`}>
-            <Link href={`/admin/collections/${hit.collectionSlug}/${hit.docId}`}>
-              {hit.collectionLabel}: {hit.docTitle}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <>
+        <ul className="media-usage-field__list">
+          {hits.map((hit) => (
+            <li key={`${hit.collectionSlug}-${String(hit.docId)}`}>
+              <Link href={`/admin/collections/${hit.collectionSlug}/${String(hit.docId)}`}>
+                {COLLECTION_LABELS[hit.collectionSlug]?.[locale] ?? hit.collectionSlug}: {hit.docTitle}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <p className="field-description">{t("mediaUsage.inUseNote")}</p>
+      </>
     );
   }
-
-  if (!id) return null;
 
   return (
     <div className="media-usage-field">

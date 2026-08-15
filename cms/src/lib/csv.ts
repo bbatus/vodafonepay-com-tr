@@ -34,3 +34,23 @@ export function formatDateTr(iso: string | undefined | null): string {
   if (!iso) return "";
   return new Date(iso).toLocaleString("tr-TR");
 }
+
+/**
+ * Flattens a Payload lexical richText document to a single line of plain text
+ * for the campaign export (RFP feedback 5.7). Newlines are collapsed to
+ * spaces on purpose: a hard newline inside a quoted CSV cell is legal, but
+ * some Excel builds still render it as a broken multi-row record, and a
+ * spreadsheet cell isn't where anyone reads long-form copy anyway.
+ */
+export function richTextToPlainText(node: unknown): string {
+  const extract = (n: unknown): string => {
+    if (!n || typeof n !== "object") return "";
+    const obj = n as { text?: string; children?: unknown[] };
+    if (typeof obj.text === "string") return obj.text;
+    if (Array.isArray(obj.children)) return obj.children.map(extract).join(" ");
+    return "";
+  };
+  const root = (node as { root?: { children?: unknown[] } } | null | undefined)?.root;
+  if (!root?.children) return "";
+  return root.children.map(extract).join(" ").replace(/\s+/g, " ").trim();
+}

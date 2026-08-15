@@ -10,6 +10,10 @@ import type { LabelFunction, Payload } from "payload";
 
 export const COLLECTION_LABELS: Record<string, { tr: string; en: string }> = {
   campaigns: { tr: "Kampanyalar", en: "Campaigns" },
+  categories: { tr: "Kategoriler", en: "Categories" },
+  users: { tr: "Kullanıcılar", en: "Users" },
+  "audit-logs": { tr: "Denetim Kayıtları", en: "Audit Logs" },
+  translations: { tr: "Çeviriler", en: "Translations" },
   "faq-items": { tr: "Sık Sorulanlar", en: "FAQ Items" },
   "blog-posts": { tr: "Blog Yazıları", en: "Blog Posts" },
   announcements: { tr: "Duyurular", en: "Announcements" },
@@ -126,4 +130,16 @@ export function dbLabel(key: string, fallback: { tr: string; en: string }): Labe
     const value = labelCache?.[key] ?? fallback;
     return i18n.language === "en" ? value.en : value.tr;
   };
+}
+
+/**
+ * Synchronous counterpart to `dbLabel` for code that already knows the locale
+ * and can't return a `LabelFunction` — server-side hooks building a
+ * user-facing message (see hooks/referentialIntegrity.ts). Reads the same
+ * boot-populated cache, so it costs nothing per call and still honours an
+ * editor's Translations override, falling back to COLLECTION_LABELS and
+ * finally the raw slug.
+ */
+export function collectionLabelText(slug: string, form: "singular" | "plural", locale: "tr" | "en"): string {
+  return labelCache?.[`collectionLabel.${slug}.${form}`]?.[locale] ?? COLLECTION_LABELS[slug]?.[locale] ?? slug;
 }

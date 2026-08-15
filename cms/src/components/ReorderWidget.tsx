@@ -84,19 +84,23 @@ function DraggableGroup({
     setDragIndex(null);
     setSaving(true);
     try {
+      // RFP feedback 5.5: positions are 1-based. This used to write the raw
+      // array index, so the first item always saved as 0 — which read as
+      // "unset" everywhere else (it's the value the old defaultValue produced)
+      // and made the saved sequence indistinguishable from a brand-new record.
       await Promise.all(
         reordered.map((doc, i) =>
-          doc.order === i
+          doc.order === i + 1
             ? Promise.resolve()
             : fetch(`/api/${collection}/${doc.id}`, {
                 method: "PATCH",
                 credentials: "include",
                 headers: { "content-type": "application/json" },
-                body: JSON.stringify({ order: i }),
+                body: JSON.stringify({ order: i + 1 }),
               })
         )
       );
-      setDocs(reordered.map((d, i) => ({ ...d, order: i })));
+      setDocs(reordered.map((d, i) => ({ ...d, order: i + 1 })));
       onSaved();
     } finally {
       setSaving(false);

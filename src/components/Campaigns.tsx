@@ -14,12 +14,10 @@ import type { CampaignCard } from "@/types/homepage";
  * fallback (the ones with zero rows, where the fallback IS the live content).
  */
 export function Campaigns({ campaigns }: { campaigns: CampaignCard[] }) {
-  if (campaigns.length === 0) return null;
-
   const [active, setActive] = useState(0);
-  const campaign = campaigns[active];
 
-  if (!campaign) return null;
+  const campaign = campaigns[active];
+  if (campaigns.length === 0 || !campaign) return null;
 
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-10">

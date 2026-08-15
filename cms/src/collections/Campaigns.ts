@@ -1,3 +1,4 @@
+import { APIError } from "payload";
 import type { Access, CollectionAfterChangeHook, CollectionBeforeChangeHook, CollectionConfig, Where } from "payload";
 import { revalidateCampaignPaths, revalidateCampaignPathsOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete, writeAuditLog } from "@/hooks/audit";
@@ -52,6 +53,90 @@ const manageReviewCycle: CollectionBeforeChangeHook = ({ data, operation, origin
   return data;
 };
 
+/**
+ * RFP feedback 5.4 — "yayında bir kampanya edit edilmeye çalışılıyorsa önce
+ * durumu pasife çekilmeli gibi bir path vermeliyiz … pasife çekilme onayı
+ * verilirse ilgili düzenleme yapılabilir. ama ilk düzenlendiği tarih neydiyse
+ * orada kalmalı".
+ *
+ * "Pasife çekme" is Payload's own unpublish (`_status: draft`), NOT the
+ * `campaignStatus` active/expired field. The two mean different things and
+ * conflating them would break the other one: `campaignStatus: "expired"` means
+ * "this campaign is over" and drops it off the site's listing pages for good
+ * (see getCampaigns() in the site's lib/cms.ts), which is not what "I want to
+ * fix a typo" should do. `_status: draft` already means "not live, editable,
+ * goes back through review" — the exact semantics asked for — and it plugs
+ * straight into the reviewStatus/RoleAwarePublishButton machinery that already
+ * exists rather than growing a second, parallel approval system.
+ *
+ * `createdAt` is untouched by any of this: Payload only ever writes it on
+ * insert, so an unpublish → edit → republish cycle keeps the campaign in its
+ * original position under `defaultSort: "-createdAt"` (and under the site's
+ * own `sort=-createdAt`). Verified live — see the round report.
+ *
+ * Fields that may still change while a document is published: the request
+ * metadata itself, the review fields, and `_status`. Anything else is content,
+ * and content edits are what this blocks.
+ */
+const EDITABLE_WHILE_PUBLISHED = new Set([
+  "_status",
+  "unpublishRequest",
+  "unpublishRequestedBy",
+  "unpublishRequestedAt",
+  "reviewStatus",
+  "rejectionReason",
+  "rejectedAt",
+  "rejectedBy",
+  "updatedAt",
+  "createdAt",
+  "id",
+]);
+
+/** Roles that may take a campaign off the air themselves; everyone else has to request it. */
+const CAN_UNPUBLISH = new Set<string>([ROLES.NEW_VERTICAL_MAKER, ROLES.NEW_VERTICAL_CHECKER, ROLES.GROWTH_CHECKER]);
+
+export const guardPublishedEdit: CollectionBeforeChangeHook = ({ data, operation, originalDoc, req }) => {
+  if (operation !== "update" || originalDoc?._status !== "published") return data;
+
+  const role = (req.user as { role?: string } | undefined)?.role;
+  const isEnglish = req.i18n?.language === "en";
+  const goingToDraft = data?._status === "draft";
+
+  if (goingToDraft) {
+    if (!role || !CAN_UNPUBLISH.has(role)) {
+      throw new APIError(
+        isEnglish
+          ? "You can't take a published campaign off the air yourself — request it and a Checker will approve."
+          : "Yayındaki bir kampanyayı kendiniz yayından kaldıramazsınız — talep oluşturun, bir Checker onaylasın.",
+        403,
+        undefined,
+        true
+      );
+    }
+    // Unpublishing puts it back into the normal review cycle and clears the
+    // request that asked for it.
+    data.unpublishRequest = "none";
+    data.unpublishRequestedBy = null;
+    data.unpublishRequestedAt = null;
+    data.reviewStatus = "pending";
+    return data;
+  }
+
+  const changedContentField = Object.keys(data ?? {}).some(
+    (key) => !EDITABLE_WHILE_PUBLISHED.has(key) && JSON.stringify(data[key]) !== JSON.stringify(originalDoc[key])
+  );
+  if (!changedContentField) return data;
+
+  throw new APIError(
+    isEnglish
+      ? "This campaign is live and can't be edited directly. Take it off the air first (Unpublish), make your changes, then send it back through review. Its original creation date — and its position in the list — are preserved."
+      : "Bu kampanya yayında olduğu için doğrudan düzenlenemez. Önce yayından kaldırın, değişikliklerinizi yapın, sonra tekrar onaya gönderin. Kampanyanın ilk oluşturulma tarihi — dolayısıyla listedeki sırası — korunur.",
+    409,
+    undefined,
+    true
+  );
+};
+
 /** RFP feedback 3.11: distinct audit-log entry so Waiting Approvals can count rejections. */
 const auditRejection: CollectionAfterChangeHook = async ({ req, doc, previousDoc, operation }) => {
   if (operation === "update" && !previousDoc?.rejectionReason && doc?.rejectionReason) {
@@ -84,9 +169,11 @@ export const Campaigns: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "category", "featured", "startDate", "endDate", "_status"],
     group: { tr: "İçerik", en: "Content" },
-    // "Yerel hafızaya kopyala" is Payload's copy-to-locale tool (copies
-    // field values between locales) — Campaigns has no localized fields,
-    // so it did nothing useful here.
+    // "Yerel hafızaya kopyala" is Payload's copy-to-locale tool (copies field
+    // values between locales) — it did nothing useful here even before
+    // content localization was switched off entirely (RFP feedback 5.9). Kept
+    // set so re-enabling `localization` later can't quietly bring it back
+    // without someone deciding this collection wants it.
     disableCopyToLocale: true,
     // RFP feedback: the detail page's big hero image made a single-campaign
     // preview look "too large"; the full /kampanyalar list page (tried next)
@@ -95,7 +182,11 @@ export const Campaigns: CollectionConfig = {
     // listing page — see kampanyalar/[slug]/kart-onizleme/page.tsx.
     preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/kampanyalar/${doc.slug}/kart-onizleme`) : null),
     components: {
-      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "campaigns" } }],
+      beforeList: [
+        { path: "/components/HelpButton#default", clientProps: { collection: "campaigns" } },
+        // RFP feedback 5.7: full-column CSV export, Turkish-Excel safe.
+        "/components/CampaignsExportButton#default",
+      ],
       edit: {
         PublishButton: "/components/RoleAwarePublishButton#default",
         SaveDraftButton: "/components/SaveOrSubmitButton#default",
@@ -169,6 +260,45 @@ export const Campaigns: CollectionConfig = {
       relationTo: "users",
       label: "Reddeden",
       admin: { position: "sidebar", readOnly: true, condition: (data) => data?.reviewStatus === "rejected" },
+    },
+    {
+      // RFP feedback 5.4: a Growth Maker can't unpublish, so this is how it
+      // asks. A Checker seeing "pending" here is the approval step.
+      name: "unpublishRequest",
+      type: "select",
+      label: { tr: "Yayından Kaldırma Talebi", en: "Unpublish Request" },
+      defaultValue: "none",
+      options: [
+        { label: { tr: "Yok", en: "None" }, value: "none" },
+        { label: { tr: "Onay bekliyor", en: "Awaiting approval" }, value: "pending" },
+      ],
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        condition: (data) => data?.unpublishRequest === "pending" || data?._status === "published",
+        description: {
+          tr: "Yayındaki bir kampanya doğrudan düzenlenemez. Maker talep oluşturur, Checker onaylayıp yayından kaldırır; düzenleme ondan sonra açılır.",
+          en: "A live campaign can't be edited directly. A Maker requests, a Checker approves and unpublishes; editing opens after that.",
+        },
+      },
+    },
+    {
+      name: "unpublishRequestedBy",
+      type: "relationship",
+      relationTo: "users",
+      label: { tr: "Talebi Açan", en: "Requested By" },
+      admin: { position: "sidebar", readOnly: true, condition: (data) => data?.unpublishRequest === "pending" },
+    },
+    {
+      name: "unpublishRequestedAt",
+      type: "date",
+      label: { tr: "Talep Tarihi", en: "Requested At" },
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        date: { pickerAppearance: "dayAndTime" },
+        condition: (data) => data?.unpublishRequest === "pending",
+      },
     },
     { name: "title", type: "text", required: true },
     {
@@ -281,7 +411,7 @@ export const Campaigns: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    beforeChange: [setCreatedBy, manageReviewCycle, denyMakerPublish],
+    beforeChange: [setCreatedBy, manageReviewCycle, guardPublishedEdit, denyMakerPublish],
     afterChange: [revalidateCampaignPaths, auditAfterChange("campaigns"), auditRejection],
     afterDelete: [revalidateCampaignPathsOnDelete, auditAfterDelete("campaigns")],
   },

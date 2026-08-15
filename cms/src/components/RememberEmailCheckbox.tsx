@@ -63,14 +63,23 @@ export default function RememberEmailCheckbox() {
           }
         }
 
-        const wrapper = document.createElement("label");
+        const wrapper = document.createElement("div");
         wrapper.className = "vf-remember-email";
+        const label = document.createElement("label");
+        label.className = "vf-remember-email__label";
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = Boolean(remembered);
         const text = document.createElement("span");
         text.textContent = t("rememberEmail.label");
-        wrapper.append(checkbox, text);
+        label.append(checkbox, text);
+        // RFP feedback 5.8: the label reads "Remember me" in both languages
+        // now, which on its own implies the PASSWORD is kept. This line says
+        // plainly that only the email address is.
+        const hint = document.createElement("p");
+        hint.className = "vf-remember-email__hint";
+        hint.textContent = t("rememberEmail.hint");
+        wrapper.append(label, hint);
 
         checkbox.addEventListener("change", () => {
           if (!checkbox.checked) {

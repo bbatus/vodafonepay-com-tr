@@ -4,6 +4,7 @@ import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead }
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { dbLabel } from "@/lib/collectionLabels";
+import { assignNextOrder, ORDER_FIELD_DESCRIPTION } from "@/hooks/ordering";
 
 export const LimitTables: CollectionConfig = {
   slug: "limit-tables",
@@ -11,6 +12,9 @@ export const LimitTables: CollectionConfig = {
     singular: dbLabel("collectionLabel.limit-tables.singular", { tr: "Limit Tablosu", en: "Limit Table" }),
     plural: dbLabel("collectionLabel.limit-tables.plural", { tr: "Limit Tabloları", en: "Limit Tables" }),
   },
+  // RFP feedback 5.5: the list must reflect the `order` field (and the
+  // drag-to-reorder widget's saved sequence), not Payload's fallback order.
+  defaultSort: "order",
   admin: {
     hideAPIURL: true,
     useAsTitle: "title",
@@ -35,7 +39,14 @@ export const LimitTables: CollectionConfig = {
   },
   fields: [
     { name: "title", type: "text", required: true },
-    { name: "order", type: "number", defaultValue: 0 },
+    {
+      name: "order",
+      type: "number",
+      label: { tr: "Sıra", en: "Order" },
+      defaultValue: 1,
+      min: 1,
+      admin: { description: ORDER_FIELD_DESCRIPTION },
+    },
     {
       name: "rows",
       type: "array",
@@ -51,6 +62,7 @@ export const LimitTables: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeChange: [assignNextOrder("limit-tables")],
     afterChange: [revalidateTag("limit-tables"), auditAfterChange("limit-tables")],
     afterDelete: [revalidateTagOnDelete("limit-tables"), auditAfterDelete("limit-tables")],
   },

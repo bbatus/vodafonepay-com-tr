@@ -4,6 +4,7 @@ import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead }
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { dbLabel } from "@/lib/collectionLabels";
+import { assignNextOrder, ORDER_FIELD_DESCRIPTION } from "@/hooks/ordering";
 
 export const FeatureCards: CollectionConfig = {
   slug: "feature-cards",
@@ -11,6 +12,9 @@ export const FeatureCards: CollectionConfig = {
     singular: dbLabel("collectionLabel.feature-cards.singular", { tr: "Özellik Kartı", en: "Feature Card" }),
     plural: dbLabel("collectionLabel.feature-cards.plural", { tr: "Özellik Kartları", en: "Feature Cards" }),
   },
+  // RFP feedback 5.5: the list must reflect the `order` field (and the
+  // drag-to-reorder widget's saved sequence), not Payload's fallback order.
+  defaultSort: "order",
   admin: {
     hideAPIURL: true,
     useAsTitle: "title",
@@ -39,10 +43,18 @@ export const FeatureCards: CollectionConfig = {
     { name: "title", type: "text", required: true },
     { name: "text", type: "textarea", required: true },
     { name: "deeplink", type: "text", admin: { description: "Kart tıklanınca gidilecek sayfa/deeplink (opsiyonel)." } },
-    { name: "order", type: "number", defaultValue: 0 },
+    {
+      name: "order",
+      type: "number",
+      label: { tr: "Sıra", en: "Order" },
+      defaultValue: 1,
+      min: 1,
+      admin: { description: ORDER_FIELD_DESCRIPTION },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeChange: [assignNextOrder("feature-cards", ["page"])],
     afterChange: [revalidateTag("feature-cards"), auditAfterChange("feature-cards")],
     afterDelete: [revalidateTagOnDelete("feature-cards"), auditAfterDelete("feature-cards")],
   },

@@ -1,6 +1,7 @@
 import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
 import { isNewVerticalMaker, mediaCreate, newVerticalReadWrite } from "@/access/roles";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
 import { dbLabel } from "@/lib/collectionLabels";
 import { setOwnerOnCreate } from "@/hooks/ownership";
 
@@ -107,6 +108,7 @@ export const Media: CollectionConfig = {
   },
   hooks: {
     beforeChange: [deriveMediaType, setOwnerOnCreate("uploadedBy")],
+    beforeDelete: [blockDeleteIfReferenced("media")],
     afterChange: [auditAfterChange("media")],
     afterDelete: [auditAfterDelete("media")],
   },

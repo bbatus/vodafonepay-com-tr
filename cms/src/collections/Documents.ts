@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
 import { dbLabel } from "@/lib/collectionLabels";
 
 /** Separate from Media (which is image-only, with imageSizes/focalPoint that make no
@@ -30,6 +31,7 @@ export const Documents: CollectionConfig = {
     mimeTypes: ["application/pdf"],
   },
   hooks: {
+    beforeDelete: [blockDeleteIfReferenced("documents")],
     afterChange: [auditAfterChange("documents")],
     afterDelete: [auditAfterDelete("documents")],
   },

@@ -99,28 +99,34 @@ export default buildConfig({
     supportedLanguages: { tr, en },
     fallbackLanguage: "tr",
   },
-  // RFP §3.2.14: multi-language content infrastructure. This is the CMS-side
-  // half only — Pages.title is marked `localized: true` to prove the
-  // mechanism (a brand-new, empty collection — safe to localize with no
-  // migration ambiguity). Campaigns/BlogPosts were deliberately NOT
-  // localized: both already have live data + versions.drafts version
-  // history, and converting an existing field to localized changes how
-  // Payload encodes the `_<collection>_v.snapshot` version column —
-  // confirmed live, this puts drizzle-kit's schema push into an
-  // interactive "is this a rename or a new column?" prompt that can't be
-  // answered non-interactively and will hang. Localizing fields on a
-  // collection with real history needs a deliberate, reviewed data
-  // migration, not a config flag.
+  // RFP feedback 5.9 — CONTENT LOCALIZATION IS OFF, deliberately.
   //
-  // The SITE itself has no locale-aware routing or language switcher yet
-  // (it's Turkish-only end to end today), and no English translations have
-  // been entered — building the site-side i18n routing layer is a
-  // separate, large frontend initiative, not attempted here.
-  localization: {
-    locales: ["tr", "en"],
-    defaultLocale: "tr",
-    fallback: true,
-  },
+  // There are two different "language" concepts in this panel and they were
+  // being confused for one:
+  //   1. Admin UI language — `i18n` above, the `payload-lng` cookie. Owned by
+  //      the user's own `preferredLocale` profile setting. Still here.
+  //   2. Content locale — this `localization` block. Payload renders its own
+  //      locale selector in the app header whenever it's set.
+  //
+  // (2) was enabled but Pages.title was the ONLY field anywhere marked
+  // `localized: true`, so the header selector switched a locale that changed
+  // nothing on any screen — exactly the user's report that "sayfaların locals
+  // değerleri hiç değişmiyor". A selector that does nothing is worse than no
+  // selector, so it's gone rather than CSS-hidden: hiding it would have left
+  // `?locale=en` reachable by URL and the half-configured state in place.
+  //
+  // Turning it off was safe to do NOW specifically because `pages` (and
+  // `pages_locales` / `_pages_v_locales`) were verified empty — zero rows, so
+  // no content could be lost. Turning it back on later is a deliberate
+  // project: it needs the fields that should actually be translatable, real
+  // English content, and a reviewed data migration. Note the previous round's
+  // finding still stands as the reason not to do that casually — marking a
+  // field localized on a collection that already has `versions.drafts`
+  // history puts drizzle-kit's schema push into an interactive "rename or new
+  // column?" prompt that can't be answered non-interactively.
+  //
+  // The SITE itself is Turkish-only end to end (no locale routing, no
+  // language switcher), so nothing downstream depended on this either.
   admin: {
     user: Users.slug,
     theme: "light",
@@ -149,11 +155,22 @@ export default buildConfig({
       beforeLogin: ["/components/LoginBrandPanel#default", "/components/RememberEmailCheckbox#default"],
       beforeDashboard: ["/components/DashboardWidgets#default"],
       beforeNav: ["/components/SidebarLogo#default", "/components/LocalePreferenceSync#default"],
-      afterNavLinks: ["/components/ContentManagementNavLink#default"],
+      afterNavLinks: ["/components/ContentManagementNavLink#default", "/components/LockedAccountsNavLink#default"],
       views: {
         contentManagement: {
           Component: "/components/ContentManagementView#default",
           path: "/content-management",
+        },
+        // RFP feedback 5.6: New Vertical Maker's account-unlock screen. A
+        // separate top-level view rather than a tab above the Users list —
+        // adding a tab means overriding Payload's whole collection list view
+        // (and its role-aware column/filter machinery) for one button, while
+        // this reuses the same extension point the Content Management screen
+        // already uses. Sidebar link is hidden for every other role
+        // (LockedAccountsNavLink), and the view itself re-checks the role.
+        lockedAccounts: {
+          Component: "/components/LockedAccountsView#default",
+          path: "/locked-accounts",
         },
         // RFP feedback 3.4: disable self-service password reset (LDAP will
         // own identity later) — overriding the built-in view keys blocks

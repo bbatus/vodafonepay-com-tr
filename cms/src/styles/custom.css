@@ -305,13 +305,19 @@ a {
 /* F1: "beni hatırla" checkbox — DOM-injected by RememberEmailCheckbox.tsx,
    not a real Payload field (see that file for why). */
 .vf-remember-email {
+  margin: 0.25rem 0 1rem;
+}
+
+.vf-remember-email__label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin: 0.25rem 0 1rem;
   font-size: 0.85rem;
   color: var(--theme-elevation-600);
   cursor: pointer;
+  /* 5.10 UI audit: keeps the touch target at ~24px on a phone even though the
+     label text itself is only 0.85rem tall. */
+  min-height: 24px;
 }
 
 .vf-remember-email input[type="checkbox"] {
@@ -319,6 +325,20 @@ a {
   height: 16px;
   accent-color: var(--vf-red);
   cursor: pointer;
+}
+
+.vf-remember-email input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--vf-red);
+  outline-offset: 2px;
+}
+
+/* RFP feedback 5.8: "Remember me" alone reads as "keeps my password" — this
+   line states what is actually stored. */
+.vf-remember-email__hint {
+  margin: 0.3rem 0 0 1.75rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--theme-elevation-450);
 }
 
 .field-type input {
@@ -452,6 +472,228 @@ a {
 
 .media-usage-field__list a {
   color: var(--vf-red);
+}
+
+/* RFP feedback 5.4: the "this is live, take it off the air to edit it" block
+   that replaces the publish/reject buttons on an already-published campaign. */
+.vf-live-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.vf-live-actions__notice {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--theme-elevation-500);
+  max-width: 32ch;
+}
+
+/* RFP feedback 5.7: Content Management report page. Replaces the inline styles
+   the previous CRUD version carried, per the repo's "no new inline styles in
+   the CMS" rule. */
+.cm {
+  padding: 2rem;
+}
+
+.cm h1 {
+  margin: 0 0 0.5rem;
+}
+
+.cm-section-title {
+  margin: 2rem 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.cm-hint,
+.cm-muted {
+  color: var(--theme-elevation-450);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.cm-hint {
+  margin-bottom: 0.5rem;
+  max-width: 60ch;
+}
+
+.cm-error {
+  color: var(--theme-error-500);
+  font-size: 0.85rem;
+  margin: 0.75rem;
+}
+
+.cm-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--theme-elevation-150);
+  margin-bottom: 1rem;
+}
+
+.cm-tab {
+  padding: 0.55rem 0.9rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--theme-elevation-500);
+  /* 5.10 UI audit: 44px min touch target on phones. */
+  min-height: 44px;
+}
+
+.cm-tab--active {
+  border-bottom-color: var(--vf-red);
+  font-weight: 600;
+  color: var(--theme-text);
+}
+
+.cm-tab:focus-visible {
+  outline: 2px solid var(--vf-red);
+  outline-offset: -2px;
+}
+
+.cm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cm-search {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-m);
+  min-width: 14rem;
+  flex: 1 1 14rem;
+  max-width: 22rem;
+}
+
+.cm-card {
+  padding: 0;
+}
+
+.cm-table {
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.cm-table th,
+.cm-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--theme-elevation-50);
+  white-space: nowrap;
+}
+
+.cm-table th {
+  color: var(--theme-elevation-450);
+  font-weight: 500;
+  border-bottom-color: var(--theme-elevation-100);
+}
+
+.cm-table td:first-child {
+  white-space: normal;
+  max-width: 24rem;
+}
+
+.cm-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--style-radius-s);
+  font-size: 0.75rem;
+  background: var(--theme-elevation-100);
+  color: var(--theme-elevation-600);
+}
+
+.cm-badge--published {
+  background: var(--theme-success-100);
+  color: var(--theme-success-600);
+}
+
+.cm-pager {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+/* RFP feedback 5.6: Locked Accounts screen (New Vertical Maker only) and the
+   companion banner on the Users list. */
+.locked-accounts {
+  padding: 2rem;
+}
+
+.locked-accounts h1 {
+  margin: 0 0 0.5rem;
+}
+
+.locked-accounts__hint {
+  color: var(--theme-elevation-450);
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+}
+
+.locked-accounts__notice {
+  color: var(--theme-success-600);
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+}
+
+.locked-accounts__error {
+  color: var(--theme-error-500);
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+}
+
+.locked-accounts__table {
+  width: 100%;
+  min-width: 32rem;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.locked-accounts__table th,
+.locked-accounts__table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--theme-elevation-100);
+  white-space: nowrap;
+}
+
+.locked-accounts__table th {
+  color: var(--theme-elevation-450);
+  font-weight: 500;
+}
+
+.locked-accounts__actions {
+  text-align: right;
+}
+
+.locked-accounts-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--theme-warning-250, var(--theme-elevation-150));
+  border-radius: var(--style-radius-m);
+  background: var(--theme-warning-50, var(--theme-elevation-50));
+  font-size: 0.875rem;
+}
+
+.locked-accounts-banner a {
+  color: var(--vf-red);
+  font-weight: 600;
 }
 
 /* ---------------------------------------------------------------------

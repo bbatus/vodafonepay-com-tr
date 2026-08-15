@@ -1,8 +1,10 @@
 import type { CollectionBeforeValidateHook, CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { dbLabel } from "@/lib/collectionLabels";
+import { assignNextOrder, ORDER_FIELD_DESCRIPTION } from "@/hooks/ordering";
 import { turkishSlugify, uniqueSlug } from "@/lib/slugify";
 
 /**
@@ -44,6 +46,9 @@ export const Categories: CollectionConfig = {
     singular: dbLabel("collectionLabel.categories.singular", { tr: "Kategori", en: "Category" }),
     plural: dbLabel("collectionLabel.categories.plural", { tr: "Kategoriler", en: "Categories" }),
   },
+  // RFP feedback 5.5: the list must reflect the `order` field (and the
+  // drag-to-reorder widget's saved sequence), not Payload's fallback order.
+  defaultSort: "order",
   admin: {
     hideAPIURL: true,
     useAsTitle: "label",
@@ -86,12 +91,19 @@ export const Categories: CollectionConfig = {
     {
       name: "order",
       type: "number",
-      defaultValue: 0,
-      admin: { description: "Filtre sekmelerinin sırasını belirler — küçük sayı önce gelir." },
+      label: { tr: "Sıra", en: "Order" },
+      defaultValue: 1,
+      min: 1,
+      admin: { description: ORDER_FIELD_DESCRIPTION },
     },
   ],
   hooks: {
     beforeValidate: [generateSlug],
+    beforeChange: [assignNextOrder("categories")],
+    // RFP feedback 5.1 (the reported bug): a category with campaigns in it
+    // could be deleted with no warning, silently NULLing every one of those
+    // campaigns' `required` category field.
+    beforeDelete: [blockDeleteIfReferenced("categories")],
     afterChange: [revalidateTag("categories"), auditAfterChange("categories")],
     afterDelete: [revalidateTagOnDelete("categories"), auditAfterDelete("categories")],
   },

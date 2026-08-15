@@ -2,6 +2,7 @@ import type { CollectionBeforeChangeHook, CollectionConfig, Endpoint } from "pay
 import { isNewVerticalMaker, ROLE_OPTIONS, ROLES } from "@/access/roles";
 import { authenticated } from "@/access/authenticated";
 import { auditAfterChange, auditAfterDelete, writeAuditLog, ipOf, userAgentOf } from "@/hooks/audit";
+import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
 import { dbLabel } from "@/lib/collectionLabels";
 
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2MB
@@ -103,7 +104,12 @@ export const Users: CollectionConfig = {
   admin: {
     hideAPIURL: true,
     useAsTitle: "email",
-    defaultColumns: ["email", "role"],
+    // RFP feedback 5.6: lock state has to be visible from the list, not just
+    // discoverable by trying to log in as someone. `lockUntil` is one of
+    // Payload's own account-lock fields, un-hidden below — being a real
+    // field (not a UI-only badge) is what makes Payload's list filters able
+    // to filter on it.
+    defaultColumns: ["email", "role", "lockUntil", "lastLoginAt"],
     group: { tr: "Sistem", en: "System" },
     components: {
       // RFP feedback: "users listesinde export alabilmeliydik" — see
@@ -111,9 +117,31 @@ export const Users: CollectionConfig = {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "users" } },
         "/components/UsersExportButton#default",
+        "/components/LockedAccountsBanner#default",
       ],
     },
   },
+  // RFP feedback 5.6 — account lockout.
+  //
+  // CORRECTION to the previous round's comment ("see auth.maxLoginAttempts,
+  // not configured", implying no lockout existed): Payload applies its own
+  // defaults to ANY auth config, object form included —
+  // `addDefaultsToAuthConfig` (payload/dist/collections/config/defaults.js)
+  // does `auth.maxLoginAttempts = auth.maxLoginAttempts ?? 5` and
+  // `auth.lockTime = auth.lockTime ?? 600000`. Lockout was therefore already
+  // live and silently enforced; confirmed against the running DB, where the
+  // `login_attempts`/`lock_until` columns exist (they're only created when
+  // maxLoginAttempts > 0) and a wrong password really does increment the
+  // counter. Spelling both values out here so the policy is a deliberate,
+  // reviewable decision instead of an invisible framework default.
+  //
+  // 5 attempts: enough headroom for a genuine typo or a stale saved password,
+  // few enough that online password guessing gets nowhere. 15 minutes rather
+  // than Payload's 10: an NV Maker can now clear a lock instantly from
+  // /admin/locked-accounts, so a locked-out colleague is unblocked by asking
+  // rather than by waiting — which makes a longer automatic window cheap for
+  // real users and meaningfully more expensive for an attacker.
+  //
   // RFP feedback 3.3: "remember me" was requested, but Payload 3.x's login
   // cookie is httpOnly (client JS can't read/rewrite it) and a session's
   // JWT expiration is fixed per-collection with no supported way to vary it
@@ -124,7 +152,7 @@ export const Users: CollectionConfig = {
   // the session for EVERYONE from Payload's default 2h (7200s) to 12h —
   // no checkbox, but addresses the actual complaint (getting logged out
   // mid-workday) without touching undocumented internals.
-  auth: { tokenExpiration: 60 * 60 * 12 },
+  auth: { tokenExpiration: 60 * 60 * 12, maxLoginAttempts: 5, lockTime: 15 * 60 * 1000 },
   access: {
     // RFP feedback 3.4: reverses the earlier P1-11 narrowing — the business
     // explicitly wants every role to be able to see the full user list
@@ -135,6 +163,11 @@ export const Users: CollectionConfig = {
     create: isNewVerticalMaker,
     update: ({ req, id }) => isNewVerticalMaker({ req }) || req.user?.id === id,
     delete: isNewVerticalMaker,
+    // RFP feedback 5.6: "sadece bu role sahip kullanıcılar yapabilsin".
+    // This is the SERVER-side gate — the Locked Accounts screen hiding its
+    // button for other roles is only cosmetic; Payload's unlock operation
+    // runs this before touching anything (auth/operations/unlock.js).
+    unlock: isNewVerticalMaker,
   },
   fields: [
     {
@@ -168,6 +201,36 @@ export const Users: CollectionConfig = {
       access: {
         update: ({ req, id }) => req.user?.id !== id,
       },
+    },
+    {
+      // RFP feedback 5.6: Payload injects `lockUntil`/`loginAttempts` with
+      // `hidden: true`, so a locked account was invisible everywhere in the
+      // admin. Redefining them by name lets mergeBaseFields
+      // (payload/dist/fields/mergeBaseFields.js) deep-merge these overrides
+      // ON TOP of Payload's base config — verified in that source: our object
+      // is the winning side of the merge, so `access.update: () => false`
+      // from the base field survives and these stay unwritable through a
+      // normal PATCH. Only Payload's own unlock operation clears them.
+      name: "lockUntil",
+      type: "date",
+      label: { tr: "Kilitli (bitiş)", en: "Locked until" },
+      hidden: false,
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        date: { pickerAppearance: "dayAndTime" },
+        description: {
+          tr: "Doluysa hesap art arda hatalı parola denemesi yüzünden kilitli. Bir New Vertical Maker 'Kilitli Hesaplar' ekranından hemen açabilir.",
+          en: "If set, the account is locked after repeated failed password attempts. A New Vertical Maker can clear it from the Locked Accounts screen.",
+        },
+      },
+    },
+    {
+      name: "loginAttempts",
+      type: "number",
+      label: { tr: "Hatalı Deneme", en: "Failed attempts" },
+      hidden: false,
+      admin: { position: "sidebar", readOnly: true },
     },
     {
       name: "avatar",
@@ -275,7 +338,46 @@ export const Users: CollectionConfig = {
         await writeAuditLog(req, { action: "logout", summary: `${email} çıkış yaptı` });
       },
     ],
+    // RFP feedback 5.6 / RFP §7.2: every unlock is attributable. Payload runs
+    // `buildAfterOperation` with operation "unlock" (auth/operations/unlock.js),
+    // which is the only hook point the unlock path exposes — there is no
+    // afterUnlock.
+    afterOperation: [
+      async (args) => {
+        if (args.operation !== "unlock") return args.result;
+        const target = (args.req.data as { email?: string } | undefined)?.email ?? "unknown";
+        await writeAuditLog(args.req, {
+          action: "unlock",
+          collectionSlug: "users",
+          summary: `${target} hesabının kilidi kaldırıldı`,
+        });
+        return args.result;
+      },
+    ],
+    // RFP §7.2: failed logins. Payload throws AuthenticationError from
+    // `loginOperation` BEFORE any beforeLogin/afterLogin hook runs (verified
+    // in auth/operations/login.js — the `if (!authResult)` branch throws
+    // directly), so a failed attempt is unreachable from the login hooks the
+    // previous round looked at. `afterError` is the one place it does surface.
+    afterError: [
+      async ({ error, req }) => {
+        const attempted = (req.data as { email?: string } | undefined)?.email;
+        // AuthenticationError is what a wrong password/unknown user produces;
+        // gate on an attempted email too so unrelated 401s aren't logged as
+        // login attempts.
+        if (!attempted || error?.name !== "AuthenticationError") return;
+        await writeAuditLog(req, {
+          action: "login_failed",
+          summary: `${attempted} için başarısız giriş denemesi`,
+          actorEmail: attempted,
+        });
+      },
+    ],
     beforeChange: [enforceAvatarSizeLimit],
+    // Every users reference (campaigns.createdBy/rejectedBy, media.uploadedBy)
+    // is provenance metadata, so this never blocks — it records what got
+    // orphaned in the audit log. See referentialIntegrity.ts for why.
+    beforeDelete: [blockDeleteIfReferenced("users")],
     afterChange: [auditAfterChange("users")],
     afterDelete: [auditAfterDelete("users")],
   },

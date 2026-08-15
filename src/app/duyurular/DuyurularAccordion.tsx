@@ -17,9 +17,9 @@ export interface Announcement {
  * exactly like a healthy page carrying stale notices.
  */
 export function DuyurularAccordion({ items }: { items: Announcement[] }) {
-  if (items.length === 0) return null;
-
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  if (items.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-y-3">

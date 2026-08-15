@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
 
@@ -14,14 +14,9 @@ export default function LoginBrandPanel() {
   const locale = useAdminLocale();
   const t = useDbStrings(locale);
 
-  // RFP feedback 3.5: clears LocalePreferenceSync.tsx's per-session flag so
-  // a logout→login in the same browser tab re-applies the user's stored
-  // preferredLocale instead of skipping it (sessionStorage otherwise
-  // survives across a logout that doesn't close the tab).
-  useEffect(() => {
-    if (typeof window !== "undefined") sessionStorage.removeItem("vf-locale-synced");
-  }, []);
-
+  // RFP feedback 5.9a: the sessionStorage flag this used to clear is gone —
+  // LocalePreferenceSync now syncs the language cookie unconditionally, so
+  // there's no per-session state left for a logout→login to reset.
   return (
     <div className="vf-login-panel">
       <div className="vf-login-panel__top">

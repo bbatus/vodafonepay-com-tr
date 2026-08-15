@@ -4,6 +4,7 @@ import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead }
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { dbLabel } from "@/lib/collectionLabels";
+import { assignNextOrder, ORDER_FIELD_DESCRIPTION } from "@/hooks/ordering";
 
 export const NavLinks: CollectionConfig = {
   slug: "nav-links",
@@ -11,6 +12,9 @@ export const NavLinks: CollectionConfig = {
     singular: dbLabel("collectionLabel.nav-links.singular", { tr: "Menü Linki", en: "Nav Link" }),
     plural: dbLabel("collectionLabel.nav-links.plural", { tr: "Menü Linkleri", en: "Nav Links" }),
   },
+  // RFP feedback 5.5: the list must reflect the `order` field (and the
+  // drag-to-reorder widget's saved sequence), not Payload's fallback order.
+  defaultSort: "order",
   admin: {
     hideAPIURL: true,
     useAsTitle: "label",
@@ -49,10 +53,18 @@ export const NavLinks: CollectionConfig = {
         { label: "Footer — Yasal", value: "footer-yasal" },
       ],
     },
-    { name: "order", type: "number", defaultValue: 0 },
+    {
+      name: "order",
+      type: "number",
+      label: { tr: "Sıra", en: "Order" },
+      defaultValue: 1,
+      min: 1,
+      admin: { description: ORDER_FIELD_DESCRIPTION },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeChange: [assignNextOrder("nav-links", ["section"])],
     afterChange: [revalidateTag("nav-links"), auditAfterChange("nav-links")],
     afterDelete: [revalidateTagOnDelete("nav-links"), auditAfterDelete("nav-links")],
   },

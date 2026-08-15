@@ -2,42 +2,52 @@
 
 import { startTransition, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
-import { CONTENT_MANAGEMENT_TABS, tabLabel } from "@/lib/contentManagementTabs";
+import {
+  ALL_REPORTED_SLUGS,
+  REPORT_COLLECTIONS,
+  hasDrafts,
+  tabLabel,
+  type ReportColumn,
+} from "@/lib/contentManagementTabs";
 
-type Doc = {
-  id: string | number;
-  _status?: string;
-  updatedAt?: string;
-  createdAt?: string;
-  [key: string]: unknown;
+type Doc = { id: string | number; [key: string]: unknown };
+
+type Summary = {
+  slug: string;
+  /** null = this role has no read access to the collection. */
+  total: number | null;
+  published?: number;
+  draft?: number;
+  lastUpdated?: string;
 };
 
 const PAGE_SIZE = 10;
 
 /**
- * RFP feedback 3.10: a single page for browsing every content collection —
- * tabs across the top switch which collection's list is shown, instead of
- * navigating to a separate sidebar section per collection. Deliberately
- * NOT a reimplementation of the actual create/edit FORM (rich text,
- * uploads, relationships differ per collection and Payload's own edit view
- * already handles all of that correctly, draft/publish workflow included)
- * — "Yeni Ekle"/"Düzenle" hand off to Payload's existing document view.
- * Everything here talks to Payload's own REST API with the browser's
- * session cookie, so every collection's real access-control rules
- * (campaignsCreate, isNewVerticalMaker, etc.) apply exactly as they do
- * everywhere else in the admin — nothing is re-implemented or re-verified.
+ * RFP feedback 5.7 — a READ-ONLY report over the whole CMS.
+ *
+ * Every role can open this page; no role can change anything from it. The
+ * previous version was a hand-rolled CRUD surface (Yeni Ekle / Düzenle / Sil /
+ * Seçilenleri Sil) sitting beside Payload's own list views, which meant two
+ * separate places to keep in step and two places a delete could happen. Rows
+ * now link out to Payload's document view, where the real access rules already
+ * live.
+ *
+ * Access is Payload's, unchanged: every request is a plain REST call carrying
+ * the browser's session cookie, never `overrideAccess`. A collection this role
+ * can't read reports as inaccessible rather than showing a count it shouldn't
+ * know — which is why `total` is nullable instead of defaulting to 0.
  */
 export default function ContentManagementApp() {
-  const { user } = useAuth();
   const locale = useAdminLocale();
   const t = useDbStrings(locale);
-  const role = (user as { role?: string } | undefined)?.role;
+  const dateLocale = locale === "tr" ? "tr-TR" : "en-US";
 
-  const [activeSlug, setActiveSlug] = useState(CONTENT_MANAGEMENT_TABS[0].slug);
-  const tab = useMemo(() => CONTENT_MANAGEMENT_TABS.find((tb) => tb.slug === activeSlug)!, [activeSlug]);
+  const [summaries, setSummaries] = useState<Summary[] | null>(null);
+  const [activeSlug, setActiveSlug] = useState(REPORT_COLLECTIONS[0].slug);
+  const tab = useMemo(() => REPORT_COLLECTIONS.find((c) => c.slug === activeSlug)!, [activeSlug]);
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -45,21 +55,70 @@ export default function ContentManagementApp() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalDocs, setTotalDocs] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<Set<string | number>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
+  // ---- summary across every collection -------------------------------------
+  useEffect(() => {
+    let cancelled = false;
+
+    const countOf = async (slug: string, extra?: Record<string, string>): Promise<number | null> => {
+      const params = new URLSearchParams({ limit: "0", depth: "0", ...extra });
+      const res = await fetch(`/api/${slug}?${params.toString()}`, { credentials: "same-origin" });
+      if (!res.ok) return null;
+      const data = (await res.json()) as { totalDocs?: number };
+      return data.totalDocs ?? 0;
+    };
+
+    Promise.all(
+      ALL_REPORTED_SLUGS.map(async (slug): Promise<Summary> => {
+        try {
+          const total = await countOf(slug);
+          if (total === null) return { slug, total: null };
+
+          let published: number | undefined;
+          let draft: number | undefined;
+          if (hasDrafts(slug)) {
+            const pub = await countOf(slug, { "where[_status][equals]": "published" });
+            if (pub !== null) {
+              published = pub;
+              draft = total - pub;
+            }
+          }
+
+          let lastUpdated: string | undefined;
+          if (total > 0) {
+            const res = await fetch(`/api/${slug}?limit=1&depth=0&sort=-updatedAt`, { credentials: "same-origin" });
+            if (res.ok) {
+              const data = (await res.json()) as { docs?: { updatedAt?: string }[] };
+              lastUpdated = data.docs?.[0]?.updatedAt;
+            }
+          }
+          return { slug, total, published, draft, lastUpdated };
+        } catch {
+          return { slug, total: null };
+        }
+      })
+    ).then((rows) => {
+      if (!cancelled) setSummaries(rows);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // ---- detail list for the active tab --------------------------------------
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     const params = new URLSearchParams({
       limit: String(PAGE_SIZE),
       page: String(page),
-      depth: "0",
-      sort: "-createdAt",
+      depth: String(tab.depth ?? 0),
+      sort: "-updatedAt",
     });
-    if (search.trim()) {
-      params.set(`where[${tab.titleField}][contains]`, search.trim());
-    }
+    if (search.trim()) params.set(`where[${tab.titleField}][contains]`, search.trim());
+
     try {
       const res = await fetch(`/api/${tab.slug}?${params.toString()}`, { credentials: "same-origin" });
       if (!res.ok) throw new Error(String(res.status));
@@ -68,16 +127,20 @@ export default function ContentManagementApp() {
       setTotalPages(data.totalPages ?? 1);
       setTotalDocs(data.totalDocs ?? 0);
     } catch {
-      setError(t("contentManagement.loadError"));
+      setError(t("contentManagement.noAccess"));
       setDocs([]);
+      setTotalDocs(0);
     } finally {
       setLoading(false);
     }
   }, [tab, page, search, t]);
 
   useEffect(() => {
+  // startTransition keeps the first setState out of the effect's synchronous
+  // body (react-hooks/set-state-in-effect) — a plain `void load()` here
+  // triggers a cascading render on every dependency change.
     startTransition(() => {
-      load();
+      void load();
     });
   }, [load]);
 
@@ -85,200 +148,156 @@ export default function ContentManagementApp() {
     setActiveSlug(slug);
     setSearch("");
     setPage(1);
-    setSelected(new Set());
   };
 
-  const toggleSelected = (id: string | number) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const deleteOne = async (id: string | number) => {
-    if (!window.confirm(t("contentManagement.confirmDelete"))) return;
-    const res = await fetch(`/api/${tab.slug}/${String(id)}`, { method: "DELETE", credentials: "same-origin" });
-    if (!res.ok) {
-      window.alert(t("contentManagement.deleteError"));
-      return;
+  const renderCell = (doc: Doc, column: ReportColumn) => {
+    const value = doc[column.key];
+    if (value === null || value === undefined || value === "") return "—";
+    switch (column.type) {
+      case "date":
+        return new Date(String(value)).toLocaleDateString(dateLocale);
+      case "bool":
+        return value ? t("contentManagement.yes") : t("contentManagement.no");
+      case "status":
+        return (
+          <span className={`cm-badge${value === "published" ? " cm-badge--published" : ""}`}>
+            {value === "published" ? t("contentManagement.published") : t("contentManagement.draft")}
+          </span>
+        );
+      case "relation": {
+        // depth:1 populates these; fall back to the raw id if it didn't.
+        if (typeof value === "object") {
+          const rel = value as { label?: string; title?: string; email?: string; id?: string | number };
+          return rel.label ?? rel.title ?? rel.email ?? String(rel.id ?? "—");
+        }
+        return String(value);
+      }
+      default:
+        return String(value);
     }
-    await load();
-  };
-
-  const deleteSelected = async () => {
-    if (selected.size === 0) return;
-    if (!window.confirm(t("contentManagement.confirmBulkDelete"))) return;
-    const results = await Promise.allSettled(
-      Array.from(selected).map((selectedId) => {
-        const selectedIdStr = String(selectedId);
-        return fetch(`/api/${tab.slug}/${selectedIdStr}`, { method: "DELETE", credentials: "same-origin" });
-      })
-    );
-    const failed = results.filter((r) => r.status === "rejected" || (r.status === "fulfilled" && !r.value.ok)).length;
-    if (failed > 0) window.alert(t("contentManagement.deleteError"));
-    setSelected(new Set());
-    await load();
   };
 
   const titleOf = (doc: Doc): string => {
     const value = doc[tab.titleField];
-    return typeof value === "string" && value ? value : String(doc.id);
+    return typeof value === "string" && value ? value : `#${String(doc.id)}`;
   };
 
-  const renderListBody = () => {
-    if (loading) {
-      return <p style={{ margin: "1rem", color: "var(--theme-elevation-450)", fontSize: "0.875rem" }}>{t("contentManagement.loading")}</p>;
-    }
-    if (error) {
-      return <p style={{ margin: "1rem", color: "var(--theme-error-500)", fontSize: "0.875rem" }}>{error}</p>;
-    }
-    if (docs.length === 0) {
-      return <p style={{ margin: "1rem", color: "var(--theme-elevation-450)", fontSize: "0.875rem" }}>{t("contentManagement.empty")}</p>;
-    }
+  const renderDetail = () => {
+    if (loading) return <p className="cm-hint">{t("contentManagement.loading")}</p>;
+    if (error) return <p className="cm-error">{error}</p>;
+    if (docs.length === 0) return <p className="cm-hint">{t("contentManagement.empty")}</p>;
     return (
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
-        <thead>
-          <tr style={{ borderBottom: "1px solid var(--theme-elevation-100)" }}>
-            <th style={{ width: 32, padding: "0.5rem 0.75rem" }} />
-            <th style={{ textAlign: "left", padding: "0.5rem 0.75rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
-              {t("contentManagement.colTitle")}
-            </th>
-            {tab.hasDraft && (
-              <th style={{ textAlign: "left", padding: "0.5rem 0.75rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
-                {t("contentManagement.colStatus")}
-              </th>
-            )}
-            <th style={{ textAlign: "left", padding: "0.5rem 0.75rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
-              {t("contentManagement.colUpdated")}
-            </th>
-            <th style={{ padding: "0.5rem 0.75rem" }} />
-          </tr>
-        </thead>
-        <tbody>
-          {docs.map((doc) => {
-            const docId = String(doc.id);
-            const dateLocale = locale === "tr" ? "tr-TR" : "en-US";
-            return (
-              <tr key={docId} style={{ borderBottom: "1px solid var(--theme-elevation-50)" }}>
-                <td style={{ padding: "0.5rem 0.75rem" }}>
-                  <input type="checkbox" checked={selected.has(doc.id)} onChange={() => toggleSelected(doc.id)} />
+      <div className="table-wrap">
+        <table className="cm-table">
+          <thead>
+            <tr>
+              <th>{t("contentManagement.colTitle")}</th>
+              {tab.columns.map((c) => (
+                <th key={c.key}>{c.label[locale]}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {docs.map((doc) => (
+              <tr key={String(doc.id)}>
+                <td>
+                  <Link href={`/admin/collections/${tab.slug}/${String(doc.id)}`}>{titleOf(doc)}</Link>
                 </td>
-                <td style={{ padding: "0.5rem 0.75rem" }}>
-                  <Link href={`/admin/collections/${tab.slug}/${docId}`} style={{ color: "var(--theme-text)", fontWeight: 500 }}>
-                    {titleOf(doc)}
-                  </Link>
-                </td>
-                {tab.hasDraft && (
-                  <td style={{ padding: "0.5rem 0.75rem" }}>
-                    <span
-                      style={{
-                        padding: "0.15rem 0.5rem",
-                        borderRadius: "var(--style-radius-s)",
-                        fontSize: "0.75rem",
-                        background: doc._status === "published" ? "var(--theme-success-100)" : "var(--theme-elevation-100)",
-                        color: doc._status === "published" ? "var(--theme-success-600)" : "var(--theme-elevation-600)",
-                      }}
-                    >
-                      {doc._status === "published" ? t("contentManagement.published") : t("contentManagement.draft")}
-                    </span>
-                  </td>
-                )}
-                <td style={{ padding: "0.5rem 0.75rem", color: "var(--theme-elevation-500)", whiteSpace: "nowrap" }}>
-                  {doc.updatedAt ? new Date(doc.updatedAt).toLocaleDateString(dateLocale) : "—"}
-                </td>
-                <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", whiteSpace: "nowrap" }}>
-                  <Link href={`/admin/collections/${tab.slug}/${docId}`} style={{ marginRight: "0.75rem" }}>
-                    {t("contentManagement.edit")}
-                  </Link>
-                  {tab.canDelete(role) && (
-                    <button
-                      type="button"
-                      onClick={() => deleteOne(doc.id)}
-                      style={{ background: "none", border: "none", color: "var(--theme-error-500)", cursor: "pointer", padding: 0, font: "inherit" }}
-                    >
-                      {t("contentManagement.delete")}
-                    </button>
-                  )}
-                </td>
+                {tab.columns.map((c) => (
+                  <td key={c.key}>{renderCell(doc, c)}</td>
+                ))}
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const renderSummary = () => {
+    if (summaries === null) return <p className="cm-hint">{t("contentManagement.loading")}</p>;
+    return (
+      <div className="table-wrap">
+        <table className="cm-table">
+          <thead>
+            <tr>
+              <th>{t("contentManagement.colCollection")}</th>
+              <th>{t("contentManagement.colTotal")}</th>
+              <th>{t("contentManagement.published")}</th>
+              <th>{t("contentManagement.draft")}</th>
+              <th>{t("contentManagement.colUpdated")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {summaries.map((s) => (
+              <tr key={s.slug}>
+                <td>
+                  <Link href={`/admin/collections/${s.slug}`}>{tabLabel(s.slug, locale)}</Link>
+                </td>
+                {s.total === null ? (
+                  <td colSpan={4} className="cm-muted">
+                    {t("contentManagement.noAccess")}
+                  </td>
+                ) : (
+                  <>
+                    <td>{s.total}</td>
+                    <td>{s.published ?? "—"}</td>
+                    <td>{s.draft ?? "—"}</td>
+                    <td>{s.lastUpdated ? new Date(s.lastUpdated).toLocaleDateString(dateLocale) : "—"}</td>
+                  </>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     );
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1 style={{ margin: "0 0 1.5rem" }}>{t("contentManagement.title")}</h1>
+    <div className="cm">
+      <h1>{t("contentManagement.title")}</h1>
+      <p className="cm-hint">{t("contentManagement.readOnlyNote")}</p>
 
-      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", borderBottom: "1px solid var(--theme-elevation-150)", marginBottom: "1.5rem" }}>
-        {CONTENT_MANAGEMENT_TABS.map((tb) => (
+      <h2 className="cm-section-title">{t("contentManagement.summaryTitle")}</h2>
+      {renderSummary()}
+
+      <h2 className="cm-section-title">{t("contentManagement.detailTitle")}</h2>
+      <div className="cm-tabs">
+        {REPORT_COLLECTIONS.map((c) => (
           <button
-            key={tb.slug}
+            key={c.slug}
             type="button"
-            onClick={() => switchTab(tb.slug)}
-            style={{
-              padding: "0.6rem 1rem",
-              border: "none",
-              borderBottom: tb.slug === activeSlug ? "2px solid var(--vf-red)" : "2px solid transparent",
-              background: "none",
-              cursor: "pointer",
-              fontWeight: tb.slug === activeSlug ? 600 : 400,
-              color: tb.slug === activeSlug ? "var(--theme-text)" : "var(--theme-elevation-500)",
-            }}
+            className={`cm-tab${c.slug === activeSlug ? " cm-tab--active" : ""}`}
+            aria-pressed={c.slug === activeSlug}
+            onClick={() => switchTab(c.slug)}
           >
-            {tabLabel(tb.slug, locale)}
+            {tabLabel(c.slug, locale)}
           </button>
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap" }}>
+      <div className="cm-toolbar">
         <input
           type="text"
+          className="cm-search"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
             setPage(1);
           }}
           placeholder={t("contentManagement.searchPlaceholder")}
-          style={{
-            padding: "0.5rem 0.75rem",
-            border: "1px solid var(--theme-elevation-150)",
-            borderRadius: "var(--style-radius-m)",
-            minWidth: 240,
-          }}
+          aria-label={t("contentManagement.searchPlaceholder")}
         />
-        <span style={{ fontSize: "0.8rem", color: "var(--theme-elevation-450)" }}>
+        <span className="cm-muted">
           {totalDocs} {t("contentManagement.recordCount")}
         </span>
-        <div style={{ flex: 1 }} />
-        {selected.size > 0 && tab.canDelete(role) && (
-          <button type="button" className="btn btn--style-secondary btn--size-medium" onClick={deleteSelected}>
-            <span className="btn__content">
-              <span className="btn__label">
-                {t("contentManagement.deleteSelected")} ({selected.size})
-              </span>
-            </span>
-          </button>
-        )}
-        {tab.canCreate(role) && (
-          <Link href={`/admin/collections/${tab.slug}/create`} className="btn btn--style-primary btn--size-medium">
-            <span className="btn__content">
-              <span className="btn__label">{t("contentManagement.addNew")}</span>
-            </span>
-          </Link>
-        )}
       </div>
 
-      <div className="card" style={{ padding: 0 }}>
-        {renderListBody()}
-      </div>
+      <div className="card cm-card">{renderDetail()}</div>
 
       {totalPages > 1 && (
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginTop: "1rem" }}>
+        <div className="cm-pager">
           <button
             type="button"
             className={`btn btn--style-secondary btn--size-small${page <= 1 ? " btn--disabled" : ""}`}
@@ -289,7 +308,7 @@ export default function ContentManagementApp() {
               <span className="btn__label">←</span>
             </span>
           </button>
-          <span style={{ fontSize: "0.8rem", color: "var(--theme-elevation-500)" }}>
+          <span className="cm-muted">
             {page} / {totalPages}
           </span>
           <button

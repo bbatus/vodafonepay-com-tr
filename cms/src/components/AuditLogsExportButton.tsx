@@ -1,10 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { toast } from "@payloadcms/ui";
-import { useAdminLocale } from "./useAdminLocale";
-import { useDbStrings } from "./useDbStrings";
-import { buildCsv, downloadCsv, formatDateTr } from "@/lib/csv";
+import { formatDateTr } from "@/lib/csv";
+import { CsvExportButton, type CsvTable } from "./CsvExportButton";
 
 type ExportLog = {
   createdAt?: string;
@@ -17,79 +14,52 @@ type ExportLog = {
   userAgent?: string;
 };
 
-const ACTION_LABELS: Record<string, string> = {
-  login: "Giriş",
-  login_failed: "Başarısız giriş",
-  logout: "Çıkış",
-  create: "Oluşturuldu",
-  update: "Güncellendi",
-  publish: "Yayınlandı",
-  rejected: "Reddedildi",
-  delete: "Silindi",
+/**
+ * RFP feedback: audit-log CSV export. Columns only — the fetch/serialise/
+ * download/toast sequence (and the "carry the on-screen where/sort into the
+ * export" behaviour) lives in the shared CsvExportButton.
+ */
+const ACTION_LABELS: Record<string, { tr: string; en: string }> = {
+  login: { tr: "Giriş", en: "Login" },
+  login_failed: { tr: "Başarısız giriş", en: "Failed login" },
+  logout: { tr: "Çıkış", en: "Logout" },
+  create: { tr: "Oluşturuldu", en: "Created" },
+  update: { tr: "Güncellendi", en: "Updated" },
+  publish: { tr: "Yayınlandı", en: "Published" },
+  rejected: { tr: "Reddedildi", en: "Rejected" },
+  delete: { tr: "Silindi", en: "Deleted" },
+  unlock: { tr: "Kilit kaldırıldı", en: "Unlocked" },
 };
 
-/**
- * RFP feedback: audit log CSV export, same lib/csv.ts convention as
- * UsersExportButton. Payload's own list view keeps the active `where`/`sort`
- * filter in the page URL — this reads that straight off
- * `window.location.search` and forwards it, so exporting after searching/
- * filtering exports what's ON SCREEN, not the whole table. `limit` is
- * always overridden to a large number: the visible page is paginated to
- * 10, but an export should include every matching row, not just page 1.
- */
-export default function AuditLogsExportButton() {
-  const locale = useAdminLocale();
-  const t = useDbStrings(locale);
-  const [exporting, setExporting] = useState(false);
+const HEADER = {
+  tr: ["Tarih", "Kullanıcı", "Rol", "İşlem", "Koleksiyon", "Özet", "IP", "Cihaz / Tarayıcı"],
+  en: ["Date", "User", "Role", "Action", "Collection", "Summary", "IP", "Device / Browser"],
+};
 
-  const handleExport = async () => {
-    setExporting(true);
-    try {
-      const currentParams = new URLSearchParams(window.location.search);
-      const params = new URLSearchParams();
-      const where = currentParams.get("where");
-      const sort = currentParams.get("sort");
-      if (where) params.set("where", where);
-      params.set("sort", sort ?? "-createdAt");
-      params.set("limit", "10000");
-      params.set("depth", "0");
-
-      const res = await fetch(`/api/audit-logs?${params.toString()}`, { credentials: "same-origin" });
-      if (!res.ok) throw new Error(String(res.status));
-      const data = await res.json();
-      const docs: ExportLog[] = data.docs ?? [];
-
-      const header = ["Tarih", "Kullanıcı", "Rol", "İşlem", "Koleksiyon", "Özet", "IP", "Cihaz / Tarayıcı"];
-      const rows = docs.map((d) => [
-        formatDateTr(d.createdAt),
-        d.userEmail ?? "",
-        d.userRole ?? "",
-        (d.action && ACTION_LABELS[d.action]) ?? d.action ?? "",
-        d.collectionSlug ?? "",
-        d.summary ?? "",
-        d.ip ?? "",
-        d.userAgent ?? "",
-      ]);
-      const csv = buildCsv(header, rows);
-      downloadCsv(csv, `denetim-kayitlari-${new Date().toISOString().slice(0, 10)}.csv`);
-      toast.success(t("auditLogsExport.done"));
-    } catch {
-      toast.error(t("auditLogsExport.error"));
-    } finally {
-      setExporting(false);
-    }
+function buildTable(docs: ExportLog[], locale: "tr" | "en"): CsvTable {
+  return {
+    header: HEADER[locale],
+    rows: docs.map((d) => [
+      formatDateTr(d.createdAt),
+      d.userEmail ?? "",
+      d.userRole ?? "",
+      (d.action && ACTION_LABELS[d.action]?.[locale]) ?? d.action ?? "",
+      d.collectionSlug ?? "",
+      d.summary ?? "",
+      d.ip ?? "",
+      d.userAgent ?? "",
+    ]),
   };
+}
 
+export default function AuditLogsExportButton() {
   return (
-    <button
-      type="button"
-      className={`btn btn--style-secondary btn--size-medium${exporting ? " btn--disabled" : ""}`}
-      disabled={exporting}
-      onClick={() => void handleExport()}
-    >
-      <span className="btn__content">
-        <span className="btn__label">{exporting ? t("auditLogsExport.exporting") : t("auditLogsExport.button")}</span>
-      </span>
-    </button>
+    <CsvExportButton<ExportLog>
+      collection="audit-logs"
+      defaultSort="-createdAt"
+      filenamePrefix="denetim-kayitlari"
+      translationPrefix="auditLogsExport"
+      buildTable={buildTable}
+    />
   );
 }

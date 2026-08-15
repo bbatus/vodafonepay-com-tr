@@ -49,8 +49,14 @@ export default function RoleAwarePublishButton() {
     rejectReasonPlaceholder: tt("roleAwarePublishButton.rejectReasonPlaceholder"),
     rejectReasonRequired: tt("roleAwarePublishButton.rejectReasonRequired"),
     rejectConfirm: tt("roleAwarePublishButton.rejectConfirm"),
+    liveNotice: tt("roleAwarePublishButton.liveNotice"),
+    unpublish: tt("roleAwarePublishButton.unpublish"),
+    unpublishing: tt("roleAwarePublishButton.unpublishing"),
+    requestUnpublish: tt("roleAwarePublishButton.requestUnpublish"),
+    unpublishRequested: tt("roleAwarePublishButton.unpublishRequested"),
   };
   const role = (user as { role?: string } | undefined)?.role;
+  const userId = (user as { id?: string | number } | undefined)?.id;
 
   const { id, collectionSlug, globalSlug, hasPublishedDoc, setHasPublishedDoc, setMostRecentVersionIsAutosaved, setUnpublishedVersionCount, unpublishedVersionCount } =
     useDocumentInfo();
@@ -61,6 +67,7 @@ export default function RoleAwarePublishButton() {
 
   const [confirming, setConfirming] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [unpublishing, setUnpublishing] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -144,7 +151,54 @@ export default function RoleAwarePublishButton() {
     }
   }, [collectionSlug, config.routes.api, id, localeCode, rejectReason, submit, user]);
 
+  /**
+   * RFP feedback 5.4: a live campaign can't be edited in place — the server
+   * rejects any content change while `_status` is "published" (see
+   * guardPublishedEdit in collections/Campaigns.ts). This is the way OUT of
+   * that state, so an editor gets a route forward instead of an error.
+   *
+   * Roles that can publish can also unpublish directly; Growth Maker can only
+   * ask, and a Checker approving the request is what performs the unpublish.
+   * Both go through the same form submit, so the server hook is what actually
+   * decides — this only picks which button to show.
+   */
+  const doUnpublish = useCallback(
+    async (request: boolean) => {
+      setUnpublishing(true);
+      try {
+        const params = new URLSearchParams({ depth: "0", locale: localeCode || "" }).toString();
+        const path = `/${collectionSlug}${id ? `/${id}` : ""}`;
+        const action = formatAdminURL({ apiRoute: config.routes.api, path: `${path}?${params}` as `/${string}` });
+        const overrides = request
+          ? { unpublishRequest: "pending", unpublishRequestedBy: userId, unpublishRequestedAt: new Date().toISOString() }
+          : { _status: "draft" };
+        const result = await submit({ action, overrides });
+        if (result && typeof window !== "undefined") window.location.reload();
+      } finally {
+        setUnpublishing(false);
+      }
+    },
+    [collectionSlug, config.routes.api, id, localeCode, submit, userId]
+  );
+
   if (role === ROLES.GROWTH_MAKER) {
+    if (hasPublishedDoc) {
+      return (
+        <div className="vf-live-actions">
+          <span className="vf-live-actions__notice">{t.liveNotice}</span>
+          <button
+            type="button"
+            className={`btn btn--style-secondary btn--size-medium${unpublishing ? " btn--disabled" : ""}`}
+            disabled={unpublishing}
+            onClick={() => void doUnpublish(true)}
+          >
+            <span className="btn__content">
+              <span className="btn__label">{unpublishing ? t.unpublishing : t.requestUnpublish}</span>
+            </span>
+          </button>
+        </div>
+      );
+    }
     return (
       <div
         title={t.awaitingTitle}
@@ -164,6 +218,26 @@ export default function RoleAwarePublishButton() {
 
   const previewHref =
     typeof document !== "undefined" ? document.getElementById("preview-button")?.getAttribute("href") : null;
+
+  // RFP feedback 5.4: for roles that CAN unpublish, this is the whole flow —
+  // take it off the air (which sends it back to "İncelemede"), edit, republish.
+  if (hasPublishedDoc && !modified) {
+    return (
+      <div className="vf-live-actions">
+        <span className="vf-live-actions__notice">{t.liveNotice}</span>
+        <button
+          type="button"
+          className={`btn btn--style-secondary btn--size-medium${unpublishing ? " btn--disabled" : ""}`}
+          disabled={unpublishing}
+          onClick={() => void doUnpublish(false)}
+        >
+          <span className="btn__content">
+            <span className="btn__label">{unpublishing ? t.unpublishing : t.unpublish}</span>
+          </span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>

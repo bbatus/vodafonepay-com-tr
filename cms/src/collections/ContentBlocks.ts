@@ -4,6 +4,7 @@ import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead }
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { dbLabel } from "@/lib/collectionLabels";
+import { assignNextOrder, ORDER_FIELD_DESCRIPTION } from "@/hooks/ordering";
 
 /**
  * Generic content block for the several small, one-off sections that used to
@@ -20,6 +21,9 @@ export const ContentBlocks: CollectionConfig = {
     singular: dbLabel("collectionLabel.content-blocks.singular", { tr: "İçerik Bloğu", en: "Content Block" }),
     plural: dbLabel("collectionLabel.content-blocks.plural", { tr: "İçerik Blokları", en: "Content Blocks" }),
   },
+  // RFP feedback 5.5: the list must reflect the `order` field (and the
+  // drag-to-reorder widget's saved sequence), not Payload's fallback order.
+  defaultSort: "order",
   admin: {
     hideAPIURL: true,
     useAsTitle: "title",
@@ -68,10 +72,18 @@ export const ContentBlocks: CollectionConfig = {
     { name: "image", type: "upload", relationTo: "media", admin: { description: "step / slide / logo için" } },
     { name: "youtubeId", type: "text", admin: { description: "video için, örn: 7CCEsOaoH2A" } },
     { name: "linkUrl", type: "text" },
-    { name: "order", type: "number", defaultValue: 0 },
+    {
+      name: "order",
+      type: "number",
+      label: { tr: "Sıra", en: "Order" },
+      defaultValue: 1,
+      min: 1,
+      admin: { description: ORDER_FIELD_DESCRIPTION },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeChange: [assignNextOrder("content-blocks", ["page"])],
     afterChange: [revalidateTag("content-blocks"), auditAfterChange("content-blocks")],
     afterDelete: [revalidateTagOnDelete("content-blocks"), auditAfterDelete("content-blocks")],
   },

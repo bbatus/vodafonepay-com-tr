@@ -60,6 +60,8 @@ export const AuditLogs: CollectionConfig = {
         { label: "Yayınlandı", value: "publish" },
         { label: "Reddedildi", value: "rejected" },
         { label: "Silindi", value: "delete" },
+        // RFP feedback 5.6: who unlocked whose account, and when.
+        { label: "Kilit kaldırıldı", value: "unlock" },
       ],
     },
     { name: "collectionSlug", type: "text", label: "Koleksiyon" },
