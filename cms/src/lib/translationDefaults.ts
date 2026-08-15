@@ -57,6 +57,8 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
     en: "Manage campaigns, pages, and every piece of site content from a single panel. Approval workflows, roles, and audit trails built in — no migration, no lock-in.",
   },
 
+  "rememberEmail.label": { tr: "E-postamı hatırla", en: "Remember my email" },
+
   "dashboardWidgets.summaryTitle": { tr: "İçerik Özeti", en: "Content Summary" },
   "dashboardWidgets.pendingTitle": { tr: "Onay Bekleyen Taslaklar", en: "Pending Drafts" },
   "dashboardWidgets.pendingBody": {

@@ -146,7 +146,7 @@ export default buildConfig({
         Logo: "/components/AdminLogo#default",
         Icon: "/components/AdminIcon#default",
       },
-      beforeLogin: ["/components/LoginBrandPanel#default"],
+      beforeLogin: ["/components/LoginBrandPanel#default", "/components/RememberEmailCheckbox#default"],
       beforeDashboard: ["/components/DashboardWidgets#default"],
       beforeNav: ["/components/SidebarLogo#default", "/components/LocalePreferenceSync#default"],
       afterNavLinks: ["/components/ContentManagementNavLink#default"],
