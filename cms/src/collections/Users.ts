@@ -1,10 +1,85 @@
-import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
+import type { CollectionBeforeChangeHook, CollectionConfig, Endpoint } from "payload";
 import { isNewVerticalMaker, ROLE_OPTIONS, ROLES } from "@/access/roles";
 import { authenticated } from "@/access/authenticated";
 import { auditAfterChange, auditAfterDelete, writeAuditLog, ipOf, userAgentOf } from "@/hooks/audit";
 import { dbLabel } from "@/lib/collectionLabels";
 
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2MB
+const AVATAR_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+
+/**
+ * RFP feedback: `mediaCreate` (access/roles.ts) is Maker-only — a Checker
+ * hitting the normal `POST /api/media` for their own avatar gets a 403.
+ * Widening `mediaCreate` itself would let Checkers upload arbitrary content
+ * media, which is a real scope violation (Checkers review, they don't
+ * create). This is a narrow, purpose-built endpoint instead: any
+ * authenticated user can upload an image through it, but it always creates
+ * the Media doc with `overrideAccess: true` and immediately attaches it to
+ * ONLY the requesting user's own `avatar` field — there's no way to use
+ * this to create general-purpose media or set someone else's avatar.
+ *
+ * Also sidesteps the second complaint (item B1/4b): Payload's admin upload
+ * drawer forces filling in `alt` text for a profile photo, which is
+ * meaningless here — this generates it automatically from the user's email,
+ * the same pattern AccountForm.tsx already uses for the old direct-to-
+ * /api/media flow (see git history) before Checkers could even reach it.
+ */
+const avatarUploadEndpoint: Endpoint = {
+  path: "/me/avatar",
+  method: "post",
+  handler: async (req) => {
+    if (!req.user?.id) {
+      return Response.json({ errors: [{ message: "Giriş yapmalısınız." }] }, { status: 401 });
+    }
+
+    let formData: FormData;
+    try {
+      if (!req.formData) throw new Error("formData unsupported");
+      formData = await req.formData();
+    } catch {
+      return Response.json({ errors: [{ message: "Geçersiz istek gövdesi." }] }, { status: 400 });
+    }
+
+    const file = formData.get("file");
+    if (!(file instanceof File)) {
+      return Response.json({ errors: [{ message: "Dosya bulunamadı." }] }, { status: 400 });
+    }
+    if (file.size > AVATAR_MAX_BYTES) {
+      return Response.json(
+        { errors: [{ message: `Profil fotoğrafı ${AVATAR_MAX_BYTES / (1024 * 1024)}MB'den küçük olmalı.` }] },
+        { status: 400 }
+      );
+    }
+    if (!AVATAR_MIME_TYPES.has(file.type)) {
+      return Response.json({ errors: [{ message: "Sadece JPEG, PNG, WebP veya GIF yükleyebilirsiniz." }] }, { status: 400 });
+    }
+
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const email = (req.user as { email?: string }).email ?? "kullanıcı";
+      const media = await req.payload.create({
+        collection: "media",
+        overrideAccess: true,
+        data: { alt: `${email} — profil fotoğrafı` },
+        file: { data: buffer, mimetype: file.type, name: file.name, size: file.size },
+      });
+      const updated = await req.payload.update({
+        collection: "users",
+        id: req.user.id,
+        overrideAccess: true,
+        disableTransaction: true,
+        context: { skipAudit: true },
+        data: { avatar: media.id },
+        depth: 1,
+      });
+      return Response.json({ doc: updated });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Bilinmeyen hata.";
+      console.error("[users] avatar upload failed:", err);
+      return Response.json({ errors: [{ message }] }, { status: 500 });
+    }
+  },
+};
 
 /** RFP feedback 3.5: profile photo — capped size, checked against the selected Media doc. */
 const enforceAvatarSizeLimit: CollectionBeforeChangeHook = async ({ data, req, originalDoc }) => {
@@ -24,6 +99,7 @@ export const Users: CollectionConfig = {
     singular: dbLabel("collectionLabel.users.singular", { tr: "Kullanıcı", en: "User" }),
     plural: dbLabel("collectionLabel.users.plural", { tr: "Kullanıcılar", en: "Users" }),
   },
+  endpoints: [avatarUploadEndpoint],
   admin: {
     hideAPIURL: true,
     useAsTitle: "email",

@@ -160,6 +160,7 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "accountForm.save": { tr: "Kaydet", en: "Save" },
   "accountForm.localeSaved": { tr: "Dil tercihi kaydedildi.", en: "Language preference saved." },
   "accountForm.localeError": { tr: "Kaydedilemedi.", en: "Couldn't save." },
+  "accountForm.logout": { tr: "Çıkış Yap", en: "Log Out" },
 
   "usersExport.button": { tr: "Dışa Aktar (CSV)", en: "Export (CSV)" },
   "usersExport.exporting": { tr: "Hazırlanıyor…", en: "Preparing…" },

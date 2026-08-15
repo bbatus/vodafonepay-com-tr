@@ -311,6 +311,59 @@ a {
   box-shadow: 0 0 0 2px rgba(230, 0, 0, 0.15);
 }
 
+/* RFP feedback B2: AccountForm.tsx (profil sayfası) — read-only value boxes,
+   avatar upload row, and the locale select+save row, previously all inline
+   styles. Kept as plain divs (not real Payload fields) since the values are
+   genuinely non-editable — the .field-type/.field-label/.field-description
+   classes just make them look consistent with the rest of the admin. */
+.account-form {
+  padding: 2rem 0;
+  max-width: 640px;
+}
+
+.account-form__field {
+  margin-bottom: 1.5rem;
+  max-width: 480px;
+}
+
+.account-form__readonly-value {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-m);
+  background: var(--theme-elevation-50);
+  color: var(--theme-elevation-800);
+}
+
+.account-form__avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.account-form__avatar-image {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.account-form__avatar-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--theme-elevation-100);
+}
+
+.account-form__locale-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.account-form__locale-row select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-m);
+}
+
 /* ---------------------------------------------------------------------
    Top bar / step nav (breadcrumb)
 --------------------------------------------------------------------- */

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { toast } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
@@ -18,6 +19,9 @@ const LOCALE_OPTIONS = [
   { label: "Türkçe", value: "tr" },
   { label: "English", value: "en" },
 ];
+
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+const AVATAR_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 /**
  * RFP feedback 4a-4f, client half of CustomAccountView.tsx. A deliberately
@@ -44,37 +48,47 @@ export default function AccountForm({ user }: { user: AccountUser }) {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Client-side pre-validation — same limits the /api/users/me/avatar
+    // endpoint itself enforces, checked here first so a Checker doesn't
+    // wait on a round-trip just to get told their file is too big/wrong type.
+    if (file.size > AVATAR_MAX_BYTES) {
+      toast.error(`Profil fotoğrafı ${AVATAR_MAX_BYTES / (1024 * 1024)}MB'den küçük olmalı.`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    if (!AVATAR_MIME_TYPES.has(file.type)) {
+      toast.error("Sadece JPEG, PNG, WebP veya GIF yükleyebilirsiniz.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setUploading(true);
     try {
-      // RFP feedback 4b: upload straight to /api/media with an auto-filled
-      // `alt` — Payload's admin upload drawer would otherwise force the
-      // user to type alt text for what's just a profile photo.
-      // Payload's REST upload endpoint only reads non-file fields from a
-      // `_payload` JSON string — plain form fields (e.g. a loose "alt" key)
-      // are silently ignored, which is why an earlier version of this got
-      // "Lütfen geçersiz alanı düzeltin: Alt" even though `alt` was sent.
+      // RFP feedback B1: mediaCreate is Maker-only, so a Checker POSTing
+      // straight to /api/media gets a 403 — this dedicated endpoint
+      // (cms/src/collections/Users.ts) uploads with overrideAccess and
+      // attaches the result to ONLY the caller's own avatar field, so every
+      // role can set their own profile photo without widening mediaCreate.
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("_payload", JSON.stringify({ alt: `${user.email ?? "Kullanıcı"} — profil fotoğrafı` }));
-      const mediaRes = await fetch("/api/media", { method: "POST", credentials: "same-origin", body: formData });
-      if (!mediaRes.ok) throw new Error(String(mediaRes.status));
-      const media = await mediaRes.json();
-      const mediaId = media?.doc?.id;
-      const userRes = await fetch(`/api/users/${user.id}`, {
-        method: "PATCH",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatar: mediaId }),
-      });
-      if (!userRes.ok) throw new Error(String(userRes.status));
-      setAvatarUrl(media?.doc?.url);
+      const res = await fetch("/api/users/me/avatar", { method: "POST", credentials: "same-origin", body: formData });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        const message = body?.errors?.[0]?.message;
+        throw new Error(message || String(res.status));
+      }
+      const updatedAvatar = body?.doc?.avatar;
+      setAvatarUrl(typeof updatedAvatar === "object" ? updatedAvatar?.url : undefined);
       toast.success(t("accountForm.avatarSaved"));
       // RFP feedback 4a: the header icon reads useAuth().user, which only
       // refreshes on a real navigation — reload is the reliable way to make
       // the new photo show up there immediately.
       window.location.reload();
-    } catch {
-      toast.error(t("accountForm.avatarError"));
+    } catch (err) {
+      // Real server-side error message (size/mime/db failure) instead of a
+      // generic toast — RFP feedback explicitly asked for this.
+      toast.error(err instanceof Error && err.message ? err.message : t("accountForm.avatarError"));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -99,68 +113,39 @@ export default function AccountForm({ user }: { user: AccountUser }) {
     }
   };
 
-  const fieldRow: React.CSSProperties = { marginBottom: "1.5rem", maxWidth: 480 };
-  const labelStyle: React.CSSProperties = { display: "block", fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.4rem" };
-  const readOnlyValueStyle: React.CSSProperties = {
-    padding: "0.6rem 0.75rem",
-    border: "1px solid var(--theme-elevation-100)",
-    borderRadius: "var(--style-radius-m)",
-    background: "var(--theme-elevation-50)",
-    color: "var(--theme-elevation-800)",
-  };
-
   return (
-    <div style={{ padding: "2rem 0", maxWidth: 640 }}>
-      <div style={fieldRow}>
-        <span style={labelStyle}>{t("accountForm.email")}</span>
-        <div style={readOnlyValueStyle}>{user.email ?? "—"}</div>
+    <div className="account-form">
+      <div className="field-type account-form__field">
+        <span className="field-label">{t("accountForm.email")}</span>
+        <div className="account-form__readonly-value">{user.email ?? "—"}</div>
       </div>
 
-      <div style={fieldRow}>
-        <span style={labelStyle}>{t("accountForm.role")}</span>
-        <div style={readOnlyValueStyle}>{roleLabel}</div>
-        <p style={{ fontSize: "0.75rem", color: "var(--theme-elevation-450)", margin: "0.35rem 0 0" }}>
-          {t("accountForm.roleDescription")}
-        </p>
+      <div className="field-type account-form__field">
+        <span className="field-label">{t("accountForm.role")}</span>
+        <div className="account-form__readonly-value">{roleLabel}</div>
+        <p className="field-description">{t("accountForm.roleDescription")}</p>
       </div>
 
-      <div style={fieldRow}>
-        <span style={labelStyle}>{t("accountForm.avatar")}</span>
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+      <div className="field-type account-form__field">
+        <span className="field-label">{t("accountForm.avatar")}</span>
+        <div className="account-form__avatar-row">
           {avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- small account-page preview, not content
-            <img src={avatarUrl} alt="" width={56} height={56} style={{ borderRadius: "50%", objectFit: "cover" }} />
+            <img src={avatarUrl} alt="" width={56} height={56} className="account-form__avatar-image" />
           ) : (
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: "50%",
-                background: "var(--theme-elevation-100)",
-              }}
-            />
+            <div className="account-form__avatar-placeholder" />
           )}
           <div>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} disabled={uploading} />
-            <p style={{ fontSize: "0.75rem", color: "var(--theme-elevation-450)", margin: "0.35rem 0 0" }}>
-              {uploading ? t("accountForm.avatarUploading") : t("accountForm.avatarHint")}
-            </p>
+            <p className="field-description">{uploading ? t("accountForm.avatarUploading") : t("accountForm.avatarHint")}</p>
           </div>
         </div>
       </div>
 
-      <div style={fieldRow}>
-        <span style={labelStyle}>{t("accountForm.locale")}</span>
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-          <select
-            value={preferredLocale}
-            onChange={(e) => setPreferredLocale(e.target.value)}
-            style={{
-              padding: "0.5rem 0.75rem",
-              border: "1px solid var(--theme-elevation-150)",
-              borderRadius: "var(--style-radius-m)",
-            }}
-          >
+      <div className="field-type account-form__field">
+        <span className="field-label">{t("accountForm.locale")}</span>
+        <div className="account-form__locale-row">
+          <select value={preferredLocale} onChange={(e) => setPreferredLocale(e.target.value)}>
             {LOCALE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
@@ -178,9 +163,15 @@ export default function AccountForm({ user }: { user: AccountUser }) {
             </span>
           </button>
         </div>
-        <p style={{ fontSize: "0.75rem", color: "var(--theme-elevation-450)", margin: "0.35rem 0 0" }}>
-          {t("accountForm.localeDescription")}
-        </p>
+        <p className="field-description">{t("accountForm.localeDescription")}</p>
+      </div>
+
+      <div className="account-form__field">
+        <Link href="/admin/logout" className="btn btn--style-secondary btn--size-medium">
+          <span className="btn__content">
+            <span className="btn__label">{t("accountForm.logout")}</span>
+          </span>
+        </Link>
       </div>
     </div>
   );
