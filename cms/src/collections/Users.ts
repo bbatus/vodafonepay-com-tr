@@ -1,7 +1,7 @@
 import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
 import { isNewVerticalMaker, ROLE_OPTIONS, ROLES } from "@/access/roles";
 import { authenticated } from "@/access/authenticated";
-import { auditAfterChange, auditAfterDelete, writeAuditLog } from "@/hooks/audit";
+import { auditAfterChange, auditAfterDelete, writeAuditLog, ipOf, userAgentOf } from "@/hooks/audit";
 import { dbLabel } from "@/lib/collectionLabels";
 
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2MB
@@ -122,6 +122,24 @@ export const Users: CollectionConfig = {
         components: { Field: "/components/LoginHistoryField#default" },
       },
     },
+    // RFP feedback: kept alongside `loginHistory` (last 10 logins, queried
+    // from audit-logs) rather than replacing it — these three are a cheap,
+    // always-available snapshot of just the MOST RECENT login, readable
+    // straight off the user doc (no join), which is what the Users CSV
+    // export needs (see UsersExportButton.tsx / A2).
+    {
+      name: "lastLoginAt",
+      type: "date",
+      label: "Son Giriş",
+      admin: { position: "sidebar", readOnly: true, date: { pickerAppearance: "dayAndTime" } },
+    },
+    { name: "lastLoginIp", type: "text", label: "Son Giriş IP", admin: { position: "sidebar", readOnly: true } },
+    {
+      name: "lastLoginUserAgent",
+      type: "text",
+      label: "Son Giriş Cihazı",
+      admin: { position: "sidebar", readOnly: true },
+    },
   ],
   hooks: {
     // RFP §7.2: login/logout must be audited. Failed-login attempts aren't
@@ -129,7 +147,7 @@ export const Users: CollectionConfig = {
     // internal lockout counters (see auth.maxLoginAttempts, not configured).
     afterLogin: [
       async ({ req, user }) => {
-        const typedUser = user as { email?: string; role?: string };
+        const typedUser = user as { id: string | number; email?: string; role?: string };
         const email = typedUser.email ?? "unknown";
         await writeAuditLog(req, {
           action: "login",
@@ -137,6 +155,42 @@ export const Users: CollectionConfig = {
           actorEmail: email,
           actorRole: typedUser.role,
         });
+        // Same IP/user-agent extraction the audit-log entry above just used
+        // (ipOf/userAgentOf, hooks/audit.ts) — kept on the user doc itself so
+        // it's readable without a join (see lastLoginAt/lastLoginIp/
+        // lastLoginUserAgent fields above, and the Users CSV export).
+        //
+        // Deliberately NOT awaited, and this is load-bearing, not a style
+        // choice: the login operation's own transaction is still open here
+        // (it inserts into users_sessions and updates this exact user row),
+        // and AWAITING a second write to a row your own outer transaction
+        // already holds a lock on deadlocks the connection regardless of
+        // `disableTransaction` — the new transaction still has to wait for
+        // the row lock, and the outer transaction won't release it until
+        // this hook returns, which it can't do while awaiting. Confirmed
+        // live: every login request hung indefinitely (curl -m 15 timed out
+        // with zero response) until `pg_terminate_backend` killed the stuck
+        // "idle in transaction" sessions this produced. Firing without
+        // awaiting lets afterLogin return immediately, the outer
+        // transaction commits, the row lock releases, and THEN this update
+        // goes through — a few hundred ms of eventual consistency on a
+        // "last login" timestamp is a non-issue.
+        req.payload
+          .update({
+            collection: "users",
+            id: typedUser.id,
+            overrideAccess: true,
+            disableTransaction: true,
+            context: { skipAudit: true },
+            data: {
+              lastLoginAt: new Date().toISOString(),
+              lastLoginIp: ipOf(req) ?? null,
+              lastLoginUserAgent: userAgentOf(req) ?? null,
+            },
+          })
+          .catch((err: unknown) => {
+            console.error("[users] failed to stamp lastLogin fields:", err);
+          });
       },
     ],
     afterLogout: [

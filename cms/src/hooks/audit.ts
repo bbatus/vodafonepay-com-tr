@@ -66,7 +66,13 @@ export async function writeAuditLog(req: PayloadRequest, entry: {
  * operations under the hood.
  */
 export function auditAfterChange(collectionSlug: string): CollectionAfterChangeHook {
-  return async ({ req, operation, doc, previousDoc }) => {
+  return async ({ req, operation, doc, previousDoc, context }) => {
+    // Users.ts's afterLogin hook stamps lastLoginAt/lastLoginIp/lastLoginUserAgent
+    // via a plain payload.update() on every single login — without this
+    // escape hatch that would double up on the "login" audit entry the same
+    // hook already writes, with a near-duplicate "users: X güncellendi" on
+    // every login. `writeAuditLog` itself still runs for every OTHER update.
+    if (context?.skipAudit) return doc;
     const wasPublished = previousDoc?._status === "published";
     const isPublished = doc?._status === "published";
     let action: "create" | "publish" | "update";

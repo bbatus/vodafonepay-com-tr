@@ -212,6 +212,11 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "collectionLabel.audit-logs.plural": { tr: "Denetim Kayıtları", en: "Audit Logs" },
   "collectionLabel.translations.singular": { tr: "Çeviri", en: "Translation" },
   "collectionLabel.translations.plural": { tr: "Çeviriler", en: "Translations" },
+
+  "auditLogsExport.button": { tr: "Dışa Aktar (CSV)", en: "Export (CSV)" },
+  "auditLogsExport.exporting": { tr: "Hazırlanıyor…", en: "Preparing…" },
+  "auditLogsExport.done": { tr: "Liste indirildi.", en: "List downloaded." },
+  "auditLogsExport.error": { tr: "Liste indirilemedi.", en: "Couldn't download list." },
 };
 
 export function applyPlaceholder(template: string, n: number): string {

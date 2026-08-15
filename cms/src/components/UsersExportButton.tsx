@@ -5,6 +5,7 @@ import { toast } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
 import { ROLE_OPTIONS } from "@/access/roles";
+import { buildCsv, downloadCsv, formatDateTr } from "@/lib/csv";
 
 type ExportUser = {
   email?: string;
@@ -12,6 +13,8 @@ type ExportUser = {
   preferredLocale?: string;
   createdAt?: string;
   updatedAt?: string;
+  lastLoginAt?: string;
+  lastLoginIp?: string;
 };
 
 /**
@@ -21,23 +24,12 @@ type ExportUser = {
  * carries two unpatched high-severity advisories (prototype pollution +
  * ReDoS) on the npm registry — SheetJS moved fixes to their own CDN outside
  * npm. That's incompatible with this repo's zero-known-vulnerability policy
- * (see AGENTS.md, R-13/R-14), so this exports CSV instead: semicolon-delimited
- * (the default list separator for Turkish-locale Excel) with a UTF-8 BOM,
- * which is what actually makes ç/ğ/ı/ö/ş/ü render correctly when Excel
- * double-click-opens the file — without a BOM, Excel guesses ANSI/Windows-1254
- * and mangles them.
+ * (see AGENTS.md, R-13/R-14), so this exports CSV instead — see lib/csv.ts
+ * for why semicolon-delimited + UTF-8 BOM is what actually keeps
+ * ç/ğ/ı/ö/ş/ü intact when Excel opens the file.
  */
-function csvEscape(value: string): string {
-  return `"${value.replaceAll('"', '""')}"`;
-}
-
 function roleLabel(role: string | undefined): string {
   return ROLE_OPTIONS.find((opt) => opt.value === role)?.label ?? role ?? "";
-}
-
-function formatDate(iso: string | undefined): string {
-  if (!iso) return "";
-  return new Date(iso).toLocaleString("tr-TR");
 }
 
 export default function UsersExportButton() {
@@ -53,24 +45,18 @@ export default function UsersExportButton() {
       const data = await res.json();
       const docs: ExportUser[] = data.docs ?? [];
 
-      const header = ["E-posta", "Rol", "Dil Tercihi", "Oluşturulma", "Güncellenme"];
+      const header = ["E-posta", "Rol", "Dil Tercihi", "Son Giriş", "Son Giriş IP", "Oluşturulma", "Güncellenme"];
       const rows = docs.map((u) => [
         u.email ?? "",
         roleLabel(u.role),
         u.preferredLocale === "en" ? "English" : "Türkçe",
-        formatDate(u.createdAt),
-        formatDate(u.updatedAt),
+        formatDateTr(u.lastLoginAt),
+        u.lastLoginIp ?? "",
+        formatDateTr(u.createdAt),
+        formatDateTr(u.updatedAt),
       ]);
-      const csv = [header, ...rows].map((row) => row.map((cell) => csvEscape(String(cell))).join(";")).join("\r\n");
-      const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `kullanicilar-${new Date().toISOString().slice(0, 10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      const csv = buildCsv(header, rows);
+      downloadCsv(csv, `kullanicilar-${new Date().toISOString().slice(0, 10)}.csv`);
       toast.success(t("usersExport.done"));
     } catch {
       toast.error(t("usersExport.error"));

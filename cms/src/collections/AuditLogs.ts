@@ -19,11 +19,15 @@ export const AuditLogs: CollectionConfig = {
   admin: {
     hideAPIURL: true,
     useAsTitle: "summary",
-    defaultColumns: ["createdAt", "userEmail", "action", "collectionSlug", "summary"],
+    defaultColumns: ["createdAt", "userEmail", "action", "collectionSlug", "summary", "ip"],
     group: { tr: "Sistem", en: "System" },
     description: "Salt okunur değişiklik kaydı — kimse bu kayıtları düzenleyemez veya silemez.",
     components: {
-      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "audit-logs" } }],
+      // RFP feedback: "audit log CSV export" — see AuditLogsExportButton.tsx.
+      beforeList: [
+        { path: "/components/HelpButton#default", clientProps: { collection: "audit-logs" } },
+        "/components/AuditLogsExportButton#default",
+      ],
     },
   },
   access: {
@@ -40,12 +44,13 @@ export const AuditLogs: CollectionConfig = {
     delete: () => false,
   },
   fields: [
-    { name: "userEmail", type: "text", required: true },
-    { name: "userRole", type: "text" },
+    { name: "userEmail", type: "text", required: true, label: "Kullanıcı" },
+    { name: "userRole", type: "text", label: "Rol" },
     {
       name: "action",
       type: "select",
       required: true,
+      label: "İşlem",
       options: [
         { label: "Giriş", value: "login" },
         { label: "Başarısız giriş", value: "login_failed" },
@@ -57,10 +62,10 @@ export const AuditLogs: CollectionConfig = {
         { label: "Silindi", value: "delete" },
       ],
     },
-    { name: "collectionSlug", type: "text" },
-    { name: "documentId", type: "text" },
-    { name: "summary", type: "text", required: true },
-    { name: "ip", type: "text" },
-    { name: "userAgent", type: "text", label: "User Agent" },
+    { name: "collectionSlug", type: "text", label: "Koleksiyon" },
+    { name: "documentId", type: "text", label: "Doküman ID" },
+    { name: "summary", type: "text", required: true, label: "Özet" },
+    { name: "ip", type: "text", label: "IP" },
+    { name: "userAgent", type: "text", label: "Cihaz / Tarayıcı" },
   ],
 };
