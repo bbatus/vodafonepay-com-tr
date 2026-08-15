@@ -3,14 +3,19 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
 
 export const FeatureCards: CollectionConfig = {
   slug: "feature-cards",
+  labels: {
+    singular: dbLabel("collectionLabel.feature-cards.singular", { tr: "Özellik Kartı", en: "Feature Card" }),
+    plural: dbLabel("collectionLabel.feature-cards.plural", { tr: "Özellik Kartları", en: "Feature Cards" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "page", "order"],
-    group: "Ürün Sayfaları",
+    group: { tr: "Ürün Sayfaları", en: "Product Pages" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "feature-cards" } },

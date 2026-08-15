@@ -4,14 +4,19 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { sitePreviewUrl } from "@/lib/preview";
+import { dbLabel } from "@/lib/collectionLabels";
 
 export const BlogPosts: CollectionConfig = {
   slug: "blog-posts",
+  labels: {
+    singular: dbLabel("collectionLabel.blog-posts.singular", { tr: "Blog Yazısı", en: "Blog Post" }),
+    plural: dbLabel("collectionLabel.blog-posts.plural", { tr: "Blog Yazıları", en: "Blog Posts" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "category", "publishedDate", "_status"],
-    group: "İçerik",
+    group: { tr: "İçerik", en: "Content" },
     preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/blog/${doc.slug}`) : null),
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "blog-posts" } }],

@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { dbLabel } from "@/lib/collectionLabels";
 
 /**
  * RFP feedback item 1.3: Campaigns' category used to be a hardcoded
@@ -15,11 +16,15 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
  */
 export const Categories: CollectionConfig = {
   slug: "categories",
+  labels: {
+    singular: dbLabel("collectionLabel.categories.singular", { tr: "Kategori", en: "Category" }),
+    plural: dbLabel("collectionLabel.categories.plural", { tr: "Kategoriler", en: "Categories" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "label",
     defaultColumns: ["label", "slug", "order"],
-    group: "İçerik",
+    group: { tr: "İçerik", en: "Content" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "categories" } },

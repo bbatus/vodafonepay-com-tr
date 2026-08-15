@@ -3,14 +3,19 @@ import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { dbLabel } from "@/lib/collectionLabels";
 
 export const FaqItems: CollectionConfig = {
   slug: "faq-items",
+  labels: {
+    singular: dbLabel("collectionLabel.faq-items.singular", { tr: "Sık Sorulan Soru", en: "FAQ Item" }),
+    plural: dbLabel("collectionLabel.faq-items.plural", { tr: "Sık Sorulanlar", en: "FAQ Items" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "question",
     defaultColumns: ["question", "category", "order", "_status"],
-    group: "İçerik",
+    group: { tr: "İçerik", en: "Content" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "faq-items" } },

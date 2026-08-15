@@ -3,6 +3,7 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
 
 /**
  * RFP §3.2.3/§3.2.4/§3.2.6: breadcrumb text and SEO meta (title/description/
@@ -12,11 +13,15 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
  */
 export const PageMeta: CollectionConfig = {
   slug: "page-meta",
+  labels: {
+    singular: dbLabel("collectionLabel.page-meta.singular", { tr: "Sayfa Meta Bilgisi", en: "Page Meta" }),
+    plural: dbLabel("collectionLabel.page-meta.plural", { tr: "Sayfa Meta Bilgileri", en: "Page Metas" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "pageKey",
     defaultColumns: ["pageKey", "breadcrumbLabel", "seoTitle"],
-    group: "Site Yapısı",
+    group: { tr: "Site Yapısı", en: "Site Structure" },
     description: "Sayfa başına breadcrumb metni ve SEO alanları. pageKey, sitedeki route ile birebir eşleşmeli (örn: /aninda-bakiye).",
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "page-meta" } }],

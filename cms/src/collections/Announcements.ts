@@ -3,14 +3,19 @@ import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { dbLabel } from "@/lib/collectionLabels";
 
 export const Announcements: CollectionConfig = {
   slug: "announcements",
+  labels: {
+    singular: dbLabel("collectionLabel.announcements.singular", { tr: "Duyuru", en: "Announcement" }),
+    plural: dbLabel("collectionLabel.announcements.plural", { tr: "Duyurular", en: "Announcements" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "order", "_status"],
-    group: "İçerik",
+    group: { tr: "İçerik", en: "Content" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "announcements" } },

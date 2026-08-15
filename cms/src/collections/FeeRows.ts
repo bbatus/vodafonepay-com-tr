@@ -3,14 +3,19 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
 
 export const FeeRows: CollectionConfig = {
   slug: "fee-rows",
+  labels: {
+    singular: dbLabel("collectionLabel.fee-rows.singular", { tr: "Ücret Satırı", en: "Fee Row" }),
+    plural: dbLabel("collectionLabel.fee-rows.plural", { tr: "Ücret Tablosu", en: "Fee Rows" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "label",
     defaultColumns: ["label", "value", "order"],
-    group: "Ücretler & Limitler",
+    group: { tr: "Ücretler & Limitler", en: "Fees & Limits" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "fee-rows" } },

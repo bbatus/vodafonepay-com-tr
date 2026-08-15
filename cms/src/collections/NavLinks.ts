@@ -3,14 +3,19 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
 
 export const NavLinks: CollectionConfig = {
   slug: "nav-links",
+  labels: {
+    singular: dbLabel("collectionLabel.nav-links.singular", { tr: "Menü Linki", en: "Nav Link" }),
+    plural: dbLabel("collectionLabel.nav-links.plural", { tr: "Menü Linkleri", en: "Nav Links" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "label",
     defaultColumns: ["label", "href", "section", "order"],
-    group: "Site Yapısı",
+    group: { tr: "Site Yapısı", en: "Site Structure" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "nav-links" } },

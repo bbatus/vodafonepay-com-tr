@@ -3,6 +3,7 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
 
 /**
  * Generic content block for the several small, one-off sections that used to
@@ -15,11 +16,15 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
  */
 export const ContentBlocks: CollectionConfig = {
   slug: "content-blocks",
+  labels: {
+    singular: dbLabel("collectionLabel.content-blocks.singular", { tr: "İçerik Bloğu", en: "Content Block" }),
+    plural: dbLabel("collectionLabel.content-blocks.plural", { tr: "İçerik Blokları", en: "Content Blocks" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["page", "blockType", "title", "order"],
-    group: "İçerik",
+    group: { tr: "İçerik", en: "Content" },
     description:
       "StepPhones/AppFeatures/EarnWithCard/FeatureHighlights/VideoGuideSection/VideosWithTabs/BrandLogoGrid gibi tekil bileşenlerin içerik blokları. `page` alanı hangi bileşen/sayfaya ait olduğunu belirler.",
     components: {

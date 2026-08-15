@@ -4,6 +4,7 @@ import { auditAfterChange, auditAfterDelete, writeAuditLog } from "@/hooks/audit
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { campaignsCreate, campaignsReadWrite, denyMakerPublish, isNewVerticalMaker, ROLES } from "@/access/roles";
 import { sitePreviewUrl } from "@/lib/preview";
+import { dbLabel } from "@/lib/collectionLabels";
 
 /**
  * Growth Maker can never publish its own campaigns (denyMakerPublish), but
@@ -66,6 +67,10 @@ const auditRejection: CollectionAfterChangeHook = async ({ req, doc, previousDoc
 
 export const Campaigns: CollectionConfig = {
   slug: "campaigns",
+  labels: {
+    singular: dbLabel("collectionLabel.campaigns.singular", { tr: "Kampanya", en: "Campaign" }),
+    plural: dbLabel("collectionLabel.campaigns.plural", { tr: "Kampanyalar", en: "Campaigns" }),
+  },
   // RFP feedback 2.6: "Çoğalt" (Duplicate) was the source of a real bug —
   // it generated a new doc with an invalid slug (spaces/uppercase, e.g.
   // "...- Copy"), which failed silently before the slug validation added
@@ -78,7 +83,7 @@ export const Campaigns: CollectionConfig = {
     hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "category", "featured", "startDate", "endDate", "_status"],
-    group: "İçerik",
+    group: { tr: "İçerik", en: "Content" },
     // "Yerel hafızaya kopyala" is Payload's copy-to-locale tool (copies
     // field values between locales) — Campaigns has no localized fields,
     // so it did nothing useful here.

@@ -2,14 +2,19 @@ import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
 
 export const Representatives: CollectionConfig = {
   slug: "representatives",
+  labels: {
+    singular: dbLabel("collectionLabel.representatives.singular", { tr: "Temsilci", en: "Representative" }),
+    plural: dbLabel("collectionLabel.representatives.plural", { tr: "Temsilciler", en: "Representatives" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "businessName",
     defaultColumns: ["businessName", "province", "district", "phone"],
-    group: "İçerik",
+    group: { tr: "İçerik", en: "Content" },
     description: "Temsilcilik/bayi kayıtları — /temsilciliklerimiz arama formu ve /temsilci/[id] detay sayfası bu veriyi kullanır.",
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "representatives" } }],

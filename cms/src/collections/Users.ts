@@ -2,6 +2,7 @@ import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
 import { isNewVerticalMaker, ROLE_OPTIONS, ROLES } from "@/access/roles";
 import { authenticated } from "@/access/authenticated";
 import { auditAfterChange, auditAfterDelete, writeAuditLog } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
 
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2MB
 
@@ -19,11 +20,15 @@ const enforceAvatarSizeLimit: CollectionBeforeChangeHook = async ({ data, req, o
 
 export const Users: CollectionConfig = {
   slug: "users",
+  labels: {
+    singular: dbLabel("collectionLabel.users.singular", { tr: "Kullanıcı", en: "User" }),
+    plural: dbLabel("collectionLabel.users.plural", { tr: "Kullanıcılar", en: "Users" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "email",
     defaultColumns: ["email", "role"],
-    group: "Sistem",
+    group: { tr: "Sistem", en: "System" },
     components: {
       // RFP feedback: "users listesinde export alabilmeliydik" — see
       // UsersExportButton.tsx for why CSV (not a real .xlsx) was the choice.

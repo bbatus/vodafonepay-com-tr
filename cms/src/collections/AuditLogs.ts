@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker } from "@/access/roles";
+import { dbLabel } from "@/lib/collectionLabels";
 
 /**
  * RFP §3.1.15 / §7.2: a change history that survives independently of each
@@ -11,11 +12,15 @@ import { isNewVerticalMaker } from "@/access/roles";
  */
 export const AuditLogs: CollectionConfig = {
   slug: "audit-logs",
+  labels: {
+    singular: dbLabel("collectionLabel.audit-logs.singular", { tr: "Denetim Kaydı", en: "Audit Log" }),
+    plural: dbLabel("collectionLabel.audit-logs.plural", { tr: "Denetim Kayıtları", en: "Audit Logs" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "summary",
     defaultColumns: ["createdAt", "userEmail", "action", "collectionSlug", "summary"],
-    group: "Sistem",
+    group: { tr: "Sistem", en: "System" },
     description: "Salt okunur değişiklik kaydı — kimse bu kayıtları düzenleyemez veya silemez.",
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "audit-logs" } }],

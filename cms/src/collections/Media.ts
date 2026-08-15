@@ -1,12 +1,17 @@
 import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker, mediaCreate, newVerticalReadWrite } from "@/access/roles";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
 
 export const Media: CollectionConfig = {
   slug: "media",
+  labels: {
+    singular: dbLabel("collectionLabel.media.singular", { tr: "Medya", en: "Media" }),
+    plural: dbLabel("collectionLabel.media.plural", { tr: "Medya", en: "Media" }),
+  },
   admin: {
     hideAPIURL: true,
-    group: "Sistem",
+    group: { tr: "Sistem", en: "System" },
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "media" } }],
     },

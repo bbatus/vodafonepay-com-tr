@@ -3,14 +3,19 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
 
 export const StepCards: CollectionConfig = {
   slug: "step-cards",
+  labels: {
+    singular: dbLabel("collectionLabel.step-cards.singular", { tr: "Adım Kartı", en: "Step Card" }),
+    plural: dbLabel("collectionLabel.step-cards.plural", { tr: "Adım Kartları", en: "Step Cards" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "text",
     defaultColumns: ["page", "number", "order"],
-    group: "Ürün Sayfaları",
+    group: { tr: "Ürün Sayfaları", en: "Product Pages" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "step-cards" } },

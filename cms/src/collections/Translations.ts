@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { isNewVerticalMaker } from "@/access/roles";
+import { dbLabel, refreshLabelCache } from "@/lib/collectionLabels";
 
 /**
  * RFP feedback 3.2: "localization için kullandığımız her şeyi bi database
@@ -21,11 +22,15 @@ import { isNewVerticalMaker } from "@/access/roles";
  */
 export const Translations: CollectionConfig = {
   slug: "translations",
+  labels: {
+    singular: dbLabel("collectionLabel.translations.singular", { tr: "Çeviri", en: "Translation" }),
+    plural: dbLabel("collectionLabel.translations.plural", { tr: "Çeviriler", en: "Translations" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "key",
     defaultColumns: ["key", "tr", "en"],
-    group: "Sistem",
+    group: { tr: "Sistem", en: "System" },
     description:
       "Admin panelindeki özel bileşenlerin (sidebar, butonlar, login ekranı vb.) metinleri. 'key' değerini değiştirmeyin — kod bu değere göre metni bulur.",
   },
@@ -46,4 +51,19 @@ export const Translations: CollectionConfig = {
     { name: "tr", type: "text", required: true, label: "Türkçe" },
     { name: "en", type: "text", required: true, label: "English" },
   ],
+  hooks: {
+    // Collection/group labels are read from a module-level cache (see
+    // collectionLabels.ts) rather than a fresh DB query on every sidebar
+    // render — refresh it whenever a row actually changes.
+    afterChange: [
+      async ({ req }) => {
+        await refreshLabelCache(req.payload);
+      },
+    ],
+    afterDelete: [
+      async ({ req }) => {
+        await refreshLabelCache(req.payload);
+      },
+    ],
+  },
 };

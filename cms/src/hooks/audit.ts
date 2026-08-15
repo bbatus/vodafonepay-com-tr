@@ -5,7 +5,12 @@ function actorOf(req: PayloadRequest): { email: string; role?: string } {
   return { email: user?.email ?? "unknown", role: user?.role };
 }
 
-function ipOf(req: PayloadRequest): string | undefined {
+/**
+ * Exported so Users.ts's `afterLogin` hook can stamp `lastLoginIp` with the
+ * exact same extraction logic this file already uses for every audit-log
+ * entry — one definition of "how do we read the client IP", not two.
+ */
+export function ipOf(req: PayloadRequest): string | undefined {
   // PayloadRequest wraps a standard Request — Node/Next don't expose a
   // single canonical client-IP field, so this covers the headers a proxy
   // (or Next.js itself) is actually likely to set.
@@ -17,7 +22,7 @@ function ipOf(req: PayloadRequest): string | undefined {
 }
 
 /** RFP feedback 3.5: profile login history shows the browser/device (Mozilla/5.0 ...). */
-function userAgentOf(req: PayloadRequest): string | undefined {
+export function userAgentOf(req: PayloadRequest): string | undefined {
   return req.headers?.get?.("user-agent") || undefined;
 }
 

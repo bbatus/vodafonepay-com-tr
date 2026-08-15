@@ -34,6 +34,7 @@ import { ContactInfo } from "./src/globals/ContactInfo";
 import { ROLES } from "./src/access/roles";
 import { env } from "./src/env";
 import { TRANSLATION_DEFAULTS } from "./src/lib/translationDefaults";
+import { refreshLabelCache } from "./src/lib/collectionLabels";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -195,6 +196,7 @@ export default buildConfig({
       }
       payload.logger.info(`[translations] Seeded ${missing.length} new default translation row(s).`);
     }
+    await refreshLabelCache(payload);
 
     if (!autoLoginEnabled) return;
     const existing = await payload.find({

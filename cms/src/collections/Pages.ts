@@ -4,6 +4,7 @@ import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead }
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { sitePreviewUrl } from "@/lib/preview";
+import { dbLabel } from "@/lib/collectionLabels";
 
 /**
  * RFP §3.3 (Lifecycle Management) / §3.2.13 (drag-and-drop web page design):
@@ -97,11 +98,15 @@ const LogoGridBlock: Block = {
 
 export const Pages: CollectionConfig = {
   slug: "pages",
+  labels: {
+    singular: dbLabel("collectionLabel.pages.singular", { tr: "Sayfa", en: "Page" }),
+    plural: dbLabel("collectionLabel.pages.plural", { tr: "Sayfalar", en: "Pages" }),
+  },
   admin: {
     hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "slug", "_status"],
-    group: "İçerik",
+    group: { tr: "İçerik", en: "Content" },
     description: "Yeni sayfalar (kampanya landing, hub sayfası vb.) — geliştirici gerekmeden, blokları sürükleyip bırakarak oluşturulur.",
     preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/${doc.slug}`) : null),
     components: {
