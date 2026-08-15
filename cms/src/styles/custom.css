@@ -330,6 +330,35 @@ a {
   box-shadow: 0 0 0 2px rgba(230, 0, 0, 0.15);
 }
 
+/* Faz H accessibility audit: the list view's search box had zero visible
+   focus indicator on :focus-visible (confirmed live via real Tab-key
+   navigation) — a WCAG 2.4.7 gap for keyboard users trying to find it.
+   Document-edit fields already get a focus ring via `.field-type
+   input:focus` above; this is the list-view search input specifically,
+   which isn't a `.field-type`. */
+/* !important: Payload's own base stylesheet explicitly zeroes out this
+   exact input's focus outline and box-shadow at an equal-or-higher cascade
+   priority than an unlayered override with matching specificity — confirmed
+   by inspecting the loaded stylesheet at runtime. Normal specificity can't
+   win here without duplicating Payload's own selector chain. */
+.search-filter__input:focus {
+  border-color: var(--vf-red) !important;
+  box-shadow: 0 0 0 2px rgba(230, 0, 0, 0.15) !important;
+  outline: 2px solid var(--vf-red) !important;
+  outline-offset: 1px;
+}
+
+/* Faz H audit: on narrow viewports a wide collection table (many columns)
+   silently overflowed past the viewport with no way to reach the cut-off
+   columns — the page itself doesn't scroll horizontally (Payload sets
+   `overflow-x: hidden` on body), so the content was just unreachable.
+   Scoping the scroll to the table's own wrapper keeps the rest of the
+   layout (sidebar, topbar) fixed while the table itself becomes swipeable. */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* RFP feedback B2: AccountForm.tsx (profil sayfası) — read-only value boxes,
    avatar upload row, and the locale select+save row, previously all inline
    styles. Kept as plain divs (not real Payload fields) since the values are
