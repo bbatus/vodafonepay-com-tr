@@ -299,37 +299,53 @@ export const Users: CollectionConfig = {
         // it's readable without a join (see lastLoginAt/lastLoginIp/
         // lastLoginUserAgent fields above, and the Users CSV export).
         //
-        // Deliberately NOT awaited, and this is load-bearing, not a style
-        // choice: the login operation's own transaction is still open here
-        // (it inserts into users_sessions and updates this exact user row),
-        // and AWAITING a second write to a row your own outer transaction
-        // already holds a lock on deadlocks the connection regardless of
-        // `disableTransaction` — the new transaction still has to wait for
-        // the row lock, and the outer transaction won't release it until
-        // this hook returns, which it can't do while awaiting. Confirmed
-        // live: every login request hung indefinitely (curl -m 15 timed out
-        // with zero response) until `pg_terminate_backend` killed the stuck
-        // "idle in transaction" sessions this produced. Firing without
-        // awaiting lets afterLogin return immediately, the outer
-        // transaction commits, the row lock releases, and THEN this update
-        // goes through — a few hundred ms of eventual consistency on a
-        // "last login" timestamp is a non-issue.
-        req.payload
-          .update({
+        // THIS IS A DB-LEVEL COLUMN WRITE, JOINED TO THE LOGIN TRANSACTION.
+        // Both of the obvious alternatives are broken, and both were shipped
+        // here before:
+        //
+        //   1. `await payload.update(...)` in a SEPARATE transaction
+        //      deadlocks. The login transaction is still open and already
+        //      holds a lock on this exact user row; a second transaction
+        //      waits for that lock, and the outer one can't commit until this
+        //      hook returns. Confirmed live: every login hung until the stuck
+        //      backends were killed.
+        //
+        //   2. Firing the same `payload.update(...)` WITHOUT awaiting (the
+        //      previous fix for #1) silently destroys the session the login
+        //      just created. `payload.update` is a DOCUMENT write: it re-reads
+        //      the user and writes the whole thing back, `sessions` array
+        //      included. Racing the login's own `users_sessions` insert, it
+        //      writes back the array as it was BEFORE that insert — deleting
+        //      the new session row. The user gets HTTP 200 from /login and is
+        //      then immediately unauthenticated, because the `sid` in their
+        //      JWT no longer resolves. Confirmed live: `users_sessions` never
+        //      grew for an affected user across repeated logins, `/api/users/me`
+        //      returned `user: null` with a valid fresh cookie, and disabling
+        //      this block made both symptoms disappear at once.
+        //
+        // `payload.db.updateOne` writes only the named columns on the `users`
+        // table and never touches the `users_sessions` child table, so there's
+        // nothing to clobber. Passing `req` joins the login's own transaction
+        // instead of competing with it, so there's no second lock holder and
+        // nothing to deadlock against. This is exactly how Payload's own
+        // `resetLoginAttempts`/`incrementLoginAttempts` update auth columns
+        // from inside this same operation.
+        try {
+          await req.payload.db.updateOne({
             collection: "users",
             id: typedUser.id,
-            overrideAccess: true,
-            disableTransaction: true,
-            context: { skipAudit: true },
+            req,
+            returning: false,
             data: {
               lastLoginAt: new Date().toISOString(),
               lastLoginIp: ipOf(req) ?? null,
               lastLoginUserAgent: userAgentOf(req) ?? null,
             },
-          })
-          .catch((err: unknown) => {
-            console.error("[users] failed to stamp lastLogin fields:", err);
           });
+        } catch (err) {
+          // Never let a "last login" stamp be the reason a login fails.
+          console.error("[users] failed to stamp lastLogin fields:", err);
+        }
       },
     ],
     afterLogout: [
