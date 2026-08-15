@@ -91,6 +91,7 @@ tarihsel/madde-madde detay taşıyorlar — silinmediler, sadece günlük takip 
 
 | Dosya | Ne için |
 |---|---|
+| `docs/DUZELTME-TURU-RAPORU.md` | "Düzeltme & İyileştirme Turu" (Faz 0/A-H) — kök-neden analizleri (`/kampanyalar` bug'ı, profil fotoğrafı, audit-logs matris), bilinçli yapılmayanlar, rol-rol doğrulama, açık riskler. |
 | `docs/CMS-USER-TESTS.md` | Kullanıcının CMS'i uçtan uca test ederken verdiği ham geri bildirimin birebir kaydı + her maddenin DoD/fix/test detayı (4 bölüm, 35 madde). |
 | `docs/RFP-OPEN-ITEMS.md` | RFP'nin her maddesinin (§3.1-§7) bu repo'daki güncel karşılığı — ✅/🟡/❌/⬜ notasyonuyla. |
 | `docs/RUNBOOK.md` | Uçtan uca RBAC/collection test senaryoları — yeni bir rol/collection eklendiğinde nasıl test edileceği. |
