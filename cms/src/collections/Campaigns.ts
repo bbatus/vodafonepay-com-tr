@@ -83,7 +83,12 @@ export const Campaigns: CollectionConfig = {
     // field values between locales) — Campaigns has no localized fields,
     // so it did nothing useful here.
     disableCopyToLocale: true,
-    preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/kampanyalar/${doc.slug}`) : null),
+    // RFP feedback: the detail page's big hero image made a single-campaign
+    // preview look "too large"; the full /kampanyalar list page (tried next)
+    // showed unrelated featured cards + header/nav noise. What an editor
+    // actually wants is just THIS card, exactly as it'll render on the real
+    // listing page — see kampanyalar/[slug]/kart-onizleme/page.tsx.
+    preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/kampanyalar/${doc.slug}/kart-onizleme`) : null),
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "campaigns" } }],
       edit: {

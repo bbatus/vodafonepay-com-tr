@@ -52,6 +52,16 @@ export default function RootLayout({
       lang="tr"
       className={`${vodafoneRegular.variable} ${vodafoneLight.variable} ${vodafoneBold.variable} h-full antialiased`}
     >
+      <head>
+        {/* RFP feedback: hide this site's own scrollbar only when it's
+            embedded in the CMS's publish-preview iframe (see globals.css) —
+            runs synchronously, before paint, so there's no scrollbar flash. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(window.self!==window.top){document.documentElement.setAttribute('data-embedded-preview','')}}catch(e){document.documentElement.setAttribute('data-embedded-preview','')}`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
