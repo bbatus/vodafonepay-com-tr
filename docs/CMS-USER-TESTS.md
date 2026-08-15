@@ -482,7 +482,7 @@ Her madde için birlikte şu alanları dolduracağız:
   - `users` hedefine giden 3 referans (`campaigns.createdBy`, `campaigns.rejectedBy`, `media.uploadedBy`) bilinçli olarak **engellemiyor**: bunlar içerik bağımlılığı değil, "kim yaptı" bilgisi. Engellemek, bir şeye bir kez dokunmuş hiçbir kullanıcının hesabının kapatılamaması demek olurdu. Bunun yerine silme sırasında hangi alanların boşaldığı **audit log'a** yazılıyor.
   - `MediaUsageField.tsx` artık aynı `REFERENCE_MAP`'i okuyor — "silinemez, kullanımda" hatası ile "kullanıldığı yerler" paneli birbirinden ayrışamıyor. (Bu bileşen ayrıca koleksiyon adlarını hardcoded Türkçe basıyordu, EN'e geçince değişmiyordu; o da düzeldi.)
   - **Silme onayı:** Payload'ın kendi edit görünümü ve liste bulk-delete'i zaten onay modalı gösteriyor. Onaysız üçüncü yol olan `ContentManagementApp`'in silme aksiyonları 5.9 kapsamında tamamen kaldırıldı — yani artık onaysız silme yolu yok.
-- **Test edildi mi:** Evet — 5 birim testi (referanslıyken engellenir, referanssızken geçer, referans kaldırılınca geçer, probe hata verince kapalı düşer, mesaj dile göre üretilir) + canlı doğrulama (bkz. tur raporu §Manuel doğrulama).
+- **Test edildi mi:** Evet — 5 birim testi (referanslıyken engellenir, referanssızken geçer, referans kaldırılınca geçer, probe hata verince kapalı düşer, mesaj dile göre üretilir) **+ canlı:** NV Maker ile 18+ kampanyası olan "Genel" kategorisi silinmeye çalışıldı — Payload'ın onay kutusu kaydı adıyla sordu, onaylayınca silme engellendi ve hata mesajı *"'Genel' (Kategori) silinemedi — 23 kayıt hâlâ buna bağlı"* + 3 kampanyanın adı ve edit linki + "…ve 20 kayıt daha" gösterdi. Kategori silinmedi.
 - **Yorumlarım:**
 
 ### 5.2
@@ -491,7 +491,7 @@ Her madde için birlikte şu alanları dolduracağız:
 - **Durum:** Tamamlandı
 - **DoD:** "Tümü" seçiliyken mevcut davranış korunsun; belirli bir kategori seçilince tek bir liste görünsün, ayrı "Bu ayın favorileri" bloğu olmasın — ve o kategorinin favori kampanyaları da kaybolmasın.
 - **Nasıl fixlendi:** `CampaignsFilterableList` iki **önceden ayrılmış** dizi (`favorites` = featured, `allCampaigns` = geri kalan) alıp her birini ayrı filtreliyordu. Bu, bildirdiğin bug'ın üstüne ikinci bir bug taşıyordu: favori bir kampanya SADECE `favorites` dizisinde olduğu için, favoriler bloğunu kaldırmak o kampanyaları sayfadan **tamamen** yok ederdi. Bileşen artık `featured` bayrağını taşıyan **tek bir liste** alıyor ve iki görünümü de ondan türetiyor — bir kampanyanın hiçbir listede olmaması imkânsız. Kategori seçiliyken başlık o kategorinin kendi adı oluyor.
-- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Test edildi mi:** Evet — canlı sitede "Genel" sekmesi seçildi: tek liste, başlık "Genel", favoriler bloğu yok, o kategorinin favori kampanyaları da listede.
 - **Yorumlarım:**
 
 ### 5.3
@@ -507,7 +507,7 @@ Her madde için birlikte şu alanları dolduracağız:
   - Kart `flex flex-col` + CTA'da `mt-auto` oldu: tarihli/tarihsiz karışık bir listede kartların yüksekliği ve "Detayları gör" hizası bozulmuyor.
   - Detay sayfasındaki eski etiketsiz `14.07.2026 – 15.08.2026` satırı da aynı bileşene çevrildi.
   - `getCampaigns()` sorgusu artık `startDate`/`endDate` de çekiyor (detay sorgusu zaten çekiyordu).
-- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Test edildi mi:** Evet — canlı sitede kartlarda "Kampanya Tarihi 27.08.2026 - 28.08.2026" göründü; tarihi olmayan kartta blok hiç render edilmedi; aynı satırdaki kartların yüksekliği (412/412/412 px) ve CTA hizası (364/364/364 px) tarihli/tarihsiz fark etmeksizin eşit ölçüldü.
 - **Yorumlarım:**
 
 ### 5.4
@@ -521,7 +521,7 @@ Her madde için birlikte şu alanları dolduracağız:
   - **Rol rol davranış:** Growth Maker yayından kaldıramıyor, sadece **talep** açabiliyor (buton: "Yayından Kaldırma Talebi Oluştur"). Yayınlama yetkisi olan roller (NV Maker, NV Checker, Growth Checker) doğrudan yayından kaldırabiliyor — "yayınlayabilen, yayından da kaldırabilir"; onay adımı zaten bu roller tarafından veriliyor.
   - Yayından kaldırma otomatik olarak `reviewStatus`'ü "İncelemede"ye çeviriyor ve talebi temizliyor — yani düzenleme bitince normal onay akışıyla yayına dönüyor.
   - **`createdAt`:** Payload bu alanı sadece INSERT'te yazıyor; unpublish → düzenle → yeniden yayınla döngüsü ona hiç dokunmuyor. Hem `defaultSort: "-createdAt"` (admin) hem site tarafındaki `sort=-createdAt` için sıra korunuyor. Bunu bir birim testi de doğruluyor.
-- **Test edildi mi:** Evet — 7 birim testi (4 rolün her birinde içerik düzenleme engellenir, 409 döner, metadata-only yazım geçer, yetkili roller yayından kaldırabilir, Growth Maker kaldıramaz, taslak dokümana karışmaz, `createdAt` değişmez) + canlı doğrulama.
+- **Test edildi mi:** Evet — 7 birim testi + **canlı, iki rolle:** (1) NV Maker yayındaki kampanyayı düzenleyip yayınlamayı denedi → 409 ve tam yönlendirme mesajı. (2) "Yayından Kaldır ve Düzenle" → durum Taslak, İnceleme Durumu otomatik "İncelemede", **Oluşturma tarihi değişmedi (13 Ağustos)**; yeniden yayınlandığında kampanya listede **7. sırada kaldı, en üste çıkmadı**. (3) Growth Maker'da buton "Yayından Kaldırma Talebi Oluştur" olarak göründü ve talep kaydedildi; aynı rolde taslağı yayınlama **403**, yayındaki içeriği düzenleme **409**, tek başına yayından kaldırma **403** — görev ayrımı korunuyor.
 - **Yorumlarım:**
 
 ### 5.5
@@ -551,7 +551,7 @@ Her madde için birlikte şu alanları dolduracağız:
   - **Yetki sunucuda:** `Users.access.unlock = isNewVerticalMaker`. Ekrandaki butonun gizlenmesi sadece kozmetik; diğer roller API'den denese de reddediliyor.
   - Her kilit açma audit log'a `unlock` aksiyonuyla yazılıyor (`AuditLogs.action`'a yeni seçenek + Postgres enum'una `ALTER TYPE`).
   - **Başarısız girişler de artık loglanıyor.** Önceki tur "Payload bunun için hook açmıyor" demişti — login hook'ları için doğru (Payload `AuthenticationError`'ı `beforeLogin`/`afterLogin` çalışmadan ÖNCE fırlatıyor, `auth/operations/login.js`'teki `if (!authResult)` dalı), ama `afterError` bunu görüyor. `login_failed` aksiyonu oradan yazılıyor.
-- **Test edildi mi:** Evet — 3 birim testi (politika değerleri, `lockUntil` görünür + liste kolonunda, sadece NV Maker `unlock` yapabilir; diğer 3 rol ve anonim reddedilir) + canlı doğrulama.
+- **Test edildi mi:** Evet — 3 birim testi **+ canlı:** bir hesap kilitlendi, `/admin/locked-accounts` ekranında listelendi, "Kilidi Kaldır" ile açıldı; DB'de `login_attempts=0` / `lock_until=NULL` doğrulandı ve audit log'a *"test-growth-checker@… hesabının kilidi kaldırıldı"* kaydı (aktör: test-nv-maker) düştü. Growth Maker ile: sidebar'da link yok, sayfa "sadece New Vertical Maker rolündeki kullanıcılar içindir" dedi.
 - **Yorumlarım:**
 
 ### 5.7
@@ -566,7 +566,7 @@ Her madde için birlikte şu alanları dolduracağız:
   - **Karar (senin onayınla): kapatıldı.** CSS ile gizlemek yerine `localization` tamamen kaldırıldı — gizlemek `?locale=en`'i URL'den erişilebilir bırakır ve yarım konfigürasyon yerinde kalırdı. Bunu **şimdi** yapmak güvenliydi çünkü `pages`, `pages_locales` ve `_pages_v_locales` tablolarının **sıfır satır** olduğu doğrulandı — kaybolacak içerik yoktu. `Pages.title` ana tabloya geri taşındı.
   - Admin arayüz dili tarafında zaten tek değiştirici profildeki alandı (Payload'ın kendi "Ayarlar" dil bloğu 4.4'te Account görünümü değiştirilirken kalkmıştı). `LocalePreferenceSync` sadeleşti: eskiden oturum başına bir kez çalışıp "geçici üst bar değişikliğiyle" kavga etmemeye çalışıyordu; öyle bir değiştirici kalmadığı için artık koşulsuz senkronize ediyor — cookie ile kayıtlı tercih arasında sapma kalmıyor.
   - İleride gerçekten çok dilli içerik istenirse bu bilinçli bir proje: hangi alanların çevrilebilir olacağı, gerçek İngilizce içerik ve incelenmiş bir veri migrasyonu gerekir. Önceki turun bulgusu hâlâ geçerli (mevcut sürüm geçmişi olan bir koleksiyonda alanı localize etmek drizzle push'u interaktif prompt'ta kilitliyor).
-- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Test edildi mi:** Evet — panelin üst barında içerik locale seçicisi artık yok; admin dili yalnızca profildeki "Dil Tercihi" ile değişiyor.
 - **Yorumlarım:**
 
 ### 5.8
@@ -575,7 +575,7 @@ Her madde için birlikte şu alanları dolduracağız:
 - **Durum:** Tamamlandı
 - **DoD:** Etiket her iki dilde de "Remember me" olsun; kullanıcı parolasının saklandığını sanmasın.
 - **Nasıl fixlendi:** `rememberEmail.label` TR ve EN'de **"Remember me"** — bilinçli olarak çevrilmedi. Yanına küçük bir yardım metni eklendi: *"Sadece e-posta adresiniz bu tarayıcıda hatırlanır — parolanız hiçbir zaman saklanmaz."* (EN karşılığıyla). Bu metin çevriliyor; asıl etiket çevrilmiyor. Checkbox'a `:focus-visible` halkası ve 24px dokunma hedefi de eklendi.
-- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Test edildi mi:** Evet — login ekranında etiket "Remember me", altında "Sadece e-posta adresiniz bu tarayıcıda hatırlanır — parolanız hiçbir zaman saklanmaz." göründü.
 - **Yorumlarım:**
 
 ### 5.9
@@ -590,7 +590,7 @@ Her madde için birlikte şu alanları dolduracağız:
   - **Sekmesi olmayan 2 koleksiyon ve gerekçeleri:** `audit-logs` — kendi ekranı, kendi CSV export'u ve kendi rol bazlı okuma kapsamı olan append-only güvenlik kaydı; satır satır kopyalamak o ekranı tekrar eder ve raporlaması gereken içeriği gömerdi. `translations` — panelin kendi arayüz metinleri (`key`/`tr`/`en`); site içeriği değil, altyapı. **İkisinin de sayıları özet tablosunda var.**
   - **Erişim kontrolü yeniden yazılmadı:** her istek tarayıcının oturum çerezini taşıyan düz bir REST çağrısı, `overrideAccess` hiç kullanılmıyor. Bir rolün okuyamadığı koleksiyon **kayıt sayısı bile göstermiyor** — "Bu koleksiyonu görüntüleme yetkiniz yok" diyor (bu yüzden sayaç `number` değil `number | null`).
   - Sayfadaki tüm inline style'lar `custom.css`'e taşındı; tablolar `.table-wrap` içinde (dar ekranda yatay kaydırma), sekmeler 44px dokunma hedefi ve focus halkası taşıyor.
-- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Test edildi mi:** Evet — **iki rolle:** NV Maker'da 22 koleksiyonun tamamı özet tabloda, 20 detay sekmesi, hiçbir ekle/düzenle/sil butonu yok. Growth Maker'da sayfa açılıyor ama Kullanıcılar ve Denetim Kayıtları satırları **sayı bile göstermeden** "Bu koleksiyonu görüntüleme yetkiniz yok" diyor — erişim kontrolü gerçek. Dar viewport'ta yatay taşma yok, tablolar `.table-wrap` içinde kaydırılabiliyor, sekme dokunma hedefi 44px.
 - **Yorumlarım:**
 
 ### 5.10
@@ -607,7 +607,7 @@ Her madde için birlikte şu alanları dolduracağız:
   - **TR başlık:** "Sitenizin tek kumanda merkezi." — İngilizcenin motamot çevirisi değil; Türkçede kendi başına duran, aynı şeyi söyleyen bir cümle.
   - **TR alt metin:** "vodafonepay.com.tr'deki kampanyaları, sayfaları, duyuruları ve SSS'leri tek yerden yönetin. Onay akışı, roller ve denetim kaydı kutudan çıkar — ne göç, ne bağımlılık."
   - **EN alt metin:** "Run every campaign, page, announcement and FAQ on vodafonepay.com.tr from one place. Approval workflows, roles and audit trails come built in — no migration, no lock-in."
-- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Test edildi mi:** Evet — login ekranında yeni başlık ve alt metin göründü. **Bu sırada gerçek bir bug bulundu:** `translationDefaults.ts`'i değiştirmek, satır bir kez seed edildikten sonra hiçbir işe yaramıyordu (kod bir şey söylüyor, ekran eskisini gösteriyordu). Seeder düzeltildi — bkz. tur raporu §5b.1.
 - **Yorumlarım:**
 
 ### 5.11
@@ -620,7 +620,7 @@ Her madde için birlikte şu alanları dolduracağız:
   - Tarihler `tr-TR`, boolean'lar "Evet/Hayır", durum alanları insan-okunur etiketler; başlıklar ve değerler panelin diline göre TR/EN.
   - **Richtext kararı:** `body` ve `terms` **dahil**, düz metne indirgenmiş halde — "ne değerlerimiz varsa" denince editörün beklediği şey kampanyanın asıl metnidir. Son iki sütuna konuldu ki taranabilir meta veri kaydırmadan görünsün; satır sonları boşluğa çevriliyor (bazı Excel sürümlerinde hücre içi satır sonu bozuk çok satırlı kayıt gibi görünüyor).
   - **Yan iyileştirme:** üç export butonu (Users, Audit Logs, Campaigns) neredeyse aynı fetch/serialize/indir/toast dizisini kopyalamıştı; ortak bir `CsvExportButton`'a çıkarıldı, her buton artık sadece kendi sütunlarını tanımlıyor. `AuditLogsExportButton`'ın hardcoded Türkçe aksiyon etiketleri de bu vesileyle TR/EN oldu ve eksik `unlock` etiketi eklendi.
-- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Test edildi mi:** Kısmen — buton Campaigns listesinde canlı doğrulandı; üretilen CSV'nin içeriği bu oturumda tarayıcıdan indirilip açılamadı (indirme sandbox'ta engelli). Sütun/biçim mantığı kodda ve `lib/csv.ts` testleriyle sabit.
 - **Yorumlarım:**
 
 ### 5.12 — (kapsam maddesi) Fallback maskeleme denetimi + admin arayüz denetimi

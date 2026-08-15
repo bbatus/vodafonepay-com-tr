@@ -367,6 +367,84 @@ gösterdi.
 
 ---
 
+## 5b) Canlı doğrulama sırasında bulunan 3 gerçek bug
+
+Bu üçü kod yazılırken değil, **çalışan panelde tek tek denerken** çıktı.
+
+### 5b.1 — `translationDefaults.ts`'i değiştirmek hiçbir işe yaramıyordu
+
+5.10'un yeni login metnini yazdım, paneli açtım, ekranda **eski metin** duruyordu.
+Kök neden: `onInit`'teki seed yalnızca **eksik** anahtarları INSERT ediyordu.
+Bir anahtar bir kez seed edildikten sonra koddaki varsayılanı değiştirmek
+tamamen sessiz bir no-op'tu — kod bir şey söylüyor, ekran başka bir şey
+gösteriyordu. Bu, önceki turda kurulan DB-destekli çeviri sisteminin
+belgelenmemiş bir sonucuydu ve bundan sonraki **her** metin değişikliğini de
+etkileyecekti.
+
+**Düzeltme:** `onInit` artık koddaki varsayılanla hâlâ eşleşen satırları da
+güncelliyor. Editörün elle değiştirdiği satırlar korunuyor — ayırt edici yeni
+`isCustomized` bayrağı: seed `overrideAccess` ile ve kullanıcısız yazıyor,
+panelden/API'den gelen her kayıt ise `req.user` taşıyor.
+
+### 5b.2 — Growth Maker kendi "Yayından Kaldırma Talebi"ni oluşturamıyordu
+
+5.4'ün butonu Growth Maker'da **403** veriyordu. `denyMakerPublish`, "sonucu
+yayında olan hiçbir kaydı yazamaz" şeklinde yazılmıştı; bu, zaten yayında olan
+ve yayın durumu **değişmeyen** kayıtlara yapılan yazımları da yakalıyordu — yani
+talebi dosyalamanın kendisini.
+
+**Düzeltme:** kural asıl anlamına indirildi — "bu rol bir dokümanı yayına
+ALAMAZ", yani sadece taslak → yayın geçişi. Yayındaki içeriği düzenlemeyi zaten
+`guardPublishedEdit` aynı zincirde daha önce reddediyor. Düzeltmeden sonra 4
+davranış da canlı doğrulandı: taslağı yayınlama **403**, yayındaki içeriği
+düzenleme **409**, tek başına yayından kaldırma **403**, talep oluşturma **200**.
+
+### 5b.3 — Content Management giriş yapmamış ziyaretçiye açıktı
+
+Payload, kendi koleksiyon görünümlerinin aksine, üst seviye **custom view**'lara
+gelen anonim ziyaretçiyi login'e yönlendirmiyor. `/admin/content-management`
+hiçbir oturum çerezi olmadan tüm koleksiyon özetini render etti. Sayıların
+hepsi erişim kontrollü API çağrılarından geldiği için gizli veri sızmadı
+(Kullanıcılar ve Denetim Kayıtları "yetkiniz yok" dedi, yayınlanmamış içerik
+görünmedi) — ama giriş yapmamış birini karşılayan bir rapor sayfası istenen şey
+değildi. Artık giriş zorunlu.
+
+---
+
+## 5c) Manuel doğrulama — ne, hangi rolle, ne sonuç
+
+Doğrulama, kaynak koddan çalışan bir dev CMS'te (`localhost:3011`) ve ona bağlı
+bir site dev sunucusunda (`localhost:3002`) yapıldı — Docker imajı yeniden
+build edilemedi, bkz. §6.7.
+
+| Madde | Rol | Ne denendi | Sonuç |
+|---|---|---|---|
+| 5.1 | NV Maker | 18+ kampanyası olan "Genel" kategorisini sil | **Engellendi.** Onay kutusu kaydı adıyla sordu; onaylayınca hata: *""Genel" (Kategori) silinemedi — 23 kayıt hâlâ buna bağlı*" + 3 kampanya adı ve edit linki + "…ve 20 kayıt daha" |
+| 5.2 | Ziyaretçi | `/kampanyalar` → "Genel" sekmesi | Tek liste, başlık "Genel", **favoriler bloğu yok**; favori kampanyalar da listede |
+| 5.3 | Ziyaretçi | Kart altındaki tarih | "Kampanya Tarihi 27.08.2026 - 28.08.2026"; tarihsiz kartta hiç blok yok; aynı satırdaki kartların yüksekliği (412/412/412) ve CTA hizası (364/364/364) eşit |
+| 5.4 | NV Maker | Yayındaki kampanyayı düzenleyip yayınla | **409**, tam yönlendirme mesajıyla |
+| 5.4 | NV Maker | "Yayından Kaldır ve Düzenle" → düzenle → yeniden yayınla | Durum Taslak → İnceleme Durumu otomatik "İncelemede" → yeniden yayın. **`Oluşturma tarihi` değişmedi (13 Ağustos)** ve kampanya listede **7. sırada kaldı**, en üste çıkmadı |
+| 5.4 | Growth Maker | Yayındaki kampanya | Buton "**Yayından Kaldırma Talebi Oluştur**"; talep 200, `unpublish_request='pending'` |
+| 5.4 | Growth Maker | Taslağı yayınla / yayındakini düzenle / tek başına yayından kaldır | **403 / 409 / 403** — görev ayrımı korunuyor |
+| 5.5 | NV Maker | Kategoriler listesi | `order`'a göre sıralı; "SIRA" kolonu; alan açıklaması "1'den başlar…" |
+| 5.6 | NV Maker | Kilitli hesap → "Kilidi Kaldır" | Kilit kalktı; DB'de `login_attempts=0`, `lock_until=NULL`; audit log'a `unlock` kaydı (kim, kimi) |
+| 5.6 | Growth Maker | `/admin/locked-accounts` | Sidebar linki **yok**; sayfa "sadece New Vertical Maker rolündeki kullanıcılar içindir" |
+| 5.7 | Hepsi | Üst bar | İçerik locale seçicisi **yok** |
+| 5.8 | Ziyaretçi | Login ekranı | "**Remember me**" + altında "Sadece e-posta adresiniz bu tarayıcıda hatırlanır — parolanız hiçbir zaman saklanmaz." |
+| 5.9 | NV Maker | İçerik Yönetimi | 22 koleksiyonun tamamı özet tabloda; 20 detay sekmesi; **hiçbir ekle/düzenle/sil butonu yok** |
+| 5.9 | Growth Maker | İçerik Yönetimi | Sayfa açılıyor; Kullanıcılar ve Denetim Kayıtları satırları **sayı bile göstermeden** "Bu koleksiyonu görüntüleme yetkiniz yok" diyor |
+| 5.10 | Ziyaretçi | Login ekranı | "Sitenizin tek kumanda merkezi." + vodafonepay.com.tr'yi adıyla anan alt metin |
+| 5.11 | NV Maker | Campaigns listesi | "Dışa Aktar (CSV)" butonu yerinde |
+| Faz 0 | — | `afterLogin` tutarlılığı | Giriş yapan 5 hesabın hepsinde `lastLoginAt`/`Ip`/`UserAgent` dolu, logda **0** "failed to stamp" hatası |
+| 5.12 | — | Yeni ekranlar dar viewport'ta | Sayfa gövdesinde yatay taşma **yok**; her iki tablo da `.table-wrap` içinde yatay kaydırılabiliyor; sekme dokunma hedefi **44px** |
+
+**Yan bulgu:** Campaigns listesinde iki kampanya `<Category yok>` görünüyor —
+bunlar guard eklenmeden ÖNCE `ON DELETE SET NULL` ile kategorisi boşaltılmış
+kayıtlar, yani bildirilen bug'ın halihazırda bıraktığı hasar. Guard bundan
+sonrasını engelliyor ama bu ikisi elle bir kategoriye bağlanmalı.
+
+---
+
 ## 6) Açık kalan riskler / teknik borç
 
 1. **`payload migrate:create` hâlâ bozuk (R-10)** — bu turda belgelenen
@@ -382,3 +460,24 @@ gösterdi.
 6. **`ContentManagementApp`'in özet tablosu koleksiyon başına 2-3 istek atıyor**
    (toplam ~50 istek). Küçük bir kurulumda sorun değil ama koleksiyon sayısı
    büyürse tek bir toplu endpoint'e taşınmalı.
+7. **Docker imajı bu oturumda yeniden build EDİLEMEDİ.** Docker daemon'ın
+   registry erişimi askıda kalıyor — düz bir `docker pull node:24-alpine` bile
+   (temel imaj yerelde mevcut ve `curl` ile registry erişilebilir olduğu halde)
+   dönmüyor. BuildKit `resolve` adımında %0 CPU ile takılıyor; build cache
+   temizlendikten sonra da aynı. Ortamsal bir sorun, bu turun kodundan
+   bağımsız. Doğrulama bu yüzden kaynaktan çalışan dev sunucularla yapıldı
+   (§5c). **Yapılması gereken:** `docker compose -p vodafonepaycomtr build cms`
+   (veya BuildKit takılırsa `DOCKER_BUILDKIT=0 docker build --pull=false`) ile
+   imaj yeniden üretilip container restart edilmeli.
+8. **Şu an container ile DB şeması uyumsuz.** Şema elle güncellendiği için
+   (§5) `3010`'daki ESKİ kod `pages_locales` tablosunu arıyor ve
+   `/api/pages` **500** dönüyor. Diğer koleksiyonlar etkilenmiyor. Madde 7'deki
+   rebuild bunu çözer — **bu yapılana kadar container'daki Sayfalar koleksiyonu
+   çalışmaz.** DB yedeği alındı:
+   `scratchpad/pre-schema-push.dump` (`pg_restore` ile geri alınabilir).
+9. **SonarQube taraması yapılamadı** — `scripts/sonar-scan.sh` bir `SONAR_TOKEN`
+   istiyor, bu oturumda yoktu. Yerine ESLint (kökte ve `cms/`'te sıfır hata) ve
+   `npm run check` (ikisinde de temiz) çalıştırıldı; ayrıca tarama muhtemelen
+   bulacağı iki duplication proaktif olarak giderildi: üç CSV export butonu tek
+   bir `CsvExportButton`'a, 9 koleksiyonun silme/sıralama mantığı da tek bir
+   `blockDeleteIfReferenced()`/`assignNextOrder()` factory'sine indirildi.
