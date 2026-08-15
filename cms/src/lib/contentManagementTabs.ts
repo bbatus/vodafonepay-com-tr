@@ -1,7 +1,7 @@
 import { COLLECTION_LABELS, DRAFT_ENABLED_COLLECTIONS } from "@/lib/collectionLabels";
 
 /**
- * RFP feedback 5.7 — "content management sayfası tab'li haliyle kalsın … ama
+ * RFP feedback 5.9 — "content management sayfası tab'li haliyle kalsın … ama
  * hiçbir user burada bir edit vs yapamasın, sadece temiz bir rapor sayfası
  * olsun, ne collectionumuz var ve onun altında ne değerlerimiz var şeklinde
  * tüm collection'ların özet sayfası olsun … olmayan gereken table'ları

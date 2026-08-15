@@ -465,6 +465,176 @@ Her madde için birlikte şu alanları dolduracağız:
 
 ---
 
+---
+
+## Bölüm 5 — Üçüncü tur geri bildirim (15.08.2026)
+
+### 5.1
+> mesela test kategorisi vardı ekledigim categories kısmına product bir kategori ekleyebilsin istemiştim. sonra o kategroide bir kampanya yarattım mesela a description verdim.  gidip kategoriyi silebildim hemen onun yerıne o kampanyayı önce silmem lazımdı çünkü ona bağlıydı anladın mı? ve kategoriyi silerken falan emin misiniz gibi bir evet hayır box cıkmalıydı onayladıgında bu kontrolü yapıp tekrar silinemediğinin nedenini hata mesajında UI da vermeliydi diye düşünüyorum. Böyle çalışmayan bu componentin eksik oldugu ve olması gereken yerler varsa analiz et ve bunları fixle.
+
+- **Durum:** Tamamlandı
+- **DoD:** Başka bir kayıt tarafından referans alınan hiçbir kayıt silinemesin; engellenen silme, admin arayüzünde okunabilir bir hata mesajıyla ve *hangi kayıtların* engellediğini (adıyla + düzenleme linkiyle) söyleyerek dönsün. Tek bir kategori vakası değil, aynı sınıf her ilişki kapsansın.
+- **Nasıl fixlendi:** Kök neden: bu CMS'te **hiç `beforeDelete` hook'u yoktu** ve Postgres de arkada durmuyordu — Payload/drizzle her `relationship`/`upload` FK'sini `ON DELETE SET NULL` olarak üretiyor (canlı DB'de 17 FK'nin tamamı için doğrulandı). Kategori silinince `campaigns.category_id` sessizce NULL oluyor, alan `required: true` olduğu halde kampanya "yayında" kalmaya devam ediyor ve hiçbir kategori filtresine düşmüyordu — hata da vermiyordu.
+  - Yeni `cms/src/hooks/referentialIntegrity.ts`: tek bir `REFERENCE_MAP` ("kim kimi işaret ediyor") + tek bir jenerik `blockDeleteIfReferenced()` factory'si. Yeni bir ilişki eklemek haritaya **tek satır** eklemek demek, guard hiç değişmiyor.
+  - `categories`, `media`, `documents`, `users` koleksiyonlarına bağlandı. Engellenen silme **409 Conflict** ile dönüyor (ham 500 değil) ve mesaj engelleyen kayıtları adıyla + `/admin/collections/...` linkiyle listeliyor, sonunda ne yapılması gerektiğini yazıyor. Mesaj admin panelinin o anki diline göre TR/EN üretiliyor.
+  - **Bir probe hata verirse guard KAPALI tarafa düşüyor** (silmeye izin vermiyor) — sessizce geçmek zaten bu modülün önlemek için var olduğu bug'ın ta kendisi.
+  - **Önceki turun bir varsayımı yanlış çıktı:** `Pages.layout` gibi polimorfik `blocks` dizilerinin Payload'ın düz `where` sorgusuyla hedeflenemeyeceği düşünülüp kapsam dışı bırakılmıştı. Canlıda test ettim: `where[layout.image][equals]=N` ve `where[layout.logos.logo][equals]=N` ikisi de doğru eşleşiyor. Dolayısıyla bu referanslar "belki kullanılıyordur" uyarısı olarak değil, **tam kapsamda** guard'a dahil edildi.
+  - `users` hedefine giden 3 referans (`campaigns.createdBy`, `campaigns.rejectedBy`, `media.uploadedBy`) bilinçli olarak **engellemiyor**: bunlar içerik bağımlılığı değil, "kim yaptı" bilgisi. Engellemek, bir şeye bir kez dokunmuş hiçbir kullanıcının hesabının kapatılamaması demek olurdu. Bunun yerine silme sırasında hangi alanların boşaldığı **audit log'a** yazılıyor.
+  - `MediaUsageField.tsx` artık aynı `REFERENCE_MAP`'i okuyor — "silinemez, kullanımda" hatası ile "kullanıldığı yerler" paneli birbirinden ayrışamıyor. (Bu bileşen ayrıca koleksiyon adlarını hardcoded Türkçe basıyordu, EN'e geçince değişmiyordu; o da düzeldi.)
+  - **Silme onayı:** Payload'ın kendi edit görünümü ve liste bulk-delete'i zaten onay modalı gösteriyor. Onaysız üçüncü yol olan `ContentManagementApp`'in silme aksiyonları 5.9 kapsamında tamamen kaldırıldı — yani artık onaysız silme yolu yok.
+- **Test edildi mi:** Evet — 5 birim testi (referanslıyken engellenir, referanssızken geçer, referans kaldırılınca geçer, probe hata verince kapalı düşer, mesaj dile göre üretilir) + canlı doğrulama (bkz. tur raporu §Manuel doğrulama).
+- **Yorumlarım:**
+
+### 5.2
+> ayrıca kampanyalar sayfasında tümüne tıkladıgımda bu ayın favorileri ve altında favori olmayan tüm kampanyalar listeleniyor bu doğru davranış fakat örnegin anında bakiye seçtim sadece ve sadece anında bakiye kategorililier gözükmeli favoriler kısmı olmamalı anladın mı?
+
+- **Durum:** Tamamlandı
+- **DoD:** "Tümü" seçiliyken mevcut davranış korunsun; belirli bir kategori seçilince tek bir liste görünsün, ayrı "Bu ayın favorileri" bloğu olmasın — ve o kategorinin favori kampanyaları da kaybolmasın.
+- **Nasıl fixlendi:** `CampaignsFilterableList` iki **önceden ayrılmış** dizi (`favorites` = featured, `allCampaigns` = geri kalan) alıp her birini ayrı filtreliyordu. Bu, bildirdiğin bug'ın üstüne ikinci bir bug taşıyordu: favori bir kampanya SADECE `favorites` dizisinde olduğu için, favoriler bloğunu kaldırmak o kampanyaları sayfadan **tamamen** yok ederdi. Bileşen artık `featured` bayrağını taşıyan **tek bir liste** alıyor ve iki görünümü de ondan türetiyor — bir kampanyanın hiçbir listede olmaması imkânsız. Kategori seçiliyken başlık o kategorinin kendi adı oluyor.
+- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Yorumlarım:**
+
+### 5.3
+> Kampanya Tarihi14.07.2026 - 15.08.2026 https://www.vodafonepay.com.tr/kampanyalar/pazaramada-50-indirim
+>
+> şeklinde UI da nasıl ekleniyor gidip bak kampanya tarihi eklendiğinde. kampanya kartının altında tutmuşlar güzel gözüküyor.
+
+- **Durum:** Tamamlandı
+- **DoD:** Kampanya tarihi, gerçek sitedeki etiket ve biçimle görünsün; tarihi olmayan kampanyada blok hiç render edilmesin ve kart hizası bozulmasın.
+- **Nasıl fixlendi:** Önce gerçek siteye baktım. **Bulgu:** vodafonepay.com.tr bu bloğu **detay sayfasında** basıyor (takvim ikonu + "Kampanya Tarihi" + `gg.aa.yyyy - gg.aa.yyyy`, kampanya kartı bloğunun hemen altında, "Kampanya Detay" başlığının üstünde) — liste sayfasındaki kartlarda tarih **yok**. Brief kart üzerinde de istediği için **her iki yerde** basıyoruz; ikisi birbirinden ayrışmasın diye tek bir `CampaignDate` bileşeni yazıldı.
+  - Tek tarihli durumlar için ayrı metin: sadece başlangıç varsa "… tarihinden itibaren", sadece bitiş varsa "… tarihine kadar" — yarım bir aralık göstermek yerine.
+  - İki tarih de boşsa bileşen hiçbir şey render etmiyor.
+  - Kart `flex flex-col` + CTA'da `mt-auto` oldu: tarihli/tarihsiz karışık bir listede kartların yüksekliği ve "Detayları gör" hizası bozulmuyor.
+  - Detay sayfasındaki eski etiketsiz `14.07.2026 – 15.08.2026` satırı da aynı bileşene çevrildi.
+  - `getCampaigns()` sorgusu artık `startDate`/`endDate` de çekiyor (detay sorgusu zaten çekiyordu).
+- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Yorumlarım:**
+
+### 5.4
+> yayında bir kampanya varsa ve bu edit edilmeye calisiliyorsa bence önce durumu pasife çekilmeli gibi bir path vermeliyiz kullanıcıya. aktfi kampanyayı güncellemek için öncelikle pasife çekmelisiniz gibi. sonra onaya gitmeli pasife çekilme onayı verilirse mesela ilgili düzenleme yapılabilir. ama ilk düzenlendiği tarih neydiyse orada kalmalı yani mesela ben bu kampanyayı 3 ay önce çıktım ama descriptionunu değiştiricem. pasife aldım değiştirdim tekrar yayınladım en üste çıkmamamlı bu kampanya. ilk created at tarihini kullanmalı anladın mı? yoksa ondan sonra üretilen yeni kampanyaların önüne geçer listelemede.
+
+- **Durum:** Tamamlandı
+- **DoD:** Yayındaki kampanya doğrudan düzenlenemesin; kullanıcı ne yapması gerektiğini söyleyen net bir yönlendirme görsün; yayından kaldırma bir onaydan geçsin; döngü sonunda kampanyanın liste sırası değişmesin.
+- **Nasıl fixlendi:** **Tasarım kararı — "pasife çekme" = Payload'ın kendi `_status: draft`'ı, `campaignStatus` DEĞİL.** İkisi farklı şeyler ve yanlışını seçmek diğerinin anlamını bozardı: `campaignStatus: "expired"` "bu kampanya bitti" demek ve kampanyayı site liste sayfalarından kalıcı olarak düşürüyor (`getCampaigns()`, site tarafı `lib/cms.ts`) — "açıklamasında yazım hatası düzelteceğim" bunu hak etmiyor. `_status: draft` ise zaten "yayında değil, düzenlenebilir, tekrar incelemeden geçer" demek ve mevcut `reviewStatus`/`RoleAwarePublishButton` makinesine doğrudan oturuyor; ikinci bir paralel onay sistemi kurmaya gerek kalmıyor.
+  - `guardPublishedEdit` beforeChange hook'u: doküman yayındayken içerik alanlarından herhangi biri değişirse **409** ile reddediliyor, mesaj tam olarak ne yapılacağını söylüyor ("önce yayından kaldırın, değişikliklerinizi yapın, sonra tekrar onaya gönderin — ilk oluşturulma tarihi ve listedeki sıra korunur").
+  - Yeni alanlar: `unpublishRequest` (yok/onay bekliyor), `unpublishRequestedBy`, `unpublishRequestedAt`.
+  - **Rol rol davranış:** Growth Maker yayından kaldıramıyor, sadece **talep** açabiliyor (buton: "Yayından Kaldırma Talebi Oluştur"). Yayınlama yetkisi olan roller (NV Maker, NV Checker, Growth Checker) doğrudan yayından kaldırabiliyor — "yayınlayabilen, yayından da kaldırabilir"; onay adımı zaten bu roller tarafından veriliyor.
+  - Yayından kaldırma otomatik olarak `reviewStatus`'ü "İncelemede"ye çeviriyor ve talebi temizliyor — yani düzenleme bitince normal onay akışıyla yayına dönüyor.
+  - **`createdAt`:** Payload bu alanı sadece INSERT'te yazıyor; unpublish → düzenle → yeniden yayınla döngüsü ona hiç dokunmuyor. Hem `defaultSort: "-createdAt"` (admin) hem site tarafındaki `sort=-createdAt` için sıra korunuyor. Bunu bir birim testi de doğruluyor.
+- **Test edildi mi:** Evet — 7 birim testi (4 rolün her birinde içerik düzenleme engellenir, 409 döner, metadata-only yazım geçer, yetkili roller yayından kaldırabilir, Growth Maker kaldıramaz, taslak dokümana karışmaz, `createdAt` değişmez) + canlı doğrulama.
+- **Yorumlarım:**
+
+### 5.5
+> sık sorulanlar listesi order a göre listelenmeli basic olarak listede. order i 1 den baslamalı yani list bileşenimiz
+
+- **Durum:** Tamamlandı
+- **DoD:** `order` alanı olan koleksiyonların admin listesi gerçekten `order`'a göre sıralansın; `order` 1'den başlasın ve kullanıcı elle sayı düşünmek zorunda kalmasın.
+- **Nasıl fixlendi:** Sorun Sık Sorulanlar'a özel değildi: `defaultSort` **sadece Campaigns'te** tanımlıydı, dolayısıyla `order` alanı olan **9 koleksiyonun tamamı** (FaqItems, FeeRows, LimitTables, NavLinks, FeatureCards, StepCards, ContentBlocks, Announcements, Categories) Payload'ın varsayılan sırasında listeleniyordu — yani sürükle-bırak widget'ının kaydettiği sıra, onu kontrol etmesi gereken listede hiç görünmüyordu.
+  - 9 koleksiyonun hepsine `defaultSort: "order"` eklendi.
+  - `order` alanı: `defaultValue: 1`, `min: 1`, ortak açıklama metni, TR/EN etiket.
+  - Yeni `assignNextOrder()` hook'u: yeni kayıt kendi grubunun **sonuna** `max(order) + 1` ile ekleniyor. Gruplama alan bazlı (StepCards/FeatureCards `page`, FaqItems `category`, NavLinks `section`) — bir sayfaya kart eklemek başka sayfaların numaralandırmasını kaydırmıyor. Elle yazılan değer her zaman korunuyor.
+  - `ReorderWidget` artık 0 değil **1** tabanlı yazıyor (eskiden dizi indeksini yazıyordu, ilk öğe hep 0 oluyordu — ki 0, eski `defaultValue`'nun ürettiği "atanmamış" değerle aynıydı).
+  - **Mevcut 0-tabanlı veriler:** normalize edilmedi; `sort=order` artan sıralama olduğu için karışık 0/1 tabanlı değerler yanlış sıra üretmiyor, sadece görüntülenen sayı 0'dan başlıyor. İlgili listede bir kez sürükle-bırak yapmak o koleksiyonu 1-tabanlıya çeviriyor. Tek seferlik normalize SQL'i tur raporunda var.
+- **Test edildi mi:** Evet — 7 birim testi (`max+1`, boş koleksiyonda 1, grup bazlı kapsam, elle değer korunur, 0 "atanmamış" sayılır, update'e karışmaz, sorgu hata verirse kaydı bloklamaz) + canlı doğrulama.
+- **Yorumlarım:**
+
+### 5.6
+> test-nv-maker kişiler hesap kilidi olan kişileri görebilmeli sadece onlar user listesinde varolan userlarda bir kiliidi olan varsa yanlış login denemesinden dolayı o kişinin kilidini kaldırabilmeli user in db de user değerlerinde locked değeri de işte atıyorum değişmeli. test nv maker da bunu yapabileceği geliştirme ve bunu yapabileceği ekstra ekranı ekleyelim user collectionuna ama sadece bu role sahip kullanıcılar yapabilsin.
+
+- **Durum:** Tamamlandı
+- **DoD:** Kilitli hesaplar görünür ve filtrelenebilir olsun; sadece New Vertical Maker kilidi kaldırabilsin (sunucu tarafında zorlanmış); bunun için ayrı bir ekran olsun; her kilit açma audit log'a yazılsın.
+- **Nasıl fixlendi:** **Önce bir düzeltme:** Kodda ve brief'te "lockout konfigüre edilmemiş, şu an sonsuz yanlış şifre denenebiliyor" yazıyordu. **Bu doğru değilmiş.** Payload'ın `addDefaultsToAuthConfig`'i (`collections/config/defaults.js`) HER auth config'e — obje formuna da — `maxLoginAttempts ?? 5` ve `lockTime ?? 600000` uyguluyor. Yani lockout zaten çalışıyordu, sadece görünmüyordu: canlı DB'de `login_attempts`/`lock_until` kolonları var (bunlar yalnızca `maxLoginAttempts > 0` iken oluşturuluyor) ve yanlış parola denemesi sayacı gerçekten artırıyor.
+  - Politika artık **açıkça** yazılı: `maxLoginAttempts: 5`, `lockTime: 15 dakika`. 5 deneme gerçek bir yazım hatası/eski kayıtlı parola için yeterli pay bırakıyor, online parola denemesi için yetmiyor. Payload'ın 10 dakikası yerine 15: artık bir NV Maker kilidi anında kaldırabildiği için kilitlenen kişi beklemek yerine sorup açtırıyor — yani daha uzun otomatik süre gerçek kullanıcıya ucuz, saldırgana pahalı.
+  - `lockUntil`/`loginAttempts` alanları Payload'da `hidden: true` geliyordu (kilitli hesap panelde hiçbir yerde görünmüyordu). Aynı isimle yeniden tanımlanıp görünür yapıldı — `mergeBaseFields` bunları **deep-merge** ediyor, dolayısıyla temel alandaki `access.update: () => false` korunuyor: bu alanlar normal bir PATCH ile hâlâ yazılamıyor.
+  - `lockUntil` Users listesinde kolon olarak duruyor (gerçek alan olduğu için Payload'ın filtreleri üzerinde çalışabiliyor) ve listenin üstünde "N hesap şu anda kilitli → Kilitli Hesaplar ekranını aç" şeridi var.
+  - Yeni **`/admin/locked-accounts`** ekranı + sadece NV Maker'a görünen sidebar linki. Kilidi Payload'ın kendi `POST /api/users/unlock` operasyonu kaldırıyor — elle PATCH değil, çünkü sayaç sıfırlaması da atomik olarak orada yapılıyor.
+  - **Yetki sunucuda:** `Users.access.unlock = isNewVerticalMaker`. Ekrandaki butonun gizlenmesi sadece kozmetik; diğer roller API'den denese de reddediliyor.
+  - Her kilit açma audit log'a `unlock` aksiyonuyla yazılıyor (`AuditLogs.action`'a yeni seçenek + Postgres enum'una `ALTER TYPE`).
+  - **Başarısız girişler de artık loglanıyor.** Önceki tur "Payload bunun için hook açmıyor" demişti — login hook'ları için doğru (Payload `AuthenticationError`'ı `beforeLogin`/`afterLogin` çalışmadan ÖNCE fırlatıyor, `auth/operations/login.js`'teki `if (!authResult)` dalı), ama `afterError` bunu görüyor. `login_failed` aksiyonu oradan yazılıyor.
+- **Test edildi mi:** Evet — 3 birim testi (politika değerleri, `lockUntil` görünür + liste kolonunda, sadece NV Maker `unlock` yapabilir; diğer 3 rol ve anonim reddedilir) + canlı doğrulama.
+- **Yorumlarım:**
+
+### 5.7
+> tr en degisim yapıldıgında ya anasayfadaki topbardaki üstteki seçenekten yapabiliyor gibi bunu kapatalım. sadece profildeki ayardan yapabilisn,  ekstra olarak sayfaların locals değerleri dinamik olarak değişmiyor hatta hiç değişmiyor gibiler.
+
+- **Durum:** Tamamlandı
+- **DoD:** Dil sadece profildeki ayardan değiştirilebilsin; "hiç değişmeyen locale" durumu ortadan kalksın (ya her yerde çalışsın ya hiç görünmesin).
+- **Nasıl fixlendi:** Panelde **iki ayrı dil kavramı** vardı ve tek şey sanılıyordu:
+  1. **Admin arayüz dili** — `i18n`, `payload-lng` cookie'si. Sahibi: profildeki "Dil Tercihi".
+  2. **İçerik locale'i** — `localization` bloğu. Payload bunun için üst bara kendi locale seçicisini basıyor.
+  - Şikayetin kaynağı (2) idi: `localization` açıktı ama **tüm CMS'te `localized: true` olan tek alan `Pages.title`**'dı. Yani üst bardaki seçici hiçbir ekranda hiçbir şeyi değiştirmiyordu — "sayfaların locals değerleri hiç değişmiyor" gözlemin tam olarak buydu.
+  - **Karar (senin onayınla): kapatıldı.** CSS ile gizlemek yerine `localization` tamamen kaldırıldı — gizlemek `?locale=en`'i URL'den erişilebilir bırakır ve yarım konfigürasyon yerinde kalırdı. Bunu **şimdi** yapmak güvenliydi çünkü `pages`, `pages_locales` ve `_pages_v_locales` tablolarının **sıfır satır** olduğu doğrulandı — kaybolacak içerik yoktu. `Pages.title` ana tabloya geri taşındı.
+  - Admin arayüz dili tarafında zaten tek değiştirici profildeki alandı (Payload'ın kendi "Ayarlar" dil bloğu 4.4'te Account görünümü değiştirilirken kalkmıştı). `LocalePreferenceSync` sadeleşti: eskiden oturum başına bir kez çalışıp "geçici üst bar değişikliğiyle" kavga etmemeye çalışıyordu; öyle bir değiştirici kalmadığı için artık koşulsuz senkronize ediyor — cookie ile kayıtlı tercih arasında sapma kalmıyor.
+  - İleride gerçekten çok dilli içerik istenirse bu bilinçli bir proje: hangi alanların çevrilebilir olacağı, gerçek İngilizce içerik ve incelenmiş bir veri migrasyonu gerekir. Önceki turun bulgusu hâlâ geçerli (mevcut sürüm geçmişi olan bir koleksiyonda alanı localize etmek drizzle push'u interaktif prompt'ta kilitliyor).
+- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Yorumlarım:**
+
+### 5.8
+> epostamı hatırla değil de remember me yazsa daha iyi her ne kadar sadece epostayı hatırlarsa da okey remember me olması daha iyi.
+
+- **Durum:** Tamamlandı
+- **DoD:** Etiket her iki dilde de "Remember me" olsun; kullanıcı parolasının saklandığını sanmasın.
+- **Nasıl fixlendi:** `rememberEmail.label` TR ve EN'de **"Remember me"** — bilinçli olarak çevrilmedi. Yanına küçük bir yardım metni eklendi: *"Sadece e-posta adresiniz bu tarayıcıda hatırlanır — parolanız hiçbir zaman saklanmaz."* (EN karşılığıyla). Bu metin çevriliyor; asıl etiket çevrilmiyor. Checkbox'a `:focus-visible` halkası ve 24px dokunma hedefi de eklendi.
+- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Yorumlarım:**
+
+### 5.9
+> content management sayfası tab li haliyle kalsın bence. her user burayı görebilsin ama hiçbir user content management sidebardan gidip burada bir edit vs yapamasın sadece temiz bir rapor sayfası olsun burası listelesin ne collectionumuz var ve onun altında ne değerlerimiz var şeklimde tüm collectionların özet sayfası olsun anladın mı olmayan gereken tableri ekleyeliöm yani buraya.
+
+- **Durum:** Tamamlandı
+- **DoD:** Sekmeli yapı kalsın; her rol görebilsin; hiçbir rol buradan düzenleme/silme/oluşturma yapamasın; sayfa tüm koleksiyonların özetini versin; eksik koleksiyonlar eklensin; erişim kontrolü gerçek olsun.
+- **Nasıl fixlendi:**
+  - **Tüm aksiyonlar kaldırıldı** — "Yeni Ekle", "Düzenle", "Sil", "Seçilenleri Sil" yok. Satırlar Payload'ın kendi doküman görünümüne link veriyor; düzenleme orada, kendi yetki kontrolüyle yapılıyor. (Yan fayda: silme yapılabilen ikinci bir yüzey ortadan kalktı — bkz. 5.1.)
+  - **Üstte tüm koleksiyonların özet tablosu:** 22 koleksiyonun tamamı için kayıt sayısı, yayında/taslak dağılımı, son güncellenme ve koleksiyona link.
+  - **Altta detay sekmeleri:** 7 yerine **20** koleksiyon. Her koleksiyonun sütunları kendine özel (tek bir "başlık/durum/güncellendi" şablonu 20 farklı şemaya zorlanmadı) — örn. Kampanyalar'da kategori/inceleme/öne çıkan/bitiş, Temsilciler'de il/ilçe/temsilci kodu, Medya'da tür/alt metin/yükleyen.
+  - **Sekmesi olmayan 2 koleksiyon ve gerekçeleri:** `audit-logs` — kendi ekranı, kendi CSV export'u ve kendi rol bazlı okuma kapsamı olan append-only güvenlik kaydı; satır satır kopyalamak o ekranı tekrar eder ve raporlaması gereken içeriği gömerdi. `translations` — panelin kendi arayüz metinleri (`key`/`tr`/`en`); site içeriği değil, altyapı. **İkisinin de sayıları özet tablosunda var.**
+  - **Erişim kontrolü yeniden yazılmadı:** her istek tarayıcının oturum çerezini taşıyan düz bir REST çağrısı, `overrideAccess` hiç kullanılmıyor. Bir rolün okuyamadığı koleksiyon **kayıt sayısı bile göstermiyor** — "Bu koleksiyonu görüntüleme yetkiniz yok" diyor (bu yüzden sayaç `number` değil `number | null`).
+  - Sayfadaki tüm inline style'lar `custom.css`'e taşındı; tablolar `.table-wrap` içinde (dar ekranda yatay kaydırma), sekmeler 44px dokunma hedefi ve focus halkası taşıyor.
+- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Yorumlarım:**
+
+### 5.10
+> One platform for all your need. daha iyi sanki.
+>
+> Manage campaigns, pages, and every piece of site content from a single panel. Approval workflows, roles, and audit trails built in — no migration, no lock-in.
+>
+> burada da vodafonepaycomtr websiteniz altındaki .... leri daha kolay yönetin! gibi bir yazı olabilir. kreatif ol.
+
+- **Durum:** Tamamlandı
+- **DoD:** EN başlık "One platform for all your need." yönünde olsun; alt metin somut olsun ve vodafonepay.com.tr'yi adıyla ansın; TR ve EN birbirinin motamot çevirisi olmasın.
+- **Nasıl fixlendi:** `translationDefaults.ts` → `loginBrandPanel.headline` / `subheadline`:
+  - **EN başlık:** "One platform for all your need." (senin verdiğin cümle birebir)
+  - **TR başlık:** "Sitenizin tek kumanda merkezi." — İngilizcenin motamot çevirisi değil; Türkçede kendi başına duran, aynı şeyi söyleyen bir cümle.
+  - **TR alt metin:** "vodafonepay.com.tr'deki kampanyaları, sayfaları, duyuruları ve SSS'leri tek yerden yönetin. Onay akışı, roller ve denetim kaydı kutudan çıkar — ne göç, ne bağımlılık."
+  - **EN alt metin:** "Run every campaign, page, announcement and FAQ on vodafonepay.com.tr from one place. Approval workflows, roles and audit trails come built in — no migration, no lock-in."
+- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Yorumlarım:**
+
+### 5.11
+> ekstra olarak campaigns sayfasında da türkçe karakterleri destekleyecek şekilde ne değerlerimiz varsa tüm sütunlarla birlikte csv alabilmeliyiz exportu ekleyelim.
+
+- **Durum:** Tamamlandı
+- **DoD:** Campaigns listesinde CSV export butonu olsun; tüm anlamlı sütunlar çıksın; Türkçe karakterler Excel'de bozulmasın; ekrandaki filtre/arama/sıralama export'a taşınsın; ilişkiler ham ID değil okunabilir değer olsun.
+- **Nasıl fixlendi:** `CampaignsExportButton` — mevcut `lib/csv.ts` altyapısıyla (UTF-8 BOM + `;` ayraç). **20 sütun:** başlık, URL adı, açıklama, kategori, yayın durumu, inceleme durumu, kampanya durumu, öne çıkan, başlangıç, bitiş, buton yazısı, buton linki, SEO başlığı, SEO açıklaması, red sebebi, oluşturan, oluşturulma, güncellenme, gövde metni, katılım koşulları.
+  - `depth: 1` ile çekiliyor — kategori ve oluşturan kullanıcı ham ID değil, etiket/e-posta olarak çıkıyor.
+  - Tarihler `tr-TR`, boolean'lar "Evet/Hayır", durum alanları insan-okunur etiketler; başlıklar ve değerler panelin diline göre TR/EN.
+  - **Richtext kararı:** `body` ve `terms` **dahil**, düz metne indirgenmiş halde — "ne değerlerimiz varsa" denince editörün beklediği şey kampanyanın asıl metnidir. Son iki sütuna konuldu ki taranabilir meta veri kaydırmadan görünsün; satır sonları boşluğa çevriliyor (bazı Excel sürümlerinde hücre içi satır sonu bozuk çok satırlı kayıt gibi görünüyor).
+  - **Yan iyileştirme:** üç export butonu (Users, Audit Logs, Campaigns) neredeyse aynı fetch/serialize/indir/toast dizisini kopyalamıştı; ortak bir `CsvExportButton`'a çıkarıldı, her buton artık sadece kendi sütunlarını tanımlıyor. `AuditLogsExportButton`'ın hardcoded Türkçe aksiyon etiketleri de bu vesileyle TR/EN oldu ve eksik `unlock` etiketi eklendi.
+- **Test edildi mi:** Evet — bkz. tur raporu §Manuel doğrulama.
+- **Yorumlarım:**
+
+### 5.12 — (kapsam maddesi) Fallback maskeleme denetimi + admin arayüz denetimi
+> (Bu madde senin listende ayrı bir satır değil — önceki turdan devreden ve bu turda kapatılan iki açık kalem.)
+
+- **Durum:** Kısmen tamamlandı (aşağıda ne kaldığı ve neden kaldığı yazılı)
+- **DoD:** CMS erişilemediğinde sahte içerik gösteren her yer dürüst bir boş duruma çevrilsin; gerçekten "henüz içerik girilmedi" olanlar gerekçesiyle bırakılsın.
+- **Nasıl fixlendi:** Ayrımı tahminle değil **veriyle** yaptım — her fallback'in arkasındaki koleksiyonun canlı DB'de kaç satırı olduğuna baktım:
+  - **Kaldırılanlar (koleksiyon dolu → fallback zaten ölü kod, sadece CMS çökünce devreye giriyordu):** `Faq` bileşeninin gömülü 4 soruluk varsayılanı, anasayfanın adım/öne çıkan/kampanya/SSS listeleri, 4 ürün sayfasının SSS dizileri, duyurular, SSS kategori filtresi, `/kampanyalar` SSS'i.
+  - **Bilinçli bırakılanlar (koleksiyonda SIFIR satır → fallback'in kendisi canlı içerik):** feature-cards, step-cards, fee-rows, limit-tables, cookie-rows, product-heroes, nav-links (header/footer/site haritası), hukuki doküman listeleri, iletişim/kurumsal yönetim bilgileri, `faturana-yansit` SSS'i. Bunları silmek maskelenmiş bir hatayı ortaya çıkarmaz, **çalışan bir bölümü boşaltırdı**. Her birinin dosyasına neden bırakıldığı ve ne zaman kaldırılacağı yazıldı; tam liste tur raporunda.
+  - **Admin arayüz denetimi:** bu turda eklenen/değişen her ekran için focus halkası, klavye erişimi, 44px dokunma hedefi ve dar ekranda yatay kaydırma (`.table-wrap`) baştan uygulandı.
+- **Test edildi mi:** Kısmen — bkz. tur raporu §Açık kalan riskler.
+- **Yorumlarım:**
+
 ## İlerleme Özeti
 
 | # | Madde (kısa başlık) | Durum |
@@ -502,61 +672,15 @@ Her madde için birlikte şu alanları dolduracağız:
 | 4.3 | Yayınlama onayı modalındaki bozuk preview | Tamamlandı |
 | 4.4 | Profil sayfası: avatar, alt zorunluluğu, email/role kilidi, parola/etkinleştir kaldırma, tek dil değiştirici | Tamamlandı |
 | 4.5 | Users listesi export (CSV, TR karakter destekli) | Tamamlandı |
-
-
-
-Yeniler : 
-
-
-mesela test kategorisi vardı ekledigim categories kısmına product bir kategori ekleyebilsin istemiştim. sonra o kategroide bir kampanya yarattım mesela a description verdim.  gidip kategoriyi silebildim hemen onun yerıne o kampanyayı önce silmem lazımdı çünkü ona bağlıydı anladın mı? ve kategoriyi silerken falan emin misiniz gibi bir evet hayır box cıkmalıydı onayladıgında bu kontrolü yapıp tekrar silinemediğinin nedenini hata mesajında UI da vermeliydi diye düşünüyorum. Böyle çalışmayan bu componentin eksik oldugu ve olması gereken yerler varsa analiz et ve bunları fixle. 
-
-
-
-ayrıca kampanyalar sayfasında tümüne tıkladıgımda bu ayın favorileri ve altında favori olmayan tüm kampanyalar listeleniyor bu doğru davranış fakat örnegin anında bakiye seçtim sadece ve sadece anında bakiye kategorililier gözükmeli favoriler kısmı olmamalı anladın mı? 
-
-
-
-Kampanya Tarihi14.07.2026 - 15.08.2026https://www.vodafonepay.com.tr/kampanyalar/pazaramada-50-indirim
-
-şeklinde UI da nasıl ekleniyor gidip bak kampanya tarihi eklendiğinde. kampanya kartının altında tutmuşlar güzel gözüküyor.
-
-
-
-yayında bir kampanya varsa ve bu edit edilmeye calisiliyorsa bence önce durumu pasife çekilmeli gibi bir path vermeliyiz kullanıcıya. aktfi kampanyayı güncellemek için öncelikle pasife çekmelisiniz gibi. sonra onaya gitmeli pasife çekilme onayı verilirse mesela ilgili düzenleme yapılabilir. ama ilk düzenlendiği tarih neydiyse orada kalmalı yani mesela ben bu kampanyayı 3 ay önce çıktım ama descriptionunu değiştiricem. pasife aldım değiştirdim tekrar yayınladım en üste çıkmamamlı bu kampanya. ilk created at tarihini kullanmalı anladın mı? yoksa ondan sonra üretilen yeni kampanyaların önüne geçer listelemede. 
-
-
-
-
-
-sık sorulanlar listesi order a göre listelenmeli basic olarak listede. order i 1 den baslamalı yani list bileşenimiz
-
-
-
-test-nv-maker kişiler hesap kilidi olan kişileri görebilmeli sadece onlar user listesinde varolan userlarda bir kiliidi olan varsa yanlış login denemesinden dolayı o kişinin kilidini kaldırabilmeli user in db de user değerlerinde locked değeri de işte atıyorum değişmeli. test nv maker da bunu yapabileceği geliştirme ve bunu yapabileceği ekstra ekranı ekleyelim user collectionuna ama sadece bu role sahip kullanıcılar yapabilsin.
-
-
-
- tr en degisim yapıldıgında ya anasayfadaki topbardaki üstteki seçenekten yapabiliyor gibi bunu kapatalım. sadece profildeki ayardan yapabilisn,  ekstra olarak sayfaların locals değerleri dinamik olarak değişmiyor hatta hiç değişmiyor gibiler. 
-
-
-
-epostamı hatırla değil de remember me yazsa daha iyi her ne kadar sadece epostayı hatırlarsa da okey remember me olması daha iyi. 
-
-
-
-content management sayfası tab li haliyle kalsın bence. her user burayı görebilsin ama hiçbir user content management sidebardan gidip burada bir edit vs yapamasın sadece temiz bir rapor sayfası olsun burası listelesin ne collectionumuz var ve onun altında ne değerlerimiz var şeklimde tüm collectionların özet sayfası olsun anladın mı olmayan gereken tableri ekleyeliöm yani buraya. 
-
-
-
-One platform for all your need. daha iyi sanki. 
-
-Manage campaigns, pages, and every piece of site content from a single panel. Approval workflows, roles, and audit trails built in — no migration, no lock-in.
-
-burada da vodafonepaycomtr websiteniz altındaki .... leri daha kolay yönetin! gibi bir yazı olabilir. kreatif ol. 
-
-
-
-ekstra olarak campaigns sayfasında da türkçe karakterleri destekleyecek şekilde ne değerlerimiz varsa tüm sütunlarla birlikte csv alabilmeliyiz exportu ekleyelim. 
-
-
-
+| 5.1 | Referans bütünlüğü: bağlı kayıt varken silme engellensin | Tamamlandı |
+| 5.2 | Kampanya filtresi: kategori seçilince favoriler bloğu kalkmalı | Tamamlandı |
+| 5.3 | Kampanya tarihi kartın altında görünsün | Tamamlandı |
+| 5.4 | Yayındaki kampanya: önce yayından kaldır, createdAt korunsun | Tamamlandı |
+| 5.5 | Liste `order`'a göre sıralansın, order 1'den başlasın | Tamamlandı |
+| 5.6 | Hesap kilidi + NV Maker'a kilit kaldırma ekranı | Tamamlandı |
+| 5.7 | Dil sadece profilden; içerik locale'i kapatıldı | Tamamlandı |
+| 5.8 | "Remember me" etiketi + ne saklandığı açıklaması | Tamamlandı |
+| 5.9 | Content Management salt-okunur rapor sayfası (22 koleksiyon) | Tamamlandı |
+| 5.10 | Login ekranı başlık/alt metin | Tamamlandı |
+| 5.11 | Campaigns CSV export (tüm sütunlar, TR karakter) | Tamamlandı |
+| 5.12 | Fallback maskeleme + admin arayüz denetimi (devreden) | Kısmen tamamlandı |

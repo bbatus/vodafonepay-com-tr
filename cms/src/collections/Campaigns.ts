@@ -171,7 +171,7 @@ export const Campaigns: CollectionConfig = {
     group: { tr: "İçerik", en: "Content" },
     // "Yerel hafızaya kopyala" is Payload's copy-to-locale tool (copies field
     // values between locales) — it did nothing useful here even before
-    // content localization was switched off entirely (RFP feedback 5.9). Kept
+    // content localization was switched off entirely (RFP feedback 5.7). Kept
     // set so re-enabling `localization` later can't quietly bring it back
     // without someone deciding this collection wants it.
     disableCopyToLocale: true,
@@ -184,7 +184,7 @@ export const Campaigns: CollectionConfig = {
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "campaigns" } },
-        // RFP feedback 5.7: full-column CSV export, Turkish-Excel safe.
+        // RFP feedback 5.11: full-column CSV export, Turkish-Excel safe.
         "/components/CampaignsExportButton#default",
       ],
       edit: {

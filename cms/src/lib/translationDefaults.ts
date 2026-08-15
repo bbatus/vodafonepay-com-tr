@@ -64,7 +64,7 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
     tr: "Ödemenin Akıllı Hali — İçerik Yönetim Paneli",
     en: "The Smart Way to Pay — Content Management Panel",
   },
-  // RFP feedback 5.9: the user liked "One platform for all your need" and asked
+  // RFP feedback 5.10: the user liked "One platform for all your need" and asked
   // for a subheadline that names vodafonepay.com.tr concretely. TR and EN are
   // written separately on purpose — a literal translation of either reads
   // stilted in the other language, so each says the same thing in its own
@@ -138,7 +138,7 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
 
   "contentManagement.navLabel": { tr: "İçerik Yönetimi", en: "Content Management" },
   "contentManagement.title": { tr: "İçerik Yönetimi", en: "Content Management" },
-  // RFP feedback 5.7: the page is a report now — these say so, and the old
+  // RFP feedback 5.9: the page is a report now — these say so, and the old
   // addNew/edit/delete/confirm keys are gone with the actions they labelled.
   "contentManagement.readOnlyNote": {
     tr: "Bu sayfa salt okunurdur — buradan hiçbir kayıt eklenemez, düzenlenemez veya silinemez. Bir kaydın üzerine tıklayarak kendi düzenleme sayfasına gidebilirsiniz.",

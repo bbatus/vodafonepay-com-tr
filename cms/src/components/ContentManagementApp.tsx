@@ -26,7 +26,7 @@ type Summary = {
 const PAGE_SIZE = 10;
 
 /**
- * RFP feedback 5.7 — a READ-ONLY report over the whole CMS.
+ * RFP feedback 5.9 — a READ-ONLY report over the whole CMS.
  *
  * Every role can open this page; no role can change anything from it. The
  * previous version was a hand-rolled CRUD surface (Yeni Ekle / Düzenle / Sil /

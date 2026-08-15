@@ -99,7 +99,7 @@ export default buildConfig({
     supportedLanguages: { tr, en },
     fallbackLanguage: "tr",
   },
-  // RFP feedback 5.9 — CONTENT LOCALIZATION IS OFF, deliberately.
+  // RFP feedback 5.7 — CONTENT LOCALIZATION IS OFF, deliberately.
   //
   // There are two different "language" concepts in this panel and they were
   // being confused for one:

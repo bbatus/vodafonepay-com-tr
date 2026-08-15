@@ -315,7 +315,7 @@ a {
   font-size: 0.85rem;
   color: var(--theme-elevation-600);
   cursor: pointer;
-  /* 5.10 UI audit: keeps the touch target at ~24px on a phone even though the
+  /* 5.12 UI audit: keeps the touch target at ~24px on a phone even though the
      label text itself is only 0.85rem tall. */
   min-height: 24px;
 }
@@ -491,7 +491,7 @@ a {
   max-width: 32ch;
 }
 
-/* RFP feedback 5.7: Content Management report page. Replaces the inline styles
+/* RFP feedback 5.9: Content Management report page. Replaces the inline styles
    the previous CRUD version carried, per the repo's "no new inline styles in
    the CMS" rule. */
 .cm {
@@ -543,7 +543,7 @@ a {
   font: inherit;
   font-size: 0.85rem;
   color: var(--theme-elevation-500);
-  /* 5.10 UI audit: 44px min touch target on phones. */
+  /* 5.12 UI audit: 44px min touch target on phones. */
   min-height: 44px;
 }
 

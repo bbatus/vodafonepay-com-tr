@@ -14,7 +14,7 @@ export default function LoginBrandPanel() {
   const locale = useAdminLocale();
   const t = useDbStrings(locale);
 
-  // RFP feedback 5.9a: the sessionStorage flag this used to clear is gone —
+  // RFP feedback 5.7a: the sessionStorage flag this used to clear is gone —
   // LocalePreferenceSync now syncs the language cookie unconditionally, so
   // there's no per-session state left for a logout→login to reset.
   return (

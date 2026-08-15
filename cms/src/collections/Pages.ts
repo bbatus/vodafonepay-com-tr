@@ -124,7 +124,7 @@ export const Pages: CollectionConfig = {
     delete: isNewVerticalMaker,
   },
   fields: [
-    // RFP feedback 5.9: was `localized: true` — the only localized field in the
+    // RFP feedback 5.7: was `localized: true` — the only localized field in the
     // whole CMS, which is why the content-locale selector appeared in the
     // header while switching it changed nothing. See payload.config.ts.
     { name: "title", type: "text", required: true },

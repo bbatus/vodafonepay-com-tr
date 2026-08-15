@@ -6,7 +6,7 @@ import { useAuth } from "@payloadcms/ui";
 /**
  * Keeps Payload's `payload-lng` cookie in step with the user's own
  * `preferredLocale` profile setting — the single place the admin UI language
- * is chosen (RFP feedback 5.9a).
+ * is chosen (RFP feedback 5.7a).
  *
  * Payload's `payload-lng` cookie is NOT httpOnly (see @payloadcms/next's
  * `switchLanguageServerAction` — a plain `cookies().set()` with no httpOnly

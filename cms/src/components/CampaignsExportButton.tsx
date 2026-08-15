@@ -29,7 +29,7 @@ type ExportCampaign = {
 };
 
 /**
- * RFP feedback 5.7 — "campaigns sayfasında da türkçe karakterleri
+ * RFP feedback 5.11 — "campaigns sayfasında da türkçe karakterleri
  * destekleyecek şekilde ne değerlerimiz varsa tüm sütunlarla birlikte csv".
  *
  * Fetched at `depth: 1` so `category` and `createdBy` arrive populated: an
