@@ -148,6 +148,69 @@ alanları boşaltıldıktan sonra silme geçti. **Tüm test verisi temizlendi**
 
 ---
 
+## 4b) Sık Sorulanlar + Blog Yazıları koleksiyon testi
+
+Bu iki koleksiyon 4 rolle ayrı ayrı sınandı. **Erişim matrisi doğru:**
+
+| | NV Maker | NV Checker | Growth Maker | Growth Checker |
+|---|---|---|---|---|
+| SSS / Blog okuma | 200 | 200 | 200 | 200 |
+| oluşturma | **201** | 403 | 403 | 403 |
+| güncelleme / yayınlama | 200 | 200 | 403 | 403 |
+| silme | **200** | 403 | 403 | 403 |
+
+Ayrıca: bir blog yazısının `coverImage`'ı olarak kullanılan medyayı silmek
+istediğimde referans guard'ı **409** ile engelledi — §5.1 koruması bu yolda da
+çalışıyor.
+
+**İki gerçek bug bulundu ve düzeltildi:**
+
+### 4b.1 — Otomatik sıra numaralandırma hiç çalışmıyormuş
+
+Geçen turda `order` alanına eklediğim `defaultValue: 1`, yanına eklediğim
+`assignNextOrder` hook'unu **devre dışı bırakıyormuş**. Payload alan
+varsayılanlarını `beforeChange`'den ÖNCE dolduruyor; hook `order: 1` görüp
+"kullanıcı elle yazmış" sanıyor ve erken dönüyor.
+
+Sonuç: `kampanyalar` kategorisinde en yüksek sıra 12 iken yeni SSS yine **1**
+olarak kaydediliyordu — yani maddenin asıl istediği şey ("order 1'den başlasın,
+elle sayı düşünmek zorunda kalmayayım") hiç çalışmıyordu.
+
+`defaultValue` 9 koleksiyondan da kaldırıldı. Boş bırakmak zaten alanın kendi
+açıklamasıyla tutarlı ("Boş bırakırsanız otomatik olarak sona eklenir").
+
+**Canlı doğrulama:** aynı kategoride art arda iki kayıt → 13, sonra 14 ·
+farklı kategoride bağımsız olarak → 2 (kapsam ayrımı çalışıyor) · elle
+girilen 99 korunuyor. İki regresyon testi bu tuzağı sabitliyor.
+
+### 4b.2 — `/blog` kampanya kategorilerini gösteriyordu
+
+Blog sayfası filtre sekmelerini `getCategories()`'ten — yani **Campaigns
+taksonomisinden** — besliyordu. Ama `BlogPosts.category` serbest metin bir
+alan; hiçbir blog yazısının kategorisi "Kart" veya "Anında Bakiye" ile
+eşleşemez. Yani **"Tümü" dışındaki her sekme sessizce boş liste gösteriyordu.**
+
+Bu da geçen turda FilterTabs dinamikleştirilirken girmiş. Sekmeler artık
+yazıların kendi kategorilerinden türetiliyor — sunulan ile filtrelenebilen
+her zaman aynı.
+
+**Canlı doğrulama:** iki farklı kategoride yayınlanmış yazıyla sekmeler
+`Tümü / Guvenlik / Test` olarak çıktı, "Guvenlik"e tıklayınca yalnızca o yazı
+kaldı. Test verisi temizlendi (blog_posts=0, faq_items=13 — orijinal hâli).
+
+### Not: `/blog` listesinin boş görünmesi bug değildi
+
+Test sırasında yayınlanan yazı `/blog` listesinde çıkmadı; detay sayfası
+açılıyordu. Sebep ISR cache'iydi: dev CMS'imin `SITE_REVALIDATE_URL`'i
+container sitesine (`:3000`) bakıyor, benim dev sitem ise `:3002`'de — üstelik
+farklı bir `REVALIDATE_SECRET` ile, bu yüzden webhook 401 alıyordu. Doğru
+payload'la (`{"tag":"blog-posts","paths":["/blog"]}`) elle tetiklenince yazı
+anında listeye düştü. **İki container'ın secret'ları birbiriyle uyuşuyor**
+(hash karşılaştırmasıyla doğrulandı), yani gerçek ortamdaki revalidate yolu
+sağlam — bu tamamen benim bölünmüş test kurulumumun yan etkisiydi.
+
+---
+
 ## 5) Bloke olanlar ve nasıl devam edilir
 
 ### 5.1 SonarQube — token yok
