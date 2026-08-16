@@ -66,9 +66,11 @@ describe("findReferences", () => {
       headers: { get: () => null },
     } as unknown as PayloadRequest;
 
+    // categories is referenced by BOTH campaigns and blog-posts; a probe
+    // failure on either has to fail closed, not just the first one.
     const hits = await findReferences(req, "categories", 1);
-    expect(hits).toHaveLength(1);
-    expect(hits[0].total).toBe(-1);
+    expect(hits).toHaveLength(REFERENCE_MAP.categories.length);
+    expect(hits.every((h) => h.total === -1)).toBe(true);
   });
 });
 

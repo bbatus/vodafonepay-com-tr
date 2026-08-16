@@ -229,7 +229,10 @@ const blogPostSchema = z.object({
   slug: z.string(),
   coverImage: mediaSchema,
   excerpt: z.string(),
-  category: nullableString(),
+  // Was free text; now the same Categories relationship Campaigns uses, so
+  // /blog's filter tabs and the posts' own values finally index on the same
+  // thing (matches how the live vodafonepay.com.tr blog filters).
+  category: campaignCategorySchema.nullable(),
   publishedDate: nullableString(),
 });
 export type CmsBlogPost = z.infer<typeof blogPostSchema>;
@@ -250,7 +253,7 @@ const blogPostDetailSchema = z.object({
   coverImage: mediaSchema,
   excerpt: z.string(),
   body: z.unknown().nullable().optional(),
-  category: nullableString(),
+  category: campaignCategorySchema.nullable(),
   publishedDate: nullableString(),
   seoTitle: nullableString(),
   seoDescription: nullableString(),

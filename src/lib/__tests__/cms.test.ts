@@ -182,7 +182,16 @@ describe("cms.ts fetch-backed getters", () => {
   });
 
   it("getBlogPosts returns docs on success", async () => {
-    const doc = { id: "b1", title: "T", slug: "t", coverImage: media, excerpt: "E" };
+    // `category` is a populated Categories relationship now, not free text —
+    // that's what makes /blog's filter tabs able to match the posts at all.
+    const doc = {
+      id: "b1",
+      title: "T",
+      slug: "t",
+      coverImage: media,
+      excerpt: "E",
+      category: { label: "Kart", slug: "kart" },
+    };
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
     expect(await getBlogPosts()).toEqual([doc]);
   });

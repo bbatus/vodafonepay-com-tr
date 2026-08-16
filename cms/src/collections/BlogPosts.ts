@@ -38,7 +38,26 @@ export const BlogPosts: CollectionConfig = {
     { name: "coverImage", type: "upload", relationTo: "media", required: true },
     { name: "excerpt", type: "textarea", required: true },
     { name: "body", type: "richText" },
-    { name: "category", type: "text" },
+    {
+      // Was free text, which is why /blog's filter tabs were broken: the page
+      // offered the Categories taxonomy (the live vodafonepay.com.tr blog
+      // filters by exactly that — Anında Bakiye / Faturana Yansıt / Kart)
+      // while posts stored arbitrary strings, so no tab could ever match.
+      // Making it a real relationship is what actually makes the two agree,
+      // and it's the same taxonomy Campaigns.category uses.
+      //
+      // Safe to change now specifically because `blog_posts` was verified
+      // EMPTY (0 rows) — no free-text values to migrate. Deliberately NOT
+      // `required`: the live site's blog has posts under no category too, and
+      // making it required would block an editor mid-draft.
+      name: "category",
+      type: "relationship",
+      relationTo: "categories",
+      admin: {
+        description:
+          "Blog listesindeki filtre sekmesini belirler — kampanyalarla aynı kategori listesi. Boş bırakılırsa yazı yalnızca 'Tümü' sekmesinde görünür.",
+      },
+    },
     { name: "publishedDate", type: "date", admin: { date: { pickerAppearance: "dayOnly" } } },
     {
       // Named postStatus (not "status") — see the same collision noted on

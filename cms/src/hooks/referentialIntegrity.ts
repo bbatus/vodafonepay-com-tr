@@ -49,7 +49,12 @@ export type ReferenceSource = {
 };
 
 export const REFERENCE_MAP: Record<string, ReferenceSource[]> = {
-  categories: [{ collection: "campaigns", path: "category", titleField: "title", blocking: true }],
+  categories: [
+    { collection: "campaigns", path: "category", titleField: "title", blocking: true },
+    // BlogPosts.category became a relationship to this collection too — same
+    // taxonomy as campaigns, so the same delete protection has to cover it.
+    { collection: "blog-posts", path: "category", titleField: "title", blocking: true },
+  ],
 
   media: [
     { collection: "campaigns", path: "image", titleField: "title", blocking: true },

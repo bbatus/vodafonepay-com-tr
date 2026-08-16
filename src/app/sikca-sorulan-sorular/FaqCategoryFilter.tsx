@@ -15,6 +15,9 @@ const categories = [
   "Vodafone Pay Kart",
   "QR ile Faturana Yansıt",
   "Faturana Yansıt",
+  "Sözleşmeler ve Formlar",
+  "Gizlilik ve Güvenlik",
+  "Duyurular",
 ] as const;
 
 type Category = (typeof categories)[number];
@@ -32,6 +35,9 @@ const CMS_CATEGORY_TO_LABEL: Record<string, Exclude<Category, "Tümü">> = {
   // continue`). So an FAQ an editor filed under "Faturana Yansıt" simply
   // never appeared on this page, with nothing anywhere to say why.
   "faturana-yansit": "Faturana Yansıt",
+  "sozlesmeler-ve-formlar": "Sözleşmeler ve Formlar",
+  "gizlilik-ve-guvenlik": "Gizlilik ve Güvenlik",
+  duyurular: "Duyurular",
 };
 
 function groupByCategory(items: (FaqItem & { category: string })[]): Record<Exclude<Category, "Tümü">, FaqItem[]> {

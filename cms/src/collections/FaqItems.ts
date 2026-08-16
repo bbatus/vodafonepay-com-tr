@@ -53,6 +53,14 @@ export const FaqItems: CollectionConfig = {
         { label: "QR ile Faturana Yansıt", value: "qr-ile-faturana-yansit" },
         { label: "Faturana Yansıt", value: "faturana-yansit" },
         { label: "Kampanyalar", value: "kampanyalar" },
+        // The live vodafonepay.com.tr FAQ page carries these three categories
+        // too; we were missing them entirely, so there was no way to file an
+        // FAQ under them. Adding a `select` option is a Postgres enum change
+        // (R-26) — the matching `ALTER TYPE ... ADD VALUE` is in the round
+        // report, and must be applied before deploying this.
+        { label: "Sözleşmeler ve Formlar", value: "sozlesmeler-ve-formlar" },
+        { label: "Gizlilik ve Güvenlik", value: "gizlilik-ve-guvenlik" },
+        { label: "Duyurular", value: "duyurular" },
       ],
     },
     {

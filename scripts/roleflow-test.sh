@@ -40,11 +40,11 @@ run_role () {
   echo "media list                  -> $(q "$B/api/media?limit=5&depth=0")"
   # 5) PROFILE
   echo "profile (me)                -> $(q "$B/api/users/me")"
-  local uid; uid=$(curl -s -b "$jar" "$B/api/users/me" | python3 -c "import sys,json;print(json.load(sys.stdin)['user']['id'])" 2>/dev/null)
+  local uid; uid=$(curl -s -b "$jar" -H "Origin: $B" "$B/api/users/me" | python3 -c "import sys,json;print(json.load(sys.stdin)['user']['id'])" 2>/dev/null)
   echo "profile: set preferredLocale-> $(curl -s -o /dev/null -w '%{http_code}' -b "$jar" -H "Origin: $B" -H 'Content-Type: application/json' -X PATCH "$B/api/users/$uid" -d '{"preferredLocale":"tr"}')"
   # self role escalation must be silently refused (200 but value unchanged)
   curl -s -o /dev/null -b "$jar" -H "Origin: $B" -H 'Content-Type: application/json' -X PATCH "$B/api/users/$uid" -d '{"role":"RL_VODAFONEPAY_CMS_EXEC_DEVELOPER_MAKER_RW"}'
-  echo "profile: role after escalation attempt -> $(curl -s -b "$jar" "$B/api/users/me" | python3 -c "import sys,json;print(json.load(sys.stdin)['user']['role'])" 2>/dev/null)"
+  echo "profile: role after escalation attempt -> $(curl -s -b "$jar" -H "Origin: $B" "$B/api/users/me" | python3 -c "import sys,json;print(json.load(sys.stdin)['user']['role'])" 2>/dev/null)"
   echo "locked-accounts unlock      -> $(curl -s -o /dev/null -w '%{http_code}' -b "$jar" -H "Origin: $B" -H 'Content-Type: application/json' -X POST "$B/api/users/unlock" -d '{"email":"test-growth-checker@vodafonepay.local"}')"
   echo
   rm -f "$jar"
