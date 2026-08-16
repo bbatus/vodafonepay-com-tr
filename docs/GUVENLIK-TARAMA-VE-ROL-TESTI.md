@@ -245,7 +245,36 @@ doğrulandı.
 | Kategori sekmeleri | Tümü / Anında Bakiye / Faturana Yansıt / Kart | Yazıların kendi kategorilerinden türetiliyor | Farklı — karar bekliyor |
 | Sayfalama | Yok | Yok | Aynı |
 
-### Karar bekleyen 2 fark (bilinçli olarak tek başıma değiştirmedim)
+### Bu iki fark da kapatıldı (güncelleme)
+
+**1. Eksik 3 SSS kategorisi — eklendi.** `FaqItems.category` select'ine
+`sozlesmeler-ve-formlar`, `gizlilik-ve-guvenlik`, `duyurular` eklendi; site
+tarafında hem sekme listesine hem `CMS_CATEGORY_TO_LABEL` haritasına girdi.
+R-26 gereği hem ana hem versiyon enum'una `ALTER TYPE ... ADD VALUE`
+uygulandı (DDL §5'te). Üçünde de SSS oluşturulup sitede göründüğü doğrulandı.
+Bizde bir fazlası var: **Faturana Yansıt** — gerçek sitenin SSS sekmelerinde
+yok ama CMS'imiz sunuyor ve gerçek bir ürün sayfası, bilerek bırakıldı.
+
+**2. Blog taksonomisi — relationship'e çevrildi.** `BlogPosts.category` artık
+`Campaigns.category` gibi Categories koleksiyonuna bir `relationship`.
+
+Önemli nokta: asıl hatalı olan **alan tipiydi**, sayfanın taksonomi seçimi
+değil. Gerçek site blogu kampanyalarla aynı taksonomiyle filtreliyor — yani
+`/blog`'un Categories'i kullanması doğruymuş, alan serbest metin olduğu için
+hiçbir zaman eşleşemiyordu. `blog_posts` boş olduğu için (0 satır) taşınacak
+veri yoktu; şema doğrudan değiştirildi.
+
+Sekmeler Categories'ten geliyor ama **yalnızca gerçekten yazısı olan
+kategoriler** gösteriliyor, böylece hiçbir sekme boşa çıkmıyor. `REFERENCE_MAP`'e
+`blog-posts.category` de eklendi — canlıda doğrulandı: bir kategoriyi silmeye
+çalışınca hem kampanyayı hem blog yazısını adıyla listeliyor.
+
+**Soğuk cache üzerinde uçtan uca doğrulama:** sekmeler `Tümü / Anında Bakiye /
+Kart`, kart CTA'sı "Detayları gör", şema uyuşmazlığı 0.
+
+---
+
+### (Arşiv) Kapatılmadan önceki karar notu
 
 **1. SSS'te eksik 3 kategori.** Gerçek sitede *Sözleşmeler ve Formlar*,
 *Gizlilik ve Güvenlik* ve *Duyurular* da birer SSS kategorisi. Eklemek
@@ -298,13 +327,37 @@ işaretleyeceği iki duplication proaktif olarak giderildi:
 - Silme koruması ve sıralama mantığı 9+ koleksiyona kopyalanmak yerine tek
   birer factory'de (`blockDeleteIfReferenced`, `assignNextOrder`).
 
-### 5.2 Docker imajı yeniden üretilemedi
+### 5.2 Docker imajı yeniden üretilemedi — kök neden bulundu
 
-Docker daemon'ın registry erişimi askıda: düz bir `docker pull hello-world`
-bile dönmüyor — temel imaj yerelde mevcut ve host'tan `curl` ile registry
-erişilebilir olduğu halde. BuildKit `resolve` adımında %0 CPU ile takılıyor;
-build cache temizlendikten sonra da, `DOCKER_BUILDKIT=0` legacy builder'la da
-aynı. **Bu turun kodundan bağımsız, ortamsal bir sorun.**
+**Arıza: Docker daemon'ın kendi dış ağ erişimi kopuk.** İkisi ayrı ayrı
+ölçüldü:
+
+```bash
+# CONTAINER ağı — ÇALIŞIYOR (401 = registry'ye ulaşıldı, sadece yetkisiz)
+docker run --rm alpine wget -q -T 10 -O /dev/null https://registry-1.docker.io/v2/
+
+# DAEMON ağı — ÇALIŞMIYOR (süresiz asılı kalıyor)
+docker search --limit 1 alpine
+```
+
+Yani container'lar internete çıkabiliyor (bu yüzden Trivy taramaları ve
+`npm ci` sorunsuz), ama **daemon** registry'ye ulaşamıyor. BuildKit her `FROM`
+referansını registry'de çözmek zorunda olduğu için build `resolve` adımında
+%0 CPU ile takılıyor.
+
+Denenip **işe yaramayanlar**: build cache temizliği · `DOCKER_BUILDKIT=0`
+legacy builder · `docker build --pull=false` · temel imajı yerel-only bir
+etiketle (`vodafonepay-base:node24`) yeniden etiketleyip ondan build etmek —
+BuildKit bunu da `docker.io/library/...@sha256:...` olarak çözmeye çalışıp
+aynı yerde takılıyor.
+
+**Çözüm kullanıcı tarafında:** Docker Desktop'ın yeniden başlatılması
+(genelde VPN/proxy/DNS kaynaklı). Çalışan container'ları düşüreceği için
+kendiliğimden yapmadım. Sonrasında:
+
+```bash
+docker compose -p vodafonepaycomtr up -d --build cms app
+```
 
 Sonucu: `3010`'daki container hâlâ eski kodu çalıştırıyor ve şema elle
 güncellendiği için `/api/pages` **500** dönüyor (diğer koleksiyonlar sağlam).
