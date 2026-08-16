@@ -211,6 +211,66 @@ sağlam — bu tamamen benim bölünmüş test kurulumumun yan etkisiydi.
 
 ---
 
+## 4c) vodafonepay.com.tr ile tip karşılaştırması (SSS + Blog)
+
+Canlı siteye bakılıp bizim sayfalarla karşılaştırıldı.
+
+### Sıkça Sorulan Sorular
+
+| | Gerçek site | Bizde | Durum |
+|---|---|---|---|
+| Kategori sekmeleri | 10 | 7 → **8** | 2 eksik kaldı (aşağıda) |
+| Tümü / Anasayfa / Anında Bakiye / Vodafone Pay Uygulama / Kampanyalar / Vodafone Pay Kart / QR ile Faturana Yansıt | ✅ | ✅ | Aynı |
+| **Faturana Yansıt** | ✅ | ❌ → ✅ | **Düzeltildi** |
+| Sözleşmeler ve Formlar | ✅ | ❌ | Karar bekliyor |
+| Gizlilik ve Güvenlik | ✅ | ❌ | Karar bekliyor |
+| Duyurular | ✅ | ❌ | Karar bekliyor |
+
+**Bulunan bug — "Faturana Yansıt" SSS'leri sayfadan kayboluyordu.** CMS,
+`FaqItems.category` seçeneklerinde bu kategoriyi sunuyor; ama sitedeki
+`CMS_CATEGORY_TO_LABEL` haritasında bu anahtar yoktu ve `groupByCategory`
+eşleyemediği her kaydı sessizce atıyor (`if (!label) continue`). Yani editör
+bir SSS'i "Faturana Yansıt" olarak kaydediyor, soru sitede **hiçbir yerde
+görünmüyor**, hiçbir yerde de sebebi yazmıyordu. Bu turdaki diğer bug'larla
+aynı sınıf: özellik çalışıyormuş gibi duruyor, aslında hiçbir şey yapmıyor.
+Harita ve sekme eklendi; gerçek bir SSS kaydıyla, soğuk cache üzerinde
+doğrulandı.
+
+### Blog
+
+| | Gerçek site | Bizde | Durum |
+|---|---|---|---|
+| Kart alanları (görsel, başlık, açıklama, link) | ✅ | ✅ | Aynı |
+| Kart link metni | **"Detayları gör"** | "Devamını oku" → **"Detayları gör"** | **Düzeltildi** |
+| Kategori sekmeleri | Tümü / Anında Bakiye / Faturana Yansıt / Kart | Yazıların kendi kategorilerinden türetiliyor | Farklı — karar bekliyor |
+| Sayfalama | Yok | Yok | Aynı |
+
+### Karar bekleyen 2 fark (bilinçli olarak tek başıma değiştirmedim)
+
+**1. SSS'te eksik 3 kategori.** Gerçek sitede *Sözleşmeler ve Formlar*,
+*Gizlilik ve Güvenlik* ve *Duyurular* da birer SSS kategorisi. Eklemek
+`FaqItems.category` select'ine 3 değer eklemek demek — bu bir **Postgres enum
+değişikliği** (R-26), yani `ALTER TYPE ... ADD VALUE` + container rebuild
+gerektiriyor. Kod tarafı ucuz, ama şema değişikliği ve rebuild şu an bloke
+(§5.2). Ayrıca bu üç başlık sitenin başka bölümlerine karşılık geliyor —
+içerik olarak da doldurulmaları gerekir, yoksa boş sekme olurlar.
+
+**2. Blog taksonomisi.** Gerçek sitenin blog sekmeleri *Anında Bakiye /
+Faturana Yansıt / Kart* — yani **kampanyalarla aynı taksonomi**. Bizde
+`BlogPosts.category` serbest metin bir alan.
+
+Bu turda yaptığım düzeltme (sekmeleri yazıların kendi kategorilerinden
+türetmek) mevcut serbest-metin alanı için **doğru** ve kesinlikle önceki
+halinden iyi — önceki hal hiçbir zaman eşleşemeyecek kampanya kategorilerini
+sunuyordu. Ama gerçek siteyle birebir aynı olmak istiyorsak asıl çözüm
+`BlogPosts.category`'yi `Campaigns.category` gibi **Categories koleksiyonuna
+bir `relationship`** yapmak. Bu bir veri modeli değişikliği: yeni FK kolonu +
+mevcut serbest metin değerlerinin taşınması. Tek başıma yapmadım çünkü
+business blog için kampanyalardan farklı bir kategori seti isteyebilir — önce
+bunun kararı verilmeli.
+
+---
+
 ## 5) Bloke olanlar ve nasıl devam edilir
 
 ### 5.1 SonarQube — token yok
