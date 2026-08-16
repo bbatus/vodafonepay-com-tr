@@ -6,7 +6,8 @@ import { StickyQr } from "@/components/StickyQr";
 import type { CardListItem } from "@/components/CardListGrid";
 import { ContentUnavailable } from "@/components/ContentUnavailable";
 import { Footer } from "@/components/Footer";
-import { getBlogPosts, getCategories } from "@/lib/cms";
+import { getBlogPosts } from "@/lib/cms";
+import type { FilterTabCategory } from "@/components/FilterTabs";
 import { BlogFilterableList } from "./BlogFilterableList";
 import { buildMetadata } from "@/lib/metadata";
 
@@ -22,7 +23,7 @@ export default async function Blog() {
   // ContentUnavailable.tsx). `null` = CMS fetch/parse failed, `[]` = CMS
   // reachable but genuinely has zero posts; shown differently so a dead
   // CMS is actually visible instead of silently masked.
-  const [cmsPosts, categories] = await Promise.all([getBlogPosts(), getCategories()]);
+  const cmsPosts = await getBlogPosts();
   const posts: CardListItem[] = (cmsPosts ?? []).map((p) => ({
     id: p.id,
     image: p.coverImage.url,
@@ -32,13 +33,31 @@ export default async function Blog() {
     category: p.category,
   }));
 
+  // This page used to feed `getCategories()` — the CAMPAIGN taxonomy — into
+  // its filter tabs. But `BlogPosts.category` is a free-text field, not a
+  // relationship to that collection, so the tabs offered campaign categories
+  // ("Kart", "Anında Bakiye") that no blog post's category could ever equal:
+  // every tab except "Tümü" silently produced an empty list. Confirmed live
+  // on a published post. The tabs are derived from the posts' own categories
+  // instead, so what's offered always matches what's filterable — and adding
+  // a new blog category is just typing it on a post, with no code change and
+  // nothing to keep in sync.
+  const categories: FilterTabCategory[] = [
+    ...new Map(
+      posts
+        .map((p) => p.category)
+        .filter((c): c is string => Boolean(c))
+        .map((c) => [c, { label: c, slug: c }])
+    ).values(),
+  ];
+
   let content: ReactNode;
   if (cmsPosts === null) {
     content = <ContentUnavailable variant="error" />;
   } else if (posts.length === 0) {
     content = <ContentUnavailable variant="empty" />;
   } else {
-    content = <BlogFilterableList posts={posts} categories={categories ?? []} />;
+    content = <BlogFilterableList posts={posts} categories={categories} />;
   }
 
   return (

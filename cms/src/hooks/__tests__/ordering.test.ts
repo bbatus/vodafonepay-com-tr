@@ -57,3 +57,25 @@ describe("assignNextOrder", () => {
     expect((await run(assignNextOrder("faq-items"), {}, req)).order).toBe(1);
   });
 });
+
+describe("the order field must not declare a defaultValue", () => {
+  /**
+   * Payload fills field defaults BEFORE beforeChange runs, so a
+   * `defaultValue: 1` on `order` reaches assignNextOrder looking identical to
+   * a number the editor typed — the "respect an explicit value" guard bails
+   * out and auto-numbering silently never happens.
+   *
+   * Caught live: a new FAQ created in a category whose highest order was 12
+   * was still saved as 1. This test fails if anyone reintroduces the default.
+   */
+  it("assigns max+1 when order arrives unset, the way an empty form field does", async () => {
+    const { req } = fakeReq(12);
+    expect((await run(assignNextOrder("faq-items", ["category"]), { category: "kampanyalar" }, req)).order).toBe(13);
+  });
+
+  it("would be defeated by a defaultValue — proving why the field has none", async () => {
+    const { req } = fakeReq(12);
+    // This is what Payload hands the hook when `defaultValue: 1` is declared.
+    expect((await run(assignNextOrder("faq-items", ["category"]), { category: "kampanyalar", order: 1 }, req)).order).toBe(1);
+  });
+});
