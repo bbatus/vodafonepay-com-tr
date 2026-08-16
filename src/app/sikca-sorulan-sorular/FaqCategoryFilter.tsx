@@ -14,6 +14,7 @@ const categories = [
   "Kampanyalar",
   "Vodafone Pay Kart",
   "QR ile Faturana Yansıt",
+  "Faturana Yansıt",
 ] as const;
 
 type Category = (typeof categories)[number];
@@ -26,6 +27,11 @@ const CMS_CATEGORY_TO_LABEL: Record<string, Exclude<Category, "Tümü">> = {
   kampanyalar: "Kampanyalar",
   "vodafone-pay-kart": "Vodafone Pay Kart",
   "qr-ile-faturana-yansit": "QR ile Faturana Yansıt",
+  // FaqItems offers this category in the CMS, but it was missing from this
+  // map — and groupByCategory drops anything it can't map (`if (!label)
+  // continue`). So an FAQ an editor filed under "Faturana Yansıt" simply
+  // never appeared on this page, with nothing anywhere to say why.
+  "faturana-yansit": "Faturana Yansıt",
 };
 
 function groupByCategory(items: (FaqItem & { category: string })[]): Record<Exclude<Category, "Tümü">, FaqItem[]> {

@@ -14,7 +14,9 @@ export function BlogFilterableList({ posts, categories }: { posts: CardListItem[
         <FilterTabs categories={categories} active={active} onChange={setActive} />
       </div>
 
-      <CardListGrid title="Tüm Bloglar" items={visible} linkLabel="Devamını oku" />
+      <CardListGrid title="Tüm Bloglar" items={visible} // vodafonepay.com.tr uses "Detayları gör" on blog cards too, not
+      // "Devamını oku" — checked against the live site.
+      linkLabel="Detayları gör" />
     </>
   );
 }
