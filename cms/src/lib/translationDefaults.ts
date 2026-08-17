@@ -7,8 +7,30 @@
  */
 export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = {
   "reorderWidget.title": { tr: "Sürükleyerek sırala", en: "Drag to reorder" },
-  "reorderWidget.saving": { tr: "(kaydediliyor…)", en: "(saving…)" },
+  "reorderWidget.saving": { tr: "Kaydediliyor…", en: "Saving…" },
   "reorderWidget.loadError": { tr: "Liste yüklenemedi.", en: "Failed to load list." },
+  "reorderWidget.save": { tr: "Kaydet", en: "Save" },
+  "reorderWidget.discard": { tr: "Vazgeç", en: "Discard" },
+  "reorderWidget.unsavedNotice": { tr: "Kaydedilmemiş sıralama değişikliği var.", en: "There are unsaved order changes." },
+  "reorderWidget.saveError": {
+    tr: "Bazı öğeler kaydedilemedi — sıralama kısmen değişmiş olabilir. Sayfayı yenileyip tekrar deneyin.",
+    en: "Some items couldn't be saved — the order may be partially changed. Refresh and try again.",
+  },
+  "reorderWidget.switchGroupBlocked": {
+    tr: "Önce bu listedeki değişiklikleri kaydedin ya da vazgeçin.",
+    en: "Save or discard your changes in this list first.",
+  },
+  "reorderWidget.emptyGroup": { tr: "Bu grupta sürüklenecek yeterli kayıt yok.", en: "Not enough records in this group to reorder." },
+  "reorderWidget.loadingItems": { tr: "Yükleniyor…", en: "Loading…" },
+  "reorderWidget.truncatedNotice": {
+    tr: "{total} kayıttan {shown} tanesi gösteriliyor — geri kalanı sıralamak için önce bu listeyi kaydedip filtrelemeyi daraltın.",
+    en: "Showing {shown} of {total} records — save this list first, then narrow the filter to reorder the rest.",
+  },
+
+  "liveOrder.loading": { tr: "Hesaplanıyor…", en: "Calculating…" },
+  "liveOrder.count": { tr: "Bu grupta {count} kayıt var", en: "{count} records in this group" },
+  "liveOrder.suggested": { tr: "önerilen sıra: {suggested}", en: "suggested order: {suggested}" },
+  "liveOrder.useSuggested": { tr: "{suggested} kullan", en: "Use {suggested}" },
 
   "roleAwarePublishButton.publish": { tr: "Değişiklikleri yayınla", en: "Publish changes" },
   "roleAwarePublishButton.publishing": { tr: "Yayınlanıyor…", en: "Publishing…" },
@@ -200,7 +222,7 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
     en: "Your vodafone.local LDAP / AccessPoint role. You cannot change your own role — a New Vertical Maker can if needed.",
   },
   "accountForm.avatar": { tr: "Profil Fotoğrafı", en: "Profile Photo" },
-  "accountForm.avatarHint": { tr: "En fazla 2MB — MinIO'da saklanır.", en: "Up to 2MB — stored in MinIO." },
+  "accountForm.avatarHint": { tr: "Değiştirmek için fotoğrafa tıklayın. En fazla 2MB.", en: "Click the photo to change it. Up to 2MB." },
   "accountForm.avatarUploading": { tr: "Yükleniyor…", en: "Uploading…" },
   "accountForm.avatarSaved": { tr: "Profil fotoğrafı güncellendi.", en: "Profile photo updated." },
   "accountForm.avatarError": { tr: "Fotoğraf yüklenemedi.", en: "Couldn't upload photo." },
