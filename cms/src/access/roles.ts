@@ -102,11 +102,28 @@ export const campaignsReadWrite: Access = ({ req }) => {
  * reuse it) rather than hardcoded to the one case it currently covers.
  */
 export function denyRolePublish(blockedRole: RoleValue): CollectionBeforeChangeHook {
-  return ({ data, req }) => {
-    if (roleOf(req) === blockedRole && data?._status === "published") {
-      throw new Forbidden(req.t);
-    }
-    return data;
+  return ({ data, operation, originalDoc, req }) => {
+    if (roleOf(req) !== blockedRole) return data;
+    if (data?._status !== "published") return data;
+
+    // The rule is "this role may never PUBLISH", i.e. never move a document
+    // INTO the published state. It used to be written as "never save anything
+    // whose resulting status is published", which also caught saves on a
+    // document that was already live and staying live — so a Growth Maker
+    // couldn't write even publication-neutral metadata.
+    //
+    // That surfaced as a real dead end once the unpublish flow landed (RFP
+    // feedback 5.4): the Growth Maker's own "Yayından Kaldırma Talebi Oluştur"
+    // button 403'd, because filing the request is a save on a still-published
+    // document. Confirmed live before the fix.
+    //
+    // Relaxing this does NOT open a way to edit live content: on Campaigns,
+    // `guardPublishedEdit` runs earlier in the same beforeChange chain and
+    // rejects any content change while `_status` is published. This hook keeps
+    // owning exactly one thing — the draft → published transition.
+    if (operation === "update" && originalDoc?._status === "published") return data;
+
+    throw new Forbidden(req.t);
   };
 }
 

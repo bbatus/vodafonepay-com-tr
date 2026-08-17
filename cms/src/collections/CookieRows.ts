@@ -3,13 +3,19 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
 
 export const CookieRows: CollectionConfig = {
   slug: "cookie-rows",
+  labels: {
+    singular: dbLabel("collectionLabel.cookie-rows.singular", { tr: "Çerez Satırı", en: "Cookie Row" }),
+    plural: dbLabel("collectionLabel.cookie-rows.plural", { tr: "Çerez Satırları", en: "Cookie Rows" }),
+  },
   admin: {
+    hideAPIURL: true,
     useAsTitle: "name",
     defaultColumns: ["name", "provider", "party", "category"],
-    group: "Site Yapısı",
+    group: { tr: "Site Yapısı", en: "Site Structure" },
     description: "/cerez-politikasi sayfasındaki çerez tablosunun satırları.",
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "cookie-rows" } }],

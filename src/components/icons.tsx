@@ -16,6 +16,20 @@ export function CloseIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+/** Used by CampaignDate — vodafonepay.com.tr puts a calendar glyph left of "Kampanya Tarihi". */
+export function CalendarIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" {...props}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.8}
+        d="M8 3v3m8-3v3M4 9h16M5 6h14a1 1 0 011 1v12a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1z"
+      />
+    </svg>
+  );
+}
+
 export function ChevronRightIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg fill="none" stroke="#E60000" viewBox="0 0 24 24" aria-hidden="true" {...props}>

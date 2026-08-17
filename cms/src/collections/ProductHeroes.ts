@@ -3,13 +3,19 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
 
 export const ProductHeroes: CollectionConfig = {
   slug: "product-heroes",
+  labels: {
+    singular: dbLabel("collectionLabel.product-heroes.singular", { tr: "Ürün Hero Alanı", en: "Product Hero" }),
+    plural: dbLabel("collectionLabel.product-heroes.plural", { tr: "Ürün Hero Alanları", en: "Product Heroes" }),
+  },
   admin: {
+    hideAPIURL: true,
     useAsTitle: "page",
     defaultColumns: ["page", "heading"],
-    group: "Ürün Sayfaları",
+    group: { tr: "Ürün Sayfaları", en: "Product Pages" },
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "product-heroes" } }],
     },

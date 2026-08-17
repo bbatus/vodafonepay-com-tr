@@ -75,8 +75,8 @@ async function BlockRenderer({ block }: { block: CmsPageBlock }) {
         <section className="mx-auto max-w-3xl px-4 py-10">
           {block.heading && <h2 className="text-2xl font-bold text-black">{block.heading}</h2>}
           <div className="mt-4 space-y-4 text-base text-gray-700">
-            {paragraphs.map((p, i) => (
-              <p key={i}>{p}</p>
+            {paragraphs.map((p) => (
+              <p key={p}>{p}</p>
             ))}
           </div>
         </section>
@@ -95,10 +95,10 @@ async function BlockRenderer({ block }: { block: CmsPageBlock }) {
 
     case "campaignGrid": {
       const campaigns = await getCampaigns();
-      const filtered = block.category ? campaigns?.filter((c) => c.category === block.category) : campaigns;
+      const filtered = block.category ? campaigns?.filter((c) => c.category?.slug === block.category) : campaigns;
       const items: CardListItem[] = (filtered ?? []).map((c) => {
         const card = campaignToCard(c);
-        return { image: card.image, title: card.title, description: card.description, href: card.href };
+        return { id: card.id, image: card.image, title: card.title, description: card.description, href: card.href };
       });
       return (
         <section className="mx-auto w-full max-w-[1280px] px-4 py-10">
@@ -166,8 +166,8 @@ export default async function EditorPage({ params }: { params: Promise<{ slug: s
       <StickyQr />
       <Breadcrumb current={page.title} />
 
-      {page.layout.map((block, i) => (
-        <BlockRenderer key={block.id ?? i} block={block} />
+      {page.layout.map((block) => (
+        <BlockRenderer key={block.id ?? JSON.stringify(block)} block={block} />
       ))}
 
       <Footer />

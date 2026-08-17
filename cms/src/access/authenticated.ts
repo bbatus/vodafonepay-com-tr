@@ -1,5 +1,23 @@
+import { timingSafeEqual } from "node:crypto";
 import { Forbidden } from "payload";
 import type { Access, CollectionBeforeOperationHook } from "payload";
+
+/**
+ * The site's own server-side draft-preview fetch (see src/app/api/preview
+ * on the site) is legitimately unauthenticated from Payload's perspective —
+ * it's a service-to-service call, not a logged-in editor. It proves itself
+ * with this shared secret instead. Constant-time compare, same pattern as
+ * the site's own /api/revalidate secret check.
+ */
+function hasValidPreviewSecret(req: { headers: { get(name: string): string | null } }): boolean {
+  const provided = req.headers.get("x-preview-secret");
+  const expected = process.env.PREVIEW_SECRET;
+  if (!provided || !expected) return false;
+  const providedBuf = Buffer.from(provided);
+  const expectedBuf = Buffer.from(expected);
+  if (providedBuf.length !== expectedBuf.length) return false;
+  return timingSafeEqual(providedBuf, expectedBuf);
+}
 
 /** Requires a logged-in session. Use as `readVersions` on drafts-enabled collections. */
 export const authenticated: Access = ({ req }) => Boolean(req.user);
@@ -13,7 +31,7 @@ export const authenticated: Access = ({ req }) => Boolean(req.user);
  * `denyUnauthenticatedDraftRead` below for why, and use both together.
  */
 export const publishedOrAuthenticated: Access = ({ req }) => {
-  if (req.user) return true;
+  if (req.user || hasValidPreviewSecret(req)) return true;
   return { _status: { equals: "published" } };
 };
 
@@ -34,7 +52,7 @@ export const publishedOrAuthenticated: Access = ({ req }) => {
  */
 export const denyUnauthenticatedDraftRead: CollectionBeforeOperationHook = ({ args, operation, req }) => {
   const wantsDraft = "draft" in args && args.draft === true;
-  if ((operation === "read") && wantsDraft && !req.user) {
+  if ((operation === "read") && wantsDraft && !req.user && !hasValidPreviewSecret(req)) {
     throw new Forbidden(req.t);
   }
   return args;

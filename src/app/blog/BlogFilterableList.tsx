@@ -1,20 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { FilterTabs, matchesFilter, type FilterCategory } from "@/components/FilterTabs";
+import { ALL_FILTER, FilterTabs, matchesFilter, type FilterTabCategory } from "@/components/FilterTabs";
 import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
 
-export function BlogFilterableList({ posts }: { posts: CardListItem[] }) {
-  const [active, setActive] = useState<FilterCategory>("Tümü");
+export function BlogFilterableList({ posts, categories }: { posts: CardListItem[]; categories: FilterTabCategory[] }) {
+  const [active, setActive] = useState<string>(ALL_FILTER);
   const visible = posts.filter((p) => matchesFilter(active, p.category));
 
   return (
     <>
       <div className="my-6">
-        <FilterTabs active={active} onChange={setActive} />
+        <FilterTabs categories={categories} active={active} onChange={setActive} />
       </div>
 
-      <CardListGrid title="Tüm Bloglar" items={visible} linkLabel="Devamını oku" />
+      <CardListGrid title="Tüm Bloglar" items={visible} // vodafonepay.com.tr uses "Detayları gör" on blog cards too, not
+      // "Devamını oku" — checked against the live site.
+      linkLabel="Detayları gör" />
     </>
   );
 }

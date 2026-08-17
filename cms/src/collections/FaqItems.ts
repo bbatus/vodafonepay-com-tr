@@ -3,13 +3,23 @@ import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { dbLabel } from "@/lib/collectionLabels";
+import { assignNextOrder, ORDER_FIELD_DESCRIPTION } from "@/hooks/ordering";
 
 export const FaqItems: CollectionConfig = {
   slug: "faq-items",
+  labels: {
+    singular: dbLabel("collectionLabel.faq-items.singular", { tr: "Sık Sorulan Soru", en: "FAQ Item" }),
+    plural: dbLabel("collectionLabel.faq-items.plural", { tr: "Sık Sorulanlar", en: "FAQ Items" }),
+  },
+  // RFP feedback 5.5: the list must reflect the `order` field (and the
+  // drag-to-reorder widget's saved sequence), not Payload's fallback order.
+  defaultSort: "order",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "question",
     defaultColumns: ["question", "category", "order", "_status"],
-    group: "İçerik",
+    group: { tr: "İçerik", en: "Content" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "faq-items" } },
@@ -43,12 +53,35 @@ export const FaqItems: CollectionConfig = {
         { label: "QR ile Faturana Yansıt", value: "qr-ile-faturana-yansit" },
         { label: "Faturana Yansıt", value: "faturana-yansit" },
         { label: "Kampanyalar", value: "kampanyalar" },
+        // The live vodafonepay.com.tr FAQ page carries these three categories
+        // too; we were missing them entirely, so there was no way to file an
+        // FAQ under them. Adding a `select` option is a Postgres enum change
+        // (R-26) — the matching `ALTER TYPE ... ADD VALUE` is in the round
+        // report, and must be applied before deploying this.
+        { label: "Sözleşmeler ve Formlar", value: "sozlesmeler-ve-formlar" },
+        { label: "Gizlilik ve Güvenlik", value: "gizlilik-ve-guvenlik" },
+        { label: "Duyurular", value: "duyurular" },
       ],
     },
-    { name: "order", type: "number", defaultValue: 0 },
+    {
+      name: "order",
+      type: "number",
+      label: { tr: "Sıra", en: "Order" },
+      // Deliberately NO defaultValue. Payload populates defaults BEFORE
+      // beforeChange runs, so a `defaultValue: 1` here arrives at
+      // assignNextOrder looking exactly like a number the editor typed —
+      // the hook's "respect an explicit value" guard then bails out and the
+      // auto-numbering never happens. Caught live: a new FAQ in a category
+      // whose highest order was 12 was still being saved as 1. Leaving this
+      // empty is also the honest UI, and matches the field description:
+      // blank means "put it at the end", which is what the hook then does.
+      min: 1,
+      admin: { description: ORDER_FIELD_DESCRIPTION },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeChange: [assignNextOrder("faq-items", ["category"])],
     afterChange: [revalidateTag("faq-items"), auditAfterChange("faq-items")],
     afterDelete: [revalidateTagOnDelete("faq-items"), auditAfterDelete("faq-items")],
   },

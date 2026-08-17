@@ -12,6 +12,7 @@ import { Users } from "./src/collections/Users";
 import { Media } from "./src/collections/Media";
 import { Documents } from "./src/collections/Documents";
 import { Campaigns } from "./src/collections/Campaigns";
+import { Categories } from "./src/collections/Categories";
 import { FaqItems } from "./src/collections/FaqItems";
 import { BlogPosts } from "./src/collections/BlogPosts";
 import { FeeRows } from "./src/collections/FeeRows";
@@ -28,9 +29,12 @@ import { CookieRows } from "./src/collections/CookieRows";
 import { AuditLogs } from "./src/collections/AuditLogs";
 import { PageMeta } from "./src/collections/PageMeta";
 import { Pages } from "./src/collections/Pages";
+import { Translations } from "./src/collections/Translations";
 import { ContactInfo } from "./src/globals/ContactInfo";
 import { ROLES } from "./src/access/roles";
 import { env } from "./src/env";
+import { TRANSLATION_DEFAULTS } from "./src/lib/translationDefaults";
+import { refreshLabelCache } from "./src/lib/collectionLabels";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -95,28 +99,34 @@ export default buildConfig({
     supportedLanguages: { tr, en },
     fallbackLanguage: "tr",
   },
-  // RFP §3.2.14: multi-language content infrastructure. This is the CMS-side
-  // half only — Pages.title is marked `localized: true` to prove the
-  // mechanism (a brand-new, empty collection — safe to localize with no
-  // migration ambiguity). Campaigns/BlogPosts were deliberately NOT
-  // localized: both already have live data + versions.drafts version
-  // history, and converting an existing field to localized changes how
-  // Payload encodes the `_<collection>_v.snapshot` version column —
-  // confirmed live, this puts drizzle-kit's schema push into an
-  // interactive "is this a rename or a new column?" prompt that can't be
-  // answered non-interactively and will hang. Localizing fields on a
-  // collection with real history needs a deliberate, reviewed data
-  // migration, not a config flag.
+  // RFP feedback 5.7 — CONTENT LOCALIZATION IS OFF, deliberately.
   //
-  // The SITE itself has no locale-aware routing or language switcher yet
-  // (it's Turkish-only end to end today), and no English translations have
-  // been entered — building the site-side i18n routing layer is a
-  // separate, large frontend initiative, not attempted here.
-  localization: {
-    locales: ["tr", "en"],
-    defaultLocale: "tr",
-    fallback: true,
-  },
+  // There are two different "language" concepts in this panel and they were
+  // being confused for one:
+  //   1. Admin UI language — `i18n` above, the `payload-lng` cookie. Owned by
+  //      the user's own `preferredLocale` profile setting. Still here.
+  //   2. Content locale — this `localization` block. Payload renders its own
+  //      locale selector in the app header whenever it's set.
+  //
+  // (2) was enabled but Pages.title was the ONLY field anywhere marked
+  // `localized: true`, so the header selector switched a locale that changed
+  // nothing on any screen — exactly the user's report that "sayfaların locals
+  // değerleri hiç değişmiyor". A selector that does nothing is worse than no
+  // selector, so it's gone rather than CSS-hidden: hiding it would have left
+  // `?locale=en` reachable by URL and the half-configured state in place.
+  //
+  // Turning it off was safe to do NOW specifically because `pages` (and
+  // `pages_locales` / `_pages_v_locales`) were verified empty — zero rows, so
+  // no content could be lost. Turning it back on later is a deliberate
+  // project: it needs the fields that should actually be translatable, real
+  // English content, and a reviewed data migration. Note the previous round's
+  // finding still stands as the reason not to do that casually — marking a
+  // field localized on a collection that already has `versions.drafts`
+  // history puts drizzle-kit's schema push into an interactive "rename or new
+  // column?" prompt that can't be answered non-interactively.
+  //
+  // The SITE itself is Turkish-only end to end (no locale routing, no
+  // language switcher), so nothing downstream depended on this either.
   admin: {
     user: Users.slug,
     theme: "light",
@@ -133,15 +143,100 @@ export default buildConfig({
       titleSuffix: " — Vodafone Pay CMS",
       icons: [{ url: "/favicon.ico" }],
     },
+    // RFP feedback 4a: the header icon otherwise only supports Payload's
+    // "default" (generic silhouette) or "gravatar" — neither reads our own
+    // users.avatar upload field.
+    avatar: { Component: "/components/UserAvatarIcon#default" },
     components: {
       graphics: {
         Logo: "/components/AdminLogo#default",
         Icon: "/components/AdminIcon#default",
       },
-      beforeLogin: ["/components/LoginBrandPanel#default"],
+      beforeLogin: ["/components/LoginBrandPanel#default", "/components/RememberEmailCheckbox#default"],
+      beforeDashboard: ["/components/DashboardWidgets#default"],
+      beforeNav: ["/components/SidebarLogo#default", "/components/LocalePreferenceSync#default"],
+      afterNavLinks: ["/components/ContentManagementNavLink#default", "/components/LockedAccountsNavLink#default"],
+      views: {
+        contentManagement: {
+          Component: "/components/ContentManagementView#default",
+          path: "/content-management",
+        },
+        // RFP feedback 5.6: New Vertical Maker's account-unlock screen. A
+        // separate top-level view rather than a tab above the Users list —
+        // adding a tab means overriding Payload's whole collection list view
+        // (and its role-aware column/filter machinery) for one button, while
+        // this reuses the same extension point the Content Management screen
+        // already uses. Sidebar link is hidden for every other role
+        // (LockedAccountsNavLink), and the view itself re-checks the role.
+        lockedAccounts: {
+          Component: "/components/LockedAccountsView#default",
+          path: "/locked-accounts",
+        },
+        // RFP feedback 3.4: disable self-service password reset (LDAP will
+        // own identity later) — overriding the built-in view keys blocks
+        // the actual routes, not just the UI link.
+        forgot: { Component: "/components/ForgotPasswordDisabled#default" },
+        reset: { Component: "/components/ForgotPasswordDisabled#default" },
+        // RFP feedback 4a-4f: replaces the default Account view body (read-only
+        // email/role, working avatar upload without alt/caption friction, a
+        // single language switcher) — see CustomAccountView.tsx for why a full
+        // replacement was necessary rather than patching individual fields.
+        account: { Component: "/components/CustomAccountView#default" },
+      },
     },
   },
   onInit: async (payload) => {
+    // RFP feedback 3.2: seed the DB-backed translations collection with any
+    // KEY that doesn't already exist yet — runs every boot, but only ever
+    // inserts missing keys (e.g. new code defaults added after the first
+    // deploy), never touches/overwrites a row an editor already customized.
+    const existingRows = await payload.find({
+      collection: Translations.slug,
+      limit: 1000,
+      depth: 0,
+      overrideAccess: true,
+    });
+    const existingTranslations = new Map(
+      (existingRows.docs as unknown as { id: string | number; key: string; tr: string; en: string; isCustomized?: boolean }[]).map(
+        (row) => [row.key, row]
+      )
+    );
+
+    let created = 0;
+    let refreshed = 0;
+    for (const [key, value] of Object.entries(TRANSLATION_DEFAULTS)) {
+      const row = existingTranslations.get(key);
+      if (!row) {
+        await payload.create({
+          collection: Translations.slug,
+          overrideAccess: true,
+          data: { key, tr: value.tr, en: value.en },
+        });
+        created += 1;
+        continue;
+      }
+      // Changing a string in translationDefaults.ts used to be a silent no-op
+      // once the row had been seeded — the old seeder only ever INSERTED
+      // missing keys, so an updated default never reached the running panel
+      // (found while verifying the new login copy: the code said one thing and
+      // the screen still said the old one). Rows an editor actually touched
+      // are still never overwritten; `isCustomized` is what separates the two
+      // (see Translations.ts).
+      if (row.isCustomized) continue;
+      if (row.tr === value.tr && row.en === value.en) continue;
+      await payload.update({
+        collection: Translations.slug,
+        id: row.id,
+        overrideAccess: true,
+        data: { tr: value.tr, en: value.en },
+      });
+      refreshed += 1;
+    }
+    if (created > 0 || refreshed > 0) {
+      payload.logger.info(`[translations] Seeded ${created} new row(s), refreshed ${refreshed} un-customized row(s) from code defaults.`);
+    }
+    await refreshLabelCache(payload);
+
     if (!autoLoginEnabled) return;
     const existing = await payload.find({
       collection: Users.slug,
@@ -168,6 +263,7 @@ export default buildConfig({
     Media,
     Documents,
     Campaigns,
+    Categories,
     FaqItems,
     BlogPosts,
     FeeRows,
@@ -184,6 +280,7 @@ export default buildConfig({
     AuditLogs,
     PageMeta,
     Pages,
+    Translations,
   ],
   globals: [ContactInfo],
   editor: lexicalEditor(),
@@ -195,6 +292,16 @@ export default buildConfig({
     pool: {
       connectionString: env.DATABASE_URI,
     },
+    // Payload's dev-mode schema push is drizzle-kit's INTERACTIVE push. In this
+    // project it reliably stops on a prompt nobody can answer — "is this enum
+    // created or renamed?", "accept possible data loss?" — and a `next dev`
+    // that's blocked on stdin looks exactly like a hung server (documented as
+    // R-10, and hit again this round). Set PAYLOAD_DB_PUSH=false to run the CMS
+    // in dev against an already-migrated database and skip that entirely.
+    //
+    // Default is unchanged (push on in dev) so nobody's normal workflow moves;
+    // this is an opt-out for the case where the schema was applied by hand.
+    push: process.env.PAYLOAD_DB_PUSH !== "false",
   }),
   sharp,
   cors: trustedOrigins,

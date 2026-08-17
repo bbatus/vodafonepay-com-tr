@@ -46,10 +46,12 @@ describe("campaignToCard", () => {
     slug: undefined,
     description: "Açıklama",
     image: { url: "/img.jpg", alt: "" },
-    category: "genel",
+    category: { label: "Genel", slug: "genel" },
     featured: true,
     ctaLabel: undefined,
     ctaUrl: undefined,
+    startDate: undefined,
+    endDate: undefined,
   };
 
   it("falls back to the campaign title as image alt when alt is empty", () => {
@@ -90,7 +92,7 @@ describe("cms.ts fetch-backed getters", () => {
   });
 
   it("getCampaigns returns docs on success", async () => {
-    const doc = { id: "1", title: "T", description: "D", image: media, category: "genel", featured: true };
+    const doc = { id: "1", title: "T", description: "D", image: media, category: { label: "Genel", slug: "genel" }, featured: true };
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
     expect(await getCampaigns()).toEqual([doc]);
   });
@@ -132,7 +134,7 @@ describe("cms.ts fetch-backed getters", () => {
       title: "T",
       description: "D",
       image: { url: "/i.jpg", alt: null },
-      category: "genel",
+      category: { label: "Genel", slug: "genel" },
       featured: true,
       ctaLabel: null,
       ctaUrl: null,
@@ -180,7 +182,16 @@ describe("cms.ts fetch-backed getters", () => {
   });
 
   it("getBlogPosts returns docs on success", async () => {
-    const doc = { id: "b1", title: "T", slug: "t", coverImage: media, excerpt: "E" };
+    // `category` is a populated Categories relationship now, not free text —
+    // that's what makes /blog's filter tabs able to match the posts at all.
+    const doc = {
+      id: "b1",
+      title: "T",
+      slug: "t",
+      coverImage: media,
+      excerpt: "E",
+      category: { label: "Kart", slug: "kart" },
+    };
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
     expect(await getBlogPosts()).toEqual([doc]);
   });

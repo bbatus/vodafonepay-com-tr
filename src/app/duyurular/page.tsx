@@ -49,7 +49,7 @@ export default async function Duyurular() {
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Duyurular</h1>
 
         <div className="mt-10">
-          <DuyurularAccordion items={items} />
+          <DuyurularAccordion items={items ?? []} />
         </div>
       </section>
 

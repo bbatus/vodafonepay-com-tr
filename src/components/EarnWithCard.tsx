@@ -5,22 +5,17 @@ interface Slide {
   text: string;
 }
 
-const fallbackSlides: Slide[] = [
-  {
-    image: "/images/kart-earn-1.jpg",
-    text: "Vodafone Pay Kart'ınıza banka/kredi kartı, EFT veya tüm ATM'lerden dilediğiniz kadar bakiye yükleyebilirsiniz.",
-  },
-  {
-    image: "/images/kart-earn-2.jpg",
-    text: "Tüm online ve fiziksel alışverişinizi Vodafone Pay Kart ile yapabilir, harcadıkça kazanabilirsiniz.",
-  },
-  {
-    image: "/images/kart-earn-3.jpg",
-    text: "Vodafone Pay Kart'ınızı ve Uygulamadaki QR'ınızı tüm POS'larda kullanarak, güvenli ve temassız alışveriş yapabilirsiniz.",
-  },
-];
+/**
+ * RFP feedback 5.0 (fallback masking audit): this section used to fall back to
+ * a hardcoded copy of its content whenever the CMS returned nothing, so an
+ * outage or an empty collection looked identical to a healthy page and no one
+ * could tell the CMS had stopped feeding it. The prop is required now and an
+ * empty list renders nothing — see docs for which collections still keep a
+ * fallback (the ones with zero rows, where the fallback IS the live content).
+ */
+export function EarnWithCard({ slides }: { slides: Slide[] }) {
+  if (slides.length === 0) return null;
 
-export function EarnWithCard({ slides = fallbackSlides }: { slides?: Slide[] }) {
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-16">
       <h2 className="text-2xl font-bold text-black lg:text-4xl">Vodafone Pay Kart ile Kazan</h2>

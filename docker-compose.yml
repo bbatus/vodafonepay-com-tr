@@ -4,8 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
-    image: ai-website-cloner:latest
-    container_name: ai-website-cloner
+    image: vodafonepaycomtr:latest
+    container_name: vodafonepaycomtr
     restart: unless-stopped
     ports:
       - "${PORT:-3000}:3000"
@@ -14,6 +14,7 @@ services:
       - NEXT_TELEMETRY_DISABLED=1
       - CMS_API_URL=http://cms:3000/api
       - REVALIDATE_SECRET=${REVALIDATE_SECRET:-dev-revalidate-secret}
+      - PREVIEW_SECRET=${PREVIEW_SECRET:-dev-preview-secret}
     env_file:
       - path: .env.local
         required: false
@@ -39,8 +40,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    image: ai-website-cloner:dev
-    container_name: ai-website-cloner-dev
+    image: vodafonepaycomtr:dev
+    container_name: vodafonepaycomtr-dev
     restart: unless-stopped
     ports:
       - "${DEV_PORT:-3001}:3000"
@@ -49,6 +50,7 @@ services:
       - NEXT_TELEMETRY_DISABLED=1
       - CMS_API_URL=http://cms:3000/api
       - REVALIDATE_SECRET=${REVALIDATE_SECRET:-dev-revalidate-secret}
+      - PREVIEW_SECRET=${PREVIEW_SECRET:-dev-preview-secret}
     env_file:
       - path: .env.local
         required: false
@@ -137,6 +139,7 @@ services:
       args:
         PAYLOAD_SECRET: ${PAYLOAD_SECRET:-dev-payload-secret-change-me}
         REVALIDATE_SECRET: ${REVALIDATE_SECRET:-dev-revalidate-secret}
+        PREVIEW_SECRET: ${PREVIEW_SECRET:-dev-preview-secret}
     image: vodafonepaycomtr-cms:latest
     container_name: vodafonepaycomtr-cms
     restart: unless-stopped
@@ -160,6 +163,7 @@ services:
       - CMS_SERVER_URL=${CMS_SERVER_URL:-}
       - SITE_REVALIDATE_URL=http://app:3000/api/revalidate
       - REVALIDATE_SECRET=${REVALIDATE_SECRET:-dev-revalidate-secret}
+      - PREVIEW_SECRET=${PREVIEW_SECRET:-dev-preview-secret}
       - S3_ENDPOINT=http://minio:9000
       - S3_PUBLIC_URL=http://localhost:${MINIO_API_PORT:-9000}
       - S3_REGION=us-east-1

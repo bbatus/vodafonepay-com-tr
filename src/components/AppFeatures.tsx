@@ -5,22 +5,17 @@ interface Slide {
   text: string;
 }
 
-const fallbackSlides: Slide[] = [
-  {
-    image: "/images/uygulama-ayricalikli-1.jpg",
-    text: "Vodafone Pay Kart, Faturana Yansıt ve Vodafone Cüzdanım bakiyenizi ve harcamalarınızı yönetebilir, limitlerinizi güncelleyebilirsiniz",
-  },
-  {
-    image: "/images/uygulama-ayricalikli-2.jpg",
-    text: "Yenilenen, yüzlerce TL kazandıran, birbirinden farklı kampanyalara katılabilirsiniz.",
-  },
-  {
-    image: "/images/uygulama-ayricalikli-3.jpg",
-    text: "Tüm faturalarınızı tek bir yerden ödeyebilir, İstanbulkartınıza bakiye yükleyebilirsiniz.",
-  },
-];
+/**
+ * RFP feedback 5.0 (fallback masking audit): this section used to fall back to
+ * a hardcoded copy of its content whenever the CMS returned nothing, so an
+ * outage or an empty collection looked identical to a healthy page and no one
+ * could tell the CMS had stopped feeding it. The prop is required now and an
+ * empty list renders nothing — see docs for which collections still keep a
+ * fallback (the ones with zero rows, where the fallback IS the live content).
+ */
+export function AppFeatures({ slides }: { slides: Slide[] }) {
+  if (slides.length === 0) return null;
 
-export function AppFeatures({ slides = fallbackSlides }: { slides?: Slide[] }) {
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-16">
       <div className="mx-auto max-w-2xl text-center">

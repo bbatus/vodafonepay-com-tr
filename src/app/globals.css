@@ -133,3 +133,20 @@
     @apply font-sans;
   }
 }
+
+/*
+ * RFP feedback: the CMS's publish-confirm modal embeds this site in an
+ * iframe to preview a draft. The page is still fully scrollable there (it's
+ * taller than the iframe, same as any real page), but the visible scrollbar
+ * next to an already-small preview window read as broken/ugly. Hidden only
+ * when actually embedded (html[data-embedded-preview], set by the inline
+ * script in layout.tsx) — a normal site visit in its own tab keeps its
+ * native scrollbar.
+ */
+html[data-embedded-preview] {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+html[data-embedded-preview]::-webkit-scrollbar {
+  display: none;
+}

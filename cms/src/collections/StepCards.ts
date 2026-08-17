@@ -3,13 +3,23 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
+import { assignNextOrder, ORDER_FIELD_DESCRIPTION } from "@/hooks/ordering";
 
 export const StepCards: CollectionConfig = {
   slug: "step-cards",
+  labels: {
+    singular: dbLabel("collectionLabel.step-cards.singular", { tr: "Adım Kartı", en: "Step Card" }),
+    plural: dbLabel("collectionLabel.step-cards.plural", { tr: "Adım Kartları", en: "Step Cards" }),
+  },
+  // RFP feedback 5.5: the list must reflect the `order` field (and the
+  // drag-to-reorder widget's saved sequence), not Payload's fallback order.
+  defaultSort: "order",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "text",
     defaultColumns: ["page", "number", "order"],
-    group: "Ürün Sayfaları",
+    group: { tr: "Ürün Sayfaları", en: "Product Pages" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "step-cards" } },
@@ -33,10 +43,25 @@ export const StepCards: CollectionConfig = {
     { name: "text", type: "textarea", required: true },
     { name: "image", type: "upload", relationTo: "media", required: true },
     { name: "deeplink", type: "text", admin: { description: "Adım tıklanınca gidilecek sayfa/deeplink (opsiyonel)." } },
-    { name: "order", type: "number", defaultValue: 0 },
+    {
+      name: "order",
+      type: "number",
+      label: { tr: "Sıra", en: "Order" },
+      // Deliberately NO defaultValue. Payload populates defaults BEFORE
+      // beforeChange runs, so a `defaultValue: 1` here arrives at
+      // assignNextOrder looking exactly like a number the editor typed —
+      // the hook's "respect an explicit value" guard then bails out and the
+      // auto-numbering never happens. Caught live: a new FAQ in a category
+      // whose highest order was 12 was still being saved as 1. Leaving this
+      // empty is also the honest UI, and matches the field description:
+      // blank means "put it at the end", which is what the hook then does.
+      min: 1,
+      admin: { description: ORDER_FIELD_DESCRIPTION },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeChange: [assignNextOrder("step-cards", ["page"])],
     afterChange: [revalidateTag("step-cards"), auditAfterChange("step-cards")],
     afterDelete: [revalidateTagOnDelete("step-cards"), auditAfterDelete("step-cards")],
   },

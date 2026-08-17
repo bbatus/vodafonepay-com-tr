@@ -8,25 +8,17 @@ interface Highlight {
   description: string;
 }
 
-const fallbackFeatures: Highlight[] = [
-  {
-    icon: "/images/icon-payment.svg",
-    title: "Akıllı Ödeme Yöntemleri",
-    description: "Vodafone Pay'in tüm ürünleriyle dilediğiniz yerde hızlı ve güvenli harcama imkanı.",
-  },
-  {
-    icon: "/images/icon-shopping-trolley.svg",
-    title: "Harcadıkça Kazandıran",
-    description: "Alışverişlerinizde nakit iade, fatura indirimi ve GB kazanma imkanı.",
-  },
-  {
-    icon: "/images/icon-family.svg",
-    title: "Size Özel Limit",
-    description: "Size özel limitlerinizle dilediğinizce alışveriş yapma imkanı.",
-  },
-];
+/**
+ * RFP feedback 5.0 (fallback masking audit): this section used to fall back to
+ * a hardcoded copy of its content whenever the CMS returned nothing, so an
+ * outage or an empty collection looked identical to a healthy page and no one
+ * could tell the CMS had stopped feeding it. The prop is required now and an
+ * empty list renders nothing — see docs for which collections still keep a
+ * fallback (the ones with zero rows, where the fallback IS the live content).
+ */
+export function FeatureHighlights({ features }: { features: Highlight[] }) {
+  if (features.length === 0) return null;
 
-export function FeatureHighlights({ features = fallbackFeatures }: { features?: Highlight[] }) {
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-10">
       <div className="flex items-center gap-x-10">

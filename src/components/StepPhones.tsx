@@ -2,44 +2,17 @@ import Image from "next/image";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import type { StepProduct } from "@/types/homepage";
 
-const fallbackSteps: StepProduct[] = [
-  {
-    title: "Vodafone Pay Uygulaması",
-    description: "Ödemelerinizi kolayca, hızlı ve güvenle yönetmek için Vodafone Pay yanınızda!",
-    image: "/images/step-app.png",
-    imageAlt: "Vodafone Pay Uygulaması",
-  },
-  {
-    title: "Faturana Yansıt",
-    description:
-      "Faturana Yansıt ile yalnızca cep telefonu numaranızı kullanarak indirimli alışverişin keyfini çıkarın!",
-    image: "/images/step-faturana-yansit.png",
-    imageAlt: "Faturana Yansıt",
-  },
-  {
-    title: "QR ile Faturana Yansıt",
-    description:
-      "QR ile yapacağınız fiziksel harcamalarınızı Vodafone faturanıza yansıtabilir, üstelik harcama tutarınızdan indirim kazanabilirsiniz.",
-    image: "/images/step-qr-faturana-yansit.png",
-    imageAlt: "QR ile Faturana Yansıt",
-  },
-  {
-    title: "Anında Bakiye",
-    description:
-      "Faturana Yansıt limitinizi Vodafone Pay Sanal Kart'ınıza aktararak dilediğiniz yerde harcama yapabilirsiniz.",
-    image: "/images/step-aninda-bakiye.png",
-    imageAlt: "Anında Bakiye",
-  },
-  {
-    title: "Vodafone Pay Kart",
-    description:
-      "Vodafone Pay Kart ister online ister fiziksel alışverişlerinizi gerçekleştirebileceğiniz, harcarken kazandıran bir kart.",
-    image: "/images/step-vpay-kart.png",
-    imageAlt: "Vodafone Pay Kart",
-  },
-];
+/**
+ * RFP feedback 5.0 (fallback masking audit): this section used to fall back to
+ * a hardcoded copy of its content whenever the CMS returned nothing, so an
+ * outage or an empty collection looked identical to a healthy page and no one
+ * could tell the CMS had stopped feeding it. The prop is required now and an
+ * empty list renders nothing — see docs for which collections still keep a
+ * fallback (the ones with zero rows, where the fallback IS the live content).
+ */
+export function StepPhones({ steps }: { steps: StepProduct[] }) {
+  if (steps.length === 0) return null;
 
-export function StepPhones({ steps = fallbackSteps }: { steps?: StepProduct[] }) {
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-16 lg:px-0">
       <div className="mx-auto max-w-3xl text-center">

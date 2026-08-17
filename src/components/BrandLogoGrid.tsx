@@ -5,19 +5,17 @@ interface Brand {
   logo: string;
 }
 
-const fallbackBrands: Brand[] = [
-  { name: "Spotify", logo: "/images/logo-spotify.svg" },
-  { name: "Youtube Premium", logo: "/images/logo-youtube.svg" },
-  { name: "Google Play", logo: "/images/logo-googleplay.svg" },
-  { name: "Netflix", logo: "/images/logo-netflix.svg" },
-  { name: "Biletinial", logo: "/images/logo-biletinial.png" },
-  { name: "Starbucks", logo: "/images/logo-starbucks.png" },
-  { name: "App Store", logo: "/images/logo-appstore.png" },
-  { name: "Hayat Su", logo: "/images/logo-hayatsu.png" },
-  { name: "Tıkla Gelsin", logo: "/images/logo-tiklagelsin.png" },
-];
+/**
+ * RFP feedback 5.0 (fallback masking audit): this section used to fall back to
+ * a hardcoded copy of its content whenever the CMS returned nothing, so an
+ * outage or an empty collection looked identical to a healthy page and no one
+ * could tell the CMS had stopped feeding it. The prop is required now and an
+ * empty list renders nothing — see docs for which collections still keep a
+ * fallback (the ones with zero rows, where the fallback IS the live content).
+ */
+export function BrandLogoGrid({ brands }: { brands: Brand[] }) {
+  if (brands.length === 0) return null;
 
-export function BrandLogoGrid({ brands = fallbackBrands }: { brands?: Brand[] }) {
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-16">
       <div className="rounded-lg bg-white p-6 shadow-[0px_2px_12px_0px_#00000014] lg:p-10">

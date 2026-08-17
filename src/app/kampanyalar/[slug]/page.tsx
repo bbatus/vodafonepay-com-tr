@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { draftMode } from "next/headers";
 import Image from "next/image";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
+import { PreviewBanner } from "@/components/PreviewBanner";
+import { CampaignDate } from "@/components/CampaignDate";
 import { getCampaignBySlug, getCampaigns, richTextToParagraphs } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
@@ -30,7 +33,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function KampanyaDetay({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const campaign = await getCampaignBySlug(slug);
+  const { isEnabled: isPreview } = await draftMode();
+  const campaign = await getCampaignBySlug(slug, { preview: isPreview });
   if (!campaign) notFound();
 
   const bodyParagraphs = richTextToParagraphs(campaign.body);
@@ -38,6 +42,7 @@ export default async function KampanyaDetay({ params }: { params: Promise<{ slug
 
   return (
     <main className="flex min-h-screen flex-col">
+      {isPreview && <PreviewBanner path={`/kampanyalar/${slug}`} />}
       <AppDownloadBanner />
       <Header />
       <StickyQr />
@@ -54,18 +59,15 @@ export default async function KampanyaDetay({ params }: { params: Promise<{ slug
         <h1 className="mt-6 text-[32px] font-light leading-[40px] text-black">{campaign.title}</h1>
         <p className="mt-4 text-base text-gray-700">{campaign.description}</p>
 
-        {(campaign.startDate || campaign.endDate) && (
-          <p className="mt-2 text-sm text-gray-500">
-            {campaign.startDate && new Date(campaign.startDate).toLocaleDateString("tr-TR")}
-            {campaign.startDate && campaign.endDate && " – "}
-            {campaign.endDate && new Date(campaign.endDate).toLocaleDateString("tr-TR")}
-          </p>
-        )}
+        {/* RFP feedback 5.3: was a bare, unlabeled "14.07.2026 – 15.08.2026".
+            Now the same labeled block the listing cards use, matching what
+            vodafonepay.com.tr itself renders here. */}
+        <CampaignDate startDate={campaign.startDate} endDate={campaign.endDate} className="mt-4" />
 
         {bodyParagraphs.length > 0 && (
           <div className="mt-8 space-y-4 text-base text-gray-700">
-            {bodyParagraphs.map((p, i) => (
-              <p key={i}>{p}</p>
+            {bodyParagraphs.map((p) => (
+              <p key={p}>{p}</p>
             ))}
           </div>
         )}
@@ -74,8 +76,8 @@ export default async function KampanyaDetay({ params }: { params: Promise<{ slug
           <div className="mt-10">
             <h2 className="text-xl font-bold text-black">Kampanya Koşulları</h2>
             <div className="mt-3 space-y-2 text-sm text-gray-600">
-              {termsParagraphs.map((p, i) => (
-                <p key={i}>{p}</p>
+              {termsParagraphs.map((p) => (
+                <p key={p}>{p}</p>
               ))}
             </div>
           </div>

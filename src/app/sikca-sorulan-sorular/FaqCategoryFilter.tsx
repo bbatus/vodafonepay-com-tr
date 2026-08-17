@@ -14,6 +14,10 @@ const categories = [
   "Kampanyalar",
   "Vodafone Pay Kart",
   "QR ile Faturana Yansıt",
+  "Faturana Yansıt",
+  "Sözleşmeler ve Formlar",
+  "Gizlilik ve Güvenlik",
+  "Duyurular",
 ] as const;
 
 type Category = (typeof categories)[number];
@@ -26,101 +30,14 @@ const CMS_CATEGORY_TO_LABEL: Record<string, Exclude<Category, "Tümü">> = {
   kampanyalar: "Kampanyalar",
   "vodafone-pay-kart": "Vodafone Pay Kart",
   "qr-ile-faturana-yansit": "QR ile Faturana Yansıt",
-};
-
-const fallbackFaqsByCategory: Record<Exclude<Category, "Tümü">, FaqItem[]> = {
-  Anasayfa: [
-    {
-      question: "Vodafone Pay Nedir?",
-      answer:
-        "Vodafone Pay, Cüzdan, Faturana Yansıt ve Vodafone Pay Kart ile finansal işlemlerinizi kolayca ve güvenli şekilde gerçekleştirmenizi sağlayan bir finansal teknoloji şirketidir.",
-    },
-    {
-      question: "Vodafone Pay ile Nasıl Alışveriş Yapılır?",
-      answer:
-        "Vodafone Pay'in sunduğu ödeme yöntemleri ile hem fiziksel hem online alışverişlerinizi gerçekleştirebilirsiniz. Kartlarınıza banka/kredi kartı, EFT veya ATM ile bakiye yükleyip harcamalarınızdan nakit iade kazanabilirsiniz.",
-    },
-    {
-      question: "Mobil Ödeme nedir?",
-      answer:
-        "Vodafone Mobil Ödeme alışverişlerinizi hızlı ve güvenli bir şekilde gerçekleştirmenizi sağlayan tahsilat aracıdır. Faturalı veya faturasız fark etmeksizin, kredi kartı veya banka kartına ihtiyaç duymadan alışverişlerinizi gerçekleştirebilirsiniz.",
-    },
-    {
-      question: "Vodafone Pay Nerelerde Kullanılır?",
-      answer:
-        "Vodafone Pay Kart, VISA ve TROY seçenekleriyle tüm POS cihazlarında fiziksel ve online harcamalarda kullanılabilir. Faturana Yansıt ise uygulama mağazaları ve anlaşmalı markalarda geçerlidir.",
-    },
-  ],
-  "Anında Bakiye": [
-    {
-      question: "Anında Bakiye nedir? Kimler kullanabilir?",
-      answer:
-        "Anında Bakiye, Vodafone Pay tarafından sana özel olarak tanımlanan Faturana Yansıt limitini Vodafone Pay Sanal Kart'ına aktarabileceğin bir hizmettir.",
-    },
-    {
-      question: "Anında Bakiye ile yapılan işlemler ücretli mi?",
-      answer: "Anında Bakiye yüklemelerinde komisyon uygulanır. Faturana Yansıt hizmet bedeline web sitemizden ulaşabilirsin.",
-    },
-    {
-      question: "Anında Bakiye'mi nerelerde kullanabilirim?",
-      answer: "Sana özel tanımlanan Anında Bakiye'ni yurtiçi ve yurtdışında Visa kart geçerli olan tüm kurum ve platformlarda kullanabilirsin.",
-    },
-    {
-      question: "Anında Bakiye alırken Faturana Yansıt yöntemini açmam gerekli midir?",
-      answer: "Evet, bu işlemin yapılabilmesi için Faturana Yansıt yöntemi açık olmalıdır.",
-    },
-  ],
-  "Vodafone Pay Uygulama": [
-    {
-      question: "Vodafone Pay Uygulaması Nedir?",
-      answer:
-        "Vodafone Pay Uygulaması, herhangi bir banka müşterisi olmadan ve hangi operatörü kullandığınız fark etmeden finansal işlemlerinizi tek bir uygulama içerisinden yönetmenizi sağlayan yeni nesil bir mobil cüzdan uygulamasıdır.",
-    },
-    {
-      question: "Vodafone Pay Uygulaması Nasıl Kullanılır?",
-      answer:
-        "Google Play Store ya da App Store üzerinden indirip, 12 yaşından büyük bir kullanıcı olarak TCKN, ad, soyad, doğum tarihi ve iletişim bilgilerinizi girerek kaydolabilirsiniz.",
-    },
-    {
-      question: "Vodafone Pay Uygulamasıyla Sanal Kart Nasıl Üretilir?",
-      answer:
-        "Uygulamaya kaydolduktan sonra otomatik olarak bir Vodafone Pay Sanal Kart oluşturulur. Yeniden oluşturmak için \"Varlıklarım\" altındaki \"Vodafone Pay Kart Ekle\" alanını kullanabilirsiniz.",
-    },
-  ],
-  Kampanyalar: [
-    {
-      question: "Vodafone Pay kampanyalarına nasıl katılabilirim?",
-      answer:
-        "Vodafone Pay Uygulaması üzerinden kampanyaları inceleyerek katılmak istedikleriniz için \"Kampanyaya Katıl\" butonuna tıklayabilir veya kampanya esaslarında yer alan yönlendirmeleri uygulayarak kampanyalara katılabilirsiniz.",
-    },
-  ],
-  "Vodafone Pay Kart": [
-    {
-      question: "Vodafone Pay Kart Nedir?",
-      answer: "Vodafone Pay Kart herhangi bir banka müşterisi olmadan ve hangi operatör müşterisi olduğunuz fark etmeksizin kullanabileceğiniz ön ödemeli bir karttır.",
-    },
-    {
-      question: "Vodafone Pay Kart Nasıl Alınır?",
-      answer:
-        "Fiziksel ve sanal kart olmak üzere 2 tür Vodafone Pay Kart bulunur. Fiziksel kart için Vodafone Mağazalarını ziyaret edebilir, Sanal Kart için Vodafone Pay Uygulaması'nı indirebilirsiniz.",
-    },
-    {
-      question: "Vodafone Pay Kart Limiti Ne Kadar?",
-      answer: "Hesabı doğrulanmış müşterilerin aylık limitleri 75.000 TL; hesabı doğrulanmamış müşterilerin limitleri 2.000 TL'dir.",
-    },
-  ],
-  "QR ile Faturana Yansıt": [
-    {
-      question: "QR ile Faturana Yansıt nedir?",
-      answer:
-        "Vodafone Pay Uygulaması'nda TR Kare kod (QR) ile ödemede Faturana Yansıt'ı hem faturalı hem faturasız Vodafone mobil müşterileri kullanabilir.",
-    },
-    {
-      question: "QR ile Faturana Yansıt nasıl kullanılır?",
-      answer:
-        "Vodafone Pay Uygulaması ana sayfasında yer alan QR ikonuna tıkladıktan sonra \"QR ile Ödeme\" seçeneğini seçip POS cihazında yer alan TR Kare Kod'u (QR) okutmalısınız.",
-    },
-  ],
+  // FaqItems offers this category in the CMS, but it was missing from this
+  // map — and groupByCategory drops anything it can't map (`if (!label)
+  // continue`). So an FAQ an editor filed under "Faturana Yansıt" simply
+  // never appeared on this page, with nothing anywhere to say why.
+  "faturana-yansit": "Faturana Yansıt",
+  "sozlesmeler-ve-formlar": "Sözleşmeler ve Formlar",
+  "gizlilik-ve-guvenlik": "Gizlilik ve Güvenlik",
+  duyurular: "Duyurular",
 };
 
 function groupByCategory(items: (FaqItem & { category: string })[]): Record<Exclude<Category, "Tümü">, FaqItem[]> {
@@ -137,7 +54,9 @@ function groupByCategory(items: (FaqItem & { category: string })[]): Record<Excl
 export function FaqCategoryFilter({ items }: { items?: (FaqItem & { category: string })[] }) {
   const [active, setActive] = useState<Category>("Tümü");
 
-  const faqsByCategory = items?.length ? groupByCategory(items) : fallbackFaqsByCategory;
+  // RFP feedback 5.0: faq-items is seeded, so the old ~18-item hardcoded
+  // fallback only fired on a CMS failure — masking it completely.
+  const faqsByCategory = groupByCategory(items ?? []);
   const visibleCategories = (active === "Tümü" ? categories.slice(1) : [active]) as Exclude<Category, "Tümü">[];
 
   return (

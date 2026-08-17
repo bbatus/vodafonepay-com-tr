@@ -18,6 +18,16 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
+/**
+ * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
+ *
+ * Checked against the live DB: the CMS collection behind this section has ZERO
+ * rows, so unlike the FAQ/announcement/campaign fallbacks removed in this
+ * round, this array is not dead code that only fires on an outage — it IS what
+ * the site currently renders. Deleting it would blank a working section rather
+ * than reveal a masked failure. Remove it in the same change that seeds the
+ * collection; see the round report's "kalan fallback'ler" table.
+ */
 const fallbackIntro = [
   "Vodafone'da kişisel verileriniz güvence altındadır. Bu çerçevede Vodafone, kişisel verilerinizi tüm teknik ve idari tedbirleri alarak korur. Gerekli güvenlik düzeyi için bütün teknolojik imkanlar kullanılır.",
   "Vodafone Elektronik Para ve Ödeme Hizmetleri AŞ (\"Vodafone\") ve tarafından, 6698 sayılı Kişisel Verilerin Korunması Kanunu ('KVKK') ve ilgili mevzuat kapsamında Veri Sorumlusu sıfatıyla, kişisel verileriniz, yalnızca aşağıda açıklanan çerçevede ve ilgili mevzuata uygun olarak işlenebilecektir.",

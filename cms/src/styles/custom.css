@@ -30,15 +30,28 @@
 }
 
 :root {
+  /* Full ramp (every stop Payload itself defines, not just the round
+     numbers) — components like Pill/Dropzone/Checkbox read the in-between
+     150/250/... stops directly, and any stop left undefined here silently
+     falls back to Payload's default blue ramp instead of red, producing
+     mismatched blue-bg/red-text combinations (seen on status pills). */
   --theme-success-50: #fdeaea;
   --theme-success-100: #fad0d0;
+  --theme-success-150: #f8baba;
   --theme-success-200: #f5a3a3;
+  --theme-success-250: #f28c8c;
   --theme-success-300: #ef7575;
+  --theme-success-350: #ed5e5e;
   --theme-success-400: #ea4747;
+  --theme-success-450: #e82424;
   --theme-success-500: #e60000;
+  --theme-success-550: #d90000;
   --theme-success-600: #cc0000;
+  --theme-success-650: #c00000;
   --theme-success-700: #b30000;
+  --theme-success-750: #a60000;
   --theme-success-800: #990000;
+  --theme-success-850: #8d0000;
   --theme-success-900: #800000;
   --theme-success-950: #660000;
 
@@ -76,12 +89,27 @@ a {
 .btn--style-primary {
   background: var(--vf-red) !important;
   border-color: var(--vf-red) !important;
+  color: #fff !important;
   box-shadow: 0 1px 2px rgba(230, 0, 0, 0.25);
 }
 
 .btn--style-primary:hover {
   background: var(--vf-red-dark) !important;
+  color: #fff !important;
   box-shadow: 0 4px 10px rgba(230, 0, 0, 0.3);
+}
+
+/* Payload's own disabled state swaps --color to a near-black elevation
+   shade for readability against its default light-grey disabled
+   background — but the rule above forces the red brand background
+   unconditionally, so a disabled primary button ended up with that
+   near-black text sitting on red instead of white. Give disabled buttons
+   a genuinely disabled (dim, non-brand) look instead. */
+.btn--style-primary.btn--disabled {
+  background: var(--theme-elevation-150) !important;
+  border-color: var(--theme-elevation-150) !important;
+  color: var(--theme-elevation-450) !important;
+  box-shadow: none;
 }
 
 .btn--style-secondary {
@@ -91,6 +119,37 @@ a {
 .btn--style-secondary:hover {
   border-color: var(--vf-red);
   color: var(--vf-red);
+}
+
+/* RFP feedback 2.7: the list-select bulk-action row (Düzenle/Yayınla/
+   Yayından Kaldır/Sil, shown once a row checkbox is ticked) uses Payload's
+   `.btn--style-none` variant — no border, no background, just plain text —
+   so it read as inert labels rather than clickable actions. Give this one
+   toolbar real button chrome; every other `.btn--style-none` use in the
+   admin (icon-only buttons, etc.) is untouched since this only targets the
+   bulk-action row's own class. */
+.list-selection__button {
+  border: 1px solid var(--theme-elevation-150) !important;
+  border-radius: var(--style-radius-s);
+  padding: 0.35rem 0.85rem !important;
+  background: white;
+  transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease;
+}
+
+.list-selection__button:hover {
+  border-color: var(--vf-red) !important;
+  color: var(--vf-red);
+}
+
+/* The destructive one (Sil) gets the danger treatment used elsewhere for delete actions. */
+.list-selection__button.delete-documents__toggle {
+  border-color: var(--vf-red) !important;
+  color: var(--vf-red);
+}
+
+.list-selection__button.delete-documents__toggle:hover {
+  background: var(--vf-red) !important;
+  color: #fff;
 }
 
 /* ---------------------------------------------------------------------
@@ -186,42 +245,31 @@ a {
   color: rgba(255, 255, 255, 0.78);
 }
 
-.vf-login-panel__features {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--base) * 0.5);
+.vf-login-panel__hero {
   position: relative;
   z-index: 1;
-}
-
-.vf-login-panel__card {
   display: flex;
-  align-items: flex-start;
-  gap: calc(var(--base) * 0.65);
-  padding: calc(var(--base) * 0.75);
-  border-radius: var(--style-radius-m);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  flex-direction: column;
+  gap: calc(var(--base) * 0.6);
+  max-width: 30rem;
 }
 
-.vf-login-panel__card-icon {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  margin-top: 1px;
-}
-
-.vf-login-panel__card-title {
-  margin: 0 0 2px;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.vf-login-panel__card-desc {
+.vf-login-panel__hero-headline {
   margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.72);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 2.25rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.vf-login-panel__hero-subheadline {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 400;
+  font-size: 1.05rem;
+  line-height: 1.5;
 }
 
 .vf-login-panel__status {
@@ -247,6 +295,52 @@ a {
   box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.18);
 }
 
+/* RFP feedback 3.4: forgot-password is disabled (LDAP will own identity
+   later) — the route itself is overridden in payload.config.ts, this just
+   removes the now-dead link from the login form. */
+.login__form > a[href*="/forgot"] {
+  display: none;
+}
+
+/* F1: "beni hatırla" checkbox — DOM-injected by RememberEmailCheckbox.tsx,
+   not a real Payload field (see that file for why). */
+.vf-remember-email {
+  margin: 0.25rem 0 1rem;
+}
+
+.vf-remember-email__label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--theme-elevation-600);
+  cursor: pointer;
+  /* 5.12 UI audit: keeps the touch target at ~24px on a phone even though the
+     label text itself is only 0.85rem tall. */
+  min-height: 24px;
+}
+
+.vf-remember-email input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--vf-red);
+  cursor: pointer;
+}
+
+.vf-remember-email input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--vf-red);
+  outline-offset: 2px;
+}
+
+/* RFP feedback 5.8: "Remember me" alone reads as "keeps my password" — this
+   line states what is actually stored. */
+.vf-remember-email__hint {
+  margin: 0.3rem 0 0 1.75rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--theme-elevation-450);
+}
+
 .field-type input {
   border-radius: var(--style-radius-s);
 }
@@ -254,6 +348,352 @@ a {
 .field-type input:focus {
   border-color: var(--vf-red);
   box-shadow: 0 0 0 2px rgba(230, 0, 0, 0.15);
+}
+
+/* Faz H accessibility audit: the list view's search box had zero visible
+   focus indicator on :focus-visible (confirmed live via real Tab-key
+   navigation) — a WCAG 2.4.7 gap for keyboard users trying to find it.
+   Document-edit fields already get a focus ring via `.field-type
+   input:focus` above; this is the list-view search input specifically,
+   which isn't a `.field-type`. */
+/* !important: Payload's own base stylesheet explicitly zeroes out this
+   exact input's focus outline and box-shadow at an equal-or-higher cascade
+   priority than an unlayered override with matching specificity — confirmed
+   by inspecting the loaded stylesheet at runtime. Normal specificity can't
+   win here without duplicating Payload's own selector chain. */
+.search-filter__input:focus {
+  border-color: var(--vf-red) !important;
+  box-shadow: 0 0 0 2px rgba(230, 0, 0, 0.15) !important;
+  outline: 2px solid var(--vf-red) !important;
+  outline-offset: 1px;
+}
+
+/* Faz H audit: on narrow viewports a wide collection table (many columns)
+   silently overflowed past the viewport with no way to reach the cut-off
+   columns — the page itself doesn't scroll horizontally (Payload sets
+   `overflow-x: hidden` on body), so the content was just unreachable.
+   Scoping the scroll to the table's own wrapper keeps the rest of the
+   layout (sidebar, topbar) fixed while the table itself becomes swipeable. */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* RFP feedback B2: AccountForm.tsx (profil sayfası) — read-only value boxes,
+   avatar upload row, and the locale select+save row, previously all inline
+   styles. Kept as plain divs (not real Payload fields) since the values are
+   genuinely non-editable — the .field-type/.field-label/.field-description
+   classes just make them look consistent with the rest of the admin. */
+.account-form {
+  padding: 2rem 0;
+  max-width: 640px;
+}
+
+.account-form__field {
+  margin-bottom: 1.5rem;
+  max-width: 480px;
+}
+
+.account-form__readonly-value {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-m);
+  background: var(--theme-elevation-50);
+  color: var(--theme-elevation-800);
+}
+
+.account-form__avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.account-form__avatar-image {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.account-form__avatar-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--theme-elevation-100);
+}
+
+.account-form__locale-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.account-form__locale-row select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-m);
+}
+
+/* RFP feedback C1: Media list Tümü/Görseller/Videolar tabs. */
+.media-filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.media-filter-tabs__tab {
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-l);
+  background: var(--theme-bg);
+  color: var(--theme-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.media-filter-tabs__tab--active {
+  background: var(--vf-red);
+  border-color: var(--vf-red);
+  color: #fff;
+}
+
+/* RFP feedback C2: "Kullanıldığı yerler" automatic usage list, Media sidebar. */
+.media-usage-field {
+  margin-bottom: 1.5rem;
+}
+
+.media-usage-field__list {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+}
+
+.media-usage-field__list li {
+  margin-bottom: 0.25rem;
+}
+
+.media-usage-field__list a {
+  color: var(--vf-red);
+}
+
+/* RFP feedback 5.4: the "this is live, take it off the air to edit it" block
+   that replaces the publish/reject buttons on an already-published campaign. */
+.vf-live-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.vf-live-actions__notice {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--theme-elevation-500);
+  max-width: 32ch;
+}
+
+/* RFP feedback 5.9: Content Management report page. Replaces the inline styles
+   the previous CRUD version carried, per the repo's "no new inline styles in
+   the CMS" rule. */
+.cm {
+  padding: 2rem;
+}
+
+.cm h1 {
+  margin: 0 0 0.5rem;
+}
+
+.cm-section-title {
+  margin: 2rem 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.cm-hint,
+.cm-muted {
+  color: var(--theme-elevation-450);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.cm-hint {
+  margin-bottom: 0.5rem;
+  max-width: 60ch;
+}
+
+.cm-error {
+  color: var(--theme-error-500);
+  font-size: 0.85rem;
+  margin: 0.75rem;
+}
+
+.cm-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--theme-elevation-150);
+  margin-bottom: 1rem;
+}
+
+.cm-tab {
+  padding: 0.55rem 0.9rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--theme-elevation-500);
+  /* 5.12 UI audit: 44px min touch target on phones. */
+  min-height: 44px;
+}
+
+.cm-tab--active {
+  border-bottom-color: var(--vf-red);
+  font-weight: 600;
+  color: var(--theme-text);
+}
+
+.cm-tab:focus-visible {
+  outline: 2px solid var(--vf-red);
+  outline-offset: -2px;
+}
+
+.cm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cm-search {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-m);
+  min-width: 14rem;
+  flex: 1 1 14rem;
+  max-width: 22rem;
+}
+
+.cm-card {
+  padding: 0;
+}
+
+.cm-table {
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.cm-table th,
+.cm-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--theme-elevation-50);
+  white-space: nowrap;
+}
+
+.cm-table th {
+  color: var(--theme-elevation-450);
+  font-weight: 500;
+  border-bottom-color: var(--theme-elevation-100);
+}
+
+.cm-table td:first-child {
+  white-space: normal;
+  max-width: 24rem;
+}
+
+.cm-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--style-radius-s);
+  font-size: 0.75rem;
+  background: var(--theme-elevation-100);
+  color: var(--theme-elevation-600);
+}
+
+.cm-badge--published {
+  background: var(--theme-success-100);
+  color: var(--theme-success-600);
+}
+
+.cm-pager {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+/* RFP feedback 5.6: Locked Accounts screen (New Vertical Maker only) and the
+   companion banner on the Users list. */
+.locked-accounts {
+  padding: 2rem;
+}
+
+.locked-accounts h1 {
+  margin: 0 0 0.5rem;
+}
+
+.locked-accounts__hint {
+  color: var(--theme-elevation-450);
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+}
+
+.locked-accounts__notice {
+  color: var(--theme-success-600);
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+}
+
+.locked-accounts__error {
+  color: var(--theme-error-500);
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+}
+
+.locked-accounts__table {
+  width: 100%;
+  min-width: 32rem;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.locked-accounts__table th,
+.locked-accounts__table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--theme-elevation-100);
+  white-space: nowrap;
+}
+
+.locked-accounts__table th {
+  color: var(--theme-elevation-450);
+  font-weight: 500;
+}
+
+.locked-accounts__actions {
+  text-align: right;
+}
+
+.locked-accounts-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--theme-warning-250, var(--theme-elevation-150));
+  border-radius: var(--style-radius-m);
+  background: var(--theme-warning-50, var(--theme-elevation-50));
+  font-size: 0.875rem;
+}
+
+.locked-accounts-banner a {
+  color: var(--vf-red);
+  font-weight: 600;
 }
 
 /* ---------------------------------------------------------------------
@@ -424,4 +864,28 @@ a {
 .pill--style-light.pill--has-bg-color {
   background: var(--theme-success-50);
   color: var(--vf-red-dark);
+}
+
+/* ---------------------------------------------------------------------
+   Toast notifications
+--------------------------------------------------------------------- */
+
+/* Payload's own success-toast styling reads --theme-success-*, which this
+   file repoints to the red brand ramp for buttons/nav/pills. That made a
+   genuinely successful action (save/publish/delete) render in the same red
+   as an error toast. Give the success toast its own real green, independent
+   of the brand ramp, without touching --theme-success-* itself (still
+   needed red everywhere else above). */
+.payload-toast-item.toast-success {
+  color: #15803d;
+  border-color: #86efac;
+  background-color: #f0fdf4;
+}
+
+.payload-toast-item.toast-success .payload-toast-close-button {
+  color: #16a34a;
+}
+
+.payload-toast-item.toast-success .payload-toast-close-button:hover {
+  color: #86efac;
 }

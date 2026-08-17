@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import type { CardListItem } from "@/components/CardListGrid";
+import { ContentUnavailable } from "@/components/ContentUnavailable";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getCampaigns, getFaqItems, getPageMeta } from "@/lib/cms";
+import { getCampaigns, getCategories, getFaqItems, getPageMeta } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
-import { CampaignsFilterableList } from "./CampaignsFilterableList";
+import { CampaignsFilterableList, type FilterableCampaign } from "./CampaignsFilterableList";
 import { buildMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,60 +22,47 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-const fallbackFavorites: CardListItem[] = [
-  { image: "/images/campaign-cesme.jpg", title: "Vodafone Pay ile Çeşme Plajlarında 1.000 TL Nakit İade!" },
-  { image: "/images/campaign-hayat-su.jpg", title: "1 TL'ye Hayat Su Kapında!" },
-  { image: "/images/campaign-market.jpg", title: "Market harcamanı ilk kez QR ile faturana yansıt, 100 TL indirim kazan!" },
-];
-
-const fallbackAllCampaigns: CardListItem[] = [
-  { image: "/images/camp-01.jpg", title: "Kurum Faturalarını Vodafone Pay ile Öde 100 TL Nakit İade Kazan!" },
-  { image: "/images/camp-02.jpg", title: "Vodafone Telefon Faturalarına %10 Nakit İade!" },
-  { image: "/images/camp-03.jpg", title: "Yaz Alışverişin Cebinde, Nakit İaden Vodafone Pay'de!" },
-  { image: "/images/camp-04.jpg", title: "Kolay Paket Yüklemelerine %20 Nakit İade!" },
-  { image: "/images/camp-05.jpg", title: "Vodafone Pay'de Red'lilere Özel 50 TL Cüzdanım Kodu Hediye!" },
-  { image: "/images/camp-06.jpg", title: "Vodafone Pay ile Çeşme Restoranlarında 750 TL Nakit İade!" },
-  { image: "/images/camp-07.jpg", title: "1 TL'ye Hayat Su Kapında!" },
-  { image: "/images/camp-08.jpg", title: "Anında Bakiye'de %20 İndirim!" },
-  { image: "/images/camp-09.jpg", title: "İstanbulkart'ına Vodafone Pay ile Bakiye Yükle 100 TL Nakit İade Kazan!" },
-  { image: "/images/camp-10.jpg", title: "Biletinal'da Vodafone'lulara 400 TL İndirim!" },
-  { image: "/images/camp-11.jpg", title: "Vodafone Ev İnterneti Faturalarına 100 TL Nakit İade!" },
-  { image: "/images/camp-12.jpg", title: "İlk QR Harcamanı Yap, %20 İndirim Kazan!" },
-  { image: "/images/camp-13.jpg", title: "5 GB Hediye!" },
-  { image: "/images/camp-14.jpg", title: "Vodafone Pay ile Deponu Doldururken Kazan!" },
-  { image: "/images/camp-15.jpg", title: "Market harcamanı ilk kez QR ile faturana yansıt, 100 TL indirim kazan!" },
-  { image: "/images/camp-16.png", title: "Pazarama'da %50 İndirim!" },
-  { image: "/images/camp-17.jpg", title: "Dijital Platform Üyelikleriniz 3 Ay Bedava!" },
-  { image: "/images/camp-18.jpg", title: "Vodafone Pay ile Çeşme Plajlarında 1.000 TL Nakit İade!" },
-  { image: "/images/camp-19.jpg", title: "Vodafone Pay'li Yaz Boyunca Obilet'te Kazanıyor!" },
-];
-
-const fallbackFaqs: FaqItem[] = [
-  {
-    question: "Vodafone Pay kampanyalarına nasıl katılabilirim?",
-    answer:
-      "Vodafone Pay Uygulaması üzerinden kampanyaları inceleyerek katılmak istedikleriniz için \"Kampanyaya Katıl\" butonuna tıklayabilir veya kampanya esaslarında yer alan yönlendirmeleri uygulayarak kampanyalara katılabilirsiniz. Hesabını oluşturduktan sonra kampanya şartlarını sağlayarak faydalanabilirsin.",
-  },
-];
-
 export default async function Kampanyalar() {
-  const [cmsCampaigns, cmsFaqItems] = await Promise.all([getCampaigns(), getFaqItems("kampanyalar")]);
+  // E3: this page used to fall back to 3+19 hardcoded fake campaigns
+  // whenever the CMS was unreachable — that's the actual bug the user
+  // reported ("kampanyalar sayfası güncellenmiyor"): the CMS had died, but
+  // the page kept silently showing stale placeholder content instead of
+  // any visible sign something was wrong. `null` = CMS fetch/parse failed,
+  // `[]` = CMS reachable but genuinely has zero campaigns — rendered
+  // differently (ContentUnavailable) instead of masked with fake data.
+  const [cmsCampaigns, cmsFaqItems, categories] = await Promise.all([
+    getCampaigns(),
+    getFaqItems("kampanyalar"),
+    getCategories(),
+  ]);
 
-  const toCard = (c: NonNullable<typeof cmsCampaigns>[number]): CardListItem => ({
+  // RFP feedback 5.2: ONE list carrying the `featured` flag, not two
+  // pre-split arrays — see CampaignsFilterableList for why the split had to
+  // move out of here.
+  const campaigns: FilterableCampaign[] = (cmsCampaigns ?? []).map((c) => ({
+    id: c.id,
     image: c.image.url,
     title: c.title,
     description: c.description,
-    href: c.slug ? `/kampanyalar/${c.slug}` : undefined,
-    category: c.category,
-  });
-
-  const favorites = cmsCampaigns ? cmsCampaigns.filter((c) => c.featured).map(toCard) : fallbackFavorites;
-  const allCampaigns = cmsCampaigns ? cmsCampaigns.filter((c) => !c.featured).map(toCard) : fallbackAllCampaigns;
-  const faqs: FaqItem[] = cmsFaqItems?.length
-    ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
-    : fallbackFaqs;
+    href: c.ctaUrl || (c.slug ? `/kampanyalar/${c.slug}` : undefined),
+    category: c.category?.slug,
+    linkLabel: c.ctaLabel,
+    startDate: c.startDate,
+    endDate: c.endDate,
+    featured: c.featured,
+  }));
+  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer }));
 
   const pageMeta = await getPageMeta("/kampanyalar");
+
+  let content: ReactNode;
+  if (cmsCampaigns === null) {
+    content = <ContentUnavailable variant="error" />;
+  } else if (campaigns.length === 0) {
+    content = <ContentUnavailable variant="empty" />;
+  } else {
+    content = <CampaignsFilterableList campaigns={campaigns} categories={categories ?? []} />;
+  }
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -88,7 +76,7 @@ export default async function Kampanyalar() {
           <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Kampanyalar</h1>
         </div>
 
-        <CampaignsFilterableList favorites={favorites} allCampaigns={allCampaigns} />
+        {content}
       </section>
 
       <Faq items={faqs} />

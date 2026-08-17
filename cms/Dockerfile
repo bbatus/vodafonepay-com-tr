@@ -42,8 +42,10 @@ ENV DATABASE_URI="postgres://build:build@localhost:5432/build"
 # e.g. CI image-scanning).
 ARG PAYLOAD_SECRET="build-time-placeholder"
 ARG REVALIDATE_SECRET="build-time-placeholder"
+ARG PREVIEW_SECRET="build-time-placeholder"
 ENV PAYLOAD_SECRET=${PAYLOAD_SECRET}
 ENV REVALIDATE_SECRET=${REVALIDATE_SECRET}
+ENV PREVIEW_SECRET=${PREVIEW_SECRET}
 
 RUN npm run build
 

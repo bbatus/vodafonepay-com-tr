@@ -13,7 +13,28 @@ import default_1 from "../../../components/AdminIcon";
 import default_2 from "../../../components/LoginBrandPanel";
 import default_3 from "../../../components/ReorderWidget";
 import default_4 from "../../../components/HelpButton";
+import default_5 from "../../../components/DashboardWidgets";
+import default_6 from "../../../components/RoleAwarePublishButton";
+import default_7 from "../../../components/SidebarLogo";
+import default_10 from "../../../components/ForgotPasswordDisabled";
+import default_11 from "../../../components/LoginHistoryField";
+import default_12 from "../../../components/LocalePreferenceSync";
+import default_13 from "../../../components/ContentManagementView";
+import default_14 from "../../../components/ContentManagementNavLink";
+import default_15 from "../../../components/SaveOrSubmitButton";
+import default_16 from "../../../components/UserAvatarIcon";
+import default_17 from "../../../components/CustomAccountView";
+import default_18 from "../../../components/UsersExportButton";
+import default_19 from "../../../components/AuditLogsExportButton";
+import default_20 from "../../../components/MediaFilterTabs";
+import default_21 from "../../../components/MediaUsageField";
+import default_22 from "../../../components/RememberEmailCheckbox";
+import default_23 from "../../../components/LockedAccountsView";
+import default_24 from "../../../components/LockedAccountsNavLink";
+import default_25 from "../../../components/LockedAccountsBanner";
+import default_26 from "../../../components/CampaignsExportButton";
 import { S3ClientUploadHandler as S3ClientUploadHandler_2 } from "@payloadcms/storage-s3/client";
+import { CollectionCards as CollectionCards_1 } from "@payloadcms/next/rsc";
 
 export const importMap = {
   "/components/AdminLogo#default": default_0,
@@ -21,5 +42,26 @@ export const importMap = {
   "/components/LoginBrandPanel#default": default_2,
   "/components/ReorderWidget#default": default_3,
   "/components/HelpButton#default": default_4,
+  "/components/DashboardWidgets#default": default_5,
+  "/components/RoleAwarePublishButton#default": default_6,
+  "/components/SidebarLogo#default": default_7,
+  "/components/ForgotPasswordDisabled#default": default_10,
+  "/components/LoginHistoryField#default": default_11,
+  "/components/LocalePreferenceSync#default": default_12,
+  "/components/ContentManagementView#default": default_13,
+  "/components/ContentManagementNavLink#default": default_14,
+  "/components/SaveOrSubmitButton#default": default_15,
+  "/components/UserAvatarIcon#default": default_16,
+  "/components/CustomAccountView#default": default_17,
+  "/components/UsersExportButton#default": default_18,
+  "/components/AuditLogsExportButton#default": default_19,
+  "/components/MediaFilterTabs#default": default_20,
+  "/components/MediaUsageField#default": default_21,
+  "/components/RememberEmailCheckbox#default": default_22,
+  "/components/LockedAccountsView#default": default_23,
+  "/components/LockedAccountsNavLink#default": default_24,
+  "/components/LockedAccountsBanner#default": default_25,
+  "/components/CampaignsExportButton#default": default_26,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_2,
+  "@payloadcms/next/rsc#CollectionCards": CollectionCards_1,
 };

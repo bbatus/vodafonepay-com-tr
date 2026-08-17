@@ -5,7 +5,12 @@ function actorOf(req: PayloadRequest): { email: string; role?: string } {
   return { email: user?.email ?? "unknown", role: user?.role };
 }
 
-function ipOf(req: PayloadRequest): string | undefined {
+/**
+ * Exported so Users.ts's `afterLogin` hook can stamp `lastLoginIp` with the
+ * exact same extraction logic this file already uses for every audit-log
+ * entry — one definition of "how do we read the client IP", not two.
+ */
+export function ipOf(req: PayloadRequest): string | undefined {
   // PayloadRequest wraps a standard Request — Node/Next don't expose a
   // single canonical client-IP field, so this covers the headers a proxy
   // (or Next.js itself) is actually likely to set.
@@ -14,6 +19,11 @@ function ipOf(req: PayloadRequest): string | undefined {
     req.headers?.get?.("x-real-ip") ||
     undefined
   );
+}
+
+/** RFP feedback 3.5: profile login history shows the browser/device (Mozilla/5.0 ...). */
+export function userAgentOf(req: PayloadRequest): string | undefined {
+  return req.headers?.get?.("user-agent") || undefined;
 }
 
 export async function writeAuditLog(req: PayloadRequest, entry: {
@@ -38,6 +48,7 @@ export async function writeAuditLog(req: PayloadRequest, entry: {
         documentId: entry.documentId,
         summary: entry.summary,
         ip: ipOf(req),
+        userAgent: userAgentOf(req),
       },
     });
   } catch (err) {
@@ -55,16 +66,30 @@ export async function writeAuditLog(req: PayloadRequest, entry: {
  * operations under the hood.
  */
 export function auditAfterChange(collectionSlug: string): CollectionAfterChangeHook {
-  return async ({ req, operation, doc, previousDoc }) => {
+  return async ({ req, operation, doc, previousDoc, context }) => {
+    // Users.ts's afterLogin hook stamps lastLoginAt/lastLoginIp/lastLoginUserAgent
+    // via a plain payload.update() on every single login — without this
+    // escape hatch that would double up on the "login" audit entry the same
+    // hook already writes, with a near-duplicate "users: X güncellendi" on
+    // every login. `writeAuditLog` itself still runs for every OTHER update.
+    if (context?.skipAudit) return doc;
     const wasPublished = previousDoc?._status === "published";
     const isPublished = doc?._status === "published";
-    const action = operation === "create" ? "create" : !wasPublished && isPublished ? "publish" : "update";
+    let action: "create" | "publish" | "update";
+    if (operation === "create") {
+      action = "create";
+    } else if (!wasPublished && isPublished) {
+      action = "publish";
+    } else {
+      action = "update";
+    }
     const title = doc?.title ?? doc?.label ?? doc?.name ?? doc?.businessName ?? doc?.email ?? String(doc?.id ?? "");
+    const actionVerb = { create: "oluşturuldu", publish: "yayınlandı", update: "güncellendi" }[action];
     await writeAuditLog(req, {
       action,
       collectionSlug,
       documentId: String(doc?.id ?? ""),
-      summary: `${collectionSlug}: "${title}" ${action === "create" ? "oluşturuldu" : action === "publish" ? "yayınlandı" : "güncellendi"}`,
+      summary: `${collectionSlug}: "${title}" ${actionVerb}`,
     });
     return doc;
   };

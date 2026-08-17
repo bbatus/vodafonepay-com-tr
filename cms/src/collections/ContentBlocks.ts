@@ -3,6 +3,8 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { dbLabel } from "@/lib/collectionLabels";
+import { assignNextOrder, ORDER_FIELD_DESCRIPTION } from "@/hooks/ordering";
 
 /**
  * Generic content block for the several small, one-off sections that used to
@@ -15,10 +17,18 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
  */
 export const ContentBlocks: CollectionConfig = {
   slug: "content-blocks",
+  labels: {
+    singular: dbLabel("collectionLabel.content-blocks.singular", { tr: "İçerik Bloğu", en: "Content Block" }),
+    plural: dbLabel("collectionLabel.content-blocks.plural", { tr: "İçerik Blokları", en: "Content Blocks" }),
+  },
+  // RFP feedback 5.5: the list must reflect the `order` field (and the
+  // drag-to-reorder widget's saved sequence), not Payload's fallback order.
+  defaultSort: "order",
   admin: {
+    hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["page", "blockType", "title", "order"],
-    group: "İçerik",
+    group: { tr: "İçerik", en: "Content" },
     description:
       "StepPhones/AppFeatures/EarnWithCard/FeatureHighlights/VideoGuideSection/VideosWithTabs/BrandLogoGrid gibi tekil bileşenlerin içerik blokları. `page` alanı hangi bileşen/sayfaya ait olduğunu belirler.",
     components: {
@@ -62,10 +72,25 @@ export const ContentBlocks: CollectionConfig = {
     { name: "image", type: "upload", relationTo: "media", admin: { description: "step / slide / logo için" } },
     { name: "youtubeId", type: "text", admin: { description: "video için, örn: 7CCEsOaoH2A" } },
     { name: "linkUrl", type: "text" },
-    { name: "order", type: "number", defaultValue: 0 },
+    {
+      name: "order",
+      type: "number",
+      label: { tr: "Sıra", en: "Order" },
+      // Deliberately NO defaultValue. Payload populates defaults BEFORE
+      // beforeChange runs, so a `defaultValue: 1` here arrives at
+      // assignNextOrder looking exactly like a number the editor typed —
+      // the hook's "respect an explicit value" guard then bails out and the
+      // auto-numbering never happens. Caught live: a new FAQ in a category
+      // whose highest order was 12 was still being saved as 1. Leaving this
+      // empty is also the honest UI, and matches the field description:
+      // blank means "put it at the end", which is what the hook then does.
+      min: 1,
+      admin: { description: ORDER_FIELD_DESCRIPTION },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeChange: [assignNextOrder("content-blocks", ["page"])],
     afterChange: [revalidateTag("content-blocks"), auditAfterChange("content-blocks")],
     afterDelete: [revalidateTagOnDelete("content-blocks"), auditAfterDelete("content-blocks")],
   },

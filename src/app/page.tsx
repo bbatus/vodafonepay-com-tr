@@ -31,19 +31,23 @@ export default async function Home() {
     getContentBlocks("anasayfa-highlights"),
   ]);
 
-  const featuredCampaigns = cmsCampaigns?.filter((c) => c.featured).map(campaignToCard);
-  const faqItems = cmsFaqItems?.map((f) => ({ question: f.question, answer: f.answer }));
-  const steps: StepProduct[] | undefined = cmsSteps?.length
-    ? cmsSteps.map((s) => ({
-        title: s.title ?? "",
-        description: s.text ?? "",
-        image: s.image?.url ?? "",
-        imageAlt: s.image?.alt || s.title || "",
-      }))
-    : undefined;
-  const highlights = cmsHighlights?.length
-    ? cmsHighlights.map((h) => ({ icon: h.image?.url ?? "", title: h.title ?? "", description: h.text ?? "" }))
-    : undefined;
+  // RFP feedback 5.0: every one of these used to degrade to `undefined` so the
+  // component would substitute its own hardcoded copy — the homepage rendered
+  // identically whether the CMS was healthy or dead. Now an empty CMS result
+  // stays empty and the section simply doesn't render.
+  const featuredCampaigns = (cmsCampaigns ?? []).filter((c) => c.featured).map(campaignToCard);
+  const faqItems = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer }));
+  const steps: StepProduct[] = (cmsSteps ?? []).map((s) => ({
+    title: s.title ?? "",
+    description: s.text ?? "",
+    image: s.image?.url ?? "",
+    imageAlt: s.image?.alt || s.title || "",
+  }));
+  const highlights = (cmsHighlights ?? []).map((h) => ({
+    icon: h.image?.url ?? "",
+    title: h.title ?? "",
+    description: h.text ?? "",
+  }));
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -52,8 +56,8 @@ export default async function Home() {
       <Hero />
       <StepPhones steps={steps} />
       <FeatureHighlights features={highlights} />
-      <Campaigns campaigns={featuredCampaigns?.length ? featuredCampaigns : undefined} />
-      <Faq items={faqItems?.length ? faqItems : undefined} />
+      <Campaigns campaigns={featuredCampaigns} />
+      <Faq items={faqItems} />
       <Footer />
     </main>
   );

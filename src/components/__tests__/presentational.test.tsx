@@ -50,37 +50,37 @@ describe("LeadFormCta", () => {
 });
 
 describe("EarnWithCard", () => {
-  it("renders without crashing", () => {
-    const { container } = render(<EarnWithCard />);
-    expect(container).not.toBeEmptyDOMElement();
+  it("renders nothing when given no slides", () => {
+    const { container } = render(<EarnWithCard slides={[]} />);
+    expect(container).toBeEmptyDOMElement();
   });
 });
 
 describe("AppFeatures", () => {
-  it("renders the section heading", () => {
-    render(<AppFeatures />);
-    expect(screen.getByText("Vodafone Pay'in Ayrıcalıklı Dünyası")).toBeInTheDocument();
+  it("renders nothing when given no slides", () => {
+    const { container } = render(<AppFeatures slides={[]} />);
+    expect(container).toBeEmptyDOMElement();
   });
 });
 
 describe("BrandLogoGrid", () => {
-  it("renders without crashing", () => {
-    const { container } = render(<BrandLogoGrid />);
-    expect(container).not.toBeEmptyDOMElement();
+  it("renders nothing when given no brands", () => {
+    const { container } = render(<BrandLogoGrid brands={[]} />);
+    expect(container).toBeEmptyDOMElement();
   });
 });
 
 describe("FeatureHighlights", () => {
-  it("renders without crashing", () => {
-    const { container } = render(<FeatureHighlights />);
-    expect(container).not.toBeEmptyDOMElement();
+  it("renders nothing when given no features", () => {
+    const { container } = render(<FeatureHighlights features={[]} />);
+    expect(container).toBeEmptyDOMElement();
   });
 });
 
 describe("VideoGuideSection", () => {
-  it("renders without crashing", () => {
-    const { container } = render(<VideoGuideSection />);
-    expect(container).not.toBeEmptyDOMElement();
+  it("renders nothing when given no videos", () => {
+    const { container } = render(<VideoGuideSection videos={[]} />);
+    expect(container).toBeEmptyDOMElement();
   });
 });
 

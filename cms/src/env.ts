@@ -12,12 +12,18 @@ import { z } from "zod";
  * aren't met, instead of booting into an insecure state.
  */
 
-const KNOWN_DEV_SECRETS = new Set(["dev-payload-secret-change-me", "dev-revalidate-secret", ""]);
+const KNOWN_DEV_SECRETS = new Set([
+  "dev-payload-secret-change-me",
+  "dev-revalidate-secret",
+  "dev-preview-secret",
+  "",
+]);
 
 const envSchema = z.object({
   DATABASE_URI: z.string().min(1, "DATABASE_URI is required"),
   PAYLOAD_SECRET: z.string().min(1, "PAYLOAD_SECRET is required"),
   REVALIDATE_SECRET: z.string().min(1, "REVALIDATE_SECRET is required"),
+  PREVIEW_SECRET: z.string().min(1, "PREVIEW_SECRET is required"),
 });
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -46,6 +52,26 @@ if (isProduction && !isLocalDev) {
       "[env] REVALIDATE_SECRET is unset or still the dev placeholder. Refusing to start in production — set a real secret."
     );
   }
+  if (KNOWN_DEV_SECRETS.has(parsed.data.PREVIEW_SECRET)) {
+    throw new Error(
+      "[env] PREVIEW_SECRET is unset or still the dev placeholder. Refusing to start in production — set a real secret."
+    );
+  }
 }
 
 export const env = parsed.data;
+
+/**
+ * E3: SITE_REVALIDATE_URL isn't required to boot (the site's own ISR
+ * interval is a fallback), but a missing value means every publish
+ * silently degrades to that slower fallback — pingRevalidate() already
+ * console.warns per-call, which is easy to miss in a scrolling log. This
+ * is a single, loud, one-time boot warning so a misconfigured deployment
+ * is obvious in the startup logs, not just discoverable by noticing stale
+ * content later.
+ */
+if (!process.env.SITE_REVALIDATE_URL) {
+  console.warn(
+    "[env] SITE_REVALIDATE_URL is not set — published changes will only appear on the site after its normal ISR interval, not immediately. See .env.example."
+  );
+}

@@ -16,6 +16,8 @@ export interface CampaignCard {
   image: string;
   imageAlt: string;
   href: string;
+  /** CMS-editable CTA text (campaign.ctaLabel) — falls back to "Detayları gör" when unset. */
+  linkLabel?: string;
 }
 
 export interface FaqItem {

@@ -6,6 +6,7 @@ import { newVerticalReadWrite } from "@/access/roles";
 export const ContactInfo: GlobalConfig = {
   slug: "contact-info",
   admin: {
+    hideAPIURL: true,
     group: "Site Yapısı",
     components: {
       elements: {

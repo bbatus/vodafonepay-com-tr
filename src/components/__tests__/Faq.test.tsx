@@ -49,8 +49,10 @@ describe("Faq", () => {
     expect(screen.getByText("Cevap 2")).toBeInTheDocument();
   });
 
-  it("falls back to its own default FAQ items when none are given", () => {
-    render(<Faq />);
-    expect(screen.getByText("Vodafone Pay Nedir?")).toBeInTheDocument();
+  // RFP feedback 5.0: the built-in 4-question default is gone — an empty list
+  // renders nothing instead of copy the CMS can't reach.
+  it("renders nothing when given an empty item list", () => {
+    const { container } = render(<Faq items={[]} />);
+    expect(container).toBeEmptyDOMElement();
   });
 });
