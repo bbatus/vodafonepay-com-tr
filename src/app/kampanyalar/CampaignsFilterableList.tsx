@@ -27,9 +27,11 @@ export type FilterableCampaign = CardListItem & { featured: boolean };
 export function CampaignsFilterableList({
   campaigns,
   categories,
+  allLabel,
 }: {
   campaigns: FilterableCampaign[];
   categories: FilterTabCategory[];
+  allLabel?: string;
 }) {
   const [active, setActive] = useState<string>(ALL_FILTER);
 
@@ -55,7 +57,7 @@ export function CampaignsFilterableList({
   return (
     <>
       <div className="my-6">
-        <FilterTabs categories={categories} active={active} onChange={setActive} />
+        <FilterTabs categories={categories} active={active} onChange={setActive} allLabel={allLabel} />
       </div>
       {renderResults()}
     </>

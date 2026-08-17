@@ -4,11 +4,13 @@ import {
   getAnnouncements,
   getBlogPosts,
   getCampaigns,
+  getCategories,
   getContactInfo,
   getContentBlocks,
   getFaqItems,
   getFeatureCards,
   getFeeRows,
+  getHomepageFaqItems,
   getLegalPage,
   getLimitTables,
   getNavLinks,
@@ -17,6 +19,7 @@ import {
   getPages,
   getProductHero,
   getStepCards,
+  getTranslation,
   textToParagraphs,
   type CmsCampaign,
 } from "@/lib/cms";
@@ -161,24 +164,65 @@ describe("cms.ts fetch-backed getters", () => {
     expect(init?.signal).toBeInstanceOf(AbortSignal);
   });
 
-  it("getFaqItems adds a category filter to the query when given", async () => {
+  it("getFaqItems adds a category slug filter to the query when given", async () => {
+    // category is now a Categories relationship (RFP feedback 1.3), so the
+    // filter has to match the populated subfield, not the old bare-select value.
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
     await getFaqItems("kampanyalar");
     const calledUrl = vi.mocked(fetch).mock.calls[0][0] as string;
-    expect(calledUrl).toContain("where[category][equals]=kampanyalar");
+    expect(calledUrl).toContain("where[category.slug][equals]=kampanyalar");
   });
 
-  it("getFaqItems omits the category filter when not given", async () => {
+  it("getFaqItems always scopes to FAQ categories, slug filter or not", async () => {
+    // Categories is shared with Campaigns/BlogPosts and the same slug can
+    // legitimately exist in both scopes ("aninda-bakiye" in each) — without
+    // this, a slug-only filter could match the wrong scope's category.
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
     await getFaqItems();
-    const calledUrl = vi.mocked(fetch).mock.calls[0][0] as string;
-    expect(calledUrl).not.toContain("where[category]");
+    expect(vi.mocked(fetch).mock.calls[0][0] as string).toContain("where[category.scope][equals]=faq");
+
+    await getFaqItems("kampanyalar");
+    expect(vi.mocked(fetch).mock.calls[1][0] as string).toContain("where[category.scope][equals]=faq");
   });
 
   it("getFaqItems returns docs on success", async () => {
-    const doc = { id: "f1", question: "Q?", answer: "A", category: "genel", order: 0 };
+    const doc = { id: "f1", question: "Q?", answer: "A", category: { label: "Genel", slug: "genel" }, order: 0 };
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
     expect(await getFaqItems()).toEqual([doc]);
+  });
+
+  it("getHomepageFaqItems filters by showOnHomepage and sorts by homepageOrder", async () => {
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
+    await getHomepageFaqItems();
+    const calledUrl = vi.mocked(fetch).mock.calls[0][0] as string;
+    expect(calledUrl).toContain("where[showOnHomepage][equals]=true");
+    expect(calledUrl).toContain("sort=homepageOrder");
+  });
+
+  it("getCategories requires a scope and passes it through as a filter", async () => {
+    // Categories is shared taxonomy for two unrelated flows (Campaigns/Blog
+    // vs. FAQ) — an unscoped fetch mixed both into one tab list, confirmed
+    // live on /kampanyalar (a duplicate "Anında Bakiye" tab + an
+    // FAQ-only "Anasayfa" tab leaking into the campaign filter bar).
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
+    await getCategories("campaign");
+    expect(vi.mocked(fetch).mock.calls[0][0] as string).toContain("where[scope][equals]=campaign");
+
+    await getCategories("faq");
+    expect(vi.mocked(fetch).mock.calls[1][0] as string).toContain("where[scope][equals]=faq");
+  });
+
+  it("getTranslation returns the CMS value when present", async () => {
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [{ tr: "Hepsi" }] }));
+    expect(await getTranslation("filterTabs.all", "Tümü")).toBe("Hepsi");
+  });
+
+  it("getTranslation falls back when the row is missing or the CMS is unreachable", async () => {
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
+    expect(await getTranslation("filterTabs.all", "Tümü")).toBe("Tümü");
+
+    vi.mocked(fetch).mockImplementation(() => notOk());
+    expect(await getTranslation("filterTabs.all", "Tümü")).toBe("Tümü");
   });
 
   it("getBlogPosts returns docs on success", async () => {

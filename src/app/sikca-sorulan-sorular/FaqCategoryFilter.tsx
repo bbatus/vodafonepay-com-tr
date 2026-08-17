@@ -4,60 +4,37 @@ import { useState } from "react";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Faq } from "@/components/Faq";
-import type { FaqItem } from "@/types/homepage";
+import { ALL_FILTER, FilterTabs, matchesFilter, type FilterTabCategory } from "@/components/FilterTabs";
 
-const categories = [
-  "Tümü",
-  "Anasayfa",
-  "Anında Bakiye",
-  "Vodafone Pay Uygulama",
-  "Kampanyalar",
-  "Vodafone Pay Kart",
-  "QR ile Faturana Yansıt",
-  "Faturana Yansıt",
-  "Sözleşmeler ve Formlar",
-  "Gizlilik ve Güvenlik",
-  "Duyurular",
-] as const;
+type FaqEntry = { question: string; answer: string; category?: string };
 
-type Category = (typeof categories)[number];
+/**
+ * FaqItems.category used to be a hardcoded `select` in the CMS, mirrored by
+ * a hardcoded tab list + label map here (RFP feedback 1.3, same problem
+ * /kampanyalar and /blog had before their own Categories migration). Now
+ * it's the same Categories relationship, and this reuses the SAME FilterTabs
+ * component those two pages already use — a category the CMS doesn't know
+ * about simply can't produce a tab.
+ */
+export function FaqCategoryFilter({
+  items,
+  categories,
+  allLabel,
+}: {
+  items?: FaqEntry[];
+  categories: FilterTabCategory[];
+  allLabel?: string;
+}) {
+  const [active, setActive] = useState<string>(ALL_FILTER);
+  const visible = (items ?? []).filter((i) => matchesFilter(active, i.category));
 
-/** Maps the CMS's FaqItems.category select values (see cms/src/collections/FaqItems.ts) to this page's display labels. */
-const CMS_CATEGORY_TO_LABEL: Record<string, Exclude<Category, "Tümü">> = {
-  anasayfa: "Anasayfa",
-  "aninda-bakiye": "Anında Bakiye",
-  "vodafone-pay-uygulama": "Vodafone Pay Uygulama",
-  kampanyalar: "Kampanyalar",
-  "vodafone-pay-kart": "Vodafone Pay Kart",
-  "qr-ile-faturana-yansit": "QR ile Faturana Yansıt",
-  // FaqItems offers this category in the CMS, but it was missing from this
-  // map — and groupByCategory drops anything it can't map (`if (!label)
-  // continue`). So an FAQ an editor filed under "Faturana Yansıt" simply
-  // never appeared on this page, with nothing anywhere to say why.
-  "faturana-yansit": "Faturana Yansıt",
-  "sozlesmeler-ve-formlar": "Sözleşmeler ve Formlar",
-  "gizlilik-ve-guvenlik": "Gizlilik ve Güvenlik",
-  duyurular: "Duyurular",
-};
-
-function groupByCategory(items: (FaqItem & { category: string })[]): Record<Exclude<Category, "Tümü">, FaqItem[]> {
-  const grouped: Record<string, FaqItem[]> = {};
-  for (const { question, answer, category } of items) {
-    const label = CMS_CATEGORY_TO_LABEL[category];
-    if (!label) continue;
-    grouped[label] ??= [];
-    grouped[label].push({ question, answer });
-  }
-  return grouped as Record<Exclude<Category, "Tümü">, FaqItem[]>;
-}
-
-export function FaqCategoryFilter({ items }: { items?: (FaqItem & { category: string })[] }) {
-  const [active, setActive] = useState<Category>("Tümü");
-
-  // RFP feedback 5.0: faq-items is seeded, so the old ~18-item hardcoded
-  // fallback only fired on a CMS failure — masking it completely.
-  const faqsByCategory = groupByCategory(items ?? []);
-  const visibleCategories = (active === "Tümü" ? categories.slice(1) : [active]) as Exclude<Category, "Tümü">[];
+  // Every category is a tab now even with zero questions in it (see
+  // page.tsx) — <Faq> itself renders nothing for an empty list, which read
+  // as "this tab is broken" rather than "empty on purpose". Only shown for
+  // a specific category tab, not "Tümü": an empty site-wide FAQ is the
+  // ContentUnavailable-style CMS-outage case other pages already handle
+  // above this component, not something to duplicate here.
+  const showEmptyState = active !== ALL_FILTER && visible.length === 0;
 
   return (
     <>
@@ -66,23 +43,16 @@ export function FaqCategoryFilter({ items }: { items?: (FaqItem & { category: st
 
       <section className="mx-auto w-full max-w-[1030px] px-4 pb-10 pt-6">
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Sıkça Sorulan Sorular</h1>
-        <div className="mt-8 flex flex-wrap justify-center gap-2">
-          {categories.map((c) => (
-            <button
-              type="button"
-              key={c}
-              onClick={() => setActive(c)}
-              className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                active === c ? "border-vf-navy bg-vf-navy text-white" : "border-gray-300 bg-white text-black hover:bg-gray-50"
-              }`}
-            >
-              {c}
-            </button>
-          ))}
+        <div className="mt-8">
+          <FilterTabs categories={categories} active={active} onChange={setActive} allLabel={allLabel} />
         </div>
       </section>
 
-      <Faq items={visibleCategories.flatMap((c) => faqsByCategory[c] ?? [])} showHeading={false} />
+      {showEmptyState ? (
+        <p className="mx-auto max-w-3xl px-4 pb-16 text-center text-gray-500">Bu kategoride henüz soru yok.</p>
+      ) : (
+        <Faq items={visible.map(({ question, answer }) => ({ question, answer }))} showHeading={false} />
+      )}
     </>
   );
 }

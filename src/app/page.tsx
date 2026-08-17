@@ -7,7 +7,7 @@ import { FeatureHighlights } from "@/components/FeatureHighlights";
 import { Campaigns } from "@/components/Campaigns";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { campaignToCard, getCampaigns, getContentBlocks, getFaqItems, getPageMeta } from "@/lib/cms";
+import { campaignToCard, getCampaigns, getContentBlocks, getHomepageFaqItems, getPageMeta } from "@/lib/cms";
 import type { StepProduct } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Home() {
   const [cmsCampaigns, cmsFaqItems, cmsSteps, cmsHighlights] = await Promise.all([
     getCampaigns(),
-    getFaqItems("anasayfa"),
+    getHomepageFaqItems(),
     getContentBlocks("anasayfa-steps"),
     getContentBlocks("anasayfa-highlights"),
   ]);

@@ -15,14 +15,21 @@ import { turkishSlugify, uniqueSlug } from "@/lib/slugify";
  * the site filters campaigns by slug — silently changing it out from under
  * an already-published campaign would break its category filter with no
  * warning.
+ *
+ * Uniqueness is scoped to `scope`, not global — "Anında Bakiye" is a real
+ * category in BOTH flows (Campaigns/Blog and FAQ each need their own, per
+ * the live site's own two separate taxonomies), and a global check forced
+ * the second one into an ugly `aninda-bakiye-2` for no reason: the two
+ * scopes are never queried together, so identical slugs in different scopes
+ * can't actually collide.
  */
-const generateSlug: CollectionBeforeValidateHook = async ({ data, operation, req }) => {
+export const generateSlug: CollectionBeforeValidateHook = async ({ data, operation, req }) => {
   if (operation !== "create" || !data?.label) return data;
   const base = turkishSlugify(data.label as string);
   data.slug = await uniqueSlug(base, async (candidate) => {
     const { totalDocs } = await req.payload.count({
       collection: "categories",
-      where: { slug: { equals: candidate } },
+      where: { and: [{ slug: { equals: candidate } }, { scope: { equals: data.scope } }] },
       overrideAccess: true,
     });
     return totalDocs > 0;
@@ -39,7 +46,33 @@ const generateSlug: CollectionBeforeValidateHook = async ({ data, operation, req
  * Deliberately New-Vertical-only (not Growth-scoped): a category is
  * taxonomy shared across the whole site, not campaign content — same
  * reasoning as every other structural collection Growth doesn't touch.
+ *
+ * `scope` (added when FaqItems.category joined this collection, then split
+ * again when BlogPosts got its own scope) keeps the three flows from
+ * colliding: Campaigns', BlogPosts', and FaqItems' category pickers must
+ * never offer each other's options — a "Kart" campaign category and a
+ * "Vodafone Pay Kart" FAQ category look similar but point at different
+ * real-site taxonomies (verified live against vodafonepay.com.tr; the FAQ
+ * page's `?kategori=` slugs don't match the campaign category slugs at all
+ * beyond two coincidental overlaps). Still ONE collection — still nothing
+ * hardcoded — `scope` is just what lets `filterOptions` on each
+ * `relationship` field narrow the picker to the categories that actually
+ * apply there. See Campaigns.ts/BlogPosts.ts/FaqItems.ts's `category` field
+ * for the other half of this.
  */
+export const CATEGORY_SCOPES = {
+  CAMPAIGN: "campaign",
+  FAQ: "faq",
+  // RFP follow-up: Blog used to share Campaigns' category list — that
+  // matched the live site's actual taxonomy at the time (verified), but the
+  // user wants Blog to have its own independently-managed list rather than
+  // it being a side effect of reusing Campaigns'. `blog_posts` was verified
+  // empty before this split, so there was no existing data to migrate.
+  BLOG: "blog",
+} as const;
+
+export type CategoryScope = (typeof CATEGORY_SCOPES)[keyof typeof CATEGORY_SCOPES];
+
 export const Categories: CollectionConfig = {
   slug: "categories",
   labels: {
@@ -49,15 +82,30 @@ export const Categories: CollectionConfig = {
   // RFP feedback 5.5: the list must reflect the `order` field (and the
   // drag-to-reorder widget's saved sequence), not Payload's fallback order.
   defaultSort: "order",
+  // Compound, not per-field: slug only needs to be unique WITHIN a scope
+  // (generateSlug enforces this the same way on create) — see the `slug`
+  // field comment for why a plain `unique: true` there would be wrong now.
+  indexes: [{ fields: ["scope", "slug"], unique: true }],
   admin: {
     hideAPIURL: true,
     useAsTitle: "label",
-    defaultColumns: ["label", "slug", "order"],
+    defaultColumns: ["label", "scope", "slug", "order"],
     group: { tr: "İçerik", en: "Content" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "categories" } },
-        { path: "/components/ReorderWidget#default", clientProps: { collection: "categories" } },
+        {
+          path: "/components/ReorderWidget#default",
+          clientProps: {
+            collection: "categories",
+            groupField: "scope",
+            // `clientProps` is static config, evaluated once — it can't call
+            // useAdminLocale()/useDbStrings() the way the rest of this
+            // widget's UI does, so this dropdown stays Turkish regardless of
+            // the admin's language pick. Values must match CATEGORY_SCOPES.
+            groupLabels: { campaign: "Kampanyalar", blog: "Blog", faq: "Sık Sorulan Sorular" },
+          },
+        },
       ],
     },
   },
@@ -68,6 +116,24 @@ export const Categories: CollectionConfig = {
     delete: isNewVerticalMaker,
   },
   fields: [
+    {
+      name: "scope",
+      type: "select",
+      required: true,
+      defaultValue: CATEGORY_SCOPES.CAMPAIGN,
+      label: { tr: "Akış", en: "Flow" },
+      options: [
+        { label: { tr: "Kampanyalar", en: "Campaigns" }, value: CATEGORY_SCOPES.CAMPAIGN },
+        { label: { tr: "Blog", en: "Blog" }, value: CATEGORY_SCOPES.BLOG },
+        { label: { tr: "Sıkça Sorulan Sorular", en: "FAQ" }, value: CATEGORY_SCOPES.FAQ },
+      ],
+      admin: {
+        description: {
+          tr: "Bu kategori hangi akışta seçilebilir olacak. Kampanyalar, Blog ve SSS'in her birinin kendi ayrı listesi var.",
+          en: "Which flow can pick this category. Campaigns, Blog, and FAQ each have their own separate list.",
+        },
+      },
+    },
     {
       name: "label",
       type: "text",
@@ -81,7 +147,11 @@ export const Categories: CollectionConfig = {
       name: "slug",
       type: "text",
       required: true,
-      unique: true,
+      // NOT globally unique any more — uniqueness is per `scope` (see the
+      // compound index below and generateSlug's scoped count check). A bare
+      // `unique: true` here would still be a single-column DB constraint and
+      // block the exact case this is meant to allow: the same slug reused
+      // across the two scopes.
       admin: {
         position: "sidebar",
         readOnly: true,
@@ -106,7 +176,10 @@ export const Categories: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [generateSlug],
-    beforeChange: [assignNextOrder("categories")],
+    // Scoped per `scope` — a new campaign category and a new FAQ category
+    // shouldn't compete for the same order sequence, same reasoning as
+    // FaqItems' own per-category scoping.
+    beforeChange: [assignNextOrder("categories", ["scope"])],
     // RFP feedback 5.1 (the reported bug): a category with campaigns in it
     // could be deleted with no warning, silently NULLing every one of those
     // campaigns' `required` category field.

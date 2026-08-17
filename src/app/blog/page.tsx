@@ -6,7 +6,7 @@ import { StickyQr } from "@/components/StickyQr";
 import type { CardListItem } from "@/components/CardListGrid";
 import { ContentUnavailable } from "@/components/ContentUnavailable";
 import { Footer } from "@/components/Footer";
-import { getBlogPosts, getCategories } from "@/lib/cms";
+import { getBlogPosts, getCategories, getTranslation } from "@/lib/cms";
 import type { FilterTabCategory } from "@/components/FilterTabs";
 import { BlogFilterableList } from "./BlogFilterableList";
 import { buildMetadata } from "@/lib/metadata";
@@ -23,7 +23,11 @@ export default async function Blog() {
   // ContentUnavailable.tsx). `null` = CMS fetch/parse failed, `[]` = CMS
   // reachable but genuinely has zero posts; shown differently so a dead
   // CMS is actually visible instead of silently masked.
-  const [cmsPosts, cmsCategories] = await Promise.all([getBlogPosts(), getCategories()]);
+  const [cmsPosts, cmsCategories, allLabel] = await Promise.all([
+    getBlogPosts(),
+    getCategories("blog"),
+    getTranslation("filterTabs.all", "Tümü"),
+  ]);
   const posts: CardListItem[] = (cmsPosts ?? []).map((p) => ({
     id: p.id,
     image: p.coverImage.url,
@@ -33,18 +37,11 @@ export default async function Blog() {
     category: p.category?.slug,
   }));
 
-  // The live vodafonepay.com.tr blog filters by the SAME taxonomy as
-  // campaigns (Anında Bakiye / Faturana Yansıt / Kart), which is why
-  // BlogPosts.category is now a relationship to Categories rather than free
-  // text. Feeding the tabs from that collection only works BECAUSE of that
-  // change — while the field was free text this exact wiring offered
-  // categories no post could ever match, so every tab but "Tümü" came up
-  // empty. Only categories that actually have a post are shown, so the page
-  // never offers a tab that leads nowhere.
-  const usedSlugs = new Set(posts.map((p) => p.category).filter(Boolean));
-  const categories: FilterTabCategory[] = (cmsCategories ?? [])
-    .filter((c) => usedSlugs.has(c.slug))
-    .map((c) => ({ label: c.label, slug: c.slug }));
+  // Consistent with /sikca-sorulan-sorular (RFP follow-up): every Blog-scope
+  // category is a tab, even with zero posts in it yet — an editor who just
+  // created a category needs to see it appear, not wonder whether it worked.
+  // BlogFilterableList shows an explicit empty state for a tab with no posts.
+  const categories: FilterTabCategory[] = (cmsCategories ?? []).map((c) => ({ label: c.label, slug: c.slug }));
 
   let content: ReactNode;
   if (cmsPosts === null) {
@@ -52,7 +49,7 @@ export default async function Blog() {
   } else if (posts.length === 0) {
     content = <ContentUnavailable variant="empty" />;
   } else {
-    content = <BlogFilterableList posts={posts} categories={categories} />;
+    content = <BlogFilterableList posts={posts} categories={categories} allLabel={allLabel} />;
   }
 
   return (

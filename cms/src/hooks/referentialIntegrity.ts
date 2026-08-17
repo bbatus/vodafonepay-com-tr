@@ -54,6 +54,11 @@ export const REFERENCE_MAP: Record<string, ReferenceSource[]> = {
     // BlogPosts.category became a relationship to this collection too — same
     // taxonomy as campaigns, so the same delete protection has to cover it.
     { collection: "blog-posts", path: "category", titleField: "title", blocking: true },
+    // FaqItems.category — was a hardcoded select, now the same relationship.
+    // Unlike Campaigns/BlogPosts this one is `required: true`, so deleting a
+    // category out from under an FAQ wouldn't just leave it uncategorized —
+    // it'd fail the field's own required check the next time anyone saved it.
+    { collection: "faq-items", path: "category", titleField: "question", blocking: true },
   ],
 
   media: [
@@ -90,9 +95,11 @@ export type ReferenceHit = {
   samples: { title: string; url: string }[];
 };
 
-function titleOf(doc: Record<string, unknown>, field: string): string {
+type DocWithId = { id: string | number; [key: string]: unknown };
+
+function titleOf(doc: DocWithId, field: string): string {
   const value = doc[field];
-  return typeof value === "string" && value.trim() ? value : `#${String(doc.id)}`;
+  return typeof value === "string" && value.trim() ? value : `#${doc.id}`;
 }
 
 /**
@@ -125,9 +132,9 @@ export async function findReferences(
       hits.push({
         source,
         total: result.totalDocs,
-        samples: (result.docs as unknown as Record<string, unknown>[]).map((doc) => ({
+        samples: (result.docs as unknown as DocWithId[]).map((doc) => ({
           title: titleOf(doc, source.titleField),
-          url: `/admin/collections/${source.collection}/${String(doc.id)}`,
+          url: `/admin/collections/${source.collection}/${doc.id}`,
         })),
       });
     } catch (err) {

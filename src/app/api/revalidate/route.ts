@@ -22,6 +22,7 @@ const ALLOWED_TAGS = new Set([
   "cookie-rows",
   "page-meta",
   "pages",
+  "translations",
 ]);
 
 /**

@@ -86,21 +86,65 @@ async function cmsFetch<T>(
   return parsed.data;
 }
 
-/** RFP feedback 1.3: category used to be a free-text value on the doc itself — now a relationship, populated via depth=1. */
-const campaignCategorySchema = z.object({ label: z.string(), slug: z.string() });
+/**
+ * RFP feedback 1.3: category used to be a free-text value (Campaigns) or a
+ * hardcoded select (FaqItems) on the doc itself — now every one of them is a
+ * relationship to the shared Categories collection, populated via depth=1.
+ */
+const categoryRefSchema = z.object({ label: z.string(), slug: z.string() });
 
 const categorySchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   label: z.string(),
   slug: z.string(),
+  scope: z.enum(["campaign", "blog", "faq"]),
   order: z.number(),
 });
 export type CmsCategory = z.infer<typeof categorySchema>;
+export type CmsCategoryScope = CmsCategory["scope"];
 
-/** E2: FilterTabs.tsx reads this instead of a hardcoded label/slug list — a category is add/rename-able from the CMS with no code change. */
-export async function getCategories(): Promise<CmsCategory[] | null> {
-  const data = await cmsFetch("/categories?depth=0&limit=100&sort=order", "categories", listResponseSchema(categorySchema));
+/**
+ * E2: FilterTabs.tsx reads this instead of a hardcoded label/slug list — a
+ * category is add/rename-able from the CMS with no code change.
+ *
+ * `scope` is required, not optional — Categories is one shared collection
+ * for two unrelated taxonomies (Campaigns/BlogPosts vs. FaqItems, see
+ * cms/src/collections/Categories.ts), and the same slug legitimately exists
+ * in both ("aninda-bakiye" is a real category in each). An unscoped fetch
+ * mixed both into one tab list — confirmed live on /kampanyalar, which
+ * showed FAQ-only categories ("Anasayfa") and a duplicate "Anında Bakiye"
+ * tab in its filter bar. Every caller must say which taxonomy it wants.
+ */
+export async function getCategories(scope: CmsCategoryScope): Promise<CmsCategory[] | null> {
+  const data = await cmsFetch(
+    `/categories?depth=0&limit=100&sort=order&where[scope][equals]=${scope}`,
+    "categories",
+    listResponseSchema(categorySchema)
+  );
   return data?.docs ?? null;
+}
+
+const translationSchema = z.object({ tr: z.string() });
+
+/**
+ * Reads a single row from the CMS's `translations` collection (normally an
+ * admin-only microcopy store, see cms/src/collections/Translations.ts) —
+ * used here for exactly one string: the "Tümü" filter-tab label shared by
+ * /kampanyalar, /blog, and /sikca-sorulan-sorular (RFP follow-up: "Tümü"
+ * used to be hardcoded three times over, couldn't be renamed, and (being
+ * plain UI text, not a Category document) can't accidentally be deleted or
+ * dragged out of first position the way a real Category could.
+ * `fallback` is what renders if the row doesn't exist yet or the CMS is
+ * unreachable — same DB-override-with-fallback shape as the admin's own
+ * useDbStrings/loadDbStrings.
+ */
+export async function getTranslation(key: string, fallback: string): Promise<string> {
+  const data = await cmsFetch(
+    `/translations?depth=0&limit=1&where[key][equals]=${encodeURIComponent(key)}`,
+    "translations",
+    listResponseSchema(translationSchema)
+  );
+  return data?.docs?.[0]?.tr ?? fallback;
 }
 
 const campaignSchema = z.object({
@@ -109,7 +153,7 @@ const campaignSchema = z.object({
   slug: nullableString(),
   description: z.string(),
   image: mediaSchema,
-  category: campaignCategorySchema.nullable(),
+  category: categoryRefSchema.nullable(),
   featured: z.boolean(),
   ctaLabel: nullableString(),
   ctaUrl: nullableString(),
@@ -140,34 +184,13 @@ export async function getCampaigns(): Promise<CmsCampaign[] | null> {
   return data?.docs ?? null;
 }
 
-/**
- * Payload's lexical richText field stores a nested JSON document, not plain
- * text. This is a minimal flattener (paragraph/heading/list-item text runs
- * joined per block) — enough to render campaign/blog detail bodies without
- * pulling in a full lexical-to-react renderer.
- */
-export function richTextToParagraphs(node: unknown): string[] {
-  const root = (node as { root?: { children?: unknown[] } } | null | undefined)?.root;
-  if (!root?.children) return [];
-
-  const extractText = (n: unknown): string => {
-    if (!n || typeof n !== "object") return "";
-    const obj = n as { text?: string; children?: unknown[] };
-    if (typeof obj.text === "string") return obj.text;
-    if (Array.isArray(obj.children)) return obj.children.map(extractText).join("");
-    return "";
-  };
-
-  return root.children.map(extractText).map((t) => t.trim()).filter(Boolean);
-}
-
 const campaignDetailSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   title: z.string(),
   slug: z.string(),
   description: z.string(),
   image: mediaSchema,
-  category: campaignCategorySchema.nullable(),
+  category: categoryRefSchema.nullable(),
   body: z.unknown().nullable().optional(),
   terms: z.unknown().nullable().optional(),
   seoTitle: nullableString(),
@@ -208,15 +231,50 @@ const faqItemSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   question: z.string(),
   answer: z.string(),
-  category: z.string(),
+  // Was a hardcoded select value (a bare slug string); now the same
+  // Categories relationship Campaigns/BlogPosts use. `.nullable()` even
+  // though the CMS field is `required: true` — a category that gets deleted
+  // out from under an already-saved FAQ falls back to null (FK ON DELETE
+  // SET NULL) rather than the fetch breaking.
+  category: categoryRefSchema.nullable(),
   order: z.number(),
 });
 export type CmsFaqItem = z.infer<typeof faqItemSchema>;
 
+/**
+ * `category` is now a Categories slug (e.g. "aninda-bakiye"), not the old
+ * hardcoded select value — same slugs, just sourced from the CMS instead of
+ * baked into code. Payload resolves `where` on a populated relationship
+ * subfield, so this filters server-side without fetching everything first.
+ *
+ * Always constrained to `category.scope = faq`, even when no slug is passed
+ * — FaqItems.category is itself scope-restricted at the CMS level so this
+ * can't currently return a campaign-scope category, but the same slug is
+ * allowed to exist in both scopes (by design), so a bare slug filter alone
+ * is one accidental future collision away from matching the wrong one.
+ */
 export async function getFaqItems(category?: string): Promise<CmsFaqItem[] | null> {
-  const query = category ? `&where[category][equals]=${encodeURIComponent(category)}` : "";
+  const categoryQuery = category ? `&where[category.slug][equals]=${encodeURIComponent(category)}` : "";
   const data = await cmsFetch(
-    `/faq-items?depth=0&limit=200&sort=order${query}`,
+    `/faq-items?depth=1&limit=200&sort=order&where[category.scope][equals]=faq${categoryQuery}`,
+    "faq-items",
+    listResponseSchema(faqItemSchema)
+  );
+  return data?.docs ?? null;
+}
+
+/**
+ * Homepage FAQ block — an independent `showOnHomepage` flag (cms/src/
+ * collections/FaqItems.ts), not the "Anasayfa" category. A question can
+ * belong to any category (or none) and still show here; the "Anasayfa"
+ * category remains its own separate /sikca-sorulan-sorular tab. Sorted by
+ * `homepageOrder`, which the CMS scopes/auto-numbers independently of the
+ * per-category `order` field — mixing questions from different categories
+ * onto one page means their individual `order` values aren't comparable.
+ */
+export async function getHomepageFaqItems(): Promise<CmsFaqItem[] | null> {
+  const data = await cmsFetch(
+    "/faq-items?depth=1&limit=50&sort=homepageOrder&where[showOnHomepage][equals]=true",
     "faq-items",
     listResponseSchema(faqItemSchema)
   );
@@ -232,7 +290,7 @@ const blogPostSchema = z.object({
   // Was free text; now the same Categories relationship Campaigns uses, so
   // /blog's filter tabs and the posts' own values finally index on the same
   // thing (matches how the live vodafonepay.com.tr blog filters).
-  category: campaignCategorySchema.nullable(),
+  category: categoryRefSchema.nullable(),
   publishedDate: nullableString(),
 });
 export type CmsBlogPost = z.infer<typeof blogPostSchema>;
@@ -253,7 +311,7 @@ const blogPostDetailSchema = z.object({
   coverImage: mediaSchema,
   excerpt: z.string(),
   body: z.unknown().nullable().optional(),
-  category: campaignCategorySchema.nullable(),
+  category: categoryRefSchema.nullable(),
   publishedDate: nullableString(),
   seoTitle: nullableString(),
   seoDescription: nullableString(),

@@ -1,6 +1,7 @@
 import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
 import { isNewVerticalMaker } from "@/access/roles";
 import { dbLabel, refreshLabelCache } from "@/lib/collectionLabels";
+import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 
 /**
  * Marks a row as "an editor typed this", which is what lets `onInit` tell the
@@ -84,15 +85,23 @@ export const Translations: CollectionConfig = {
     // Collection/group labels are read from a module-level cache (see
     // collectionLabels.ts) rather than a fresh DB query on every sidebar
     // render — refresh it whenever a row actually changes.
+    //
+    // `revalidateTag("translations")` is the one exception to the "admin-only"
+    // scope note above: the public site's shared "Tümü" filter-tab label
+    // (src/lib/cms.ts's getTranslation, key "filterTabs.all") reads a row
+    // from this same collection, so an edit here has to notify the site too,
+    // not just refresh the admin's own label cache.
     afterChange: [
       async ({ req }) => {
         await refreshLabelCache(req.payload);
       },
+      revalidateTag("translations"),
     ],
     afterDelete: [
       async ({ req }) => {
         await refreshLabelCache(req.payload);
       },
+      revalidateTagOnDelete("translations"),
     ],
   },
 };

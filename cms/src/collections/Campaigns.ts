@@ -6,6 +6,7 @@ import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead }
 import { campaignsCreate, campaignsReadWrite, denyMakerPublish, isNewVerticalMaker, ROLES } from "@/access/roles";
 import { sitePreviewUrl } from "@/lib/preview";
 import { dbLabel } from "@/lib/collectionLabels";
+import { CATEGORY_SCOPES } from "@/collections/Categories";
 
 /**
  * Growth Maker can never publish its own campaigns (denyMakerPublish), but
@@ -331,8 +332,12 @@ export const Campaigns: CollectionConfig = {
       type: "relationship",
       relationTo: "categories",
       required: true,
+      // Categories is shared with FaqItems now — `scope` keeps the two
+      // pickers from offering each other's options (see Categories.ts).
+      filterOptions: () => ({ scope: { equals: CATEGORY_SCOPES.CAMPAIGN } }),
       admin: {
-        description: "Kampanyanın ait olduğu kategori. Listede yoksa sol menüden 'Categories'e gidip yeni bir tane ekleyebilirsiniz.",
+        description:
+          "Kampanyanın ait olduğu kategori (Kampanyalar/Blog akışındaki kategoriler). Listede yoksa sol menüden Kategoriler'e gidip 'Akış: Kampanyalar ve Blog' ile yeni bir tane ekleyebilirsiniz.",
       },
     },
     {

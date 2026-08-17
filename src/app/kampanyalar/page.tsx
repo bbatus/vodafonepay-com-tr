@@ -7,7 +7,7 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { ContentUnavailable } from "@/components/ContentUnavailable";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { getCampaigns, getCategories, getFaqItems, getPageMeta } from "@/lib/cms";
+import { getCampaigns, getCategories, getFaqItems, getPageMeta, getTranslation } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
 import { CampaignsFilterableList, type FilterableCampaign } from "./CampaignsFilterableList";
 import { buildMetadata } from "@/lib/metadata";
@@ -30,10 +30,11 @@ export default async function Kampanyalar() {
   // any visible sign something was wrong. `null` = CMS fetch/parse failed,
   // `[]` = CMS reachable but genuinely has zero campaigns — rendered
   // differently (ContentUnavailable) instead of masked with fake data.
-  const [cmsCampaigns, cmsFaqItems, categories] = await Promise.all([
+  const [cmsCampaigns, cmsFaqItems, categories, allLabel] = await Promise.all([
     getCampaigns(),
     getFaqItems("kampanyalar"),
-    getCategories(),
+    getCategories("campaign"),
+    getTranslation("filterTabs.all", "Tümü"),
   ]);
 
   // RFP feedback 5.2: ONE list carrying the `featured` flag, not two
@@ -61,7 +62,7 @@ export default async function Kampanyalar() {
   } else if (campaigns.length === 0) {
     content = <ContentUnavailable variant="empty" />;
   } else {
-    content = <CampaignsFilterableList campaigns={campaigns} categories={categories ?? []} />;
+    content = <CampaignsFilterableList campaigns={campaigns} categories={categories ?? []} allLabel={allLabel} />;
   }
 
   return (
