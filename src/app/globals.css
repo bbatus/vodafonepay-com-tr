@@ -150,3 +150,30 @@ html[data-embedded-preview] {
 html[data-embedded-preview]::-webkit-scrollbar {
   display: none;
 }
+
+/*
+ * RFP follow-up (§3.6): CMS-authored tables (blog/campaign body) can be
+ * wider than a narrow viewport — the lexical converter's own
+ * `.lexical-table-container` wrapper (@payloadcms/richtext-lexical/react)
+ * is the scroll boundary so the table scrolls internally instead of
+ * pushing the whole page layout wider.
+ */
+.lexical-richtext .lexical-table-container {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+.lexical-richtext .lexical-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.lexical-richtext .lexical-table-cell {
+  border: 1px solid #d9d9d9;
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.lexical-richtext .lexical-table-cell-header-1,
+.lexical-richtext .lexical-table-cell-header-3 {
+  background-color: #f7f7f7;
+  font-weight: 500;
+}

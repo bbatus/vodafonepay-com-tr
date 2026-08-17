@@ -6,8 +6,9 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getBlogPostBySlug, getBlogPosts, richTextToParagraphs } from "@/lib/cms";
+import { getBlogPostBySlug, getBlogPosts } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
+import { RichText } from "@/components/RichText";
 
 export async function generateStaticParams() {
   const posts = await getBlogPosts();
@@ -31,8 +32,6 @@ export default async function BlogYazisi({ params }: { params: Promise<{ slug: s
   const post = await getBlogPostBySlug(slug);
   if (!post) notFound();
 
-  const bodyParagraphs = richTextToParagraphs(post.body);
-
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
@@ -54,13 +53,9 @@ export default async function BlogYazisi({ params }: { params: Promise<{ slug: s
         )}
         <p className="mt-4 text-base text-gray-700">{post.excerpt}</p>
 
-        {bodyParagraphs.length > 0 && (
-          <div className="mt-8 space-y-4 text-base text-gray-700">
-            {bodyParagraphs.map((p) => (
-              <p key={p}>{p}</p>
-            ))}
-          </div>
-        )}
+        <div className="mt-8">
+          <RichText data={post.body} />
+        </div>
       </section>
 
       <Footer />

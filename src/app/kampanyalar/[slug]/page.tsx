@@ -9,8 +9,9 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { PreviewBanner } from "@/components/PreviewBanner";
 import { CampaignDate } from "@/components/CampaignDate";
-import { getCampaignBySlug, getCampaigns, richTextToParagraphs } from "@/lib/cms";
+import { getCampaignBySlug, getCampaigns } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
+import { RichText, hasRichTextContent } from "@/components/RichText";
 
 export async function generateStaticParams() {
   const campaigns = await getCampaigns();
@@ -37,9 +38,6 @@ export default async function KampanyaDetay({ params }: { params: Promise<{ slug
   const campaign = await getCampaignBySlug(slug, { preview: isPreview });
   if (!campaign) notFound();
 
-  const bodyParagraphs = richTextToParagraphs(campaign.body);
-  const termsParagraphs = richTextToParagraphs(campaign.terms);
-
   return (
     <main className="flex min-h-screen flex-col">
       {isPreview && <PreviewBanner path={`/kampanyalar/${slug}`} />}
@@ -64,21 +62,17 @@ export default async function KampanyaDetay({ params }: { params: Promise<{ slug
             vodafonepay.com.tr itself renders here. */}
         <CampaignDate startDate={campaign.startDate} endDate={campaign.endDate} className="mt-4" />
 
-        {bodyParagraphs.length > 0 && (
-          <div className="mt-8 space-y-4 text-base text-gray-700">
-            {bodyParagraphs.map((p) => (
-              <p key={p}>{p}</p>
-            ))}
+        {hasRichTextContent(campaign.body) && (
+          <div className="mt-8">
+            <RichText data={campaign.body} />
           </div>
         )}
 
-        {termsParagraphs.length > 0 && (
+        {hasRichTextContent(campaign.terms) && (
           <div className="mt-10">
             <h2 className="text-xl font-bold text-black">Kampanya Koşulları</h2>
-            <div className="mt-3 space-y-2 text-sm text-gray-600">
-              {termsParagraphs.map((p) => (
-                <p key={p}>{p}</p>
-              ))}
+            <div className="mt-3 text-sm text-gray-600">
+              <RichText data={campaign.terms} />
             </div>
           </div>
         )}

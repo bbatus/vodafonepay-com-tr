@@ -1,7 +1,25 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { postgresAdapter } from "@payloadcms/db-postgres";
-import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import {
+  lexicalEditor,
+  BoldFeature,
+  ItalicFeature,
+  UnderlineFeature,
+  StrikethroughFeature,
+  HeadingFeature,
+  ParagraphFeature,
+  UnorderedListFeature,
+  OrderedListFeature,
+  LinkFeature,
+  BlockquoteFeature,
+  HorizontalRuleFeature,
+  UploadFeature,
+  FixedToolbarFeature,
+  InlineToolbarFeature,
+  EXPERIMENTAL_TableFeature,
+  TextStateFeature,
+} from "@payloadcms/richtext-lexical";
 import { s3Storage } from "@payloadcms/storage-s3";
 import { tr } from "@payloadcms/translations/languages/tr";
 import { en } from "@payloadcms/translations/languages/en";
@@ -283,7 +301,55 @@ export default buildConfig({
     Translations,
   ],
   globals: [ContactInfo],
-  editor: lexicalEditor(),
+  // RFP follow-up (§3.6): was `lexicalEditor()` with zero feature config —
+  // that leaves the editor with only bold/italic/underline/paragraph and no
+  // headings, lists, links, tables, or images, which is why editors couldn't
+  // reproduce vodafonepay.com.tr's blog formatting (tables, colored
+  // headings) at all: the editor UI never offered those controls. This is
+  // the single shared config for all three richText usages (BlogPosts.body,
+  // Campaigns.body/terms, Pages' `richText` block) — see
+  // src/components/RichText.tsx on the site for the matching renderer.
+  editor: lexicalEditor({
+    features: ({ rootFeatures }) => [
+      ...rootFeatures,
+      ParagraphFeature(),
+      HeadingFeature({ enabledHeadingSizes: ["h2", "h3", "h4"] }),
+      BoldFeature(),
+      ItalicFeature(),
+      UnderlineFeature(),
+      StrikethroughFeature(),
+      UnorderedListFeature(),
+      OrderedListFeature(),
+      // Internal-doc linking disabled on purpose: the site's renderer
+      // (src/components/RichText.tsx) has no slug/collection → URL resolver
+      // wired up, so an internal link would silently render `href="#"`.
+      // Editors get "custom URL" only, which always renders correctly.
+      LinkFeature({ enabledCollections: [] }),
+      BlockquoteFeature(),
+      HorizontalRuleFeature(),
+      UploadFeature({ collections: { media: { fields: [] } } }),
+      // @experimental in the package itself (literally named
+      // EXPERIMENTAL_TableFeature) — this is the only table implementation
+      // Payload ships, and it's what the live vodafonepay.com.tr fee/limit
+      // tables inside blog posts need. Documented as an accepted risk in the
+      // round report rather than hidden.
+      EXPERIMENTAL_TableFeature(),
+      // Approved decision: a single fixed "Vurgu" (Vodafone red) highlight,
+      // not a free color picker — matches the live site's actual usage
+      // (one accent color, never arbitrary ones) and avoids editors
+      // producing off-brand colors. `#e60000` is the same value as the
+      // site's `--color-vf-red` (src/app/globals.css).
+      TextStateFeature({
+        state: {
+          color: {
+            vurgu: { css: { color: "#e60000" }, label: "Vurgu" },
+          },
+        },
+      }),
+      FixedToolbarFeature(),
+      InlineToolbarFeature(),
+    ],
+  }),
   secret: env.PAYLOAD_SECRET,
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),

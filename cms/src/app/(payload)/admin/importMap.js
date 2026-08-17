@@ -8,6 +8,22 @@
 // "PayloadComponent not found in importMap" server-side and skips it).
 // Until the CLI works, add new entries here by hand, following the
 // existing pattern.
+//
+// This bites every `richText` field too, not just custom components: any
+// collection with a `type: "richText"` field needs
+// `@payloadcms/richtext-lexical/rsc`'s `RscEntryLexicalField`/
+// `RscEntryLexicalCell`/`LexicalDiffComponent` registered here, or the
+// field silently doesn't render in the admin edit view at all (found live
+// while adding the configured editor features — BlogPosts.body,
+// Campaigns.body/terms, and Pages' richText block were all affected, this
+// likely predates that change). AND every individual lexical *feature*
+// (Bold, HeadingFeature, FixedToolbarFeature, TextStateFeature, ...) is
+// itself a `ClientFeature: '@payloadcms/richtext-lexical/client#XyzClient'`
+// string reference, resolved through this SAME import map — missing one
+// doesn't error, it just quietly drops that one feature (e.g. the whole
+// toolbar not rendering, with zero console/server error). If a new feature
+// is added to `payload.config.ts`'s `editor`, its `...FeatureClient` export
+// from `@payloadcms/richtext-lexical/client` needs an entry here too.
 import default_0 from "../../../components/AdminLogo";
 import default_1 from "../../../components/AdminIcon";
 import default_2 from "../../../components/LoginBrandPanel";
@@ -33,8 +49,35 @@ import default_23 from "../../../components/LockedAccountsView";
 import default_24 from "../../../components/LockedAccountsNavLink";
 import default_25 from "../../../components/LockedAccountsBanner";
 import default_26 from "../../../components/CampaignsExportButton";
+import default_27 from "../../../components/LiveOrderField";
 import { S3ClientUploadHandler as S3ClientUploadHandler_2 } from "@payloadcms/storage-s3/client";
 import { CollectionCards as CollectionCards_1 } from "@payloadcms/next/rsc";
+import { RscEntryLexicalField, RscEntryLexicalCell, LexicalDiffComponent } from "@payloadcms/richtext-lexical/rsc";
+import {
+  BoldFeatureClient,
+  ItalicFeatureClient,
+  UnderlineFeatureClient,
+  StrikethroughFeatureClient,
+  SubscriptFeatureClient,
+  SuperscriptFeatureClient,
+  InlineCodeFeatureClient,
+  ParagraphFeatureClient,
+  HeadingFeatureClient,
+  AlignFeatureClient,
+  IndentFeatureClient,
+  UnorderedListFeatureClient,
+  OrderedListFeatureClient,
+  ChecklistFeatureClient,
+  LinkFeatureClient,
+  RelationshipFeatureClient,
+  BlockquoteFeatureClient,
+  UploadFeatureClient,
+  HorizontalRuleFeatureClient,
+  InlineToolbarFeatureClient,
+  FixedToolbarFeatureClient,
+  TableFeatureClient,
+  TextStateFeatureClient,
+} from "@payloadcms/richtext-lexical/client";
 
 export const importMap = {
   "/components/AdminLogo#default": default_0,
@@ -62,6 +105,33 @@ export const importMap = {
   "/components/LockedAccountsNavLink#default": default_24,
   "/components/LockedAccountsBanner#default": default_25,
   "/components/CampaignsExportButton#default": default_26,
+  "/components/LiveOrderField#default": default_27,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_2,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_1,
+  "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField,
+  "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell,
+  "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent,
+  "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient,
+  "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient,
+  "@payloadcms/richtext-lexical/client#UnderlineFeatureClient": UnderlineFeatureClient,
+  "@payloadcms/richtext-lexical/client#StrikethroughFeatureClient": StrikethroughFeatureClient,
+  "@payloadcms/richtext-lexical/client#SubscriptFeatureClient": SubscriptFeatureClient,
+  "@payloadcms/richtext-lexical/client#SuperscriptFeatureClient": SuperscriptFeatureClient,
+  "@payloadcms/richtext-lexical/client#InlineCodeFeatureClient": InlineCodeFeatureClient,
+  "@payloadcms/richtext-lexical/client#ParagraphFeatureClient": ParagraphFeatureClient,
+  "@payloadcms/richtext-lexical/client#HeadingFeatureClient": HeadingFeatureClient,
+  "@payloadcms/richtext-lexical/client#AlignFeatureClient": AlignFeatureClient,
+  "@payloadcms/richtext-lexical/client#IndentFeatureClient": IndentFeatureClient,
+  "@payloadcms/richtext-lexical/client#UnorderedListFeatureClient": UnorderedListFeatureClient,
+  "@payloadcms/richtext-lexical/client#OrderedListFeatureClient": OrderedListFeatureClient,
+  "@payloadcms/richtext-lexical/client#ChecklistFeatureClient": ChecklistFeatureClient,
+  "@payloadcms/richtext-lexical/client#LinkFeatureClient": LinkFeatureClient,
+  "@payloadcms/richtext-lexical/client#RelationshipFeatureClient": RelationshipFeatureClient,
+  "@payloadcms/richtext-lexical/client#BlockquoteFeatureClient": BlockquoteFeatureClient,
+  "@payloadcms/richtext-lexical/client#UploadFeatureClient": UploadFeatureClient,
+  "@payloadcms/richtext-lexical/client#HorizontalRuleFeatureClient": HorizontalRuleFeatureClient,
+  "@payloadcms/richtext-lexical/client#InlineToolbarFeatureClient": InlineToolbarFeatureClient,
+  "@payloadcms/richtext-lexical/client#FixedToolbarFeatureClient": FixedToolbarFeatureClient,
+  "@payloadcms/richtext-lexical/client#TableFeatureClient": TableFeatureClient,
+  "@payloadcms/richtext-lexical/client#TextStateFeatureClient": TextStateFeatureClient,
 };

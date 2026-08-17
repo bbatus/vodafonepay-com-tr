@@ -9,16 +9,9 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
 import { Faq } from "@/components/Faq";
-import {
-  campaignToCard,
-  getCampaigns,
-  getFaqItems,
-  getPageBySlug,
-  getPages,
-  richTextToParagraphs,
-  type CmsPageBlock,
-} from "@/lib/cms";
+import { campaignToCard, getCampaigns, getFaqItems, getPageBySlug, getPages, type CmsPageBlock } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
+import { RichText } from "@/components/RichText";
 
 /**
  * Catch-all for editor-built Pages (RFP §3.3) — next.js resolves any more
@@ -69,19 +62,15 @@ async function BlockRenderer({ block }: { block: CmsPageBlock }) {
         </section>
       );
 
-    case "richText": {
-      const paragraphs = richTextToParagraphs(block.body);
+    case "richText":
       return (
         <section className="mx-auto max-w-3xl px-4 py-10">
           {block.heading && <h2 className="text-2xl font-bold text-black">{block.heading}</h2>}
-          <div className="mt-4 space-y-4 text-base text-gray-700">
-            {paragraphs.map((p) => (
-              <p key={p}>{p}</p>
-            ))}
+          <div className="mt-4">
+            <RichText data={block.body} />
           </div>
         </section>
       );
-    }
 
     case "faqList": {
       const items = await getFaqItems(block.category || undefined);
