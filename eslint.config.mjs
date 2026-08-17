@@ -15,6 +15,10 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // cms/ is a separate app with its own lint config — see cms/eslint.config.mjs
     "cms/**",
+    // Agent worktree checkouts (see AGENTS.md) are separate working trees under
+    // the repo root — not part of this app's source, but visible to a
+    // no-args `eslint` scan from here since they're regular directories.
+    ".claude/worktrees/**",
   ]),
 ]);
 

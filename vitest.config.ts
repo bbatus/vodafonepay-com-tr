@@ -7,7 +7,9 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
     // cms/ is a separate app with its own vitest.config.ts and `@` alias — see tsconfig.json/eslint.config.mjs for the same split.
-    exclude: ["**/node_modules/**", "cms/**"],
+    // .claude/worktrees/** are separate git worktree checkouts (see AGENTS.md) with their own
+    // node_modules/React copy — picking their tests up here mixes two React instances and breaks hooks.
+    exclude: ["**/node_modules/**", "cms/**", ".claude/worktrees/**"],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
