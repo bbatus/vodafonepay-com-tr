@@ -185,6 +185,27 @@ export const Users: CollectionConfig = {
       },
     },
     {
+      // Login is still email-only — LDAP isn't wired up yet (see the `role`
+      // field comment below and docs/RFP-OPEN-ITEMS.md §6). Once it is,
+      // vodafone.local accounts sign in with THIS value, not their email, and
+      // the header/account UI needs to already be showing it so "which user
+      // am I" doesn't silently become "an email nobody types in anymore".
+      // Nullable on purpose: every existing account predates LDAP and has no
+      // username yet — the header falls back to email until one is set.
+      name: "username",
+      type: "text",
+      label: { tr: "Kullanıcı Adı (LDAP)", en: "Username (LDAP)" },
+      admin: {
+        description: {
+          tr: "vodafone.local LDAP kullanıcı adı. Gerçek LDAP bağlandığında giriş bununla yapılacak — o zamana kadar boş kalabilir.",
+          en: "vodafone.local LDAP username. Once real LDAP is wired up, login will use this — can stay empty until then.",
+        },
+      },
+      access: {
+        update: ({ req, id }) => req.user?.id !== id,
+      },
+    },
+    {
       name: "role",
       type: "select",
       required: true,

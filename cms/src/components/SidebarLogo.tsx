@@ -1,14 +1,19 @@
 import React from "react";
+import Link from "next/link";
 
 /**
  * RFP feedback 3.9: the admin sidebar had no branding at all — just the
  * plain collection-group text links. Wired via admin.components.beforeNav,
  * so it renders once at the top of the nav, above every group.
+ *
+ * Was a plain <img>, not a link — every other admin dashboard's sidebar
+ * logo doubles as a "take me home" shortcut, and this one silently didn't.
+ * Points at /admin, same destination as the topbar logo (AdminLogo.tsx).
  */
 export default function SidebarLogo() {
   return (
-    <div style={{ display: "flex", alignItems: "center", padding: "1rem 0 0.5rem" }}>
+    <Link href="/admin" className="sidebar-logo" aria-label="Vodafone Pay — Anasayfa" title="Anasayfa">
       <img src="/admin-logo.svg" alt="Vodafone Pay" style={{ height: 28, width: "auto" }} />
-    </div>
+    </Link>
   );
 }
