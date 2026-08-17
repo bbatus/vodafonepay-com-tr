@@ -34,7 +34,11 @@ export function CardListCard({ item, linkLabel = "Detayları gör" }: { item: Ca
     <>
       <Image src={item.image} alt={item.title} width={361} height={240} className="h-[240px] w-full rounded object-cover" />
       <h3 className="mt-4 text-lg font-bold text-black">{item.title}</h3>
-      {item.description && <p className="mt-2 text-sm text-gray-600">{item.description}</p>}
+      {/* line-clamp-3 caps the card regardless of how long a CMS excerpt/description
+          ends up being — a long excerpt (BlogPosts.excerpt is also
+          maxLength-capped now, but this is the layout-side backstop) used to
+          push the whole grid down to one column with no visible CTA. */}
+      {item.description && <p className="mt-2 line-clamp-3 text-sm text-gray-600">{item.description}</p>}
       <CampaignDate startDate={item.startDate} endDate={item.endDate} className="mt-3" />
       <span className="mt-auto inline-flex items-center gap-x-1 pt-2 text-sm font-bold text-vf-red">
         {label} <ChevronRightIcon className="h-3 w-3" />
