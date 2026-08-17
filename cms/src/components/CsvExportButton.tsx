@@ -5,6 +5,7 @@ import { toast } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
 import { buildCsv, downloadCsv } from "@/lib/csv";
+import { describeApiError } from "@/lib/apiErrorMessage";
 
 export type CsvTable = { header: string[]; rows: string[][] };
 
@@ -57,13 +58,16 @@ export function CsvExportButton<T>({
       params.set("depth", String(depth));
 
       const res = await fetch(`/api/${collection}?${params.toString()}`, { credentials: "same-origin" });
-      if (!res.ok) throw new Error(String(res.status));
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(describeApiError({ status: res.status, body, locale, context: "export" }));
+      }
       const data = (await res.json()) as { docs?: T[] };
       const { header, rows } = buildTable(data.docs ?? [], locale);
       downloadCsv(buildCsv(header, rows), `${filenamePrefix}-${new Date().toISOString().slice(0, 10)}.csv`);
       toast.success(t(`${translationPrefix}.done`));
-    } catch {
-      toast.error(t(`${translationPrefix}.error`));
+    } catch (err) {
+      toast.error(err instanceof Error && err.message ? err.message : describeApiError({ err, locale, context: "export" }));
     } finally {
       setExporting(false);
     }

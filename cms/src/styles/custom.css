@@ -408,6 +408,44 @@ a {
   gap: 1rem;
 }
 
+/* The circular photo itself is the control now — click it to change, no
+   separate file-picker row sitting underneath. */
+.account-form__avatar-button {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.account-form__avatar-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.account-form__avatar-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.account-form__avatar-button:hover .account-form__avatar-overlay,
+.account-form__avatar-button:focus-visible .account-form__avatar-overlay {
+  opacity: 1;
+}
+
 .account-form__avatar-image {
   border-radius: 50%;
   object-fit: cover;
@@ -418,6 +456,21 @@ a {
   height: 56px;
   border-radius: 50%;
   background: var(--theme-elevation-100);
+}
+
+/* The real <input type="file"> stays in the DOM (so the click-to-open and
+   change-event wiring keeps working) but is never shown — the avatar button
+   above is what the user actually sees and clicks. */
+.account-form__avatar-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .account-form__locale-row {
@@ -750,6 +803,22 @@ a {
   background: var(--theme-success-50);
   color: var(--vf-red);
   font-weight: 600;
+}
+
+/* Sidebar logo (SidebarLogo.tsx) — now a link back to /admin, so it needs
+   the same clickable affordance as any other nav item. */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  padding: 1rem 0.5rem 0.5rem;
+  margin: 0 -0.5rem;
+  border-radius: var(--style-radius-s);
+  transition: background-color 120ms ease;
+}
+
+.sidebar-logo:hover,
+.sidebar-logo:focus-visible {
+  background: var(--theme-success-50);
 }
 
 .nav-group {

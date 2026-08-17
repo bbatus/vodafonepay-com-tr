@@ -6,6 +6,7 @@ import { toast } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
 import { ROLE_OPTIONS } from "@/access/roles";
+import { describeApiError } from "@/lib/apiErrorMessage";
 
 type AccountUser = {
   id: string | number;
@@ -75,8 +76,7 @@ export default function AccountForm({ user }: { user: AccountUser }) {
       const res = await fetch("/api/users/me/avatar", { method: "POST", credentials: "same-origin", body: formData });
       const body = await res.json().catch(() => null);
       if (!res.ok) {
-        const message = body?.errors?.[0]?.message;
-        throw new Error(message || String(res.status));
+        throw new Error(describeApiError({ status: res.status, body, locale, context: "account" }));
       }
       const updatedAvatar = body?.doc?.avatar;
       setAvatarUrl(typeof updatedAvatar === "object" ? updatedAvatar?.url : undefined);
@@ -88,7 +88,7 @@ export default function AccountForm({ user }: { user: AccountUser }) {
     } catch (err) {
       // Real server-side error message (size/mime/db failure) instead of a
       // generic toast — RFP feedback explicitly asked for this.
-      toast.error(err instanceof Error && err.message ? err.message : t("accountForm.avatarError"));
+      toast.error(err instanceof Error && err.message ? err.message : describeApiError({ err, locale, context: "account" }));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -104,10 +104,22 @@ export default function AccountForm({ user }: { user: AccountUser }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ preferredLocale }),
       });
-      if (!res.ok) throw new Error(String(res.status));
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => null);
+        throw new Error(describeApiError({ status: res.status, body: errBody, locale, context: "account" }));
+      }
       toast.success(t("accountForm.localeSaved"));
-    } catch {
-      toast.error(t("accountForm.localeError"));
+      // This PATCH goes straight to the REST API, not through Payload's
+      // Form machinery, so useAuth()'s cached user never learns
+      // preferredLocale changed — LocalePreferenceSync (which reacts to that
+      // value) would then sit stale until some unrelated navigation happened
+      // to refetch it. Same fix as the avatar save above: set the cookie
+      // Payload's i18n actually reads and reload immediately, so the new
+      // language takes effect right here instead of requiring a manual F5.
+      document.cookie = `payload-lng=${preferredLocale}; path=/; max-age=${60 * 60 * 24 * 365}`;
+      window.location.reload();
+    } catch (err) {
+      toast.error(err instanceof Error && err.message ? err.message : t("accountForm.localeError"));
     } finally {
       setSavingLocale(false);
     }
@@ -129,16 +141,35 @@ export default function AccountForm({ user }: { user: AccountUser }) {
       <div className="field-type account-form__field">
         <span className="field-label">{t("accountForm.avatar")}</span>
         <div className="account-form__avatar-row">
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- small account-page preview, not content
-            <img src={avatarUrl} alt="" width={56} height={56} className="account-form__avatar-image" />
-          ) : (
-            <div className="account-form__avatar-placeholder" />
-          )}
-          <div>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} disabled={uploading} />
-            <p className="field-description">{uploading ? t("accountForm.avatarUploading") : t("accountForm.avatarHint")}</p>
-          </div>
+          <button
+            type="button"
+            className="account-form__avatar-button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            aria-label={t("accountForm.avatarHint")}
+            title={t("accountForm.avatarHint")}
+          >
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- small account-page preview, not content
+              <img src={avatarUrl} alt="" width={56} height={56} className="account-form__avatar-image" />
+            ) : (
+              <div className="account-form__avatar-placeholder" />
+            )}
+            <span className="account-form__avatar-overlay" aria-hidden="true">
+              ✎
+            </span>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarChange}
+            disabled={uploading}
+            className="account-form__avatar-input"
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+          <p className="field-description">{uploading ? t("accountForm.avatarUploading") : t("accountForm.avatarHint")}</p>
         </div>
       </div>
 

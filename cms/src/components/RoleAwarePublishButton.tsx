@@ -167,7 +167,8 @@ export default function RoleAwarePublishButton() {
       setUnpublishing(true);
       try {
         const params = new URLSearchParams({ depth: "0", locale: localeCode || "" }).toString();
-        const path = `/${collectionSlug}${id ? `/${id}` : ""}`;
+        const idSegment = id ? `/${id}` : "";
+        const path = `/${collectionSlug}${idSegment}`;
         const action = formatAdminURL({ apiRoute: config.routes.api, path: `${path}?${params}` as `/${string}` });
         const overrides = request
           ? { unpublishRequest: "pending", unpublishRequestedBy: userId, unpublishRequestedAt: new Date().toISOString() }
@@ -184,36 +185,15 @@ export default function RoleAwarePublishButton() {
   if (role === ROLES.GROWTH_MAKER) {
     if (hasPublishedDoc) {
       return (
-        <div className="vf-live-actions">
-          <span className="vf-live-actions__notice">{t.liveNotice}</span>
-          <button
-            type="button"
-            className={`btn btn--style-secondary btn--size-medium${unpublishing ? " btn--disabled" : ""}`}
-            disabled={unpublishing}
-            onClick={() => void doUnpublish(true)}
-          >
-            <span className="btn__content">
-              <span className="btn__label">{unpublishing ? t.unpublishing : t.requestUnpublish}</span>
-            </span>
-          </button>
-        </div>
+        <LiveActions
+          t={t}
+          unpublishing={unpublishing}
+          label={unpublishing ? t.unpublishing : t.requestUnpublish}
+          onClick={() => void doUnpublish(true)}
+        />
       );
     }
-    return (
-      <div
-        title={t.awaitingTitle}
-        style={{
-          padding: "0.5rem 0.8rem",
-          fontSize: "0.8rem",
-          color: "var(--theme-elevation-450)",
-          border: "1px dashed var(--theme-elevation-200)",
-          borderRadius: "var(--style-radius-s)",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {t.awaiting}
-      </div>
-    );
+    return <AwaitingNotice t={t} />;
   }
 
   const previewHref =
@@ -223,191 +203,318 @@ export default function RoleAwarePublishButton() {
   // take it off the air (which sends it back to "İncelemede"), edit, republish.
   if (hasPublishedDoc && !modified) {
     return (
-      <div className="vf-live-actions">
-        <span className="vf-live-actions__notice">{t.liveNotice}</span>
-        <button
-          type="button"
-          className={`btn btn--style-secondary btn--size-medium${unpublishing ? " btn--disabled" : ""}`}
-          disabled={unpublishing}
-          onClick={() => void doUnpublish(false)}
-        >
-          <span className="btn__content">
-            <span className="btn__label">{unpublishing ? t.unpublishing : t.unpublish}</span>
-          </span>
-        </button>
-      </div>
+      <LiveActions
+        t={t}
+        unpublishing={unpublishing}
+        label={unpublishing ? t.unpublishing : t.unpublish}
+        onClick={() => void doUnpublish(false)}
+      />
     );
   }
 
   return (
     <>
-      <div style={{ display: "flex", gap: "0.5rem" }}>
-        {!hasPublishedDoc && (
-          <button
-            type="button"
-            className="btn btn--style-secondary btn--size-medium"
-            onClick={() => setShowRejectForm(true)}
-          >
-            <span className="btn__content">
-              <span className="btn__label">{t.reject}</span>
-            </span>
-          </button>
-        )}
-        <button
-          type="button"
-          className={`btn btn--style-primary btn--size-medium${!canPublish ? " btn--disabled" : ""}`}
-          disabled={!canPublish}
-          title={!canPublish ? t.already : undefined}
-          onClick={() => setConfirming(true)}
-        >
-          <span className="btn__content">
-            <span className="btn__label">{t.publish}</span>
-          </span>
-        </button>
-      </div>
+      <PublishActionsBar
+        t={t}
+        showRejectButton={!hasPublishedDoc}
+        canPublish={canPublish}
+        onReject={() => setShowRejectForm(true)}
+        onPublish={() => setConfirming(true)}
+      />
 
       {showRejectForm && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "2rem",
+        <RejectModal
+          t={t}
+          rejectReason={rejectReason}
+          setRejectReason={setRejectReason}
+          rejecting={rejecting}
+          onCancel={() => {
+            setShowRejectForm(false);
+            setRejectReason("");
           }}
-        >
-          <div
-            style={{
-              background: "white",
-              borderRadius: "var(--style-radius-l)",
-              padding: "1.5rem",
-              width: "min(480px, 100%)",
-              display: "flex",
-              flexDirection: "column",
-              gap: "1rem",
-            }}
-          >
-            <div>
-              <p style={{ fontWeight: 600, fontSize: "1.1rem", margin: 0 }}>{t.rejectHeading}</p>
-              <p style={{ color: "var(--theme-elevation-500)", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>{t.rejectBody}</p>
-            </div>
-            <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-              <span style={{ fontSize: "0.8rem", fontWeight: 600 }}>{t.rejectReasonLabel}</span>
-              <textarea
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder={t.rejectReasonPlaceholder}
-                rows={4}
-                style={{
-                  padding: "0.5rem 0.75rem",
-                  border: "1px solid var(--theme-elevation-150)",
-                  borderRadius: "var(--style-radius-m)",
-                  fontFamily: "inherit",
-                  fontSize: "0.875rem",
-                }}
-              />
-              {!rejectReason.trim() && (
-                <span style={{ fontSize: "0.75rem", color: "var(--theme-error-500)" }}>{t.rejectReasonRequired}</span>
-              )}
-            </label>
-            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
-              <button
-                type="button"
-                className="btn btn--style-secondary btn--size-medium"
-                disabled={rejecting}
-                onClick={() => {
-                  setShowRejectForm(false);
-                  setRejectReason("");
-                }}
-              >
-                <span className="btn__content">
-                  <span className="btn__label">{t.cancel}</span>
-                </span>
-              </button>
-              <button
-                type="button"
-                className={`btn btn--style-primary btn--size-medium${rejecting || !rejectReason.trim() ? " btn--disabled" : ""}`}
-                disabled={rejecting || !rejectReason.trim()}
-                onClick={doReject}
-              >
-                <span className="btn__content">
-                  <span className="btn__label">{rejecting ? t.rejecting : t.rejectConfirm}</span>
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
+          onConfirm={doReject}
+        />
       )}
 
       {confirming && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "0.75rem",
-          }}
-        >
-          <div
-            style={{
-              background: "white",
-              borderRadius: "var(--style-radius-l)",
-              padding: "1rem",
-              width: "min(1600px, 98vw)",
-              height: "98vh",
-              maxHeight: "98vh",
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.5rem",
-            }}
-          >
-            <div style={{ flexShrink: 0, display: "flex", alignItems: "baseline", gap: "0.75rem", flexWrap: "wrap" }}>
-              <p style={{ fontWeight: 600, fontSize: "1rem", margin: 0 }}>{t.heading}</p>
-              <p style={{ color: "var(--theme-elevation-500)", fontSize: "0.8rem", margin: 0 }}>{t.body}</p>
-            </div>
-
-            {previewHref ? (
-              <iframe
-                src={previewHref}
-                title="preview"
-                style={{ flex: "1 1 auto", minHeight: 0, width: "100%", border: "1px solid var(--theme-elevation-150)", borderRadius: "var(--style-radius-m)" }}
-              />
-            ) : (
-              <p style={{ color: "var(--theme-elevation-450)" }}>{t.noPreview}</p>
-            )}
-
-            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", flexShrink: 0 }}>
-              <button
-                type="button"
-                className="btn btn--style-secondary btn--size-medium"
-                disabled={publishing}
-                onClick={() => setConfirming(false)}
-              >
-                <span className="btn__content">
-                  <span className="btn__label">{t.cancel}</span>
-                </span>
-              </button>
-              <button
-                type="button"
-                className={`btn btn--style-primary btn--size-medium${publishing ? " btn--disabled" : ""}`}
-                disabled={publishing}
-                onClick={doPublish}
-              >
-                <span className="btn__content">
-                  <span className="btn__label">{publishing ? t.publishing : t.confirm}</span>
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmPublishModal
+          t={t}
+          previewHref={previewHref}
+          publishing={publishing}
+          onCancel={() => setConfirming(false)}
+          onConfirm={doPublish}
+        />
       )}
     </>
+  );
+}
+
+type ButtonStrings = Record<
+  | "publish"
+  | "publishing"
+  | "already"
+  | "heading"
+  | "body"
+  | "noPreview"
+  | "cancel"
+  | "confirm"
+  | "awaiting"
+  | "awaitingTitle"
+  | "reject"
+  | "rejecting"
+  | "rejectHeading"
+  | "rejectBody"
+  | "rejectReasonLabel"
+  | "rejectReasonPlaceholder"
+  | "rejectReasonRequired"
+  | "rejectConfirm"
+  | "liveNotice"
+  | "unpublish"
+  | "unpublishing"
+  | "requestUnpublish"
+  | "unpublishRequested",
+  string
+>;
+
+function PublishActionsBar({
+  t,
+  showRejectButton,
+  canPublish,
+  onReject,
+  onPublish,
+}: {
+  t: ButtonStrings;
+  showRejectButton: boolean;
+  canPublish: boolean;
+  onReject: () => void;
+  onPublish: () => void;
+}) {
+  return (
+    <div style={{ display: "flex", gap: "0.5rem" }}>
+      {showRejectButton && (
+        <button type="button" className="btn btn--style-secondary btn--size-medium" onClick={onReject}>
+          <span className="btn__content">
+            <span className="btn__label">{t.reject}</span>
+          </span>
+        </button>
+      )}
+      <button
+        type="button"
+        className={`btn btn--style-primary btn--size-medium${!canPublish ? " btn--disabled" : ""}`}
+        disabled={!canPublish}
+        title={!canPublish ? t.already : undefined}
+        onClick={onPublish}
+      >
+        <span className="btn__content">
+          <span className="btn__label">{t.publish}</span>
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function LiveActions({
+  t,
+  unpublishing,
+  label,
+  onClick,
+}: {
+  t: ButtonStrings;
+  unpublishing: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <div className="vf-live-actions">
+      <span className="vf-live-actions__notice">{t.liveNotice}</span>
+      <button
+        type="button"
+        className={`btn btn--style-secondary btn--size-medium${unpublishing ? " btn--disabled" : ""}`}
+        disabled={unpublishing}
+        onClick={onClick}
+      >
+        <span className="btn__content">
+          <span className="btn__label">{label}</span>
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function AwaitingNotice({ t }: { t: ButtonStrings }) {
+  return (
+    <div
+      title={t.awaitingTitle}
+      style={{
+        padding: "0.5rem 0.8rem",
+        fontSize: "0.8rem",
+        color: "var(--theme-elevation-450)",
+        border: "1px dashed var(--theme-elevation-200)",
+        borderRadius: "var(--style-radius-s)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {t.awaiting}
+    </div>
+  );
+}
+
+function RejectModal({
+  t,
+  rejectReason,
+  setRejectReason,
+  rejecting,
+  onCancel,
+  onConfirm,
+}: {
+  t: ButtonStrings;
+  rejectReason: string;
+  setRejectReason: (value: string) => void;
+  rejecting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.5)",
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "2rem",
+      }}
+    >
+      <div
+        style={{
+          background: "white",
+          borderRadius: "var(--style-radius-l)",
+          padding: "1.5rem",
+          width: "min(480px, 100%)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1rem",
+        }}
+      >
+        <div>
+          <p style={{ fontWeight: 600, fontSize: "1.1rem", margin: 0 }}>{t.rejectHeading}</p>
+          <p style={{ color: "var(--theme-elevation-500)", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>{t.rejectBody}</p>
+        </div>
+        <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+          <span style={{ fontSize: "0.8rem", fontWeight: 600 }}>{t.rejectReasonLabel}</span>
+          <textarea
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder={t.rejectReasonPlaceholder}
+            rows={4}
+            style={{
+              padding: "0.5rem 0.75rem",
+              border: "1px solid var(--theme-elevation-150)",
+              borderRadius: "var(--style-radius-m)",
+              fontFamily: "inherit",
+              fontSize: "0.875rem",
+            }}
+          />
+          {!rejectReason.trim() && (
+            <span style={{ fontSize: "0.75rem", color: "var(--theme-error-500)" }}>{t.rejectReasonRequired}</span>
+          )}
+        </label>
+        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+          <button type="button" className="btn btn--style-secondary btn--size-medium" disabled={rejecting} onClick={onCancel}>
+            <span className="btn__content">
+              <span className="btn__label">{t.cancel}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`btn btn--style-primary btn--size-medium${rejecting || !rejectReason.trim() ? " btn--disabled" : ""}`}
+            disabled={rejecting || !rejectReason.trim()}
+            onClick={onConfirm}
+          >
+            <span className="btn__content">
+              <span className="btn__label">{rejecting ? t.rejecting : t.rejectConfirm}</span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmPublishModal({
+  t,
+  previewHref,
+  publishing,
+  onCancel,
+  onConfirm,
+}: {
+  t: ButtonStrings;
+  previewHref: string | null | undefined;
+  publishing: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.5)",
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0.75rem",
+      }}
+    >
+      <div
+        style={{
+          background: "white",
+          borderRadius: "var(--style-radius-l)",
+          padding: "1rem",
+          width: "min(1600px, 98vw)",
+          height: "98vh",
+          maxHeight: "98vh",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.5rem",
+        }}
+      >
+        <div style={{ flexShrink: 0, display: "flex", alignItems: "baseline", gap: "0.75rem", flexWrap: "wrap" }}>
+          <p style={{ fontWeight: 600, fontSize: "1rem", margin: 0 }}>{t.heading}</p>
+          <p style={{ color: "var(--theme-elevation-500)", fontSize: "0.8rem", margin: 0 }}>{t.body}</p>
+        </div>
+
+        {previewHref ? (
+          <iframe
+            src={previewHref}
+            title="preview"
+            style={{ flex: "1 1 auto", minHeight: 0, width: "100%", border: "1px solid var(--theme-elevation-150)", borderRadius: "var(--style-radius-m)" }}
+          />
+        ) : (
+          <p style={{ color: "var(--theme-elevation-450)" }}>{t.noPreview}</p>
+        )}
+
+        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", flexShrink: 0 }}>
+          <button type="button" className="btn btn--style-secondary btn--size-medium" disabled={publishing} onClick={onCancel}>
+            <span className="btn__content">
+              <span className="btn__label">{t.cancel}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`btn btn--style-primary btn--size-medium${publishing ? " btn--disabled" : ""}`}
+            disabled={publishing}
+            onClick={onConfirm}
+          >
+            <span className="btn__content">
+              <span className="btn__label">{publishing ? t.publishing : t.confirm}</span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

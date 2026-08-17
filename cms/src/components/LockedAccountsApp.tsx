@@ -6,6 +6,7 @@ import { useAuth } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
 import { ROLES } from "@/access/roles";
+import { describeApiError } from "@/lib/apiErrorMessage";
 
 type LockedUser = {
   id: string | number;
@@ -53,14 +54,17 @@ export default function LockedAccountsApp() {
         "where[lockUntil][greater_than]": new Date().toISOString(),
       });
       const res = await fetch(`/api/users?${params.toString()}`, { credentials: "same-origin" });
-      if (!res.ok) throw new Error(String(res.status));
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(describeApiError({ status: res.status, body, locale, context: "account" }));
+      }
       const data = (await res.json()) as { docs?: LockedUser[] };
       setUsers(data.docs ?? []);
-    } catch {
+    } catch (err) {
       setUsers([]);
-      setError(t("lockedAccounts.loadError"));
+      setError(err instanceof Error && err.message ? err.message : t("lockedAccounts.loadError"));
     }
-  }, [t]);
+  }, [t, locale]);
 
   useEffect(() => {
   // startTransition keeps the first setState out of the effect's synchronous
@@ -82,11 +86,14 @@ export default function LockedAccountsApp() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      if (!res.ok) throw new Error(String(res.status));
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(describeApiError({ status: res.status, body, locale, context: "account" }));
+      }
       setNotice(t("lockedAccounts.unlocked").replace("{email}", email));
       await load();
-    } catch {
-      setError(t("lockedAccounts.unlockError"));
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : t("lockedAccounts.unlockError"));
     } finally {
       setBusyEmail(null);
     }

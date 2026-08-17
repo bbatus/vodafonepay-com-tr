@@ -11,6 +11,7 @@ import {
   tabLabel,
   type ReportColumn,
 } from "@/lib/contentManagementTabs";
+import { describeApiError } from "@/lib/apiErrorMessage";
 
 type Doc = { id: string | number; [key: string]: unknown };
 
@@ -24,6 +25,12 @@ type Summary = {
 };
 
 const PAGE_SIZE = 10;
+
+/** Unknown-typed CMS field values may be objects (rich text, unpopulated relations); avoid "[object Object]". */
+function safeString(value: unknown): string {
+  if (typeof value === "object" && value !== null) return JSON.stringify(value);
+  return String(value as string | number | boolean | undefined);
+}
 
 /**
  * RFP feedback 5.9 — a READ-ONLY report over the whole CMS.
@@ -121,19 +128,27 @@ export default function ContentManagementApp() {
 
     try {
       const res = await fetch(`/api/${tab.slug}?${params.toString()}`, { credentials: "same-origin" });
-      if (!res.ok) throw new Error(String(res.status));
+      if (!res.ok) {
+        // 403 keeps its own dedicated copy ("bu koleksiyona erişimin yok")
+        // since that's an expected, frequent case for this read-only report —
+        // anything else (500, network) gets the real reason instead of the
+        // same "no access" text, which would misdirect an editor troubleshooting it.
+        if (res.status === 403) throw new Error(t("contentManagement.noAccess"));
+        const body = await res.json().catch(() => null);
+        throw new Error(describeApiError({ status: res.status, body, locale, context: "generic" }));
+      }
       const data = await res.json();
       setDocs(data.docs ?? []);
       setTotalPages(data.totalPages ?? 1);
       setTotalDocs(data.totalDocs ?? 0);
-    } catch {
-      setError(t("contentManagement.noAccess"));
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : t("contentManagement.noAccess"));
       setDocs([]);
       setTotalDocs(0);
     } finally {
       setLoading(false);
     }
-  }, [tab, page, search, t]);
+  }, [tab, page, search, t, locale]);
 
   useEffect(() => {
   // startTransition keeps the first setState out of the effect's synchronous
@@ -160,7 +175,7 @@ export default function ContentManagementApp() {
     }
     switch (column.type) {
       case "date":
-        return new Date(String(value)).toLocaleDateString(dateLocale);
+        return new Date(safeString(value)).toLocaleDateString(dateLocale);
       case "bool":
         return value ? t("contentManagement.yes") : t("contentManagement.no");
       case "status":
@@ -175,10 +190,10 @@ export default function ContentManagementApp() {
           const rel = value as { label?: string; title?: string; email?: string; id?: string | number };
           return rel.label ?? rel.title ?? rel.email ?? String(rel.id ?? "—");
         }
-        return String(value);
+        return safeString(value);
       }
       default:
-        return String(value);
+        return safeString(value);
     }
   };
 
