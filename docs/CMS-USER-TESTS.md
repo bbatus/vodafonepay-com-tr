@@ -635,6 +635,153 @@ Her madde için birlikte şu alanları dolduracağız:
 - **Test edildi mi:** Kısmen — bkz. tur raporu §Açık kalan riskler.
 - **Yorumlarım:**
 
+## Bölüm 6 — Kategori & SSS turu (17.08.2026)
+
+### 6.1
+> sss deki kategoriler de sanki hardcoded gibi duruyor. [...] kategori sayfasına geldiğinde sss için kategori oluşturmalı elle [...] kampanyalar için kategori oluşturma da tamamen aynı çalışmalı [...] kampanya bağlarken de ilgili kampanyanın category'si sadece kampanya kategorilerine bağlanabilmeli, sss ise sadece sss kategorilerine.
+
+- **Durum:** Tamamlandı
+- **DoD:** Kategoriler tek koleksiyon olarak kalsın (hardcoded liste yok), ama her kategori hangi akışa (Kampanya/Blog ya da SSS) ait olduğunu taşısın; kampanya kategori seçicisi sadece kampanya kategorilerini, SSS'inki sadece SSS kategorilerini göstersin/kabul etsin — sunucu tarafında da zorlansın.
+- **Nasıl fixlendi:** `Categories.ts`'e `scope` alanı (`campaign` | `faq`, zorunlu) eklendi. `Campaigns.ts`/`BlogPosts.ts`/`FaqItems.ts`'in `category` ilişki alanlarına `filterOptions` ile scope kısıtı kondu — bu sadece admin arayüzünde gizleme değil, API'ye yanlış scope'ta bir id gönderilirse 400 ile reddediliyor (canlı test edildi). Slug benzersizliği de akış bazlı yapıldı (`indexes: [{fields:["scope","slug"], unique:true}]` + `generateSlug` scope'a göre sayıyor) — aynı isim ("Anında Bakiye") iki akışta da temiz slug'la var olabiliyor.
+- **Test edildi mi:** Evet, canlı — SSS'e kampanya kategorisi bağlamayı denedim → 400; kampanyaya SSS kategorisi bağlamayı denedim → 400; iki akışta aynı isimle kategori oluşturdum, ikisi de soneksiz slug aldı. `cms/src/collections/__tests__/categories.test.ts` (4 test) + `cms/src/access/__tests__/roles.test.ts` güncellemesi.
+- **Yorumlarım:**
+
+### 6.2 — (canlı bug, kullanıcının promptundan) Site tarafı scope filtrelemiyordu
+> `getFaqItems` ve `getCategories` hiç scope filtrelemiyor — yani `/kampanyalar` filtre sekmelerinde SSS kategorileri de görünüyor olmalı.
+
+- **Durum:** Tamamlandı
+- **DoD:** `getCategories`/`getFaqItems` scope-farkında olsun; her `getFaqItems("<slug>")` çağıran sayfanın SSS bloğu doğru kategoriyi çeksin; kampanya/blog sekmelerinde SSS kategorisi görünmesin.
+- **Nasıl fixlendi:** Kullanıcının kod incelemesiyle bulduğu bug canlı olarak yeniden üretildi: `/kampanyalar` sekmelerinde `Anasayfa` (salt SSS kategorisi) ve tekrarlanan `Anında Bakiye` görünüyordu. `getCategories(scope)` artık zorunlu parametre alıyor ve `where[scope][equals]` gönderiyor; `getFaqItems` her zaman `where[category.scope][equals]=faq` ekliyor (slug filtresi olsun olmasın). 3 çağıran sayfa (`/kampanyalar`, `/blog`, `/sikca-sorulan-sorular`) güncellendi.
+- **Test edildi mi:** Evet, canlı — düzeltme öncesi/sonrası ekran görüntüsü karşılaştırıldı, sekmelerden yabancı/tekrarlanan kategori kalktı.
+- **Yorumlarım:**
+
+### 6.3
+> boş kategoriler SSS sayfasında sekme üretmiyor [...] her kategori sekme olsun, altında henüz soru olmasa bile [...] boş sekmeye tıklandığında ne görüneceğine karar ver
+
+- **Durum:** Tamamlandı
+- **DoD:** `faq` scope'undaki her kategori bir sekme olsun (soru sayısına bakılmaksızın); boş sekmeye tıklanınca anlamlı bir boş durum mesajı görünsün, sessiz boşluk olmasın.
+- **Nasıl fixlendi:** `sikca-sorulan-sorular/page.tsx`'teki `usedSlugs` filtresi kaldırıldı — artık `getCategories("faq")`'ın döndürdüğü her kategori sekme. `FaqCategoryFilter.tsx`'e "Bu kategoride henüz soru yok." boş durumu eklendi (sadece belirli bir kategori seçiliyken, "Tümü"de değil).
+- **Test edildi mi:** Evet, canlı — "Boş Test Kategorisi" adında geçici bir kategori oluşturup sekmenin çıktığını, tıklanınca boş durum mesajının göründüğünü doğruladım, sonra kategoriyi sildim.
+- **Yorumlarım:**
+
+### 6.4
+> anasayfada gözüken sıkça sorulan sorular var [...] anasayfa kategorisine bağlı olanlar mı sadece anasayfada olabiliyor? [...] bence olmamalı, kişiye bağlı olmalı
+
+- **Durum:** Tamamlandı (kısmi katılım — aşağıda gerekçesi var)
+- **DoD:** Anasayfadaki SSS bloğunun hangi sorulardan oluşacağı kategoriden bağımsız, ayrı bir sinyal olsun; bir soru hem kendi kategorisinde hem anasayfada görünebilsin.
+- **Nasıl fixlendi:** Önce gerçek siteyi (vodafonepay.com.tr anasayfa + /aninda-bakiye) canlı inceledim: her ürün sayfası kendi kategorisiyle sınırlı bir SSS bloğu gösteriyor — bu bir kısıtlama değil, gerçek sitenin kendi mimarisi, "kişiye bağlı olmalı" varsayımı bu noktada doğru değildi (bunu ayrı bir mesajda anlattım). Asıl haklı olduğun nokta ayrı: kategori ile "anasayfada göster" AYNI sinyal olmamalı. `FaqItems`'a bağımsız `showOnHomepage` (checkbox) + `homepageOrder` (sayı, sadece işaretliyken görünür) eklendi. Anasayfa artık `getFaqItems("anasayfa")` değil `getHomepageFaqItems()` (`where[showOnHomepage]=true`) çekiyor. "Anasayfa" kategorisi olduğu gibi kaldı (SSS sayfasında kendi sekmesi), mevcut tek sorusuna (id 31) `showOnHomepage:true` atandı — iki mekanizma bilinçli olarak paralel: biri "bu soru neyle ilgili", diğeri "ayrıca anasayfada da göster".
+- **Test edildi mi:** Evet, canlı — id 31 hem `/` anasayfada hem `/sikca-sorulan-sorular`'ın "Anasayfa" sekmesinde göründü (aynı anda, iki mekanizma çakışmadan).
+- **Yorumlarım:**
+
+### 6.5
+> "Tümü" sekmesi hardcoded ve sıralanamıyor [...] kullanıcı bunun CMS'ten yeniden adlandırılabilir olmasını, ama her zaman ilk sırada çakılı kalmasını ve silinememesini istiyor
+
+- **Durum:** Tamamlandı
+- **DoD:** "Tümü" etiketi CMS'ten değiştirilebilsin; yanlışlıkla silinemesin/sürüklenip yerinden oynatılamasın; üç sayfa (Kampanyalar/Blog/SSS) aynı ortak ismi kullansın.
+- **Nasıl fixlendi:** İki seçenek arasında Translations anahtarını seçtim (Category kaydı değil): `filterTabs.all` — `translations` koleksiyonunda bir satır, `src/lib/cms.ts`'teki yeni `getTranslation(key, fallback)` ile okunuyor, DB'de yoksa/CMS erişilemezse "Tümü"ye düşüyor (admin panelin kendi `useDbStrings` desenindeki aynı DB-override-with-fallback mantığı). Bir Category kaydı olmadığı için `blockDeleteIfReferenced`/reorder'da özel durum kodu gerekmedi — zaten silinemez/sürüklenemez, çünkü kategori listesinin bir parçası değil. `FilterTabs.tsx` artık `allLabel` prop'u alıyor, 3 sayfa da `getTranslation("filterTabs.all", "Tümü")`'yü paralel çekip geçiriyor. `Translations.ts`'e `revalidateTag("translations")` eklendi (siteye habersiz kalmasın diye) ve site'nin `/api/revalidate` allowlist'ine `"translations"` eklendi.
+- **Test edildi mi:** Kod ve testlerle (`getTranslation` — DB değeri / fallback). Admin panelden gerçek bir "Tümü" satırı oluşturup canlı yeniden adlandırma denemedi — bu bir sonraki adım olarak öneriliyor (bkz. tur raporu, açık işler).
+- **Yorumlarım:**
+
+### 6.6
+> sürükleyerek sırala bölümü de hangi dropdown seçilirse onun için açılması lazım [...] (önceki mesajda) istediğin onay adımı zaten yok [...] birden fazla öğe arka arkaya sürüklenirse her seferinde onay sormak yorucu olur
+
+- **Durum:** Tamamlandı
+- **DoD:** Sürükleme anında kaydetmesin; onay adımı olsun; ardışık birden çok sürüklemede her seferinde ayrı onay istemesin; kısmi PATCH hatası sessiz kalmasın.
+- **Nasıl fixlendi:** `ReorderWidget.tsx` — drop artık sadece yerel state'i günceller, hiçbir PATCH gitmez. Değişiklik olduğunda ("dirty") **Kaydet / Vazgeç** butonları çıkar; istediği kadar sürükleyip tek "Kaydet"le gönderebilir (biriktir + tek onay, ayrı ayrı onay değil — kullanıcının ikinci mesajında onayladığı seçenek). "Vazgeç" listeyi son kaydedilmiş haline döndürür. `Promise.all` artık her PATCH'in `.ok`'una bakıyor; herhangi biri başarısız olursa kullanıcıya açık hata mesajı gösterip listeyi sunucudaki gerçek durumla yeniden senkronluyor (kısmi başarıyı sessizce "başarılı" gibi göstermek yerine). Kategoriler gibi birden çok grup varsa (dropdown), kaydedilmemiş değişiklik varken grup değiştirmek engelleniyor — aksi halde sürüklenen değişiklik sessizce kaybolurdu.
+  - **Draft/publish sorusu ayrıca test edildi** (kullanıcının "taslağa yazıyor olabilir" endişesi): çıplak PATCH (`?draft=true` yok) yayındaki kaydı **doğrudan** güncelliyor ve yayında yeni bir versiyon satırı oluşturuyor — taslakta takılı kalmıyor. Yani sürükle-bırak zaten canlıya anında yansıyordu, eksik olan sadece onay adımıydı.
+- **Test edildi mi:** Kod ve API seviyesinde (çıplak PATCH'in yayına yazdığı canlı doğrulandı). Tarayıcıdan gerçek sürükle-bırak (HTML5 drag events) bu oturumda otomatik test edilemedi — tarayıcı aracı native drag simülasyonunu güvenilir desteklemiyor. Elle denenmesi öneriliyor.
+- **Yorumlarım:**
+
+## Bölüm 7 — Sıra geri bildirimi + Rich Text turu (17.08.2026)
+
+### 7.1 — Sıra alanı: canlı sayaç ve öneri
+> aslında anasayfa sırası anasayfada kaç tane var mesela 2 tamam mı aktif kaç tane sss var onu da göstermeli aynı şekilde mesela anında bakiye seçtim ya dropdowndan kategoriden sıra kısmı güncellenmeli [...] kullanıcı isterse 1000 girer yine ama 0 -1 -2 vs girememesini sağlamalıyız
+
+- **Durum:** Tamamlandı
+- **DoD:** Kategori (veya "Anasayfada Göster") seçildiği an, editör o gruptaki mevcut kayıt sayısını ve önerilen bir sonraki sırayı görsün; 0/negatif değer hem formda hem ham API isteğinde reddedilsin; editörün kendi yazdığı bir değer otomatik ezilmesin.
+- **Nasıl fixlendi:** 0/negatif engeli aslında zaten vardı — `order`/`homepageOrder` alanlarındaki `min: 1` sunucu tarafında da uygulanıyor, ham `PATCH {"order":-1}` isteğiyle canlı doğrulandı (400 döndü). Eksik olan sadece canlı geri bildirimdi. Yeni `LiveOrderField.tsx` bileşeni — Payload'ın kendi `NumberField`'ını sarıp altına "Bu grupta N kayıt var — önerilen sıra: M" satırı ve tıklanınca değeri dolduran bir "M kullan" butonu ekliyor. Değeri **otomatik doldurmuyor** — bilinçli tercih: `order`'ın kendi yorum satırında anlatılan `defaultValue` tuzağına (hook'un "editör elle yazmış" kontrolünü kandırma) düşmemek için, doldurma sadece editörün açık tıklamasıyla oluyor. `FaqItems.ts`'te hem `order` (grup: `category`) hem `homepageOrder`'a (grup: `showOnHomepage`) bağlandı.
+  - **Canlıda bulunan ayrı bir bug:** Bileşen ilk deploy'da hiç görünmedi — sebebi `payload generate:importmap` komutunun bu ortamda kırık olması (`ERR_REQUIRE_ASYNC_MODULE`, R-10 ile aynı tsx/ESM sınıfı hata, artık `@payloadcms/richtext-lexical`'ı doğrudan import eden `payload.config.ts` üzerinden de tetikleniyor). Yeni bir custom component eklendiğinde `src/app/(payload)/admin/importMap.js`'e elle eklenmesi gerekiyor — dosyanın başına bunu açıklayan bir not eklendi.
+- **Test edildi mi:** Evet, canlı — yeni bir SSS oluşturup "Anında Bakiye" seçtim, "Bu grupta 2 kayıt var — önerilen sıra: 3" ve "3 kullan" butonu çıktı, tıklayınca alan "3" oldu ve buton kayboldu (öneri ile eşleştiği için).
+- **Yorumlarım:**
+
+### 7.2 — Admin listesi: en son oluşturulana göre sırala (5.5 ile çakışma)
+> db de hangi sss'i ne zaman create etmişsek create date tutalım ve sık sorulan sorular kısmındaki liste en son create edilene göre orderlansın
+
+- **Durum:** Tamamlandı — **5.5'i (RFP geri bildirimi) kısmen geçersiz kılıyor, SİTEYİ etkilemiyor**
+- **DoD:** Yeni oluşturulan bir SSS, admin listesinde uzun bir `order` dizisinin ortasına gömülmeden, en üstte kolayca bulunabilsin. Sitenin kendi görünür sırası (ziyaretçiye giden) bundan etkilenmesin.
+- **Nasıl fixlendi:** `FaqItems.ts`'in `defaultSort` değeri `"order"` → `"-createdAt"` oldu — bu **sadece admin liste görünümü**. `getFaqItems()` (`src/lib/cms.ts`) hâlâ `sort: "order"` kullanıyor, yani `/sikca-sorulan-sorular` sayfasındaki gerçek soru sırası hiç değişmedi. Bu, 5.5'in "Liste `order`'a göre sıralansın" kararını admin tarafında güncelliyor — 5.5 sitenin kendi sırasını `order`'a bağlamıştı ve o karar hâlâ doğru; sadece admin ekranındaki "hangi kaydı düzenliyorum" sorusu için `order` yanlış araç olduğu ortaya çıktı.
+- **Test edildi mi:** Evet, canlı — yeni oluşturulan test kaydı admin listesinde en üstte çıktı (createdAt'e göre).
+- **Yorumlarım:**
+
+### 7.3 — Sürükle-bırak: sunucudan dinamik kategori/sayı çekme
+> sürükle bırak kısmı olması lazım kullanıcı seçtiği anda db den o tipteki sss leri getirmesi lazım [...] her kategori özelinde kaç sss varsa dropdowndan seçilebilir
+
+- **Durum:** Tamamlandı
+- **DoD:** Dropdown, önceden istemci tarafında gruplanmış (limit 200 çekilip client'ta filtrelenmiş) bir liste değil, sunucudaki gerçek kategori listesinden (sayaçlarıyla) gelsin; 0 veya 1 kayıtlı kategoriler de seçilebilir olsun.
+- **Nasıl fixlendi:** `ReorderWidget.tsx`'e yeni bir `groupsFrom` prop'u ve `ServerGroupedReorder` bileşeni eklendi — dropdown artık `/api/categories?where[scope][equals]=faq` sorgusundan (her kategori için ayrı bir sayım isteğiyle) doluyor; bir kategori seçildiğinde o kategorinin kayıtları `/api/faq-items?where[category][equals]=<id>` ile ayrıca çekiliyor (500 kayıt limitine kadar, üzeri kesilirse uyarı gösteriliyor). Eski davranış (tüm 200 kaydı çekip client'ta grupla) `groupsFrom` verilmeyen koleksiyonlarda hâlâ çalışıyor — geriye dönük uyumlu.
+- **Test edildi mi:** Evet, canlı — dropdown'da "Anında Bakiye (2)" gibi sayaçlı etiketler görüldü, kategori değiştirilince network isteğinin sadece o kategoriye ait kayıtları çektiği doğrulandı.
+- **Yorumlarım:**
+
+### 7.4 — Kategori silme koruması (yeniden doğrulama)
+> bir kategori silinecekken o kategoriye bağlı sss varsa o kategori silinememeli
+
+- **Durum:** Tamamlandı — **zaten çalışıyordu, kod değişikliği gerekmedi**
+- **DoD:** Referans verilen bir kategori silinmeye çalışılınca engellensin, editöre hangi kayıtların engellediği açıkça gösterilsin.
+- **Nasıl fixlendi:** Bu madde aslında 6.1'de eklenen `blockDeleteIfReferenced` hook'unun (referentialIntegrity.ts) canlı yeniden-doğrulamasıydı. İlk denemede toast mesajı görünmüyormuş gibi geldi — araştırınca sebep sonner toast'ının otomatik kapanma süresiyle ardışık/yavaş tool round-trip'leri arasındaki gecikme olduğu anlaşıldı (gerçek bug değil). Silme akışı TEK bir senkron çalıştırmada (menü → Sil → Onayla, aralarda kısa bekleme) yeniden denendiğinde: `DELETE` isteği 409 Conflict döndü, network log'unda tam engelleyici kayıt listesi görüldü, ve toast DOM'da (`data-visible="true"`) mesajla birlikte gerçekten mevcuttu.
+- **Test edildi mi:** Evet, canlı — bağlı SSS'i olan bir kategoriyi silmeye çalıştım, 409 + toast'ta engelleyen kaydın adı görüldü.
+- **Yorumlarım:**
+
+### 7.5 — Blog'un kendi bağımsız kategori listesi
+> blog sayfası için de kategoriler kısmında blog sayfasında yönetilebilir olması için kategori eklenmesi lazım
+
+- **Durum:** Tamamlandı
+- **DoD:** Blog, Kampanyalar'ın kategori listesini paylaşmasın — kendi bağımsız listesine sahip olsun; kategori oluşturma/silme akışı diğer akışlarla aynı desende kalsın.
+- **Nasıl fixlendi:** `CATEGORY_SCOPES`'a üçüncü değer `BLOG: "blog"` eklendi (Postgres enum'a `ALTER TYPE ... ADD VALUE`, aşağıdaki SQL). `BlogPosts.category`'nin `filterOptions`'ı `CAMPAIGN`'dan `BLOG`'a çevrildi; `blog_posts` tablosunun bu değişiklik öncesi 0 satır olduğu doğrulandı, göç edilecek veri yoktu. `/blog` sayfası artık `getCategories("blog")` çağırıyor (önceden `"campaign"`).
+- **Test edildi mi:** Evet, canlı — "Blog" akışıyla yeni bir kategori oluşturdum, sadece `/blog` sekmelerinde çıktı, `/kampanyalar` sekmelerinde çıkmadı.
+- **Yorumlarım:**
+
+### 7.6 — Rich text editörü: gerçek düzenleme özellikleri + renkli vurgu
+> aslında tek bir yerde çözüp hepsine uygulayabiliriz [...] renderer olarak richtext-lexical'ın kendi RichText bileşenini kullanalım [...] sabit "Vurgu" stili — tek renk (Vodafone kırmızısı)
+
+- **Durum:** Tamamlandı
+- **DoD:** `lexicalEditor()` gerçek bir özellik setiyle yapılandırılsın (başlıklar, listeler, link, tablo, görsel, sabit vurgu rengi); site tarafında bu üç kullanım (BlogPosts.body, Campaigns.body/terms, Pages'in `richText` bloğu) TEK bir renderer'dan geçsin; canlı vodafonepay.com.tr'nin tipografisiyle (başlık boyutu/ağırlığı, tablo hücre kenarlığı) eşleşsin.
+- **Nasıl fixlendi (onaylanan iki karar):**
+  1. **Renderer:** `@payloadcms/richtext-lexical`'ın kendi React `RichText` bileşeni + `JSXConvertersFunction` (kendi converter'ı yazmak yerine). Paket sadece `/react` alt-yoluyla import edildi — bu alt-yolun import grafiği (17 dosya) `payload`/`@payloadcms/ui`/`monaco-editor`/`undici` gibi ağır admin bağımlılıklarını **hiç** çekmiyor (doğrulandı), o yüzden site bundle'ı şişmiyor; ama `npm install` seviyesinde bu paketler yine de kilit dosyasına giriyor (bkz. 7.8, Trivy).
+  2. **Renkli vurgu:** `TextStateFeature` (paketin resmi, "deneysel" işaretli ama kararlı API'si) ile tek bir sabit değer: `color.vurgu` → `#e60000` (sitenin kendi `--color-vf-red` değişkeniyle birebir aynı). Serbest renk seçici DEĞİL — editör sadece "Vurgu" işaretleyebiliyor, rastgele renk giremiyor.
+  - Editör tarafı: `HeadingFeature` (h2-h4), Bold/Italic/Underline/Strikethrough, sıralı/sırasız liste, `LinkFeature` (**internal doc linking kapalı** — sitenin slug→URL çözücüsü yok, editör sadece özel URL girebiliyor), `BlockquoteFeature`, `HorizontalRuleFeature`, `UploadFeature` (Media'dan görsel), `EXPERIMENTAL_TableFeature` (paketin kendi adlandırması — tek tablo implementasyonu bu, risk olarak not edildi), `FixedToolbarFeature` + `InlineToolbarFeature`.
+  - Site tarafı: yeni `src/components/RichText.tsx` — `text` converter'ı override edip Lexical'ın node-state anahtarını (`"$"`.`color`) okuyup `vurgu` ise kırmızı `<span>`'a sarıyor; `heading`/`paragraph`/`link`/`list`/`quote` converter'ları canlı sitenin ölçülen tipografisiyle (h2: 20px/400 ağırlık/#333, tablo hücre kenarlığı 1px #d9d9d9) eşleşecek Tailwind sınıflarıyla override edildi; tablo `.lexical-table-container` sarmalayıcısına `overflow-x:auto` (globals.css) eklendi, dar ekranda sayfa genişlemek yerine tablo kendi içinde kayıyor.
+  - Eski `richTextToParagraphs()` (düz metne indirgeyen fonksiyon) silindi, üç kullanım noktası (`kampanyalar/[slug]`, `blog/[slug]`, `[...slug]`'ın richText bloğu) `<RichText data={...} />`'a geçti.
+- **Test edildi mi:** Evet, canlı — 5988 karakterlik bozuk bir test kaydının içeriği gerçek başlık/liste yapısına dönüştürülüp `body`'ye yazıldı (biri kasıtlı "Vurgu" ile), `/blog/ulasim-karti-bakiye-yukleme-yollari-vodafone-pay` sayfasında başlıklar, madde listesi ve kırmızı (`rgb(230,0,0)`) vurgulu başlık doğru render edildi. Ayrıca `src/components/__tests__/RichText.test.tsx` (7 test): boş içerik, paragraf, başlık etiketi, Vurgu renk uygulaması, düz metnin renksiz kalması.
+- **Yorumlarım:**
+
+### 7.7 — Blog slug otomatik oluşsun
+> bence slug otomatik oluşmalı [...] kampanyada oluşturduğumuz gibi blogda da yapalım
+
+- **Durum:** Tamamlandı
+- **DoD:** Editör slug'ı elle yazmasın; başlıktan otomatik ve URL-güvenli türetilsin; çakışma olursa numaralı son ek eklensin.
+- **Nasıl fixlendi:** (Not: Campaigns'in slug'ı aslında hâlâ elle yazılıyor — otomatik türetme örneği Categories'in `generateSlug` hook'uydu, isteği o desene göre uyguladım.) `BlogPosts.ts`'e Categories ile aynı desende bir `generateSlug` (`beforeValidate`) hook'u eklendi: sadece `create`'te, `title`'dan `turkishSlugify` + `uniqueSlug` (mevcut `lib/slugify.ts` paylaşılan yardımcıları) ile türetiliyor; `update`'te asla yeniden türetilmiyor (yayındaki bir yazının URL'i başlık düzeltmesiyle kaymasın diye). Alan `admin.readOnly: true` yapıldı — editör görebiliyor ama elle değiştiremiyor.
+- **Test edildi mi:** Evet, canlı — "Sanal Kart ile Hızlı Alışveriş Rehberi" başlığıyla taslak oluşturdum, slug otomatik `sanal-kart-ile-hizli-alisveris-rehberi` oldu; test kaydı sonra silindi.
+- **Yorumlarım:**
+
+### 7.8 — Blog kartı: aşırı uzun özet + eksik "Detayları gör"
+> blog sayfası normalde ilgili sayfada blogun sadece biraz texti alınması lazımken full aşağıya doğru gidiyor [...] kampanyadaki gibi butonu isimlendirebileceğimiz ve içeri sluga yönlendirebileceğimiz bir detayları gör buttonu ile yönetmemiz lazım
+
+- **Durum:** Tamamlandı
+- **DoD:** Kart üzerindeki özet metni sınırlı satırda kesilsin; her kartta bir "Detayları gör" (veya özelleştirilebilir) CTA olsun.
+- **Kök neden:** `CardListGrid.tsx`'in CTA butonu ve `linkLabel` özelleştirmesi zaten mevcuttu — asıl sorun gerçek bir test kaydının `excerpt` alanına (kart özeti, kısa olması gereken) **tüm makale metninin (5988 karakter)** yapıştırılmış olması, `body`'nin ise tamamen boş kalmasıydı. Kart bunun "yanlış" olduğunu bilemiyordu.
+- **Nasıl fixlendi:** `excerpt` alanına `maxLength: 200` + daha net açıklama ("kart özeti, yazının kendisi değil — asıl içerik için 'İçerik' alanını kullanın") eklendi; bu artık böyle bir hatayı yapısal olarak imkânsız kılıyor. `CardListGrid.tsx`'teki açıklama paragrafına `line-clamp-3` eklendi (katman savunması — hem Blog hem Kampanya kartlarını etkiliyor). Kusurlu test kaydının verisi düzeltildi: 5988 karakterlik metin başlık/liste yapısına ayrıştırılıp `body`'ye taşındı, `excerpt` 167 karaktere indirildi.
+- **Ayrıca sorulan "excerpt Notion gibi olsun mu" sorusu:** Kullanıcıya soruldu — `body` zaten (7.6 ile) tam bir rich text editörü (başlık/liste/Vurgu/tablo) olduğu için `excerpt`'in AYRICA rich text olması gerekmediği önerildi; kullanıcı bunu onayladı, `excerpt` düz kısa metin olarak kaldı.
+- **Görsel oranı notu:** Kapak görseli zaten `CardListGrid`'de sabit 361×240 (yatay/dikdörtgen, ~3:2) kutuya `object-cover` ile kırpılıyor — kare görünüm kod tarafında değil, o spesifik test görselinin kendisinde kaynaklanıyordu. `coverImage` alanına bunu netleştiren bir açıklama eklendi ("361x240 yatay kırpılır — kare değil yatay fotoğraf tercih edin"), zorunlu bir oran kontrolü eklenmedi (editörü kısıtlamamak için).
+- **Test edildi mi:** Evet, canlı — `/blog` listesinde kart artık 3 satırla kesiliyor, altında "Detayları gör" görünüyor, ekran taşması yok.
+- **Yorumlarım:**
+
+### 7.9 — Kategori seçici "hardcoded gibi" görünüyor (yanlış alarm)
+> blog yazısı oluştururken kategori seçtiğimiz yer de hardcoded gibi geliyor. onu kontrol et.
+
+- **Durum:** Tamamlandı — **gerçek bug değil, doğrulandı**
+- **Nasıl doğrulandı:** Blog Yazısı → Oluştur formunda "Category" alanı gerçek bir ilişki (relationship) dropdown'u — "+" butonuyla yeni kategori oluşturma dahil, sadece `scope: blog` olan kategorileri listeliyor. Az sayıda seçenek (şu an 2: "Anında Bakiye", "Kart") görünmesi, listenin sabit/hardcoded olmasından değil, DB'de henüz sadece 2 tane Blog-scope kategori olmasından kaynaklanıyor — 7.5'te doğrulanan aynı mekanizma.
+- **Yorumlarım:**
+
 ## İlerleme Özeti
 
 | # | Madde (kısa başlık) | Durum |
@@ -684,3 +831,18 @@ Her madde için birlikte şu alanları dolduracağız:
 | 5.10 | Login ekranı başlık/alt metin | Tamamlandı |
 | 5.11 | Campaigns CSV export (tüm sütunlar, TR karakter) | Tamamlandı |
 | 5.12 | Fallback maskeleme + admin arayüz denetimi (devreden) | Kısmen tamamlandı |
+| 6.1 | Kategori scope ayrımı: kampanya/blog vs SSS, ayrı listeler | Tamamlandı |
+| 6.2 | Site tarafı scope sızıntısı (canlı bug) | Tamamlandı |
+| 6.3 | SSS sayfası: tüm kategoriler sekme + boş durum mesajı | Tamamlandı |
+| 6.4 | Anasayfa SSS: showOnHomepage bağımsız alanı | Tamamlandı |
+| 6.5 | "Tümü" sekmesi Translations'tan yönetilebilir | Tamamlandı |
+| 6.6 | Sürükle-bırak: biriktir + Kaydet/Vazgeç + .ok kontrolü | Tamamlandı |
+| 7.1 | Sıra alanı: canlı sayaç + öneri (otomatik doldurmadan) | Tamamlandı |
+| 7.2 | Admin SSS listesi: -createdAt sıralama (5.5'i admin'de günceller, site etkilenmez) | Tamamlandı |
+| 7.3 | Sürükle-bırak: sunucudan dinamik kategori/sayı çekme | Tamamlandı |
+| 7.4 | Kategori silme koruması (yeniden doğrulama) | Tamamlandı — zaten çalışıyordu |
+| 7.5 | Blog'un kendi bağımsız kategori listesi (scope: blog) | Tamamlandı |
+| 7.6 | Rich text editörü: gerçek özellikler + sabit "Vurgu" rengi + ortak renderer | Tamamlandı |
+| 7.7 | Blog slug otomatik oluşturma (title'dan, Categories deseniyle) | Tamamlandı |
+| 7.8 | Blog kartı: excerpt maxLength + line-clamp + CTA + kusurlu test verisi düzeltmesi | Tamamlandı |
+| 7.9 | Kategori seçici "hardcoded gibi" görünüyor | Tamamlandı — yanlış alarm |
