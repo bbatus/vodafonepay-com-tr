@@ -40,26 +40,29 @@ describe("newVerticalReadWrite / newVerticalCreate", () => {
 });
 
 describe("mediaCreate", () => {
-  it("allows New Vertical maker and Growth maker (campaign image uploads)", () => {
+  it("allows New Vertical maker and both Growth roles (campaign image uploads)", () => {
     expect(mediaCreate({ req: reqWithRole(ROLES.NEW_VERTICAL_MAKER) })).toBe(true);
     expect(mediaCreate({ req: reqWithRole(ROLES.GROWTH_MAKER) })).toBe(true);
+    expect(mediaCreate({ req: reqWithRole(ROLES.GROWTH_CHECKER) })).toBe(true);
   });
 
-  it("denies both checker roles", () => {
+  it("denies the New Vertical checker", () => {
     expect(mediaCreate({ req: reqWithRole(ROLES.NEW_VERTICAL_CHECKER) })).toBe(false);
-    expect(mediaCreate({ req: reqWithRole(ROLES.GROWTH_CHECKER) })).toBe(false);
   });
 });
 
 describe("campaignsCreate", () => {
-  it("allows New Vertical maker and Growth maker", () => {
+  it("allows New Vertical maker and both Growth roles", () => {
     expect(campaignsCreate({ req: reqWithRole(ROLES.NEW_VERTICAL_MAKER) })).toBe(true);
     expect(campaignsCreate({ req: reqWithRole(ROLES.GROWTH_MAKER) })).toBe(true);
+    // Growth Checker can create its own campaigns too, not just approve
+    // GROWTH_MAKER's — the "_RO" in its LDAP name is AccessPoint's naming
+    // convention, not a read-only restriction. See ROLES.GROWTH_CHECKER.
+    expect(campaignsCreate({ req: reqWithRole(ROLES.GROWTH_CHECKER) })).toBe(true);
   });
 
-  it("denies both checker roles — checkers approve, they don't create", () => {
+  it("denies the New Vertical checker — it approves, it doesn't create", () => {
     expect(campaignsCreate({ req: reqWithRole(ROLES.NEW_VERTICAL_CHECKER) })).toBe(false);
-    expect(campaignsCreate({ req: reqWithRole(ROLES.GROWTH_CHECKER) })).toBe(false);
   });
 });
 

@@ -11,7 +11,14 @@ export const ROLES = {
   NEW_VERTICAL_MAKER: "RL_VODAFONEPAY_CMS_EXEC_DEVELOPER_MAKER_RW",
   /** Reviews/publishes NEW_VERTICAL_MAKER's changes. Cannot create new documents. */
   NEW_VERTICAL_CHECKER: "RL_VODAFONEPAY_CMS_EXEC_CONTENT_PRW",
-  /** Approves/publishes GROWTH_MAKER's campaigns. Cannot create. */
+  /**
+   * Approves/publishes GROWTH_MAKER's campaigns — AND can create its own
+   * (per the business-provided AccessPoint role table: "Vepaş CMS üzerinde
+   * bulunan içerikleri create edebilirken, maker rolündeki içerikleri de
+   * check edip canlıya uygulayabilir"). The "_RO" in the LDAP name is
+   * misleading — it isn't read-only, "RO" is AccessPoint's naming scheme,
+   * not a capability. Scope stays Campaigns-only, same as GROWTH_MAKER.
+   */
   GROWTH_CHECKER: "ROLE_VODAFONEPAY_CMS_CHECKER_RO",
   /** Creates/edits campaigns. Can never publish its own work. */
   GROWTH_MAKER: "ROLE_VODAFONEPAY_CMS_MAKER_RW",
@@ -54,20 +61,27 @@ export const newVerticalCreate: Access = isNewVerticalMaker;
  * only as a draft".
  */
 /**
- * Media isn't one of the 4 spec'd roles' explicit scopes, but GROWTH_MAKER
- * has to be able to upload a campaign image — Campaigns' `image` field is
- * required, and without this a Growth maker could create a campaign but
- * never attach a picture to it. Everyone else follows the standard New
- * Vertical create rule.
+ * Media isn't one of the 4 spec'd roles' explicit scopes, but both Growth
+ * roles have to be able to upload a campaign image — Campaigns' `image`
+ * field is required, and without this a Growth maker/checker could create a
+ * campaign but never attach a picture to it. Everyone else follows the
+ * standard New Vertical create rule.
  */
 export const mediaCreate: Access = ({ req }) => {
   const role = roleOf(req);
-  return role === ROLES.NEW_VERTICAL_MAKER || role === ROLES.GROWTH_MAKER;
+  return role === ROLES.NEW_VERTICAL_MAKER || role === ROLES.GROWTH_MAKER || role === ROLES.GROWTH_CHECKER;
 };
 
+/**
+ * GROWTH_CHECKER can create campaigns too, not just approve them — see the
+ * ROLES.GROWTH_CHECKER comment for the source. It still can never publish
+ * its OWN just-created draft through this alone; `campaignsReadWrite` +
+ * the absence of a deny-publish hook on this role is what lets it move
+ * anything (its own or GROWTH_MAKER's) to published.
+ */
 export const campaignsCreate: Access = ({ req }) => {
   const role = roleOf(req);
-  return role === ROLES.NEW_VERTICAL_MAKER || role === ROLES.GROWTH_MAKER;
+  return role === ROLES.NEW_VERTICAL_MAKER || role === ROLES.GROWTH_MAKER || role === ROLES.GROWTH_CHECKER;
 };
 
 export const campaignsReadWrite: Access = ({ req }) => {

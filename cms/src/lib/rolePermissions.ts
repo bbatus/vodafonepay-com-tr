@@ -62,13 +62,16 @@ const MATRIX: Record<Category, Record<RoleValue, PermissionFlags>> = {
     [NV_MAKER]: { view: true, create: true, update: true, publish: false, delete: true },
     [NV_CHECKER]: { view: true, create: false, update: true, publish: false, delete: false },
     [G_MAKER]: { view: true, create: true, update: false, publish: false, delete: false },
-    [G_CHECKER]: { view: true, create: false, update: false, publish: false, delete: false },
+    [G_CHECKER]: { view: true, create: true, update: false, publish: false, delete: false },
   },
   campaigns: {
     [NV_MAKER]: { view: true, create: true, update: true, publish: true, delete: true },
     [NV_CHECKER]: { view: true, create: false, update: true, publish: true, delete: false },
     [G_MAKER]: { view: true, create: true, update: true, publish: false, delete: false },
-    [G_CHECKER]: { view: true, create: false, update: true, publish: true, delete: false },
+    // G_CHECKER can create its own campaigns AND approve/publish G_MAKER's —
+    // the AccessPoint role table's "_RO" suffix is a naming convention, not a
+    // read-only restriction (see ROLES.GROWTH_CHECKER in access/roles.ts).
+    [G_CHECKER]: { view: true, create: true, update: true, publish: true, delete: false },
   },
   users: {
     [NV_MAKER]: { view: true, create: true, update: true, publish: false, delete: true },
