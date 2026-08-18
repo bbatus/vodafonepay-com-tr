@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import type { CampaignCard } from "@/types/homepage";
 
@@ -21,6 +22,18 @@ export function Campaigns({ campaigns }: { campaigns: CampaignCard[] }) {
 
   return (
     <section className="mx-auto max-w-[1030px] px-4 py-10">
+      {/* RFP follow-up: was inside FeatureHighlights, so an empty
+          anasayfa-highlights CMS collection (that section returns null when
+          empty) also silently hid this completely unrelated heading —
+          moved here so campaigns and highlights can't accidentally take
+          each other down. */}
+      <div className="mb-10 flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-black lg:text-4xl">Kampanyalar</h2>
+        <Link href="/kampanyalar" className="flex items-center gap-x-1 text-sm font-bold text-vf-red">
+          İncele <ChevronRightIcon className="h-4 w-4" />
+        </Link>
+      </div>
+
       <div className="flex flex-col items-center gap-x-20 gap-y-6 lg:flex-row">
         <Image
           src={campaign.image}

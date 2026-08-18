@@ -1,6 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
-import { ChevronRightIcon } from "@/components/icons";
 
 interface Highlight {
   icon: string;
@@ -36,13 +34,6 @@ export function FeatureHighlights({ features }: { features: Highlight[] }) {
         <div className="hidden w-2/3 overflow-hidden rounded-xl lg:block">
           <video className="h-[340px] w-full object-cover" src="/videos/feature-loop.mp4" autoPlay muted loop playsInline />
         </div>
-      </div>
-
-      <div className="mb-10 mt-10 flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-black lg:text-4xl">Kampanyalar</h2>
-        <Link href="/kampanyalar" className="flex items-center gap-x-1 text-sm font-bold text-vf-red">
-          İncele <ChevronRightIcon className="h-4 w-4" />
-        </Link>
       </div>
     </section>
   );
