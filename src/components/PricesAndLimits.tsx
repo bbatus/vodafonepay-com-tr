@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export interface LimitTable {
   title: string;
@@ -17,6 +18,12 @@ export interface LimitTable {
  * clear out themselves. Both props are required now; the caller
  * (ucretler-ve-limitler/page.tsx) is what decides whether to render this at
  * all vs. an empty/error state.
+ *
+ * Colors below were read off the live vodafonepay.com.tr computed styles,
+ * not guessed: header row #f2f2f2, body rows alternate #fafafa/#fff, the
+ * limit table's "Kimlik doğrulama yapılmış" column is always #e60000/white
+ * (header and body, not just the header), and its "Periyot" values are
+ * #008a00 green.
  */
 export function PricesAndLimits({
   feeRows,
@@ -51,13 +58,21 @@ export function PricesAndLimits({
       </div>
 
       {tab === "ucretler" ? (
-        <div className="mt-8 overflow-x-auto">
+        <div className="mt-8 overflow-x-auto rounded-lg">
           <table className="w-full border-collapse text-left text-sm">
+            {/* Live site's fee table header row has no text, just the #f2f2f2
+                bar — matched exactly, not guessed. */}
+            <thead>
+              <tr className="bg-[#f2f2f2]">
+                <th className="py-5 pl-4 pr-6" aria-hidden="true"></th>
+                <th className="py-5 pr-4" aria-hidden="true"></th>
+              </tr>
+            </thead>
             <tbody>
-              {feeRows.map(([label, value]) => (
-                <tr key={label} className="border-b border-gray-200">
-                  <td className="py-4 pr-6 font-bold text-black">{label}</td>
-                  <td className="py-4 text-gray-600">{value}</td>
+              {feeRows.map(([label, value], i) => (
+                <tr key={label} className={i % 2 === 0 ? "bg-[#fafafa]" : "bg-white"}>
+                  <td className="py-4 pl-4 pr-6 font-bold text-black">{label}</td>
+                  <td className="whitespace-pre-line py-4 pr-4 text-[#333]">{value}</td>
                 </tr>
               ))}
             </tbody>
@@ -66,27 +81,29 @@ export function PricesAndLimits({
       ) : (
         <div className="mt-8 flex flex-col gap-y-10">
           {limitTables.map((table) => (
-            <div key={table.title} className="overflow-x-auto">
+            <div key={table.title} className="overflow-x-auto rounded-lg">
               <h2 className="mb-4 text-xl font-bold text-black">{table.title}</h2>
               <table className="w-full min-w-[500px] border-collapse text-left text-sm">
                 <thead>
-                  <tr className="border-b border-gray-300">
-                    <th className="py-3 pr-4 font-bold text-black"></th>
-                    <th className="py-3 pr-4 font-bold text-black">Periyot</th>
-                    <th className="py-3 pr-4 font-bold text-black">Doğrulama yapmamış</th>
-                    <th className="py-3 font-bold text-black">Kimlik doğrulama yapılmış</th>
+                  <tr className="bg-[#f2f2f2]">
+                    <th className="py-4 pl-4 pr-4 font-bold text-black"></th>
+                    <th className="py-4 pr-4 font-normal text-black">Periyot</th>
+                    <th className="py-4 pr-4 font-normal text-black">Doğrulama yapmamış</th>
+                    <th className="bg-[#e60000] py-4 pr-4 font-normal text-white">Kimlik doğrulama yapılmış</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {table.rows.map((row) => (
-                    <tr key={row.join("|")} className="border-b border-gray-200">
-                      {row.map((cell, j) => (
-                        <td key={`${row[0]}-${row[1]}-${cell}`} className={`py-3 pr-4 ${j === 0 ? "font-bold text-black" : "text-gray-600"}`}>
-                          {cell}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
+                  {table.rows.map((row, i) => {
+                    const rowBg = i % 2 === 0 ? "bg-[#fafafa]" : "bg-white";
+                    return (
+                      <tr key={row.join("|")}>
+                        <td className={cn("py-3 pl-4 pr-4 font-bold text-black", rowBg)}>{row[0]}</td>
+                        <td className={cn("py-3 pr-4 text-[#008a00]", rowBg)}>{row[1]}</td>
+                        <td className={cn("py-3 pr-4 text-black", rowBg)}>{row[2]}</td>
+                        <td className="bg-[#e60000] py-3 pr-4 text-white">{row[3]}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
