@@ -809,6 +809,35 @@ Her madde için birlikte şu alanları dolduracağız:
 - **Test edildi mi:** Evet, hem API hem UI seviyesinde — (1) ham `POST /api/blog-posts` sadece `title` ile 400 + `"Cover Image, Category, İçerik"` hata mesajı döndü; (2) admin UI'da sadece başlık girip "Değişiklikleri yayınla"ya bastım, toast "(3): Cover Image Category İçerik" hatası gösterdi; (3) 4 alanı da doldurup tekrar denedim, "Blog Yazısı başarıyla oluşturuldu" ile yayınlandı. Test kaydı silindi.
 - **Yorumlarım:**
 
+## Bölüm 8 — Rich text: görsel boyutu, YouTube gömme, tablo stili (18.08.2026)
+
+### 8.1 — İçeriğin istediğimiz yerine görsel ekleyip boyutunu değiştirebilmeliyiz
+> blog yazılarında içerik kısmına istedgimiz yerine görsel ekleyip görselin boyuutunu degistirebilmeliyiz
+
+- **Durum:** Tamamlandı
+- **DoD:** Editör, içeriğin istediği noktasına görsel ekleyebilsin; eklenen görselin boyutu (küçük/orta/büyük/tam genişlik gibi) CMS'ten seçilebilsin; site tarafında seçilen boyut uygulansın.
+- **Nasıl fixlendi:** `UploadFeature`'a (zaten vardı — görsel ekleme mevcuttu, boyut seçimi yoktu) bir `width` alanı eklendi (`select`: Küçük/Orta/Büyük/Tam Genişlik, varsayılan Büyük) — bu, görsel node'unun kendi üzerinde saklanan bir alan, yani aynı görsel bir yazıda küçük, başka bir yazıda tam genişlik kullanılabilir. `RichText.tsx`'in `upload` converter'ı `node.fields.width`'i okuyup karşılık gelen `max-w-*` sınıfını uyguluyor.
+- **Test edildi mi:** Evet, canlı — içeriğe bir görsel ekleyip düzenleme çekmecesinden (görselin üzerine gelince çıkan kalem ikonu) "Görsel Boyutu"nu "Küçük" yaptım, siteye yayınlayınca görsel gerçekten dar (280px) render edildi (varsayılan büyük/720px yerine). `RichText.test.tsx`'e 2 test eklendi (küçük sınıf uygulanması, boyut seçilmediğinde büyük'e düşmesi).
+- **Yorumlarım:**
+
+### 8.2 — Inline YouTube video gömme
+> ekstra olarak inline bir video gömebilir blog syafasına veya youtube url ini girere kbir videoyu oynatabiliriz youtube üzerinden oynatmış gibi.
+
+- **Durum:** Tamamlandı
+- **DoD:** Editör içeriğin istediği yerine bir YouTube linki yapıştırıp videoyu gömebilsin; site tarafında video gerçekten YouTube üzerinden oynatılabilir olsun (embed player).
+- **Nasıl fixlendi:** Yeni bir Lexical Block (`BlocksFeature`) — "YouTube Video" — tek alanı `youtubeUrl` (düz metin, watch/youtu.be/embed linklerinin herhangi birini kabul ediyor). `RichText.tsx`'in `blocks.youtubeEmbed` converter'ı URL'den video ID'sini regex ile çıkarıp `youtube.com/embed/{id}` iframe'i olarak (16:9 aspect-ratio, responsive) render ediyor. Tanınmayan/bozuk bir link boş render ediyor (kırık iframe göstermek yerine).
+- **Test edildi mi:** Evet, canlı — editöre "+" yanındaki blok ikonundan "YouTube Video" eklenip gerçek bir `youtube.com/watch?v=...` linki yapıştırıldı, yayınlanan sayfada video gerçek YouTube player'ı olarak (thumbnail + oynat butonu + "İzlemek için: YouTube" linki) göründü. `RichText.test.tsx`'e 3 test eklendi (watch URL, youtu.be URL, tanınmayan URL için render edilmemesi).
+- **Yorumlarım:**
+
+### 8.3 — Tablo stili ekran görüntüsündeki gibi olsun
+> ekstra olarak tablo stili ekran görüntüsündeki gibi olusmalı.
+
+- **Durum:** Tamamlandı
+- **DoD:** Rich text içindeki tablolar, paylaşılan ekran görüntüsündeki gibi görünsün: kırmızı, beyaz kalın yazılı başlık satırı; gövde satırları beyaz/açık pembe arasında dönüşümlü; belirgin hücre kenarlıkları olmadan, yuvarlak dış köşeli.
+- **Nasıl fixlendi:** `globals.css`'teki `.lexical-table*` kuralları yeniden yazıldı. Kenarlıklar kaldırıldı, hücre dolgusu artırıldı (14px/16px), köşeler `border-radius` ile yuvarlatıldı. Başlık stili artık editörün "satırı başlık yap" özelliğini kullanıp kullanmadığına bağlı DEĞİL — **ilk satır her zaman kırmızı/beyaz** render ediliyor (`:first-child` seçicisiyle), çünkü canlı testte editörün bu özelliği kullanmadan yazdığı bir tablonun ilk satırı stilsiz kaldığı görüldü. Kalan satırlar 2. satırdan itibaren dönüşümlü pembe/beyaz (`:nth-child(odd)`, header hariç).
+- **Test edildi mi:** Evet, canlı — kullanıcının paylaştığı ekran görüntüsüyle birebir aynı içerikli bir tablo (İstanbulkart/Kentkart/İzmirim Kart/Başkent Kart karşılaştırması, gerçek bir blog yazısında editör tarafından oluşturulmuş) canlı sitede kontrol edildi: kırmızı başlık, dönüşümlü pembe/beyaz satırlar ekran görüntüsüyle eşleşti.
+- **Yorumlarım:**
+
 ## İlerleme Özeti
 
 | # | Madde (kısa başlık) | Durum |
@@ -876,3 +905,6 @@ Her madde için birlikte şu alanları dolduracağız:
 | 7.10 | Excerpt kaldırıldı, kart özeti body'den türetiliyor | Tamamlandı |
 | 7.11 | Blog kartı buton yazısı özelleştirilebilir (ctaLabel) | Tamamlandı |
 | 7.12 | title/içerik/görsel/kategori olmadan yayınlanamıyor | Tamamlandı |
+| 8.1 | İçeriğe istenen yere görsel + boyut seçimi (küçük/orta/büyük/tam) | Tamamlandı |
+| 8.2 | Inline YouTube video gömme (URL yapıştır, gerçek player) | Tamamlandı |
+| 8.3 | Tablo stili: kırmızı başlık + dönüşümlü pembe/beyaz satırlar | Tamamlandı |
