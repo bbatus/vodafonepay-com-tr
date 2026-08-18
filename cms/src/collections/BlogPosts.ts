@@ -43,7 +43,11 @@ export const BlogPosts: CollectionConfig = {
     group: { tr: "İçerik", en: "Content" },
     preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/blog/${doc.slug}`) : null),
     components: {
-      beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "blog-posts" } }],
+      beforeList: [
+        { path: "/components/HelpButton#default", clientProps: { collection: "blog-posts" } },
+        // RFP follow-up: full-column CSV export, Turkish-Excel safe.
+        "/components/BlogPostsExportButton#default",
+      ],
     },
   },
   versions: {

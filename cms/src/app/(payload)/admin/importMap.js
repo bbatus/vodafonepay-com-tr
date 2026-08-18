@@ -50,6 +50,8 @@ import default_24 from "../../../components/LockedAccountsNavLink";
 import default_25 from "../../../components/LockedAccountsBanner";
 import default_26 from "../../../components/CampaignsExportButton";
 import default_27 from "../../../components/LiveOrderField";
+import default_28 from "../../../components/CategoriesExportButton";
+import default_29 from "../../../components/BlogPostsExportButton";
 import { S3ClientUploadHandler as S3ClientUploadHandler_2 } from "@payloadcms/storage-s3/client";
 import { CollectionCards as CollectionCards_1 } from "@payloadcms/next/rsc";
 import { RscEntryLexicalField, RscEntryLexicalCell, LexicalDiffComponent } from "@payloadcms/richtext-lexical/rsc";
@@ -107,6 +109,8 @@ export const importMap = {
   "/components/LockedAccountsBanner#default": default_25,
   "/components/CampaignsExportButton#default": default_26,
   "/components/LiveOrderField#default": default_27,
+  "/components/CategoriesExportButton#default": default_28,
+  "/components/BlogPostsExportButton#default": default_29,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_2,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_1,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField,

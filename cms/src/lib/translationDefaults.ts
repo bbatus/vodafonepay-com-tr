@@ -16,6 +16,7 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
     tr: "Bazı öğeler kaydedilemedi — sıralama kısmen değişmiş olabilir. Sayfayı yenileyip tekrar deneyin.",
     en: "Some items couldn't be saved — the order may be partially changed. Refresh and try again.",
   },
+  "reorderWidget.saveSuccess": { tr: "Sıralama kaydedildi.", en: "Order saved." },
   "reorderWidget.switchGroupBlocked": {
     tr: "Önce bu listedeki değişiklikleri kaydedin ya da vazgeçin.",
     en: "Save or discard your changes in this list first.",
@@ -292,6 +293,12 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "campaignsExport.exporting": { tr: "Hazırlanıyor…", en: "Preparing…" },
   "campaignsExport.done": { tr: "Liste indirildi.", en: "List downloaded." },
   "campaignsExport.error": { tr: "Liste indirilemedi.", en: "Couldn't download list." },
+  "categoriesExport.button": { tr: "Dışa Aktar (CSV)", en: "Export (CSV)" },
+  "categoriesExport.exporting": { tr: "Hazırlanıyor…", en: "Preparing…" },
+  "categoriesExport.done": { tr: "Liste indirildi.", en: "List downloaded." },
+  "blogPostsExport.button": { tr: "Dışa Aktar (CSV)", en: "Export (CSV)" },
+  "blogPostsExport.exporting": { tr: "Hazırlanıyor…", en: "Preparing…" },
+  "blogPostsExport.done": { tr: "Liste indirildi.", en: "List downloaded." },
 
   "auditLogsExport.button": { tr: "Dışa Aktar (CSV)", en: "Export (CSV)" },
   "auditLogsExport.exporting": { tr: "Hazırlanıyor…", en: "Preparing…" },
