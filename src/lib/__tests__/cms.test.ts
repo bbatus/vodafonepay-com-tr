@@ -20,6 +20,7 @@ import {
   getProductHero,
   getStepCards,
   getTranslation,
+  richTextToPlainText,
   textToParagraphs,
   type CmsCampaign,
 } from "@/lib/cms";
@@ -27,6 +28,32 @@ import {
 const okJson = (body: unknown) => Promise.resolve({ ok: true, json: () => Promise.resolve(body) } as Response);
 const notOk = () => Promise.resolve({ ok: false, json: () => Promise.resolve({}) } as Response);
 const media = { url: "/img.jpg", alt: "alt text" };
+
+describe("richTextToPlainText", () => {
+  const doc = (children: unknown[]) => ({ root: { children } });
+  const text = (t: string) => ({ text: t });
+  const paragraph = (t: string) => ({ children: [text(t)] });
+
+  it("returns empty string for null/malformed input", () => {
+    expect(richTextToPlainText(null, 100)).toBe("");
+    expect(richTextToPlainText({}, 100)).toBe("");
+  });
+
+  it("flattens paragraphs into one space-joined string", () => {
+    expect(richTextToPlainText(doc([paragraph("Merhaba"), paragraph("dünya")]), 100)).toBe("Merhaba dünya");
+  });
+
+  it("leaves short text untouched (no ellipsis)", () => {
+    expect(richTextToPlainText(doc([paragraph("Kısa metin")]), 100)).toBe("Kısa metin");
+  });
+
+  it("hard-truncates with an ellipsis past maxLength, matching the live site's own card teaser style", () => {
+    const long = "Toplu taşıma kartları, büyük şehirlerde günlük hayatın vazgeçilmez bir parçasıdır.";
+    const result = richTextToPlainText(doc([paragraph(long)]), 20);
+    expect(result).toBe("Toplu taşıma kartlar...");
+    expect(result.length).toBe(23);
+  });
+});
 
 describe("textToParagraphs", () => {
   it("splits on blank lines and trims", () => {
@@ -228,12 +255,14 @@ describe("cms.ts fetch-backed getters", () => {
   it("getBlogPosts returns docs on success", async () => {
     // `category` is a populated Categories relationship now, not free text —
     // that's what makes /blog's filter tabs able to match the posts at all.
+    // No `excerpt` field any more — the card teaser is derived from `body`
+    // (see richTextToPlainText tests below).
     const doc = {
       id: "b1",
       title: "T",
       slug: "t",
       coverImage: media,
-      excerpt: "E",
+      body: { root: { children: [] } },
       category: { label: "Kart", slug: "kart" },
     };
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));

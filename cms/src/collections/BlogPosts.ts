@@ -79,24 +79,20 @@ export const BlogPosts: CollectionConfig = {
       admin: { description: "Liste kartında 361x240 (yatay/dikdörtgen) kırpılır — kare değil, yatay fotoğraf tercih edin." },
     },
     {
-      // RFP follow-up: a real post here had 5988 characters in this field
-      // (the entire article, no `body` at all) — the /blog listing card has
-      // no way to know that's wrong, so it rendered the whole thing and blew
-      // out the grid to one column. `maxLength` makes that structurally
-      // impossible going forward; the description says what this field is
-      // actually for so an editor reaches for `body` (now a full richText
-      // editor — headings, lists, the "Vurgu" highlight, tables) for the
-      // article itself instead of pasting it here.
-      name: "excerpt",
-      type: "textarea",
+      // RFP follow-up: `excerpt` (a separate short-summary field) removed.
+      // A real post here had 5988 characters pasted into it — the entire
+      // article, with `body` left empty — and even after capping it at 200
+      // chars it was still an extra field an editor had to remember to fill
+      // in sync with `body`. The live site's own card teaser is just the
+      // article's own text, hard-truncated with an ellipsis, not a
+      // separately-authored summary — so the card teaser is now derived
+      // from `body` on the site side (src/lib/cms.ts's
+      // `richTextToPlainText`), and there's nothing left here to duplicate.
+      name: "body",
+      type: "richText",
+      label: { tr: "İçerik", en: "Body" },
       required: true,
-      maxLength: 200,
-      admin: {
-        description:
-          "Liste kartında görünen kısa özet (en fazla 200 karakter) — yazının kendisi değil. Asıl içerik için aşağıdaki 'İçerik' alanını kullanın.",
-      },
     },
-    { name: "body", type: "richText", label: { tr: "İçerik", en: "Body" } },
     {
       // Was free text, which is why /blog's filter tabs were broken: the page
       // offered the Categories taxonomy (the live vodafonepay.com.tr blog
@@ -106,12 +102,13 @@ export const BlogPosts: CollectionConfig = {
       // and it's the same taxonomy Campaigns.category uses.
       //
       // Safe to change now specifically because `blog_posts` was verified
-      // EMPTY (0 rows) — no free-text values to migrate. Deliberately NOT
-      // `required`: the live site's blog has posts under no category too, and
-      // making it required would block an editor mid-draft.
+      // EMPTY (0 rows) — no free-text values to migrate. Required per RFP
+      // follow-up: title/body/coverImage/category must all be filled before
+      // a post can be published.
       name: "category",
       type: "relationship",
       relationTo: "categories",
+      required: true,
       // RFP follow-up: used to share Campaigns' scope (it matched the live
       // site's taxonomy at the time, but that was Campaigns' list Blog
       // happened to reuse, not Blog's own). Blog now manages its own
@@ -120,8 +117,17 @@ export const BlogPosts: CollectionConfig = {
       filterOptions: () => ({ scope: { equals: CATEGORY_SCOPES.BLOG } }),
       admin: {
         description:
-          "Blog listesindeki filtre sekmesini belirler (Blog akışındaki kategoriler). Boş bırakılırsa yazı yalnızca 'Tümü' sekmesinde görünür. Listede yoksa Kategoriler'e gidip 'Akış: Blog' ile yeni bir tane oluşturun.",
+          "Blog listesindeki filtre sekmesini belirler (Blog akışındaki kategoriler). Listede yoksa Kategoriler'e gidip 'Akış: Blog' ile yeni bir tane oluşturun.",
       },
+    },
+    {
+      // Same pattern as Campaigns.ctaLabel — the card's button text is
+      // editable per-post instead of always saying "Detayları gör".
+      name: "ctaLabel",
+      type: "text",
+      defaultValue: "Detayları gör",
+      label: { tr: "Buton Yazısı", en: "Button Label" },
+      admin: { description: "Blog kartındaki butonun üzerinde yazacak metin. Örnek: Detayları Gör, Yazıyı Oku" },
     },
     { name: "publishedDate", type: "date", admin: { date: { pickerAppearance: "dayOnly" } } },
     {

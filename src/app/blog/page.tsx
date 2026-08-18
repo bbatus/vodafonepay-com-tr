@@ -6,7 +6,7 @@ import { StickyQr } from "@/components/StickyQr";
 import type { CardListItem } from "@/components/CardListGrid";
 import { ContentUnavailable } from "@/components/ContentUnavailable";
 import { Footer } from "@/components/Footer";
-import { getBlogPosts, getCategories, getTranslation } from "@/lib/cms";
+import { getBlogPosts, getCategories, getTranslation, richTextToPlainText } from "@/lib/cms";
 import type { FilterTabCategory } from "@/components/FilterTabs";
 import { BlogFilterableList } from "./BlogFilterableList";
 import { buildMetadata } from "@/lib/metadata";
@@ -32,9 +32,10 @@ export default async function Blog() {
     id: p.id,
     image: p.coverImage.url,
     title: p.title,
-    description: p.excerpt,
+    description: richTextToPlainText(p.body, 140),
     href: `/blog/${p.slug}`,
     category: p.category?.slug,
+    linkLabel: p.ctaLabel,
   }));
 
   // Consistent with /sikca-sorulan-sorular (RFP follow-up): every Blog-scope

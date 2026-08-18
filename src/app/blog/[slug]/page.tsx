@@ -6,7 +6,7 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getBlogPostBySlug, getBlogPosts } from "@/lib/cms";
+import { getBlogPostBySlug, getBlogPosts, richTextToPlainText } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 import { RichText } from "@/components/RichText";
 
@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!post) return {};
   return buildMetadata({
     title: post.seoTitle || `${post.title} | Vodafone Pay`,
-    description: post.seoDescription || post.excerpt,
+    description: post.seoDescription || richTextToPlainText(post.body, 155),
     path: `/blog/${post.slug}`,
     image: post.coverImage.url,
   });
@@ -51,8 +51,6 @@ export default async function BlogYazisi({ params }: { params: Promise<{ slug: s
         {post.publishedDate && (
           <p className="mt-2 text-sm text-gray-500">{new Date(post.publishedDate).toLocaleDateString("tr-TR")}</p>
         )}
-        <p className="mt-4 text-base text-gray-700">{post.excerpt}</p>
-
         <div className="mt-8">
           <RichText data={post.body} />
         </div>

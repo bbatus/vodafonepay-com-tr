@@ -281,12 +281,40 @@ export async function getHomepageFaqItems(): Promise<CmsFaqItem[] | null> {
   return data?.docs ?? null;
 }
 
+/**
+ * RFP follow-up: `BlogPosts.excerpt` (a separately-authored short summary)
+ * was removed — a real post had the entire article pasted into it while
+ * `body` sat empty, and even capped at 200 chars it was still a second
+ * field an editor had to keep in sync with the real content. The live
+ * site's own card teaser is just the article's own text, hard-truncated
+ * with an ellipsis (confirmed against a vodafonepay.com.tr screenshot —
+ * e.g. "...büyük şehirlerde gün...", cut mid-word, not word-wrapped), not a
+ * separately-authored summary. This derives the same thing from `body`.
+ */
+export function richTextToPlainText(node: unknown, maxLength: number): string {
+  const root = (node as { root?: { children?: unknown[] } } | null | undefined)?.root;
+  if (!root?.children) return "";
+
+  const extractText = (n: unknown): string => {
+    if (!n || typeof n !== "object") return "";
+    const obj = n as { text?: string; children?: unknown[] };
+    if (typeof obj.text === "string") return obj.text;
+    if (Array.isArray(obj.children)) return obj.children.map(extractText).join(" ");
+    return "";
+  };
+
+  const full = root.children.map(extractText).map((t) => t.trim()).filter(Boolean).join(" ");
+  if (full.length <= maxLength) return full;
+  return `${full.slice(0, maxLength).trimEnd()}...`;
+}
+
 const blogPostSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   title: z.string(),
   slug: z.string(),
   coverImage: mediaSchema,
-  excerpt: z.string(),
+  body: z.unknown().nullable().optional(),
+  ctaLabel: nullableString(),
   // Was free text; now the same Categories relationship Campaigns uses, so
   // /blog's filter tabs and the posts' own values finally index on the same
   // thing (matches how the live vodafonepay.com.tr blog filters).
@@ -309,7 +337,6 @@ const blogPostDetailSchema = z.object({
   title: z.string(),
   slug: z.string(),
   coverImage: mediaSchema,
-  excerpt: z.string(),
   body: z.unknown().nullable().optional(),
   category: categoryRefSchema.nullable(),
   publishedDate: nullableString(),
