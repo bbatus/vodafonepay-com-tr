@@ -119,8 +119,15 @@ const converters: JSXConvertersFunction<DefaultNodeTypes> = ({ defaultConverters
       if (!videoId) return null;
       return (
         <div key={node.id} className="mb-4 aspect-video w-full max-w-[720px] overflow-hidden rounded-lg">
+          {/* youtube-nocookie.com (Google's own "privacy-enhanced mode" domain)
+              instead of youtube.com — found live that the regular domain shows
+              an interstitial "İzlemek için: YouTube" consent screen instead of
+              actually playing inline on first load in this environment, which
+              is exactly the "looks like a download link" complaint. Same video,
+              same embed API, just doesn't route through a chain of third-party
+              cookie/consent checks before it'll play. */}
           <iframe
-            src={`https://www.youtube.com/embed/${videoId}`}
+            src={`https://www.youtube-nocookie.com/embed/${videoId}`}
             title="YouTube video"
             className="h-full w-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

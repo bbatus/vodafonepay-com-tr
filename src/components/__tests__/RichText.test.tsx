@@ -105,13 +105,13 @@ describe("RichText", () => {
     it("renders an iframe with the extracted video ID for a watch URL", () => {
       const { container } = render(<RichText data={lexicalDoc([youtubeBlock("https://www.youtube.com/watch?v=dQw4w9WgXcQ")])} />);
       const iframe = container.querySelector("iframe");
-      expect(iframe?.getAttribute("src")).toBe("https://www.youtube.com/embed/dQw4w9WgXcQ");
+      expect(iframe?.getAttribute("src")).toBe("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
     });
 
     it("also accepts a youtu.be short URL", () => {
       const { container } = render(<RichText data={lexicalDoc([youtubeBlock("https://youtu.be/dQw4w9WgXcQ")])} />);
       const iframe = container.querySelector("iframe");
-      expect(iframe?.getAttribute("src")).toBe("https://www.youtube.com/embed/dQw4w9WgXcQ");
+      expect(iframe?.getAttribute("src")).toBe("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
     });
 
     it("renders nothing for a URL that isn't recognizable as YouTube", () => {
