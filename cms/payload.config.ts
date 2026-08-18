@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { postgresAdapter } from "@payloadcms/db-postgres";
+import type { Block } from "payload";
 import {
   lexicalEditor,
   BoldFeature,
@@ -19,6 +20,7 @@ import {
   InlineToolbarFeature,
   EXPERIMENTAL_TableFeature,
   TextStateFeature,
+  BlocksFeature,
 } from "@payloadcms/richtext-lexical";
 import { s3Storage } from "@payloadcms/storage-s3";
 import { tr } from "@payloadcms/translations/languages/tr";
@@ -107,6 +109,30 @@ const devAdminPassword = process.env.CMS_ADMIN_PASSWORD || "dev-admin-please-cha
 // auto-auths on any failed auth extraction, so this was never exercised
 // until real login was tested.
 const cmsServerUrl = process.env.CMS_SERVER_URL || `http://localhost:${cmsPort}`;
+
+/**
+ * RFP follow-up: inline video embed inside richText content — same idea as
+ * Pages.ts's page-builder `VideoBlock` (accepts a raw YouTube URL/ID,
+ * renders as a responsive iframe), but registered as a *lexical* block via
+ * `BlocksFeature` so it can be dropped anywhere inside a blog/campaign body,
+ * not just as a whole-page section. URL parsing (accepting the full
+ * youtube.com/watch, youtu.be, or embed URL, not just a bare ID) happens at
+ * render time in src/components/RichText.tsx, not here — this only stores
+ * whatever the editor pasted.
+ */
+const YouTubeEmbedBlock: Block = {
+  slug: "youtubeEmbed",
+  labels: { singular: "YouTube Video", plural: "YouTube Videoları" },
+  fields: [
+    {
+      name: "youtubeUrl",
+      type: "text",
+      required: true,
+      label: "YouTube Video Linki",
+      admin: { description: "youtube.com/watch?v=..., youtu.be/... veya embed linki yapıştırabilirsiniz." },
+    },
+  ],
+};
 
 export default buildConfig({
   serverURL: cmsServerUrl,
@@ -327,7 +353,34 @@ export default buildConfig({
       LinkFeature({ enabledCollections: [] }),
       BlockquoteFeature(),
       HorizontalRuleFeature(),
-      UploadFeature({ collections: { media: { fields: [] } } }),
+      // RFP follow-up: `width` is a per-instance field on the upload node
+      // itself (not on Media), so the same image can be inserted small in
+      // one post and full-width in another — src/components/RichText.tsx's
+      // `upload` converter reads `node.fields.width` and applies it.
+      UploadFeature({
+        collections: {
+          media: {
+            fields: [
+              {
+                name: "width",
+                type: "select",
+                defaultValue: "large",
+                label: "Görsel Boyutu",
+                options: [
+                  { label: "Küçük", value: "small" },
+                  { label: "Orta", value: "medium" },
+                  { label: "Büyük", value: "large" },
+                  { label: "Tam Genişlik", value: "full" },
+                ],
+              },
+            ],
+          },
+        },
+      }),
+      // RFP follow-up: inline YouTube embed, droppable anywhere in the
+      // content (not just as a whole-page section like Pages.ts's own
+      // VideoBlock). See YouTubeEmbedBlock's own comment above.
+      BlocksFeature({ blocks: [YouTubeEmbedBlock] }),
       // @experimental in the package itself (literally named
       // EXPERIMENTAL_TableFeature) — this is the only table implementation
       // Payload ships, and it's what the live vodafonepay.com.tr fee/limit

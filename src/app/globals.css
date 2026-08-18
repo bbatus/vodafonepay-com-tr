@@ -158,22 +158,49 @@ html[data-embedded-preview]::-webkit-scrollbar {
  * is the scroll boundary so the table scrolls internally instead of
  * pushing the whole page layout wider.
  */
+/*
+ * RFP follow-up: restyled to match a live vodafonepay.com.tr blog table
+ * screenshot — solid Vodafone-red header row with white bold text, body
+ * rows alternating a light pink tint and white, no visible cell borders
+ * (the original #d9d9d9 grid-line style didn't match; the live table has
+ * none — rows are separated by background color alone).
+ */
 .lexical-richtext .lexical-table-container {
   overflow-x: auto;
   margin-bottom: 1rem;
+  border-radius: 8px;
 }
 .lexical-richtext .lexical-table {
   border-collapse: collapse;
   width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
 }
 .lexical-richtext .lexical-table-cell {
-  border: 1px solid #d9d9d9;
-  padding: 8px 12px;
+  border: none;
+  padding: 14px 16px;
   text-align: left;
   vertical-align: top;
+  color: #333;
 }
+/*
+ * The FIRST row is always styled as the red header, regardless of whether
+ * the editor bothered to use the table toolbar's "mark as header row"
+ * toggle — confirmed live that a table typed without that toggle still
+ * needs to look right (headerState stays 0, so relying on it alone left
+ * the first row unstyled). `lexical-table-cell-header-1`/`-3` are kept as
+ * a second, independent way to get the same red styling — if an editor
+ * DOES mark a row as header elsewhere in the table, it still gets it.
+ */
+.lexical-richtext .lexical-table-row:first-child .lexical-table-cell,
 .lexical-richtext .lexical-table-cell-header-1,
 .lexical-richtext .lexical-table-cell-header-3 {
-  background-color: #f7f7f7;
-  font-weight: 500;
+  background-color: #e60000 !important;
+  color: #fff;
+  font-weight: 700;
+}
+/* Body rows alternate starting right after the header: row 2 stays white,
+   the pink stripe starts on row 3 (every odd row that isn't the header). */
+.lexical-richtext .lexical-table-row:not(:first-child):nth-child(odd) .lexical-table-cell {
+  background-color: #fbe3e3;
 }

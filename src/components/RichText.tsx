@@ -20,6 +20,26 @@ type StatefulTextNode = { $?: { color?: string } };
 
 const VURGU_COLOR = "#e60000";
 
+/** Matches the `width` select options configured on UploadFeature in
+ * cms/payload.config.ts — keeps the two in sync in one place. */
+const UPLOAD_WIDTH_CLASSES: Record<string, string> = {
+  small: "max-w-[280px]",
+  medium: "max-w-[480px]",
+  large: "max-w-[720px]",
+  full: "max-w-full",
+};
+
+/**
+ * Accepts a youtube.com/watch, youtu.be, or already-an-embed URL and
+ * returns just the video ID, or null if it doesn't look like YouTube at
+ * all (a typo'd URL still renders as a link-less empty embed otherwise,
+ * which is worse than showing nothing).
+ */
+function extractYouTubeId(url: string): string | null {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+  return match?.[1] ?? null;
+}
+
 const converters: JSXConvertersFunction<DefaultNodeTypes> = ({ defaultConverters }) => ({
   ...defaultConverters,
   text: (args) => {
@@ -88,7 +108,27 @@ const converters: JSXConvertersFunction<DefaultNodeTypes> = ({ defaultConverters
   upload: (args) => {
     const rendered = (defaultConverters.upload as (a: typeof args) => ReactNode)(args);
     if (!rendered) return null;
-    return <span className="mb-4 block">{rendered}</span>;
+    const width = (args.node.fields as { width?: string } | undefined)?.width;
+    const widthClass = UPLOAD_WIDTH_CLASSES[width ?? "large"] ?? UPLOAD_WIDTH_CLASSES.large;
+    return <span className={cn("mb-4 block", widthClass)}>{rendered}</span>;
+  },
+  blocks: {
+    youtubeEmbed: ({ node }: { node: { id: string; fields: { youtubeUrl?: string } } }) => {
+      const url = node.fields.youtubeUrl ?? "";
+      const videoId = extractYouTubeId(url);
+      if (!videoId) return null;
+      return (
+        <div key={node.id} className="mb-4 aspect-video w-full max-w-[720px] overflow-hidden rounded-lg">
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}`}
+            title="YouTube video"
+            className="h-full w-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      );
+    },
   },
 });
 

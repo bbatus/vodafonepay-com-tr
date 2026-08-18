@@ -77,6 +77,7 @@ import {
   FixedToolbarFeatureClient,
   TableFeatureClient,
   TextStateFeatureClient,
+  BlocksFeatureClient,
 } from "@payloadcms/richtext-lexical/client";
 
 export const importMap = {
@@ -134,4 +135,5 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#FixedToolbarFeatureClient": FixedToolbarFeatureClient,
   "@payloadcms/richtext-lexical/client#TableFeatureClient": TableFeatureClient,
   "@payloadcms/richtext-lexical/client#TextStateFeatureClient": TextStateFeatureClient,
+  "@payloadcms/richtext-lexical/client#BlocksFeatureClient": BlocksFeatureClient,
 };
