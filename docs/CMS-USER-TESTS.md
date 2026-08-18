@@ -782,6 +782,33 @@ Her madde için birlikte şu alanları dolduracağız:
 - **Nasıl doğrulandı:** Blog Yazısı → Oluştur formunda "Category" alanı gerçek bir ilişki (relationship) dropdown'u — "+" butonuyla yeni kategori oluşturma dahil, sadece `scope: blog` olan kategorileri listeliyor. Az sayıda seçenek (şu an 2: "Anında Bakiye", "Kart") görünmesi, listenin sabit/hardcoded olmasından değil, DB'de henüz sadece 2 tane Blog-scope kategori olmasından kaynaklanıyor — 7.5'te doğrulanan aynı mekanizma.
 - **Yorumlarım:**
 
+### 7.10 — Excerpt kaldırıldı, kart özeti içerikten türetiliyor
+> ya bence excerpt alanı olmamalı ekran goruntusunde orijinal sitemiz vodafonepaycomtr de nasıl gözüktügünü attım bence belirli bir karakterden sonrası .... koyup kesiyor zaten bu field i kullanıcının girmesine gerek yok gibime geliyor.
+
+- **Durum:** Tamamlandı
+- **DoD:** `excerpt` alanı kaldırılsın; kart özeti `body`'den otomatik türetilsin, canlı sitedeki gibi belirli karakterden sonra "..." ile kesilsin; editörün ayrıca dolduracağı bir alan kalmasın.
+- **Nasıl fixlendi:** `BlogPosts.excerpt` alanı tamamen silindi (Postgres'te `excerpt`/`version_excerpt` kolonları da `DROP COLUMN` ile kaldırıldı — SQL için `RICHTEXT-SIRA-TURU-RAPORU.md`'nin SQL bölümüne eklendi). Yeni `richTextToPlainText(body, maxLength)` (`src/lib/cms.ts`) `body`'nin lexical JSON'unu düz metne çevirip `maxLength` karakterden sonra `"..."` ile kesiyor — canlı sitenin ekran görüntüsündeki davranışla birebir (kelime ortasından kesme dahil). `/blog` listesi 140 karakter, detay sayfasının meta description fallback'i 155 karakter kullanıyor.
+- **Test edildi mi:** Evet, canlı — id 9'un kartı artık `body`'den türetilmiş, "..." ile biten bir özet gösteriyor. `richTextToPlainText` için 4 birim testi (`src/lib/__tests__/cms.test.ts`): boş/malformed input, birden fazla paragrafın birleşmesi, kısa metnin değişmeden kalması, uzun metnin tam karakterde kesilmesi.
+- **Yorumlarım:**
+
+### 7.11 — Blog kartı buton yazısı özelleştirilebilir olsun
+> http://localhost:3010/admin/collections/blog-posts/create burada da detayları gör gibi button ismini değiştirebiliyor olsak iyi olur bence kampanya olustururken de yapmıstık aynı yapıyı.
+
+- **Durum:** Tamamlandı
+- **DoD:** Campaigns.ctaLabel ile aynı desende, blog kartındaki buton metni CMS'ten değiştirilebilsin; boş bırakılırsa "Detayları gör" varsayılansın.
+- **Nasıl fixlendi:** `BlogPosts.ts`'e `ctaLabel` (text, `defaultValue: "Detayları gör"`) eklendi. `getBlogPosts()` bunu okuyor, `/blog` sayfası `CardListItem.linkLabel`'a geçiriyor (`CardListCard` zaten `item.linkLabel || linkLabel` ile per-kart override'ı destekliyor — kod değişikliği gerekmedi).
+- **Test edildi mi:** Evet, canlı — id 9'un `ctaLabel`'ını "Yazıyı Oku" yaptım, `/blog` kartında buton metni "Yazıyı Oku" olarak göründü.
+- **Yorumlarım:**
+
+### 7.12 — Zorunlu alanlar: title/içerik/görsel/kategori olmadan yayınlanamasın
+> ekstra olarak blog olustururken zorunlu fieldlarımızı seçelim. title, içerik, 1 görsel, category seçilmeden değişiklikler yayınlanamasın. bu 4 field dolu olması gerekiyor.
+
+- **Durum:** Tamamlandı
+- **DoD:** `title`, `body` (İçerik), `coverImage`, `category` — bu 4 alan doldurulmadan "Değişiklikleri yayınla" başarısız olsun, editöre hangi alanların eksik olduğu net gösterilsin.
+- **Nasıl fixlendi:** `body` ve `category`'ye `required: true` eklendi (`title`/`coverImage` zaten zorunluydu). Bu repo'da taslak kaydı da (4.2 kararı gereği) zorunlu alan doğrulamasından geçiyor — yani "Taslağı kaydet" de eksik alanlarla sessizce kabul etmiyor, aynı 4.2'deki gibi net hata gösteriyor (yayına özel bir davranış değil, var olan kuralın doğal sonucu).
+- **Test edildi mi:** Evet, hem API hem UI seviyesinde — (1) ham `POST /api/blog-posts` sadece `title` ile 400 + `"Cover Image, Category, İçerik"` hata mesajı döndü; (2) admin UI'da sadece başlık girip "Değişiklikleri yayınla"ya bastım, toast "(3): Cover Image Category İçerik" hatası gösterdi; (3) 4 alanı da doldurup tekrar denedim, "Blog Yazısı başarıyla oluşturuldu" ile yayınlandı. Test kaydı silindi.
+- **Yorumlarım:**
+
 ## İlerleme Özeti
 
 | # | Madde (kısa başlık) | Durum |
@@ -846,3 +873,6 @@ Her madde için birlikte şu alanları dolduracağız:
 | 7.7 | Blog slug otomatik oluşturma (title'dan, Categories deseniyle) | Tamamlandı |
 | 7.8 | Blog kartı: excerpt maxLength + line-clamp + CTA + kusurlu test verisi düzeltmesi | Tamamlandı |
 | 7.9 | Kategori seçici "hardcoded gibi" görünüyor | Tamamlandı — yanlış alarm |
+| 7.10 | Excerpt kaldırıldı, kart özeti body'den türetiliyor | Tamamlandı |
+| 7.11 | Blog kartı buton yazısı özelleştirilebilir (ctaLabel) | Tamamlandı |
+| 7.12 | title/içerik/görsel/kategori olmadan yayınlanamıyor | Tamamlandı |

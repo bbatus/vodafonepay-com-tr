@@ -73,6 +73,20 @@ ALTER TYPE enum_categories_scope ADD VALUE IF NOT EXISTS 'blog';
 
 Kusurlu test kaydının (id 9) verisi düzeltmesi (§7.8) SQL ile değil, Payload API üzerinden (`PATCH /api/blog-posts/9`) yapıldı — `body` alanının karmaşık iç içe JSONB yapısını elle SQL ile güncellemek riskli olurdu; API, `beforeChange`/`afterChange` hook'larının (revalidate, audit log) doğru çalışmasını da garantiliyor.
 
+### 5.1 — Ek tur: excerpt kaldırma + ctaLabel (§7.10–7.12)
+
+```sql
+BEGIN;
+ALTER TABLE blog_posts ADD COLUMN cta_label character varying DEFAULT 'Detayları gör';
+ALTER TABLE _blog_posts_v ADD COLUMN version_cta_label character varying;
+UPDATE blog_posts SET cta_label = 'Detayları gör' WHERE cta_label IS NULL;
+ALTER TABLE blog_posts DROP COLUMN excerpt;
+ALTER TABLE _blog_posts_v DROP COLUMN version_excerpt;
+COMMIT;
+```
+
+`body`/`category`'nin `required: true` olması (§7.12) uygulama seviyesinde bir doğrulama — mevcut satırlarda bu iki kolon zaten nullable `NOT NULL` kısıtı eklenmedi (Payload'ın kendisi de required alanlar için DB seviyesinde NOT NULL uygulamıyor, taslaklar/versiyon satırları eksik alanlarla var olabiliyor), dolayısıyla bu madde için ek bir şema değişikliği gerekmedi.
+
 ## 6. Doğrulama
 
 - `npm run check` (kök): lint + typecheck + test (97/97) + build — temiz.
