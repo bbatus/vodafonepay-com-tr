@@ -838,6 +838,73 @@ Her madde için birlikte şu alanları dolduracağız:
 - **Test edildi mi:** Evet, canlı — kullanıcının paylaştığı ekran görüntüsüyle birebir aynı içerikli bir tablo (İstanbulkart/Kentkart/İzmirim Kart/Başkent Kart karşılaştırması, gerçek bir blog yazısında editör tarafından oluşturulmuş) canlı sitede kontrol edildi: kırmızı başlık, dönüşümlü pembe/beyaz satırlar ekran görüntüsüyle eşleşti.
 - **Yorumlarım:**
 
+## Bölüm 9 — Video gömme, sıra önerisi, CSV, anasayfa taşan QR (18.08.2026)
+
+### 9.1 — YouTube videosu indirilebilir link gibi görünüyordu
+> O videonun öyle olmaması lazım sanki indirilebilr link gibi olmus. Anasayfadaki gibi inline video olacak sürekli oynayacak baslatilabilecek youtube olmasa bile.
+
+- **Durum:** Tamamlandı
+- **Nasıl fixlendi:** İframe kaynağı `youtube.com/embed/` yerine `youtube-nocookie.com/embed/` (Google'ın "gizlilik geliştirilmiş mod" alan adı) olarak değiştirildi — canlı test ederken normal alan adının, ilk yüklemede gerçekten inline oynamak yerine "İzlemek için: YouTube" yazan bir onay ekranı gösterdiği görüldü; aynı video, aynı embed API'si, sadece üçüncü taraf çerez/onay zincirinden geçmiyor.
+- **Test edildi mi:** Evet, canlı — test blog yazısına video eklendi, sitede `<iframe src="https://www.youtube-nocookie.com/embed/...">` olarak render edildiği doğrulandı. `RichText.test.tsx`'teki 2 test güncellendi.
+- **Yorumlarım:**
+
+### 9.2 — Kategoriler tablosunda sürükle-bırak dropdown ile seçilebilir olmalı (yanlış alarm)
+> kategori olustururken kategoriler tablosu var ya orada da sürükle bırakta nasıl dropdown var ve sadece dropdown un seçilen bileşeninin alt üyelerini gösteriyorsa o tabloda da hepsi bir arada değil de dropdownla seçilebilir olmalı.
+
+- **Durum:** Tamamlandı — **gerçek bug değil, doğrulandı**
+- **Nasıl doğrulandı:** Kategoriler'in sürükle-bırak widget'ı zaten tek bir dropdown (Kampanyalar/Blog/Sık Sorulan Sorular) ile seçilen akışın kategorilerini gösteriyor — sayfa metnini düz okuyunca dropdown'un kapalı `<option>`'ları ayrı başlıklarmış gibi göründü, gerçek DOM'da (`document.querySelectorAll('select')`) tek bir `<select>` olduğu doğrulandı.
+- **Yorumlarım:**
+
+### 9.3 — Sürükle-bırak sonrası "Kaydet"/"Vazgeç" butonları kayboLmuyor, geri bildirim yok
+> bir de sürükle bıraktan sonra kaydet dememe rağmen hala kaydet veya vazgec butonları devam ediyor. Gidip güncelliyor ama orada hala kaydet vaazgeç butonları kalıyor feedback vermesi lazım kullanıcıya basarili basarisiz gibi. ve kaydedildi falan demesi lazım.
+
+- **Durum:** Tamamlandı
+- **DoD:** Başarılı bir kayıttan sonra "Kaydet"/"Vazgeç" butonları kaybolmalı; editöre başarı/hata toast'ı gösterilmeli.
+- **Nasıl fixlendi:** Kök neden: "değişti mi" kontrolü hep `initialDocs` prop'una karşı yapılıyordu — bu prop kayıttan sonra hiç değişmiyor (`onSaved` sadece `router.refresh()` çağırıyor, bu istemci tarafında fetch edilmiş `docs` state'ini güncellemiyor). Artık ayrı bir `savedDocs` state tutuluyor, başarılı kayıtta güncelleniyor — "değişti mi" kontrolü buna göre yapılıyor. `toast.success("Sıralama kaydedildi.")` / `toast.error(...)` eklendi.
+- **Test edildi mi:** Evet, canlı — Kategoriler'de gerçek bir sürükle-bırak (React fiber üzerinden simüle edildi, native DnD event'leri bu ortamda güvenilir tetiklenmiyordu) + Kaydet sonrası: toast "Sıralama kaydedildi." (success) göründü, butonlar hemen kayboldu.
+- **Yorumlarım:**
+
+### 9.4 — Kategoriler ve Bloglar için CSV export
+> kategoriler de csv olarak export alınabilmeli türkçe karakter destekleyecek sekilde. bloglar da alınmalı.
+
+- **Durum:** Tamamlandı
+- **Nasıl fixlendi:** Campaigns/Users/AuditLogs'un zaten kullandığı paylaşılan `CsvExportButton` (UTF-8 BOM, noktalı virgülle ayrılmış — Türkçe Excel için) — `CategoriesExportButton.tsx` ve `BlogPostsExportButton.tsx` eklendi, ilgili koleksiyonların liste sayfasına "Dışa Aktar (CSV)" butonu olarak bağlandı.
+- **Test edildi mi:** Evet, canlı — her iki listede butona tıklandı, "Liste indirildi." (success) toast'ı doğrulandı.
+- **Yorumlarım:**
+
+### 9.5 — Sıra alanı: canlı öneri + tekrarlayan sıra hatası (tüm koleksiyonlarda)
+> her collectionda order sıra falan verdiğimiz yer var ya... sistemin her yeni eklenen şey için sıra eklemesi lazım... 1 2 3 doluysa kullanıcı 1 2 3 dolu mu diye bakmamalı 4 otomatik dolu gelmeli... ama 1 2 3 yaparsa da hata almalı tabi.
+
+- **Durum:** Tamamlandı
+- **DoD:** (1) Sıra alanı boş bırakılınca zaten otomatik sona ekleniyordu (var olan `assignNextOrder`) — editör bunu GÖRMELİ (sadece sessizce çalışması yetmiyor). (2) Grupta zaten kullanılan bir sırayı elle yazınca hata almalı — hem oluşturma hem güncellemede.
+- **Nasıl fixlendi:** `LiveOrderField` (daha önce sadece Sık Sorulanlar'da vardı) artık Kategoriler, İçerik Blokları, Özellik Kartları, Menü Linkleri ve Adım Kartları'nın `order` alanına da bağlı — "Bu grupta N kayıt var — önerilen sıra: M" + "M kullan" butonu. `assignNextOrder` hook'u genişletildi: artık elle girilen bir değer, aynı gruptaki bir kardeşle çakışıyorsa (oluşturma VEYA güncellemede) 400 hatası fırlatıyor, çakışan kaydın adını söylüyor. Tek akışlı koleksiyonlar (Duyurular, Ücret Tablosu, Limit Tabloları) canlı öneri alanına bağlanmadı — grup yok, liste zaten görünür — ama çakışma koruması onlarda da var.
+- **Test edildi mi:** Evet, canlı — Kategoriler'de yeni kayıt formunda "Bu grupta 4 kayıt var — önerilen sıra: 5" göründü; sıraya elle "1" yazıp kaydedince "1. sıra bu grupta zaten "Anında Bakiye" tarafından kullanılıyor..." hatası alındı; "5" ile kayıt başarılı oldu. `ordering.test.ts`'e 4 yeni test eklendi (kardeşle çakışma reddi, güncellemede farklı bir kardeşe taşımanın reddi, kendi mevcut konumuna tekrar kaydetmenin izinli olması, dahil).
+- **Yorumlarım:**
+
+### 9.6 — Ücretler ve Limitler tablo stili canlı siteyle eşleşmiyor
+> limitler tablosu normalde ekrna görüntüsündeki gibi gözüküyor. ücretler de aynı sekilde. bi de bizdeki hallerine bak 3 ve 4. resimdeki bunu düzelteim.
+
+- **Durum:** Tamamlandı
+- **Nasıl fixlendi:** `PricesAndLimits.tsx` canlı sitenin computed style'larına göre yeniden yazıldı: başlık satırı #f2f2f2, gövde satırları #fafafa/#fff dönüşümlü, Limitler tablosunda "Kimlik doğrulama yapılmış" sütunu her zaman #e60000/beyaz (sadece başlıkta değil, tüm sütun), "Periyot" değerleri #008a00 yeşil. Ücret tablosunun başlık satırının canlıda hiç metni olmadığı (sadece renkli çubuk) doğrulandı, aynen kopyalandı.
+- **Test edildi mi:** Evet, canlı — kullanıcının eklediği gerçek satırla (Faturana Yansıt Hizmet Bedeli / Ön Ödemeli Kart limiti) karşılaştırıldı, renkler eşleşti.
+- **Yorumlarım:**
+
+### 9.7 — Footer'dan taşan, responsive olmayan QR kutusu
+> şu footerdan taşan qr var ya şuna bi iyice müdahale et hiç responsive değil sürekli cıkıyor. her sayfadan fırlıyor.
+
+- **Durum:** Tamamlandı
+- **Nasıl doğrulandı/fixlendi:** Canlı vodafonepay.com.tr'de (anasayfa dahil hiçbir sayfada) böyle sabit bir QR kutusu olmadığı doğrulandı — ama bu bileşen 24 sayfada kullanılıyor, kaldırmak yerine düzeltildi. Kök sebep: `fixed ... top-1/2` viewport'un ortasını hedefliyor, sayfanın uzunluğunu bilmiyor — içeriği az bir sayfada (örn. o an boş olan Ücretler ve Limitler) bu, kutunun footer'ın üzerine binmesine sebep oluyordu. `StickyQr.tsx` artık bir `IntersectionObserver` ile footer'ı (`id="site-footer"`) izliyor, footer görünür olduğu an kutu görünmez oluyor (fade-out).
+- **Test edildi mi:** Evet, canlı — kısa içerikli Ücretler ve Limitler sayfasında artık QR kutusu footer'ın üzerine binmiyor.
+- **Yorumlarım:**
+
+### 9.8 — Anasayfadaki bazı bileşenler (video, öne çıkanlar) eksik görünüyordu
+> page.tsx de varolan yapıya ekstra vodafonepaycomtr den çektiğimiz anasayfa bileşenleri vardı video falan anasayfadaki onları kodlamıstık hatırlıyorum kaldırmısız varolan anasayfayı bozmadan canlıdakiyle bi bakıp karşılaştır eksikleri kodladıgımıza daha önce eminim.
+
+- **Durum:** Tamamlandı — **kod silinmemiş, içerik hiç yayınlanmamış**
+- **Nasıl bulundu/fixlendi:** Kod tarafında hiçbir şey eksik değildi — `FeatureHighlights.tsx`'in kendi otomatik oynayan videosu (`/videos/feature-loop.mp4`) ve `anasayfa-highlights`/`anasayfa-steps` içerik blokları zaten vardı. Sorun: bu 8 kaydın hepsi CMS'te **taslak** (`_status: draft`) kalmıştı, hiç yayınlanmamıştı — public API bu yüzden boş dönüyor, bölüm tamamen gizleniyordu. Hepsi API üzerinden yayınlandı (2 tanesinin `order`'ı 0'dı, `min:1` kuralına takıldı — 1'den başlayacak şekilde düzeltildi). Ayrıca bulunan gerçek bir bug: "Kampanyalar" başlığı `FeatureHighlights` içindeydi, yani `anasayfa-highlights` boşken tamamen ilgisiz olan Kampanyalar başlığı da kayboluyordu — başlık `Campaigns.tsx`'e taşındı, iki bölüm artık birbirinden bağımsız.
+- **Test edildi mi:** Evet, canlı — anasayfada video, 3 "öne çıkan özellik" ve "Kampanyalar" başlığı + carousel artık görünüyor.
+- **Yorumlarım:**
+
 ## İlerleme Özeti
 
 | # | Madde (kısa başlık) | Durum |
@@ -908,3 +975,11 @@ Her madde için birlikte şu alanları dolduracağız:
 | 8.1 | İçeriğe istenen yere görsel + boyut seçimi (küçük/orta/büyük/tam) | Tamamlandı |
 | 8.2 | Inline YouTube video gömme (URL yapıştır, gerçek player) | Tamamlandı |
 | 8.3 | Tablo stili: kırmızı başlık + dönüşümlü pembe/beyaz satırlar | Tamamlandı |
+| 9.1 | YouTube videosu youtube-nocookie ile gerçek inline oynatma | Tamamlandı |
+| 9.2 | Kategoriler sürükle-bırak dropdown'u | Tamamlandı — yanlış alarm |
+| 9.3 | Sürükle-bırak sonrası buton/toast geri bildirimi | Tamamlandı |
+| 9.4 | Kategoriler + Bloglar CSV export | Tamamlandı |
+| 9.5 | Sıra: canlı öneri (5 koleksiyon daha) + tekrar hatası | Tamamlandı |
+| 9.6 | Ücretler ve Limitler tablo stili canlı siteyle eşleşiyor | Tamamlandı |
+| 9.7 | Footer'dan taşan QR kutusu responsive fix | Tamamlandı |
+| 9.8 | Anasayfa video/öne çıkanlar: taslak içerik yayınlandı + heading coupling bug fix | Tamamlandı |
