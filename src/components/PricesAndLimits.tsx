@@ -2,81 +2,28 @@
 
 import { useState } from "react";
 
-/**
- * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
- *
- * Checked against the live DB: the CMS collection behind this section has ZERO
- * rows, so unlike the FAQ/announcement/campaign fallbacks removed in this
- * round, this array is not dead code that only fires on an outage — it IS what
- * the site currently renders. Deleting it would blank a working section rather
- * than reveal a masked failure. Remove it in the same change that seeds the
- * collection; see the round report's "kalan fallback'ler" table.
- */
-const fallbackFeeRows: [string, string][] = [
-  ["Faturana Yansıt Hizmet Bedeli", "Aylık 31,90 TL olarak tahsil edilir."],
-  [
-    "Faturana Yansıt Geç Tahsilat Bedeli",
-    "0-30 gün gecikme: 200 TL'ye kadar 65,9 TL, 200 TL ve üzeri için 99,9 TL. 30 gün ve üzeri gecikme: 200 TL'ye kadar 109,9 TL, 200 TL ve üzeri için 119,9 TL.",
-  ],
-  ["Anında Bakiye İşlem Ücreti", "Kullanılan tutarın %10'u"],
-  ["QR ile Faturana Yansıt İşlem Ücreti", "Kullanılan tutarın %3'ü"],
-  ["Vodafone Pay Fiziksel Kart", "Tavsiye edilen satış fiyatı 19,90 TL"],
-  ["Aylık Vodafone Pay Kart kullanım ücreti", "Ücretsiz"],
-  ["Fatura Ödeme", "Ücretsiz"],
-  ["Ulaşım Kartı Bakiye Yükleme", "Ücretsiz"],
-  ["Kolay Paket Satın Alımı", "Ücretsiz"],
-  ["ATM Bakiye Sorgulama", "Ücretsiz"],
-  ["Para Yükleme (tüm ATM'ler)", "Ücretsiz"],
-  ["Para Yükleme (kart numarasına EFT)", "Ücretsiz"],
-  ["Banka Kartı / Debit Kart ile Yükleme Ücreti", "Ücretsiz"],
-  ["Kredi Kartı ile Yükleme Ücreti", "Yüklenen tutar üzerinden %3,5 ücret alınır."],
-  ["Yurt içindeki ATM'lerden Para Çekme", "Ücretsiz"],
-  ["Yurt dışındaki ATM'lerden Para Çekme", "Ücretsiz"],
-];
-
 export interface LimitTable {
   title: string;
   rows: [string, string, string, string][];
 }
 
-const fallbackLimitTables: LimitTable[] = [
-  {
-    title: "Ön Ödemeli Kart / ATM Limitleri",
-    rows: [
-      ["Ön Ödemeli Kart", "Günlük", "₺2.000", "₺75.000"],
-      ["Ön Ödemeli Kart", "Aylık", "₺2.000", "₺75.000"],
-      ["Ön Ödemeli Kart", "Yıllık", "₺24.000", "₺900.000"],
-      ["ATM'den para çekme", "Günlük", "Ücretsiz", "₺25.000"],
-      ["ATM'den para çekme", "Aylık", "Ücretsiz", "₺25.000"],
-      ["ATM'den para çekme", "Yıllık", "Ücretsiz", "₺300.000"],
-      ["ATM'den para yatırma", "Günlük", "₺1.250", "₺50.000"],
-      ["ATM'den para yatırma", "Aylık", "₺1.250", "₺50.000"],
-      ["ATM'den para yatırma", "Yıllık", "₺15.000", "₺600.000"],
-    ],
-  },
-  {
-    title: "Cüzdan Limitleri",
-    rows: [
-      ["Cüzdan", "Günlük", "₺750", "₺25.000"],
-      ["Cüzdan", "Aylık", "₺750", "₺25.000"],
-      ["Cüzdan", "Yıllık", "₺9.000", "₺300.000"],
-    ],
-  },
-  {
-    title: "Faturana Yansıt Limitleri",
-    rows: [
-      ["Faturana Yansıt", "Tek Seferlik", "₺1.000", "₺2.500"],
-      ["Faturana Yansıt", "Aylık", "₺2.750", "₺6.500"],
-    ],
-  },
-];
-
+/**
+ * RFP feedback 5.0 (fallback masking audit): the hardcoded fallback arrays
+ * that used to back this section (when the CMS's fee-rows/limit-tables
+ * collections were empty) were removed — same reasoning as the
+ * ContentUnavailable pattern used by kampanyalar/blog: an editor building
+ * this section from scratch in the CMS should see an honest empty table,
+ * not silently-substituted placeholder numbers they'd have to notice and
+ * clear out themselves. Both props are required now; the caller
+ * (ucretler-ve-limitler/page.tsx) is what decides whether to render this at
+ * all vs. an empty/error state.
+ */
 export function PricesAndLimits({
-  feeRows = fallbackFeeRows,
-  limitTables = fallbackLimitTables,
+  feeRows,
+  limitTables,
 }: {
-  feeRows?: [string, string][];
-  limitTables?: LimitTable[];
+  feeRows: [string, string][];
+  limitTables: LimitTable[];
 }) {
   const [tab, setTab] = useState<"ucretler" | "limitler">("ucretler");
 
