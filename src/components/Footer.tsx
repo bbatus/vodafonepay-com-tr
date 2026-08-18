@@ -84,7 +84,7 @@ export async function Footer() {
   });
 
   return (
-    <footer className="mt-auto bg-black px-4 py-12 text-white lg:px-16">
+    <footer id="site-footer" className="mt-auto bg-black px-4 py-12 text-white lg:px-16">
       <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {columns.map((col) => (
           <div key={col.title}>
