@@ -3,9 +3,22 @@ import type { PayloadRequest } from "payload";
 import { assignNextOrder } from "@/hooks/ordering";
 
 function fakeReq(highest?: number, reject = false) {
+  // Same canned response for every find() call (the "highest order" lookup
+  // AND, since the RFP follow-up, the duplicate-order check) — totalDocs: 0
+  // is what tells rejectIfOrderTaken there's no collision, matching the
+  // "empty collection" (highest === undefined) shape these tests already used.
   const find = reject
     ? vi.fn().mockRejectedValue(new Error("db down"))
-    : vi.fn().mockResolvedValue({ docs: highest === undefined ? [] : [{ order: highest }] });
+    : vi.fn().mockResolvedValue({
+        docs: highest === undefined ? [] : [{ order: highest }],
+        totalDocs: highest === undefined ? 0 : 1,
+      });
+  return { req: { payload: { find } } as unknown as PayloadRequest, find };
+}
+
+/** A find() mock for rejectIfOrderTaken specifically: no sibling has `order`. */
+function fakeReqNoCollision() {
+  const find = vi.fn().mockResolvedValue({ docs: [], totalDocs: 0 });
   return { req: { payload: { find } } as unknown as PayloadRequest, find };
 }
 
@@ -35,9 +48,50 @@ describe("assignNextOrder", () => {
     );
   });
 
-  it("respects an explicitly typed position", async () => {
-    const { req, find } = fakeReq(9);
+  it("respects an explicitly typed position when nothing else in the group has it", async () => {
+    const { req, find } = fakeReqNoCollision();
     expect((await run(assignNextOrder("faq-items"), { order: 3 }, req)).order).toBe(3);
+    // Still queried once — RFP follow-up: an explicit value now gets checked
+    // for a collision with a sibling before being accepted.
+    expect(find).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects an explicitly typed position a sibling in the same group already has", async () => {
+    const { req } = fakeReq(3); // a sibling already sits at order 3
+    await expect(run(assignNextOrder("faq-items"), { order: 3 }, req)).rejects.toThrow(/3/);
+  });
+
+  it("on update, rejects moving into a position a DIFFERENT sibling already occupies", async () => {
+    const { req, find } = fakeReq(5);
+    const hook = assignNextOrder("faq-items", ["category"]);
+    await expect(
+      hook({
+        data: { order: 5, category: "kart" },
+        operation: "update",
+        req,
+        originalDoc: { id: "self-id", order: 2 },
+        collection: {} as never,
+        context: {},
+      } as never)
+    ).rejects.toThrow(/5/);
+    // Excludes the document being edited from the collision check.
+    expect(find).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { and: expect.arrayContaining([{ id: { not_equals: "self-id" } }]) } })
+    );
+  });
+
+  it("on update, allows resaving a document at its own unchanged position", async () => {
+    const { req, find } = fakeReqNoCollision();
+    const hook = assignNextOrder("faq-items");
+    const result = (await hook({
+      data: { order: 4 },
+      operation: "update",
+      req,
+      originalDoc: { id: "self-id", order: 4 },
+      collection: {} as never,
+      context: {},
+    } as never)) as Record<string, unknown>;
+    expect(result.order).toBe(4);
     expect(find).not.toHaveBeenCalled();
   });
 
@@ -74,7 +128,7 @@ describe("the order field must not declare a defaultValue", () => {
   });
 
   it("would be defeated by a defaultValue — proving why the field has none", async () => {
-    const { req } = fakeReq(12);
+    const { req } = fakeReqNoCollision();
     // This is what Payload hands the hook when `defaultValue: 1` is declared.
     expect((await run(assignNextOrder("faq-items", ["category"]), { category: "kampanyalar", order: 1 }, req)).order).toBe(1);
   });

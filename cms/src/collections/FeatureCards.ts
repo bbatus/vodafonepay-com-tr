@@ -56,7 +56,15 @@ export const FeatureCards: CollectionConfig = {
       // empty is also the honest UI, and matches the field description:
       // blank means "put it at the end", which is what the hook then does.
       min: 1,
-      admin: { description: ORDER_FIELD_DESCRIPTION },
+      admin: {
+        description: ORDER_FIELD_DESCRIPTION,
+        components: {
+          Field: {
+            path: "/components/LiveOrderField#default",
+            clientProps: { collection: "feature-cards", watchPath: "page", mode: "relationship" },
+          },
+        },
+      },
     },
   ],
   hooks: {
