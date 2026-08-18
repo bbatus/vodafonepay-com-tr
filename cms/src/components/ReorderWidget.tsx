@@ -2,7 +2,7 @@
 
 import { startTransition, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@payloadcms/ui";
+import { toast, useAuth } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
 import { ROLES } from "@/access/roles";
@@ -123,6 +123,15 @@ function DraggableGroup({
   hideLabel?: boolean;
 }) {
   const [docs, setDocs] = useState(initialDocs);
+  // RFP follow-up: a successful save used to leave "Kaydet"/"Vazgeç" showing
+  // forever — `dirty` compared `docs` against the `initialDocs` PROP, which
+  // never changes after a save (the parent's `onSaved` just does
+  // `router.refresh()`, which re-renders server components but doesn't touch
+  // this already-mounted client component's props). Comparing against this
+  // separate `savedOrder` state instead, updated the moment a save actually
+  // succeeds, is what lets the buttons — and the "unsaved changes" notice —
+  // actually go away.
+  const [savedDocs, setSavedDocs] = useState(initialDocs);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
@@ -134,9 +143,10 @@ function DraggableGroup({
     discard: t("reorderWidget.discard"),
     unsavedNotice: t("reorderWidget.unsavedNotice"),
     saveError: t("reorderWidget.saveError"),
+    saveSuccess: t("reorderWidget.saveSuccess"),
   };
 
-  const dirty = docs.some((doc, i) => doc.id !== initialDocs[i]?.id);
+  const dirty = docs.some((doc, i) => doc.id !== savedDocs[i]?.id);
 
   useEffect(() => {
     onDirtyChange?.(dirty);
@@ -156,7 +166,7 @@ function DraggableGroup({
   };
 
   const handleDiscard = () => {
-    setDocs(initialDocs);
+    setDocs(savedDocs);
     setSaveError(false);
   };
 
@@ -168,27 +178,37 @@ function DraggableGroup({
       // array index, so the first item always saved as 0 — which read as
       // "unset" everywhere else (it's the value the old defaultValue produced)
       // and made the saved sequence indistinguishable from a brand-new record.
+      const nextOrder = docs.map((doc, i) => ({ ...doc, order: i + 1 }));
       const results = await Promise.all(
-        docs.map((doc, i) =>
-          doc.order === i + 1
+        nextOrder.map((doc, i) =>
+          docs[i].order === doc.order
             ? Promise.resolve(true)
             : fetch(`/api/${collection}/${doc.id}`, {
                 method: "PATCH",
                 credentials: "include",
                 headers: { "content-type": "application/json" },
-                body: JSON.stringify({ order: i + 1 }),
+                body: JSON.stringify({ order: doc.order }),
               }).then((res) => res.ok)
         )
       );
       if (results.some((ok) => !ok)) {
         // Best-effort, not all-or-nothing: some PATCHes above may have
-        // already landed server-side by the time one fails. Refreshing (via
-        // onSaved) re-fetches the real server state instead of trusting this
-        // component's optimistic guess about what succeeded.
+        // already landed server-side by the time one fails. Deliberately
+        // does NOT move the local "saved" baseline here — which of the
+        // partial writes landed isn't reliably knowable from the client, so
+        // "Kaydet"/"Vazgeç" keep showing (safe: worst case the editor
+        // re-saves an already-correct row) rather than risk clearing the
+        // notice while the real list is still wrong. `onSaved()` still
+        // refreshes the surrounding page so the underlying table reflects
+        // whatever really landed.
         setSaveError(true);
+        toast.error(strings.saveError);
         onSaved();
         return;
       }
+      setDocs(nextOrder);
+      setSavedDocs(nextOrder);
+      toast.success(strings.saveSuccess);
       onSaved();
     } finally {
       setSaving(false);
