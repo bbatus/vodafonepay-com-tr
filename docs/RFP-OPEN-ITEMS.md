@@ -185,3 +185,52 @@ alanlarına da iş birimi diliyle örnekli açıklamalar eklendi.
 kayıtlıydı, seçilecek başka Page yoktu. Canlı kanıtlandı: bir Page kaydedilince ikinci bir
 Page'in Üst Sayfa alanında gerçekten seçenek olarak çıktı. Alan açıklaması bunu netleştirecek
 şekilde güncellendi.
+
+---
+
+## 10. 5 ürün sayfasının Pages'e göçü — pilot (2026-08-19)
+
+Kullanıcı sorusu: "Ürünler" menüsündeki 5 sayfa (vodafone-pay-uygulama, aninda-bakiye,
+faturana-yansit, vodafone-pay-kart, qr-ile-faturana-yansit) `Pages` koleksiyonundan mı
+yaratılmalıydı? Cevap: hayır — bunlar `Pages`'ten ÖNCE var olan, kendi özel koleksiyonlarından
+(`ProductHeroes`/`FeatureCards`/`StepCards`/`ContentBlocks`) beslenen, elle yazılmış Next.js
+rotalarıydı; `Pages` sonradan NET YENİ sayfalar için eklendi, bunların yerine geçmesi için değil
+(bkz. `Pages.ts`'in kendi üst yorumu). Kullanıcı yine de "silelim, sıfırdan Pages ile kuralım,
+eksik blok varsa görürüz" dedi — bilinçli, geri dönüşü zor bir karar olarak onaylandı.
+
+**Gap analizi:** 5 sayfanın kullandığı bileşenler çıkarıldı. Karşılığı olmayan 4 tanesi için
+yeni jenerik blok tipi eklendi (`Pages.ts`): **İkonlu Kartlar** (icon+başlık+metin, 3'lü grid —
+`CardsWithIcons`/`FeatureCards`'ın karşılığı), **Adım Listesi** (numara+metin+görsel —
+`PhoneStepsCarousel`/`StepCards`'ın karşılığı), **Görsel+Metin Slayt** (`AppFeatures`/
+`EarnWithCard`/`ContentBlocks` "slide" tipinin karşılığı), **Çoklu Video** (başlıklı video
+listesi — `VideoGuideSection`'ın karşılığı; tekli `Video` bloğundan farkı sekmeli/listeli
+olması). 3 bileşen HİÇBİR ŞEKİLDE blok olamıyor ve bilinçli olarak dışarıda bırakıldı:
+`WhereCanIBuy` (hiç CMS'ten beslenmiyor, statik), `VideosWithTabs` (daha önce bilinçli olarak
+CMS'e taşınmamıştı), `LeadFormCta` (gerçek submit eden bir form, "içerik" değil).
+
+**Pilot: Vodafone Pay Uygulaması.** En basit sayfa (sadece Hero + Ayrıcalıklar slaytları +
+Nasıl Kazanırım adımları — SSS/FeatureCards/StepCards yok) uçtan uca göçürüldü:
+1. Mevcut CMS verisi (`content-blocks` page=uygulama-ayricalikli/uygulama-nasil-kazanirim)
+   API'den okunup yeni `Pages` dokümanına (aynı slug: `vodafone-pay-uygulama`) Hero +
+   Görsel-Metin-Slayt + Adım Listesi bloklarıyla taşındı — **not:** bu içerik `_status: draft`
+   olarak duruyordu, yani şu ana kadar sitede hiç GÖRÜNMÜYORDU; göç bu içeriği ilk kez
+   canlıya taşımış oldu (regresyon değil, iyileştirme).
+2. `src/app/vodafone-pay-uygulama/page.tsx` (elle yazılmış rota) silindi — artık
+   `src/app/[...slug]/page.tsx` (Pages catch-all) bu slug'ı karşılıyor. URL değişmedi, NavLinks
+   kaydı dokunulmadan çalışmaya devam etti.
+3. Artık kullanılmayan `AppFeatures.tsx` bileşeni ve onun testi silindi (`ProductHero`/
+   `HowToEarn` SİLİNMEDİ — diğer 4 sayfa hâlâ kullanıyor). Artık kullanılmayan 6
+   `content-blocks` kaydı (uygulama-ayricalikli/uygulama-nasil-kazanirim) silindi.
+4. `docs/PAGE-CREATE-PRODUCTION.MD` analizinde eklenen "Site Sayfaları (geliştirici yapımı)"
+   referans tablosundan bu satır çıkarıldı — artık gerçekten `Pages` koleksiyonunda, o tab'da.
+
+Canlı doğrulandı: `/vodafone-pay-uygulama` artık `Pages` dokümanından render ediyor, Hero +
+3 slayt + 3 adım doğru görünüyor, breadcrumb doğru, header'daki "Ürünler" linki hâlâ çalışıyor.
+Şema migration'ı (bu ortamda prod container'da Payload'ın `push`'ı çalışmadığı için — bkz. §5)
+gerekti: 4 yeni blok tipinin 12 Postgres tablosu (`pages_blocks_icon_cards` +
+`_cards`/`_steps`/`_slides`/`_videos` alt tabloları, + hepsinin `_pages_v_blocks_*` versiyon
+karşılıkları) elle oluşturuldu.
+
+**Kalan 4 sayfa henüz göçürülmedi** — kullanıcıdan devam kararı bekleniyor. Her biri için aynı
+WhereCanIBuy/VideosWithTabs/LeadFormCta sorusu tekrar gündeme gelecek (hangi sayfada hangisi
+var, o bölüm nasıl ele alınacak — bkz. yukarıdaki liste).

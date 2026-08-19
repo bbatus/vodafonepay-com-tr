@@ -361,6 +361,23 @@ describe("cms.ts fetch-backed getters", () => {
     expect(await getPageBySlug("t")).toBeNull();
   });
 
+  it("getPageBySlug parses the 4 blocks added for product-page parity (iconCards/steps/imageTextSlides/videoList)", async () => {
+    const doc = {
+      id: "p2",
+      title: "Ürün Sayfası",
+      slug: "urun-sayfasi",
+      layout: [
+        { blockType: "iconCards", cards: [{ icon: media, title: "Fayda", text: "Açıklama" }] },
+        { blockType: "steps", steps: [{ number: "01", text: "İlk adım", image: media }] },
+        { blockType: "imageTextSlides", slides: [{ image: media, text: "Slayt metni" }] },
+        { blockType: "videoList", videos: [{ title: "Nasıl Kullanılır", youtubeId: "abc123" }] },
+      ],
+    };
+    vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [doc] }));
+    const result = await getPageBySlug("urun-sayfasi");
+    expect(result?.layout.map((b) => b.blockType)).toEqual(["iconCards", "steps", "imageTextSlides", "videoList"]);
+  });
+
   it("getPages returns the full list of editor-built pages", async () => {
     const doc = { id: "p1", title: "T", slug: "t", layout: [] };
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));

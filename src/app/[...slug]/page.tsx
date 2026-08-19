@@ -138,6 +138,79 @@ async function BlockRenderer({ block }: { block: CmsPageBlock }) {
         </section>
       );
 
+    case "iconCards":
+      return (
+        <section className="mx-auto max-w-[1030px] px-4 py-10">
+          {block.heading && <h2 className="text-center text-2xl font-bold text-black lg:text-3xl">{block.heading}</h2>}
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
+            {block.cards.map((c) => (
+              <div key={c.title} className="rounded-lg bg-white p-6 text-center shadow-[0px_2px_12px_0px_#00000014]">
+                <Image src={c.icon.url} alt={c.icon.alt || c.title} width={48} height={48} className="mx-auto h-12 w-12 object-contain" />
+                <h3 className="mt-4 text-base font-bold text-black">{c.title}</h3>
+                <p className="mt-2 text-sm text-gray-600">{c.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+
+    case "steps":
+      return (
+        <section className="mx-auto max-w-3xl px-4 py-10">
+          {block.heading && <h2 className="text-center text-2xl font-bold text-black lg:text-3xl">{block.heading}</h2>}
+          <ol className="mt-8 flex flex-col gap-8">
+            {block.steps.map((s) => (
+              <li key={s.number} className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-vf-red text-sm font-bold text-white">
+                  {s.number}
+                </span>
+                <div className="flex flex-col items-center gap-4 sm:flex-row">
+                  <Image src={s.image.url} alt={s.image.alt || s.text} width={200} height={360} className="h-auto w-40 rounded-lg object-cover" />
+                  <p className="text-center text-sm text-gray-700 sm:text-left">{s.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      );
+
+    case "imageTextSlides":
+      return (
+        <section className="mx-auto max-w-[1030px] px-4 py-10">
+          {block.heading && <h2 className="text-center text-2xl font-bold text-black lg:text-3xl">{block.heading}</h2>}
+          <div className="mt-8 flex gap-6 overflow-x-auto pb-2">
+            {block.slides.map((s, i) => (
+              <div key={i} className="w-64 shrink-0 rounded-lg bg-white shadow-[0px_2px_12px_0px_#00000014]">
+                <Image src={s.image.url} alt={s.image.alt || s.text} width={256} height={160} className="h-40 w-full rounded-t-lg object-cover" />
+                <p className="p-4 text-sm text-gray-700">{s.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+
+    case "videoList":
+      return (
+        <section className="mx-auto max-w-3xl px-4 py-10">
+          {block.heading && <h2 className="text-2xl font-bold text-black">{block.heading}</h2>}
+          <div className="mt-4 flex flex-col gap-8">
+            {block.videos.map((v) => (
+              <div key={v.youtubeId}>
+                <h3 className="mb-2 text-sm font-bold text-black">{v.title}</h3>
+                <div className="aspect-video overflow-hidden rounded-lg">
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${v.youtubeId}`}
+                    title={v.title}
+                    className="h-full w-full"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+
     default:
       return null;
   }

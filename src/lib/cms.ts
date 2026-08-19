@@ -676,6 +676,31 @@ const logoGridBlockSchema = z.object({
   heading: nullableString(),
   logos: z.array(z.object({ name: z.string(), logo: mediaSchema, linkUrl: nullableString() })),
 });
+/** Added to close the gap found migrating the 5 hand-built product pages onto Pages — docs/RFP-OPEN-ITEMS.md §10. */
+const iconCardsBlockSchema = z.object({
+  blockType: z.literal("iconCards"),
+  id: z.string().optional(),
+  heading: nullableString(),
+  cards: z.array(z.object({ icon: mediaSchema, title: z.string(), text: z.string() })),
+});
+const stepsBlockSchema = z.object({
+  blockType: z.literal("steps"),
+  id: z.string().optional(),
+  heading: nullableString(),
+  steps: z.array(z.object({ number: z.string(), text: z.string(), image: mediaSchema })),
+});
+const imageTextSlidesBlockSchema = z.object({
+  blockType: z.literal("imageTextSlides"),
+  id: z.string().optional(),
+  heading: nullableString(),
+  slides: z.array(z.object({ image: mediaSchema, text: z.string() })),
+});
+const videoListBlockSchema = z.object({
+  blockType: z.literal("videoList"),
+  id: z.string().optional(),
+  heading: nullableString(),
+  videos: z.array(z.object({ title: z.string(), youtubeId: z.string() })),
+});
 
 const pageBlockSchema = z.discriminatedUnion("blockType", [
   heroBlockSchema,
@@ -684,6 +709,10 @@ const pageBlockSchema = z.discriminatedUnion("blockType", [
   campaignGridBlockSchema,
   videoBlockSchema,
   logoGridBlockSchema,
+  iconCardsBlockSchema,
+  stepsBlockSchema,
+  imageTextSlidesBlockSchema,
+  videoListBlockSchema,
 ]);
 export type CmsPageBlock = z.infer<typeof pageBlockSchema>;
 

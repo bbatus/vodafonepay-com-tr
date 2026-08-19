@@ -141,6 +141,113 @@ const LogoGridBlock: Block = {
 };
 
 /**
+ * The following 4 blocks close the gap found while migrating the 5
+ * hand-built product pages (aninda-bakiye, faturana-yansit, vodafone-pay-kart,
+ * qr-ile-faturana-yansit, vodafone-pay-uygulama) onto Pages — see
+ * docs/RFP-OPEN-ITEMS.md §10. Each replaces a component those pages used
+ * that had no Pages-block equivalent (CardsWithIcons/HowToEarn,
+ * PhoneStepsCarousel, AppFeatures/EarnWithCard, VideoGuideSection). Three
+ * OTHER components from those pages (WhereCanIBuy, VideosWithTabs,
+ * LeadFormCta) are deliberately NOT blocks — they're either not CMS-driven
+ * at all or a real interactive form, not editable content; see that same
+ * doc section for why a "content block" can't sensibly represent them.
+ */
+
+const IconCardsBlock: Block = {
+  slug: "iconCards",
+  labels: {
+    singular: "İkonlu Kartlar Bloğu — kısa özellik/fayda listesi (ikon + başlık + açıklama)",
+    plural: "İkonlu Kartlar Blokları",
+  },
+  fields: [
+    { name: "heading", type: "text", admin: { description: "Bölümün başlığı, örn: 'Akıllı Ödeme Yöntemleri'. Boş bırakılabilir." } },
+    {
+      name: "cards",
+      type: "array",
+      minRows: 1,
+      admin: { description: "Her satır bir kart (ikon + başlık + kısa açıklama). '+ Kart Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin. Genelde 3 kart kullanılır." },
+      fields: [
+        { name: "icon", type: "upload", relationTo: "media", required: true, admin: { description: "Küçük ikon görseli." } },
+        { name: "title", type: "text", required: true, admin: { description: "Kartın başlığı, örn: 'Size Özel Limit'." } },
+        { name: "text", type: "textarea", required: true, admin: { description: "Kartın kısa açıklama metni, 1-2 cümle." } },
+      ],
+    },
+  ],
+};
+
+const StepsBlock: Block = {
+  slug: "steps",
+  labels: {
+    singular: "Adım Listesi Bloğu — numaralı 'nasıl yapılır' adımları (görsel eşliğinde)",
+    plural: "Adım Listesi Blokları",
+  },
+  fields: [
+    { name: "heading", type: "text", admin: { description: "Bölümün başlığı, örn: 'Nasıl Kullanırım?'. Boş bırakılabilir." } },
+    {
+      name: "steps",
+      type: "array",
+      minRows: 1,
+      admin: { description: "Her satır bir adım (sıra numarası + açıklama + o adımı gösteren görsel). '+ Adım Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin." },
+      fields: [
+        { name: "number", type: "text", required: true, admin: { description: "Adım numarası, örn: '01', '02'." } },
+        { name: "text", type: "textarea", required: true, admin: { description: "Bu adımda kullanıcının ne yapacağını anlatan metin." } },
+        { name: "image", type: "upload", relationTo: "media", required: true, admin: { description: "Bu adımı gösteren ekran görüntüsü/görsel." } },
+      ],
+    },
+  ],
+};
+
+const ImageTextSlidesBlock: Block = {
+  slug: "imageTextSlides",
+  labels: {
+    singular: "Görsel + Metin Slayt Bloğu — kaydırmalı görsel/metin vitrini",
+    plural: "Görsel + Metin Slayt Blokları",
+  },
+  fields: [
+    { name: "heading", type: "text", admin: { description: "Bölümün başlığı, örn: 'Neler Kazanırsın?'. Boş bırakılabilir." } },
+    {
+      name: "slides",
+      type: "array",
+      minRows: 1,
+      admin: { description: "Her satır bir slayt (görsel + açıklama metni). '+ Slayt Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin." },
+      fields: [
+        { name: "image", type: "upload", relationTo: "media", required: true, admin: { description: "Slaytın görseli." } },
+        { name: "text", type: "textarea", required: true, admin: { description: "Slaytın açıklama metni." } },
+      ],
+    },
+  ],
+};
+
+const VideoListBlock: Block = {
+  slug: "videoList",
+  labels: {
+    singular: "Çoklu Video Bloğu — başlıklı, sekmeli birden fazla YouTube videosu",
+    plural: "Çoklu Video Blokları",
+  },
+  fields: [
+    { name: "heading", type: "text", admin: { description: "Bölümün başlığı. Boş bırakılabilir." } },
+    {
+      name: "videos",
+      type: "array",
+      minRows: 1,
+      admin: { description: "Her satır bir video (sekme başlığı + video). Tek video için de kullanılabilir; birden fazla eklenirse sekmeli gösterilir." },
+      fields: [
+        { name: "title", type: "text", required: true, admin: { description: "Bu videonun sekme/başlık metni, örn: 'Nasıl Kart Alırım?'." } },
+        {
+          name: "youtubeId",
+          type: "text",
+          required: true,
+          admin: {
+            description:
+              "Sadece video ID'si — tam URL değil. https://www.youtube.com/watch?v=ABC123XYZ adresindeki ABC123XYZ kısmını yazın.",
+          },
+        },
+      ],
+    },
+  ],
+};
+
+/**
  * Butterfly-parity gap-fill (docs/PAGE-CREATE-PRODUCTION.MD analysis,
  * docs/RFP-OPEN-ITEMS.md §8): slug used to be a required, hand-typed field —
  * every other slugged collection (BlogPosts, Categories) already
@@ -251,7 +358,18 @@ export const Pages: CollectionConfig = {
         description:
           "Sayfa, aşağıya eklediğiniz bloklardan yukarıdan aşağı sırayla oluşur — her blok bir bölüm demektir. '+ Blok Ekle'ye basınca hangi blok ne işe yarar açıklamasını görürsünüz; sürükleyerek sırasını değiştirebilir, çöp kutusuyla silebilirsiniz. NOT: Bu koleksiyondaki bir sayfa, header'daki 'Ürünler' menüsünde veya footer'da OTOMATİK görünmez — orada göstermek isterseniz Menü Linkleri (NavLinks) koleksiyonuna gidip href=/{slug} ile ayrı bir satır eklemeniz gerekir (bkz. Menü Linkleri koleksiyonundaki açıklama).",
       },
-      blocks: [HeroBlock, RichTextBlock, FaqListBlock, CampaignGridBlock, VideoBlock, LogoGridBlock],
+      blocks: [
+        HeroBlock,
+        RichTextBlock,
+        FaqListBlock,
+        CampaignGridBlock,
+        VideoBlock,
+        LogoGridBlock,
+        IconCardsBlock,
+        StepsBlock,
+        ImageTextSlidesBlock,
+        VideoListBlock,
+      ],
     },
     { name: "seoTitle", type: "text" },
     { name: "seoDescription", type: "textarea" },

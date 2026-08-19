@@ -6,7 +6,6 @@ import { WhereCanIBuy } from "@/components/WhereCanIBuy";
 import { Hero } from "@/components/Hero";
 import { LeadFormCta } from "@/components/LeadFormCta";
 import { EarnWithCard } from "@/components/EarnWithCard";
-import { AppFeatures } from "@/components/AppFeatures";
 import { BrandLogoGrid } from "@/components/BrandLogoGrid";
 import { FeatureHighlights } from "@/components/FeatureHighlights";
 import { VideoGuideSection } from "@/components/VideoGuideSection";
@@ -52,13 +51,6 @@ describe("LeadFormCta", () => {
 describe("EarnWithCard", () => {
   it("renders nothing when given no slides", () => {
     const { container } = render(<EarnWithCard slides={[]} />);
-    expect(container).toBeEmptyDOMElement();
-  });
-});
-
-describe("AppFeatures", () => {
-  it("renders nothing when given no slides", () => {
-    const { container } = render(<AppFeatures slides={[]} />);
     expect(container).toBeEmptyDOMElement();
   });
 });

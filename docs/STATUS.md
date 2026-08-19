@@ -210,6 +210,20 @@ oluşturulup kaydedilince, yeni bir Page açıldığında Üst Sayfa alanında "
 gerçekten çıktı (ekran görüntüsüyle doğrulandı). Alanın açıklaması da bunu netleştirecek
 şekilde güncellendi: "ilk sayfanızı oluştururken liste boş görünür, bu bir hata değildir."
 
+### 2.10 5 ürün sayfasının Pages'e göçü — pilot, 1/5 tamamlandı (19.08.2026)
+Kullanıcı "bu 5 ürün sayfası zaten Pages'ten mi yaratılmalıydı" diye sordu — hayır, bunlar
+Pages'ten önce var olan, kendi özel koleksiyonlarından (ProductHeroes/FeatureCards/StepCards)
+beslenen elle yazılmış rotalar. Kullanıcı yine de bilinçli olarak "silelim, Pages ile sıfırdan
+kuralım, eksik blok çıkarsa tamamlarız" dedi. Gap analizinde 4 yeni jenerik blok ihtiyacı
+çıktı — İkonlu Kartlar, Adım Listesi, Görsel+Metin Slayt, Çoklu Video — hepsi `Pages.ts`'e
+eklendi (+ manuel Postgres migration, prod container'da push çalışmıyor). 3 bileşen
+(WhereCanIBuy, VideosWithTabs, LeadFormCta) blok olamıyor, bilinçli olarak dışarıda bırakıldı.
+Pilot olarak "Vodafone Pay Uygulaması" tam göçürüldü ve canlı doğrulandı — hatta bu süreçte
+gerçek bir iyileştirme bulundu: sayfanın "Ayrıcalıklar" slaytları CMS'te taslak halinde
+kilitliydi, hiç görünmüyordu; göç bu içeriği ilk kez yayına aldı. Kalan 4 sayfa (aninda-bakiye,
+faturana-yansit, vodafone-pay-kart, qr-ile-faturana-yansit) için kullanıcı onayı bekleniyor —
+detay `docs/RFP-OPEN-ITEMS.md` §10.
+
 ---
 
 ## 3. Açık Kalan Riskler / Yapılacaklar

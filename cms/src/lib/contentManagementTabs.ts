@@ -269,13 +269,15 @@ export function tabLabel(slug: string, locale: "tr" | "en"): string {
 /**
  * RFP follow-up: "sistemde kaç tane page varsa ... hangi page var görebilecğimiz
  * bir liste de lazım". The `pages` tab above already lists every editor-built
- * Pages document — but roughly 20 of the site's routes (the homepage, product
- * pages like /vodafone-pay-uygulama, legal pages, etc.) are hand-written
- * `src/app/*\/page.tsx` files, not Payload documents, so no API call can ever
- * list them. This is a hand-maintained reference table, not a live query —
- * update it when a route is added/removed/renamed under src/app. Kept here
- * (not fetched) rather than skipped, because "no list exists for these" was
- * the actual gap being reported, not "list only what the API can see".
+ * Pages document — but the site's remaining hand-written routes (legal pages,
+ * the homepage, etc.) are `src/app/*\/page.tsx` files, not Payload documents,
+ * so no API call can ever list them. This is a hand-maintained reference
+ * table, not a live query — update it when a route is added/removed/renamed
+ * under src/app, or migrated onto Pages (see docs/RFP-OPEN-ITEMS.md §10 — the
+ * 5 product pages are being migrated one at a time; remove each from this
+ * list as it moves). Kept here (not fetched) rather than skipped, because
+ * "no list exists for these" was the actual gap being reported, not "list
+ * only what the API can see".
  */
 export const SITE_ROUTES_TAB_SLUG = "site-routes";
 
@@ -288,7 +290,6 @@ export type SiteRoute = {
 
 export const HAND_BUILT_ROUTES: SiteRoute[] = [
   { path: "/", title: "Anasayfa", linkedFrom: { tr: "Logo", en: "Logo" } },
-  { path: "/vodafone-pay-uygulama", title: "Vodafone Pay Uygulaması", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
   { path: "/vodafone-pay-kart", title: "Vodafone Pay Kart", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
   { path: "/qr-ile-faturana-yansit", title: "QR ile Faturana Yansıt", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
   { path: "/faturana-yansit", title: "Faturana Yansıt", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
