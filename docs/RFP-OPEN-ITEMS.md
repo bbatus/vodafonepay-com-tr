@@ -102,3 +102,55 @@ Kullanıcı geri bildirimi: "Butterfly"daki (referans alınan başka bir CMS) Ad
 - Kullanıcının ayrıca sorduğu iki madde, bilinçli olarak KOD DEĞİŞİKLİĞİ GEREKTİRMEDEN kapatıldı:
   - **Users'a department/title/phone gibi LDAP-senkron alanlar:** Eklenmedi — bunlar gerçekten LDAP'tan senkronize edilecek alanlar, ve henüz senkronize edilecek bir LDAP kaynağı yok (aynı `username` alanının bugünkü "boş kalabilir, LDAP bağlanınca dolar" durumu). Sahte/boş placeholder alan eklemek yalnızca kafa karıştırır. `avatar` (profil fotoğrafı) ve `preferredLocale` (dil tercihi) ise LDAP'tan gelmeyen, CMS'e özgü tercihler olarak zaten var ve kalmaya devam ediyor.
   - **"Sistem ayarları / rol atama" admin ekranı (Butterfly'daki `/settings`, `/roles/assign` gibi):** Bilinçli olarak ŞİMDİ kodlanmadı. Gerekçe: gerçek LDAP bağlanana kadar rol ataması zaten CMS içinden elle yapılıyor (`Users` koleksiyonunun `role` alanı, `isNewVerticalMaker` yetkisiyle) ve local docker testinde buna ihtiyaç yok; LDAP bağlandığında da §6'nın 3. maddesi gereği bu yetkinin CMS'ten TAMAMEN kaldırılması planlanıyor — yani bugün inşa edilecek bir "rol atama ekranı" LDAP bağlanır bağlanmaz zaten kaldırılacaktı. Canlıya geçiş öncesi, LDAP entegrasyonu netleşince tekrar değerlendirilmeli — **açık madde olarak burada işaretli kalsın.**
+
+---
+
+## 8. Pages koleksiyonu — Butterfly (referans vendor CMS) parity analizi (2026-08-19)
+
+Amaç: bu proje vendor'dan bağımsızlaşma testi olarak yürütülüyor (in-house ekip vendor'ın
+yaptığını üretebiliyor mu?). Kullanıcı, vendor'ın "Page (sayfa) oluşturma" akışını belgeleyen
+kendi referans dokümanını (`docs/PAGE-CREATE-PRODUCTION.MD` — Laravel/Blade/MySQL, bizim kod
+tabanımızla ilgisi yok, sadece davranış referansı) verip bizim `Pages` koleksiyonumuzu (zaten
+var olan blok-tabanlı sayfa oluşturucu, RFP §3.3) buna karşı denetletti: "eksik olmamalı,
+fazla olabilir."
+
+**Zaten üstün olduğumuz noktalar:** içerik tek `content` alanı yerine sürükle-bırak blok
+sistemi (vendor'ın sabit "template" seçiminden daha esnek — her sayfa kendi kompozisyonunu
+seçer), draft/published + Payload'ın otomatik versiyon geçmişi (vendor'ın elle yazdığı
+`page_revisions` tablosundan daha sağlam — her save otomatik versiyon).
+
+**Net eksikler, doğrudan kapatıldı:**
+- Slug artık `turkishSlugify`/`uniqueSlug` ile `title`'dan otomatik üretiliyor (BlogPosts/
+  Categories'teki aynı desen) — önceden zorunlu elle giriliyordu.
+- `createdBy` provenance alanı eklendi (Campaigns'teki aynı desen).
+
+**Karar gerektiren eksikler — kullanıcıyla netleştirildi (AskUserQuestion), 2 tanesi eklendi:**
+- **`parent` (üst sayfa referansı) — EKLENDİ, basit versiyon:** breadcrumb'da "Ana Sayfa >
+  Üst Sayfa > Bu Sayfa" gösterir, URL hâlâ düz `/{slug}` kalır (vendor'ın tam iç içe
+  `/{parent}/{slug}` routing'i EKLENMEDİ — site menü hiyerarşisi zaten ayrı NavLinks
+  koleksiyonunun işi, route yapısını değiştirmeye değecek bir ihtiyaç yok). Kendi kendinin
+  üst sayfası olması hem admin UI'da (`filterOptions`) hem sunucu tarafında
+  (`preventSelfParent` beforeValidate hook, `Pages.ts`) engelleniyor.
+- **`visibility` (public/private) — EKLENDİ, şifre koruması HARİÇ:** private+published bir
+  sayfa yayın durumuna rağmen anonim ziyaretçiye hiç gösterilmiyor, `generateStaticParams`/
+  sitemap'e girmiyor — `pagesRead` özel access fonksiyonu (`Pages.ts`)
+  `publishedOrAuthenticated`'ın CMS-oturumu/preview-secret muafiyetini aynen kullanıp anonim
+  istekleri ayrıca `visibility=public` ile kısıtlıyor. Şifre korumalı sayfa (vendor'ın 3.
+  görünürlük seçeneği) EKLENMEDİ — public sitede hiç ziyaretçi-hesap sistemi yok, bir "şifre
+  giriş ekranı" ayrı bir özellik olurdu; bugünkü ihtiyaç public/private ayrımıyla karşılanıyor.
+- **`archived` (3. durum) — EKLENMEDİ:** RFP'de zaten bilinçli karar var (§2, "ayrı isActive/
+  archived alanı gereksiz karmaşıklık" — draft/published ikilisi yeterli). Bu tutarlılıkla
+  kullanıcı onayıyla Pages'e de uygulanmadı.
+- **Yazar-scope erişim (Butterfly'nin "Author sadece kendi sayfasını görür/düzenler" rolü) —
+  EKLENMEDİ:** bizim 4 rolümüzün (New Vertical Maker/Checker, Growth Maker/Checker) hiçbiri
+  "sadece kendi oluşturduğunu görür" şeklinde değil — böyle bir kısıt eklemek bizim gerçek
+  rol modelimizle örtüşmeyen, sadece Butterfly'ye benzemek için icat edilmiş yeni bir davranış
+  olurdu. Kullanıcı onayıyla eklenmedi.
+
+**Şema migration'ı:** bu ortamda prod container'da Payload'ın dev-only `push`'ı çalışmıyor
+(§5'teki genel not) — `pages`/`_pages_v` tablolarına `parent_id`/`visibility`/`created_by_id`
+kolonları elle eklendi, tam SQL `docs/STATUS.md` §2.7'de.
+
+Canlı doğrulandı: API üzerinden üst+alt sayfa oluşturuldu, breadcrumb sitede doğru render
+oldu, private sayfa hem public API'de hem sitede (404) doğru gizlendi, self-parent denemesi
+400 ile reddedildi. cms: 145/145 test, root: 106/106 test, her iki tarafta typecheck+lint temiz.

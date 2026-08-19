@@ -105,7 +105,55 @@ Bu turun ana teması: **Kategoriler'i gerçek, scope-farkında bir koleksiyona d
   biniyordu (canlı sitede bu widget hiç yok, ama 24 sayfada kullanıldığı için kaldırmak yerine
   düzeltildi) — artık footer görününce `IntersectionObserver` ile kayboluyor.
 
-### 2.7 Rol modelinin AD grubundan ayrıştırılması (19.08.2026)
+### 2.7 Pages — Butterfly (referans vendor CMS) parity analizi (19.08.2026)
+Kullanıcı `docs/PAGE-CREATE-PRODUCTION.MD`'ye (mevcut vendor'ın "Page oluşturma" akışını
+belgeleyen, Laravel/Blade/MySQL referans dokümanı — kendi kodumuz değil) karşı bizim
+`Pages` koleksiyonumuzu denetletti: "eksik olmamalı, fazla olabilir" hedefiyle. Amaç:
+vendor'dan bağımsızlaşma testi — bu işlevi biz de üretebiliyor muyuz.
+
+Zaten üstün olan: içerik tek `content` alanı yerine sürükle-bırak blok sistemi (Hero/Metin/
+SSS/Kampanya Grid/Video/Logo Grid — vendor'ın sabit "template" seçiminden daha esnek),
+draft/published + otomatik versiyon geçmişi (vendor'ın elle yazdığı `page_revisions`
+tablosundan daha sağlam). Kapatılan gerçek eksikler: slug artık `turkishSlugify`/
+`uniqueSlug` ile otomatik üretiliyor (BlogPosts/Categories'teki desenin aynısı, elle
+girilen zorunlu alan değil), `createdBy` provenance alanı eklendi (Campaigns'teki desen).
+
+Kullanıcıyla netleştirilip eklenen 2 yeni davranış: **`parent`** (basit üst-sayfa referansı
+— breadcrumb'da "Ana Sayfa > Üst Sayfa > Bu Sayfa" gösterir, URL hâlâ düz `/{slug}`, kendi
+kendinin üst sayfası olamaz — sunucu tarafında da zorlanıyor) ve **`visibility`**
+(public/private — private+published bir sayfa yayın durumuna rağmen anonim ziyaretçiye asla
+gösterilmez, `generateStaticParams`/sitemap'e hiç girmez; `pagesRead` özel access fonksiyonu
+`publishedOrAuthenticated`'ın CMS-oturumu/preview-secret muafiyetini aynen kullanıp anonim
+istekleri ayrıca `visibility=public` ile de kısıtlıyor). Kullanıcı kararıyla eklenmeyenler:
+tam iç içe URL routing, şifre korumalı sayfa, `archived` 3. durumu, yazar-scope erişim
+kısıtı (Butterfly'nin "Author sadece kendini görür" rolü bizim 4-rol modelimize uymuyor).
+
+Canlı doğrulandı: API üzerinden üst+alt sayfa oluşturuldu, breadcrumb sitede doğru render
+oldu (`Ana Sayfa > Kurumsal > Ekibimiz`), private sayfa hem public API'de (`docs: []`) hem
+sitede (`404`) doğru şekilde gizlendi, kendi-kendinin-parent'ı olma denemesi 400 ile reddedildi.
+
+**Şema migration'ı** (bu ortamda `push` prod container'da çalışmıyor — bkz. §5): `pages`/
+`_pages_v` tablolarına elle eklendi:
+```sql
+CREATE TYPE enum_pages_visibility AS ENUM ('public', 'private');
+CREATE TYPE enum__pages_v_version_visibility AS ENUM ('public', 'private');
+ALTER TABLE pages ADD COLUMN parent_id integer;
+ALTER TABLE pages ADD CONSTRAINT pages_parent_id_pages_id_fk FOREIGN KEY (parent_id) REFERENCES pages(id) ON DELETE SET NULL;
+CREATE INDEX pages_parent_idx ON pages (parent_id);
+ALTER TABLE pages ADD COLUMN visibility enum_pages_visibility DEFAULT 'public';
+ALTER TABLE pages ADD COLUMN created_by_id integer;
+ALTER TABLE pages ADD CONSTRAINT pages_created_by_id_users_id_fk FOREIGN KEY (created_by_id) REFERENCES users(id) ON DELETE SET NULL;
+CREATE INDEX pages_created_by_idx ON pages (created_by_id);
+ALTER TABLE _pages_v ADD COLUMN version_parent_id integer;
+ALTER TABLE _pages_v ADD CONSTRAINT _pages_v_version_parent_id_pages_id_fk FOREIGN KEY (version_parent_id) REFERENCES pages(id) ON DELETE SET NULL;
+CREATE INDEX _pages_v_version_version_parent_idx ON _pages_v (version_parent_id);
+ALTER TABLE _pages_v ADD COLUMN version_visibility enum__pages_v_version_visibility DEFAULT 'public';
+ALTER TABLE _pages_v ADD COLUMN version_created_by_id integer;
+ALTER TABLE _pages_v ADD CONSTRAINT _pages_v_version_created_by_id_users_id_fk FOREIGN KEY (version_created_by_id) REFERENCES users(id) ON DELETE SET NULL;
+CREATE INDEX _pages_v_version_version_created_by_idx ON _pages_v (version_created_by_id);
+```
+
+### 2.8 Rol modelinin AD grubundan ayrıştırılması (19.08.2026)
 `ROLES` sabitinin (`cms/src/access/roles.ts`) değerleri artık Vodafone AccessPoint'in ham LDAP
 grup adı string'leri değil, kendi iç sözlüğümüz (`new_vertical_maker`, `new_vertical_checker`,
 `growth_maker`, `growth_checker`). Yeni dosya `cms/src/access/roleMapping.ts`

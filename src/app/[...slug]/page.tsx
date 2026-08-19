@@ -153,7 +153,7 @@ export default async function EditorPage({ params }: { params: Promise<{ slug: s
       <AppDownloadBanner />
       <Header />
       <StickyQr />
-      <Breadcrumb current={page.title} />
+      <Breadcrumb current={page.title} trail={page.parent ? [{ label: page.parent.title, href: `/${page.parent.slug}` }] : undefined} />
 
       {page.layout.map((block) => (
         <BlockRenderer key={block.id ?? JSON.stringify(block)} block={block} />

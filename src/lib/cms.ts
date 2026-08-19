@@ -687,6 +687,17 @@ const pageBlockSchema = z.discriminatedUnion("blockType", [
 ]);
 export type CmsPageBlock = z.infer<typeof pageBlockSchema>;
 
+/**
+ * Butterfly-parity gap-fill (docs/PAGE-CREATE-PRODUCTION.MD analysis,
+ * docs/RFP-OPEN-ITEMS.md §8): a simple parent reference for a breadcrumb
+ * trail — deliberately not full nested routing, the URL stays flat /{slug}.
+ */
+const pageParentSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  title: z.string(),
+  slug: z.string(),
+});
+
 const pageSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   title: z.string(),
@@ -695,6 +706,7 @@ const pageSchema = z.object({
   seoTitle: nullableString(),
   seoDescription: nullableString(),
   ogImage: mediaSchema.nullable().optional().transform((v) => v ?? undefined),
+  parent: pageParentSchema.nullable().optional().transform((v) => v ?? undefined),
 });
 export type CmsPage = z.infer<typeof pageSchema>;
 
