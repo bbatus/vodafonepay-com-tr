@@ -6,10 +6,14 @@ sıfırlanıp doğrulandı (hepsi `POST /api/users/login` üzerinden canlı 200 
 
 | Rol | E-posta | Şifre |
 |---|---|---|
-| NV Maker (`RL_VODAFONEPAY_CMS_EXEC_DEVELOPER_MAKER_RW`) | test-nv-maker@vodafonepay.local | `TestNvMaker!2026` |
-| NV Checker (`RL_VODAFONEPAY_CMS_EXEC_CONTENT_PRW`) | test-nv-checker@vodafonepay.local | `TestNvChecker!2026` |
-| Growth Maker (`ROLE_VODAFONEPAY_CMS_MAKER_RW`) | test-growth-maker@vodafonepay.local | `TestGrowthMaker!2026` |
-| Growth Checker (`ROLE_VODAFONEPAY_CMS_CHECKER_RO`) | test-growth-checker@vodafonepay.local | `TestGrowthChecker!2026` |
+| NV Maker (`new_vertical_maker`) | test-nv-maker@vodafonepay.local | `TestNvMaker!2026` |
+| NV Checker (`new_vertical_checker`) | test-nv-checker@vodafonepay.local | `TestNvChecker!2026` |
+| Growth Maker (`growth_maker`) | test-growth-maker@vodafonepay.local | `TestGrowthMaker!2026` |
+| Growth Checker (`growth_checker`) | test-growth-checker@vodafonepay.local | `TestGrowthChecker!2026` |
+
+2026-08-19: `users.role` değerleri artık AccessPoint'in ham LDAP grup adları değil,
+`cms/src/access/roles.ts`'in kendi iç rol slug'ları (yukarıdaki parantez içindekiler)
+— bkz. `docs/RFP-OPEN-ITEMS.md` §7 ve `cms/src/access/roleMapping.ts`.
 
 Admin panel: http://localhost:3010/admin
 Site: http://localhost:3000

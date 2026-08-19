@@ -2,26 +2,51 @@ import { Forbidden } from "payload";
 import type { Access, CollectionBeforeChangeHook, PayloadRequest } from "payload";
 
 /**
- * Exact LDAP/AccessPoint role names (vodafone.local). These strings are the
- * contract with Vodafone's AccessPoint provisioning system — do not rename
- * them, they must match 1:1 once real LDAP is wired in.
+ * Internal role slugs — deliberately NOT Vodafone AccessPoint's literal LDAP
+ * group names. Until 2026-08-19 the four values here WERE the exact
+ * AccessPoint strings (`RL_VODAFONEPAY_CMS_EXEC_DEVELOPER_MAKER_RW`, etc.),
+ * which meant our own access-control code was directly coupled to one
+ * specific AD group-naming scheme for exactly today's two business units
+ * (New Vertical, Growth). Onboarding a third department meant inventing a
+ * brand new ROLES entry + touching every collection that checks it, purely
+ * because their AD group happened to have a different name.
+ *
+ * The fix is one layer of indirection: these four slugs are now our own
+ * vocabulary, and `roleMapping.ts`'s `LDAP_GROUP_TO_ROLE` is where a real
+ * AccessPoint/AD group name gets translated into one of them. A new
+ * department that needs a permission shape we already have (e.g. "creates
+ * content in one scope, can't publish it themselves" — what GROWTH_MAKER is
+ * today) is *one line* in that mapping file: their AD group name → the
+ * existing ROLES.GROWTH_MAKER value. No change here, no new collection
+ * code, no new deploy of business logic — only a data-shaped config edit.
+ *
+ * This does NOT make the four *permission shapes* themselves infinitely
+ * flexible — a department that needs a genuinely new shape (e.g. write
+ * access to only 3 specific collections nobody else touches) still needs a
+ * new ROLES entry and new access-control wiring, same as before. That
+ * deeper limit is real and intentional — see docs/RFP-OPEN-ITEMS.md §3.1.12
+ * ("Flexible/Extensible panel… bu, Payload'ı bırakıp başka bir mimariye
+ * geçmeden kapanmaz"). What this change actually buys: reusing an existing
+ * shape for a new group of people is now config, not code.
  */
 export const ROLES = {
   /** "New Vertical" FE dev leads. Full CRUD + publish on every collection. */
-  NEW_VERTICAL_MAKER: "RL_VODAFONEPAY_CMS_EXEC_DEVELOPER_MAKER_RW",
+  NEW_VERTICAL_MAKER: "new_vertical_maker",
   /** Reviews/publishes NEW_VERTICAL_MAKER's changes. Cannot create new documents. */
-  NEW_VERTICAL_CHECKER: "RL_VODAFONEPAY_CMS_EXEC_CONTENT_PRW",
+  NEW_VERTICAL_CHECKER: "new_vertical_checker",
   /**
    * Approves/publishes GROWTH_MAKER's campaigns — AND can create its own
    * (per the business-provided AccessPoint role table: "Vepaş CMS üzerinde
    * bulunan içerikleri create edebilirken, maker rolündeki içerikleri de
-   * check edip canlıya uygulayabilir"). The "_RO" in the LDAP name is
-   * misleading — it isn't read-only, "RO" is AccessPoint's naming scheme,
-   * not a capability. Scope stays Campaigns-only, same as GROWTH_MAKER.
+   * check edip canlıya uygulayabilir"). AccessPoint's own "_RO" suffix on the
+   * source group name was misleading — it isn't read-only, "RO" is just
+   * AccessPoint's naming scheme, not a capability (see roleMapping.ts for
+   * where that source name is translated). Scope stays Campaigns-only, same
+   * as GROWTH_MAKER.
    */
-  GROWTH_CHECKER: "ROLE_VODAFONEPAY_CMS_CHECKER_RO",
+  GROWTH_CHECKER: "growth_checker",
   /** Creates/edits campaigns. Can never publish its own work. */
-  GROWTH_MAKER: "ROLE_VODAFONEPAY_CMS_MAKER_RW",
+  GROWTH_MAKER: "growth_maker",
 } as const;
 
 export type RoleValue = (typeof ROLES)[keyof typeof ROLES];

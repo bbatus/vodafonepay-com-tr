@@ -25,7 +25,7 @@ Docker Compose servisleri: `vodafonepaycomtr` (site, :3000), `vodafonepaycomtr-c
 ## 2. Tamamlananlar (özet — kronolojik değil, konu bazlı)
 
 ### 2.1 Güvenlik (P0 — hepsi kapandı)
-- Gerçek RBAC: 4 LDAP rol adı birebir (`RL_VODAFONEPAY_CMS_EXEC_DEVELOPER_MAKER_RW`, `RL_VODAFONEPAY_CMS_EXEC_CONTENT_PRW`, `ROLE_VODAFONEPAY_CMS_CHECKER_RO`, `ROLE_VODAFONEPAY_CMS_MAKER_RW`), 4 test kullanıcısıyla canlı doğrulandı (`docs/TEST-USERS.MD` — asla commit edilmemesi gereken, sadece yerel referans bir dosya).
+- Gerçek RBAC: 4 rol (New Vertical Maker/Checker, Growth Maker/Checker), 4 test kullanıcısıyla canlı doğrulandı (`docs/TEST-USERS.MD` — asla commit edilmemesi gereken, sadece yerel referans bir dosya). 19.08.2026'dan itibaren rol DEĞERLERİ artık ham AccessPoint LDAP grup adı string'leri değil, kendi iç sözlüğümüz — AD grup adı → rol eşlemesi `cms/src/access/roleMapping.ts`'te ayrı bir dosyada (bkz. §2.7).
 - Segregation of duties: Growth Maker kendi kampanyasını publish edemiyor (`denyMakerPublish`), Growth Checker/NV Checker publish edebiliyor ama create edemiyor — GROWTH_CHECKER'a kendi kampanyasını **oluşturma** izni sonradan eklendi (business'ın AccessPoint rol tablosuna göre; bkz. §2.6).
 - Kimlik doğrulaması olmadan `?draft=true` ile yayınlanmamış içerik okunabiliyordu — `denyUnauthenticatedDraftRead` hook'uyla kapatıldı.
 - `CMS_AUTO_LOGIN` bayrağının prod'da tanımlı olmaması gerektiği kod içinde büyük uyarıyla işaretli.
@@ -104,6 +104,25 @@ Bu turun ana teması: **Kategoriler'i gerçek, scope-farkında bir koleksiyona d
 - **Footer QR kutusu:** `fixed top-1/2` konumlandırması kısa sayfalarda footer'ın üzerine
   biniyordu (canlı sitede bu widget hiç yok, ama 24 sayfada kullanıldığı için kaldırmak yerine
   düzeltildi) — artık footer görününce `IntersectionObserver` ile kayboluyor.
+
+### 2.7 Rol modelinin AD grubundan ayrıştırılması (19.08.2026)
+`ROLES` sabitinin (`cms/src/access/roles.ts`) değerleri artık Vodafone AccessPoint'in ham LDAP
+grup adı string'leri değil, kendi iç sözlüğümüz (`new_vertical_maker`, `new_vertical_checker`,
+`growth_maker`, `growth_checker`). Yeni dosya `cms/src/access/roleMapping.ts`
+(`LDAP_GROUP_TO_ROLE` + `resolveRoleFromLdapGroups()`) bugünün 4 AccessPoint grup adını bu 4 role
+çeviriyor — henüz hiçbir auth stratejisinden çağrılmıyor (gerçek LDAP yok) ama gelecekteki
+entegrasyonun tam olarak nereye bağlanacağı artık belli. Sonuç: bu 4 permission şeklinden birini
+isteyen YENİ bir departman artık tek satır (`roleMapping.ts`'e AD grup adı → mevcut `ROLES.*`
+değeri) ile eklenebiliyor, `roles.ts`/`rolePermissions.ts`/collection dosyalarına dokunmadan.
+Sınır hâlâ aynı yerde: sıfırdan yeni bir permission ŞEKLİ (bu 4'ünden hiçbirine uymayan bir yetki
+seti) hâlâ kod + deploy gerektiriyor — detay ve gerekçe `docs/RFP-OPEN-ITEMS.md` §7'de.
+Bu turda ayrıca değerlendirilip KOD DEĞİŞİKLİĞİ olmadan kapatılan iki madde: Users'a
+department/title/phone gibi LDAP-senkron alanlar eklenmedi (henüz senkronize edilecek bir LDAP
+kaynağı yok — sahte placeholder eklemenin anlamı yok; `avatar`/`preferredLocale` zaten CMS'e özgü
+tercihler olarak duruyor), ve bir "rol/izin yönetimi" admin ekranı (Butterfly'daki
+`/settings`,`/roles/assign` gibi) bilinçli olarak ŞİMDİ kodlanmadı — local docker'da LDAP yok,
+gerek yok; canlıya geçiş öncesi tekrar değerlendirilecek açık madde olarak işaretli
+(`RFP-OPEN-ITEMS.md` §7).
 
 ---
 

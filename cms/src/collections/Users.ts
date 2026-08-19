@@ -213,7 +213,7 @@ export const Users: CollectionConfig = {
       options: ROLE_OPTIONS,
       admin: {
         description:
-          "vodafone.local LDAP / AccessPoint rolü. Bu 4 rol dışında değer eklenmeyecek — gerçek LDAP bağlandığında bu alan doğrudan eşlenecek.",
+          "Bugün bu 4 yetki şeklinden biri elle seçiliyor. LDAP bağlandığında bu alan LDAP grubundan otomatik atanacak — hangi AD grubunun hangi role eşleneceği access/roleMapping.ts içinde tanımlanır ve yeni bir departman için tek satır eklemek yeterlidir.",
       },
       // RFP feedback 3.5: nobody edits their OWN role — a self-service role
       // change would be a privilege-escalation path. New Vertical Maker can
