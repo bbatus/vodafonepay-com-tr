@@ -33,6 +33,13 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "liveOrder.suggested": { tr: "önerilen sıra: {suggested}", en: "suggested order: {suggested}" },
   "liveOrder.useSuggested": { tr: "{suggested} kullan", en: "Use {suggested}" },
 
+  "footerOrderField.loading": { tr: "Hesaplanıyor…", en: "Calculating…" },
+  "footerOrderField.count": { tr: "Footer'da {count}/{max} kayıt var.", en: "{count}/{max} records in the footer." },
+  "footerOrderField.full": {
+    tr: "Footer zaten dolu ({max}/{max}) — yeni birini eklemeden önce birini kaldırın ya da işaretini kaldırın.",
+    en: "The footer is already full ({max}/{max}) — remove or uncheck one before adding another.",
+  },
+
   "roleAwarePublishButton.publish": { tr: "Değişiklikleri yayınla", en: "Publish changes" },
   "roleAwarePublishButton.publishing": { tr: "Yayınlanıyor…", en: "Publishing…" },
   "roleAwarePublishButton.already": {

@@ -208,8 +208,8 @@ export const FaqItems: CollectionConfig = {
         description: FOOTER_ORDER_FIELD_DESCRIPTION,
         components: {
           Field: {
-            path: "/components/LiveOrderField#default",
-            clientProps: { collection: "faq-items", watchPath: "showInFooter", mode: "boolean" },
+            path: "/components/FooterOrderField#default",
+            clientProps: { collection: "faq-items", watchPath: "showInFooter", max: FOOTER_ORDER_MAX },
           },
         },
       },

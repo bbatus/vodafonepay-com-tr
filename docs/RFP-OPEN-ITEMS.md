@@ -285,3 +285,40 @@ Canlı doğrulandı: bir kampanya + bir SSS "Footer'da Göster" ile işaretlendi
 göründü (kampanya kendi detay sayfasına linkliyor), sonra geri kaldırılıp footer tekrar boş
 hale getirildi (kullanıcı kendi akışını sıfırdan denesin diye). cms: 153/153 test (+8 yeni),
 root: 110/110 test (+4 yeni), her iki tarafta typecheck+lint+build temiz.
+
+---
+
+## 12. Footer Sırası — "2 kullan" butonu yerine otomatik doldurma (2026-08-19)
+
+Kullanıcı geri bildirimi: §11'deki `Footer Sırası` alanı, önceki turda mevcut `LiveOrderField`
+bileşeni yeniden kullanılarak yapılmıştı — "Bu grupta N kayıt var, önerilen sıra: M" yazan bir
+bilgi satırı + "M kullan" butonu (editör tıklamadan sayı alana yazılmıyordu). Kullanıcı bunu
+istemedi: "Footer'da Göster" işaretlenince uygun sıra **doğrudan alana** yazılsın, editör
+istersen elle değiştirsin, ekstra buton tıklaması istenmesin.
+
+**Neden `LiveOrderField`'a otomatik-doldurma eklenmedi, ayrı bir bileşen yazıldı:**
+`LiveOrderField`'ın kendi yorumu otomatik-doldurmayı bilinçli olarak reddediyordu — "istemci
+tarafında yazılmış bir değer, editörün kendi elle yazdığı değerden ayırt edilemez hale gelir,
+bu da `assignNextOrder`'ın 'elle girilen değere dokunma' güvencesini sessizce bozar" diye.
+Ayrıca `LiveOrderField`'ın öneri algoritması hep "en yüksek + 1" (`order`/`homepageOrder` gibi
+sınırsız listeler için doğru) — footer'ın 1-6 sabit slotlu ve BOŞLUK doldurma (gap-filling)
+gerektiren yapısında yanlış sonuç verirdi (örn. 1,2,4,5,6 doluyken "en yüksek + 1" = 7 önerirdi,
+ki bu `max:6` alan doğrulamasını ihlal eder ve kayıt başarısız olurdu).
+
+**Çözüm:** Yeni, amaca özel bir bileşen — `cms/src/components/FooterOrderField.tsx`. Sunucu
+tarafındaki `assignFooterOrder`'ın (§11) AYNI 1-6 boşluk-doldurma mantığını istemci tarafında
+tekrarlıyor, ve SADECE alan BOŞKEN otomatik dolduruyor (zaten kayıtlı bir sıraya sahip bir
+kaydı düzenlerken üzerine yazmıyor). Editör dilediği an elle değiştirebilir. Buton kaldırıldı,
+sadece "Footer'da N/6 kayıt var." bilgi satırı kaldı.
+
+**Test sırasında bulunan, ayrı bir bilinen sınır:** İki kayıt neredeyse aynı anda "Footer'da
+Göster" işaretlenip kaydedilirse, ikisi de aynı "boş slot"u görüp aynı `footerOrder`'ı
+yazabilir — sunucu tarafındaki boş-slot sorgusu ile yazma tek bir atomik işlem değil. Canlı
+test sırasında gerçekten yaşandı (bir tarayıcı oturumunda üç kayıt aynı slotu paylaşır hale
+geldi — muhtemelen art arda hızlı kaydetmelerden). `hooks/ordering.ts`'e not düşüldü;
+`LiveOrderField`'ın kendi belgelediği aynı sınıf race condition, çözülmedi (gerçek çözüm bir DB
+seviyesi unique constraint olurdu, bu turun kapsamı dışında). Test verisi temizlendi, footer
+tekrar boş duruma getirildi.
+
+Canlı doğrulandı: "Footer'da Göster" işaretlenince alan HİÇBİR buton tıklaması olmadan doğru
+sayıyla doldu. cms: 153/153 test, typecheck+lint+build temiz.

@@ -239,6 +239,19 @@ statik prerender'ı boş sonuçla donmuş, ISR'ın kendisi de aynı pencerede te
 kullanıyordu — elle `POST /api/revalidate` ile düzeltildi, detay ve kalıcı öneri
 `docs/RFP-OPEN-ITEMS.md` §11'de. cms 153/153, root 110/110 test, canlı doğrulandı.
 
+### 2.12 Footer Sırası — otomatik doldurma, buton yok (19.08.2026)
+Kullanıcı önceki turdaki "N kayıt var — önerilen sıra: M [M kullan]" akışını istemedi:
+"Footer'da Göster" işaretlenince M doğrudan alana yazılsın, buton tıklamaya gerek kalmasın,
+editör dilerse elle değiştirsin. Mevcut `LiveOrderField` bilinçli olarak otomatik doldurma
+yapmıyordu (elle girilmiş gibi görünüp `assignNextOrder`'ın koruma mantığını bozar diye) ve
+algoritması zaten footer'ın 1-6 boşluk-doldurma ihtiyacına uymuyordu ("en yüksek+1" 6 dolup
+boşaldıktan sonra `max:6`'yı ihlal eden bir "7" önerirdi). Yeni, amaca özel bir bileşen —
+`FooterOrderField.tsx` — sunucudaki aynı boşluk-doldurma mantığını istemcide tekrarlayıp SADECE
+alan boşken otomatik dolduruyor. Test sırasında ayrı, önceden var olan bir sınır bulundu:
+neredeyse eşzamanlı iki kayıt aynı boş slotu görüp aynı sırayı alabiliyor (DB seviyesinde
+atomik değil) — `hooks/ordering.ts`'e not düşüldü, çözülmedi (kapsam dışı, gerçek çözüm bir
+unique constraint). Detay `docs/RFP-OPEN-ITEMS.md` §12'de.
+
 ---
 
 ## 3. Açık Kalan Riskler / Yapılacaklar
@@ -248,7 +261,7 @@ kullanıyordu — elle `POST /api/revalidate` ile düzeltildi, detay ve kalıcı
 | R-10 | `payload migrate:create`/`generate:importmap` çalışmıyor (`ERR_REQUIRE_ASYNC_MODULE`) — yeni collection/field/lexical özelliği eklemek elle `importMap.js` düzenlemesi gerektiriyor, unutulursa sessiz başarısızlık. **En kritik yapısal açık — bu tur boyunca defalarca elle düzeltildi.** | Açık |
 | R-26 | Postgres native enum'lar, migration olmadan `select` seçenek değişikliğinde manuel `ALTER TYPE` istiyor — R-10'un somut bir belirtisi. | Açık |
 | Yeni | SonarQube taraması bu turda çalıştırılamadı (token eksik/401) — bir sonraki oturumda token alınıp `scripts/sonar-scan.sh all` ile taranmalı. | Açık |
-| Yeni | Eşzamanlı editör yarışı: `LiveOrderField`'ın "önerilen sıra"sı, iki editör aynı grupta aynı anda kayıt oluşturursa ikisine de aynı sayıyı önerebilir — `assignNextOrder` hook'unun zaten taşıdığı sınıfın bir uzantısı, çözülmedi. | Bilinçli açık |
+| Yeni | Eşzamanlı editör yarışı: `LiveOrderField`'ın "önerilen sıra"sı, iki editör aynı grupta aynı anda kayıt oluşturursa ikisine de aynı sayıyı önerebilir — `assignNextOrder` hook'unun zaten taşıdığı sınıfın bir uzantısı, çözülmedi. `assignFooterOrder`'da da aynı sınıf risk var, canlı test sırasında gerçekten tetiklendi (3 kayıt aynı slotu paylaştı) — gerçek çözüm bir DB unique constraint, bu turun kapsamı dışında. | Bilinçli açık |
 | Yeni | `EXPERIMENTAL_TableFeature`/`TextStateFeature` — paketin kendisinin "deneysel" işaretlediği API'ler; gelecekteki bir `@payloadcms/richtext-lexical` yükseltmesinde davranış değişebilir. | İzlenmeli |
 | Yeni | Rich text editöründe dahili sayfa linki (internal doc link) kapalı — sitenin slug→URL çözücüsü yazılmadığı için sadece özel URL girilebiliyor. | Bilinçli açık |
 | R-22 | 5 legal sayfa + 3 kurumsal sayfa gövdesi hâlâ hardcoded (bilinçli — hukuki doğruluk riski). | Bilinçli açık |

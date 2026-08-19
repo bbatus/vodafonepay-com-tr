@@ -177,6 +177,15 @@ async function rejectIfFooterSlotTaken(args: {
  * `showInFooter` is explicitly present in this save's data — an update that
  * doesn't touch it (e.g. a raw API PATCH of just `title`) is left alone
  * rather than having its footer state silently cleared.
+ *
+ * Known limitation, same class as the one already documented on
+ * LiveOrderField: the free-slot lookup and the write that claims it aren't
+ * one atomic transaction, so two near-simultaneous saves that both compute
+ * "slot 3 is free" can both write `footerOrder: 3` — confirmed live during
+ * this feature's own testing (three records ended up sharing a slot after a
+ * few rapid saves). Not solved here; if it matters in practice, the fix is a
+ * DB-level unique constraint on (collection, footerOrder) WHERE
+ * show_in_footer, not another query in this hook.
  */
 export function assignFooterOrder(collection: string): CollectionBeforeChangeHook {
   return async ({ data, operation, req, originalDoc }) => {

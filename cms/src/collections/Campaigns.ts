@@ -442,8 +442,8 @@ export const Campaigns: CollectionConfig = {
         description: FOOTER_ORDER_FIELD_DESCRIPTION,
         components: {
           Field: {
-            path: "/components/LiveOrderField#default",
-            clientProps: { collection: "campaigns", watchPath: "showInFooter", mode: "boolean" },
+            path: "/components/FooterOrderField#default",
+            clientProps: { collection: "campaigns", watchPath: "showInFooter", max: FOOTER_ORDER_MAX },
           },
         },
       },
