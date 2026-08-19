@@ -54,14 +54,12 @@ export const NavLinks: CollectionConfig = {
       required: true,
       admin: {
         description:
-          "Bu link NEREDE görünecek? Header — Ürünler = üst menüdeki 'Ürünler' açılır listesi. Header — Ana Menü = üst menünün geri kalanı (Kampanyalar, Blog vb.). Footer — * seçenekleri footer'daki 4 sütuna karşılık gelir (Kurumsal/Sık Sorulanlar/Kampanyalar/Yasal). Bir linki KALDIRMAK için bu kaydı silin; SIRASINI değiştirmek için listedeki sürükle-bırak aracını kullanın.",
+          "Bu link NEREDE görünecek? Header — Ürünler = üst menüdeki 'Ürünler' açılır listesi. Header — Ana Menü = üst menünün geri kalanı (Kampanyalar, Blog vb.). Footer — Kurumsal/Yasal, footer'daki o iki sütuna karşılık gelir. Footer'daki 'Sık Sorulanlar' ve 'Kampanyalar' sütunları artık BURADAN değil, ilgili Sık Sorulanlar/Kampanyalar kaydındaki 'Footer'da Göster' kutusundan yönetiliyor. Bir linki KALDIRMAK için bu kaydı silin; SIRASINI değiştirmek için listedeki sürükle-bırak aracını kullanın.",
       },
       options: [
         { label: "Header — Ürünler", value: "header-products" },
         { label: "Header — Ana Menü", value: "header-main" },
         { label: "Footer — Kurumsal", value: "footer-kurumsal" },
-        { label: "Footer — Sık Sorulanlar", value: "footer-sss" },
-        { label: "Footer — Kampanyalar", value: "footer-kampanyalar" },
         { label: "Footer — Yasal", value: "footer-yasal" },
       ],
     },

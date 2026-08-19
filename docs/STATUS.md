@@ -224,6 +224,21 @@ kilitliydi, hiç görünmüyordu; göç bu içeriği ilk kez yayına aldı. Kala
 faturana-yansit, vodafone-pay-kart, qr-ile-faturana-yansit) için kullanıcı onayı bekleniyor —
 detay `docs/RFP-OPEN-ITEMS.md` §10.
 
+### 2.11 Footer'daki Kampanyalar/Sık Sorulanlar — kaydın kendisinden yönetim (19.08.2026)
+Kullanıcı isteği: footer'da en fazla 6'şar kampanya/soru, hangisinin gösterileceği doğrudan o
+kampanyanın/sorunun kendi kaydından ("Footer'da Göster" kutusu) seçilsin, 1-6 arası sıra elle
+girilebilsin ya da boş bırakılırsa otomatik boş slota otursun. `Campaigns`/`FaqItems`'a
+`showInFooter`+`footerOrder` eklendi; yeni `assignFooterOrder` hook'u (mevcut sıralama
+hook'larından farklı olarak) 1-6 arası BOŞ olan ilk slotu buluyor (gap-filling — bir kayıt
+kaldırılırsa slot yeniden kullanılabilir olsun diye), doluysa/çakışıyorsa net hata veriyor.
+`Footer.tsx`'in bu 2 sütunu artık NavLinks değil doğrudan bu iki koleksiyondan besleniyor,
+**fallback'siz** — hiçbir şey işaretlenmemişse sütun boş başlıyor, tam istenen akış. §9'da
+seedlenen 11 artık-gereksiz NavLinks satırı silindi. Ayrıca bu turda ilgisiz ama gerçek bir
+altyapı sorunu bulunup düzeltildi: `next build` CMS ayakta değilken çalıştığı için anasayfanın
+statik prerender'ı boş sonuçla donmuş, ISR'ın kendisi de aynı pencerede tekrar boş sonucu
+kullanıyordu — elle `POST /api/revalidate` ile düzeltildi, detay ve kalıcı öneri
+`docs/RFP-OPEN-ITEMS.md` §11'de. cms 153/153, root 110/110 test, canlı doğrulandı.
+
 ---
 
 ## 3. Açık Kalan Riskler / Yapılacaklar

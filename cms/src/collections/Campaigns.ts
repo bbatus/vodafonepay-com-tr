@@ -7,6 +7,7 @@ import { campaignsCreate, campaignsReadWrite, denyMakerPublish, isNewVerticalMak
 import { sitePreviewUrl } from "@/lib/preview";
 import { dbLabel } from "@/lib/collectionLabels";
 import { CATEGORY_SCOPES } from "@/collections/Categories";
+import { assignFooterOrder, FOOTER_ORDER_FIELD_DESCRIPTION, FOOTER_ORDER_MAX } from "@/hooks/ordering";
 
 /**
  * Growth Maker can never publish its own campaigns (denyMakerPublish), but
@@ -413,10 +414,44 @@ export const Campaigns: CollectionConfig = {
         },
       ],
     },
+    {
+      // RFP follow-up: footer'daki "Kampanyalar" sütunu artık sabit
+      // kod/NavLinks değil, buradan yönetiliyor — işaretlenen kampanyalar
+      // (en fazla FOOTER_ORDER_MAX tanesi) footer'da gösteriliyor.
+      name: "showInFooter",
+      type: "checkbox",
+      defaultValue: false,
+      label: { tr: "Footer'da Göster", en: "Show in Footer" },
+      admin: {
+        position: "sidebar",
+        description: {
+          tr: "İşaretlenirse bu kampanya, sitenin her sayfasındaki footer'ın 'Kampanyalar' sütununda görünür.",
+          en: "If checked, this campaign appears in the footer's 'Kampanyalar' column on every page of the site.",
+        },
+      },
+    },
+    {
+      name: "footerOrder",
+      type: "number",
+      label: { tr: "Footer Sırası", en: "Footer Order" },
+      min: 1,
+      max: FOOTER_ORDER_MAX,
+      admin: {
+        position: "sidebar",
+        condition: (data) => Boolean(data?.showInFooter),
+        description: FOOTER_ORDER_FIELD_DESCRIPTION,
+        components: {
+          Field: {
+            path: "/components/LiveOrderField#default",
+            clientProps: { collection: "campaigns", watchPath: "showInFooter", mode: "boolean" },
+          },
+        },
+      },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    beforeChange: [setCreatedBy, manageReviewCycle, guardPublishedEdit, denyMakerPublish],
+    beforeChange: [setCreatedBy, manageReviewCycle, guardPublishedEdit, denyMakerPublish, assignFooterOrder("campaigns")],
     afterChange: [revalidateCampaignPaths, auditAfterChange("campaigns"), auditRejection],
     afterDelete: [revalidateCampaignPathsOnDelete, auditAfterDelete("campaigns")],
   },

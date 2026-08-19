@@ -234,3 +234,54 @@ karşılıkları) elle oluşturuldu.
 **Kalan 4 sayfa henüz göçürülmedi** — kullanıcıdan devam kararı bekleniyor. Her biri için aynı
 WhereCanIBuy/VideosWithTabs/LeadFormCta sorusu tekrar gündeme gelecek (hangi sayfada hangisi
 var, o bölüm nasıl ele alınacak — bkz. yukarıdaki liste).
+
+---
+
+## 11. Footer'daki Kampanyalar/Sık Sorulanlar — kaydın kendisinden yönetim (2026-08-19)
+
+Kullanıcı isteği: footer'daki "Kampanyalar" ve "Sık Sorulanlar" sütunlarında en fazla 6'şar
+kayıt gösterilsin, hangi kampanya/soru gösterileceğini editör Campaigns/FaqItems'taki ilgili
+kayda giderek "Footer'da Göster" ile seçsin, 1-6 arası bir sıra girebilsin ya da boş bırakırsa
+otomatik boş olan ilk sıraya otomatik yerleşsin. Footer bileşeninin YAPISI değişmeyecek, ama bu
+iki sütun hiçbir şey işaretlenmemişken BOŞ başlayacak (önceki turda seedlenen genel NavLinks
+kayıtlarının yerini alıyor — bkz. §9).
+
+**CMS tarafı:** `Campaigns`/`FaqItems`'a `showInFooter` (checkbox) + `footerOrder` (1-6, sidebar/
+koşullu görünür) eklendi. Yeni paylaşılan hook `assignFooterOrder` (`cms/src/hooks/ordering.ts`)
+— mevcut `assignNextOrder`/`assignNextHomepageOrder`'dan (ikisi de "en yüksek + 1" mantığında,
+sınırsız) BİLİNÇLİ OLARAK farklı: footer sabit 6 slotlu olduğu ve bir kayıt kaldırıldığında
+slot boşaldığı için, "en yüksek + 1" burada 6 dolup boşaldıktan sonra cap'i aşan bir "7" üretirdi.
+Bunun yerine 1-6 arasında BOŞ olan ilk slotu buluyor (gap-filling) — kullanıcının kendi isteği
+zaten buydu. Elle girilen bir sıra, aynı slotu tutan başka bir kayıtla çakışırsa 400 ile
+reddediliyor (o kaydın adıyla); 7. kaydı işaretlemeye çalışmak "footer'da zaten en fazla 6 kayıt
+gösteriliyor" hatasıyla reddediliyor.
+
+**Site tarafı:** `getFooterCampaigns()`/`getFooterFaqItems()` (`src/lib/cms.ts`) —
+`showInFooter=true`, `sort=footerOrder`, `limit=6`. `Footer.tsx` yeniden yapılandırıldı:
+Kurumsal/Yasal sütunları hâlâ NavLinks + fallback (§9'daki gibi); Sık Sorulanlar/Kampanyalar
+sütunları artık bu iki fonksiyondan besleniyor, **fallback YOK** — hiçbir kayıt işaretlenmemişse
+sütun başlığı görünür ama liste boş kalır, tam istenen davranış. Kampanya linki kendi detay
+sayfasına (`/kampanyalar/{slug}`) gidiyor; SSS linki genel `/sikca-sorulan-sorular` sayfasına
+gidiyor (tekil soruya deep-link için sitede zaten bir çapa/anchor mekanizması yok — kapsam dışı
+bırakıldı, ayrı bir istek olarak gelirse eklenir).
+
+**Artık gereksiz hale gelen NavLinks kayıtları temizlendi:** §9'da seedlenen 11 satır
+(footer-sss: 6, footer-kampanyalar: 5) silindi; NavLinks'in `section` seçeneklerinden bu ikisi
+çıkarıldı (editör artık oradan yeni satır ekleyemez — CMS'te tek doğru yer Campaigns/FaqItems'ın
+kendi "Footer'da Göster" kutusu).
+
+**Canlı doğrulama sırasında bulunan ayrı bir sorun (ilgisiz, önceden var olan):** `next build`
+sırasında CMS henüz ayakta değildi, bu yüzden anasayfanın statik prerender'ı BOŞ CMS
+sonuçlarıyla üretilip 1 saatlik revalidate penceresine kilitlendi — üstelik `cmsFetch`'in
+`fetch()` çağrıları da aynı `revalidate: 3600` ile önbelleklendiği için, ISR'ın arka plan
+yenilemesi bile aynı boş sonucu tekrar kullanıyordu (saat dolana kadar). Kod hatası değil —
+`docker exec vodafonepaycomtr printenv REVALIDATE_SECRET` ile alınan secret'la
+`POST /api/revalidate` her etkilenen tag için (`campaigns`, `faq-items`, `content-blocks`,
+`nav-links`, `pages`) çağrılarak elle tazelendi. Bu, container her rebuild edildiğinde (CMS
+henüz tam ayağa kalkmadan `app` build'i başlarsa) tekrar olabilir — kalıcı çözüm CI/CD'de
+build sırasını (önce CMS sağlıklı, sonra site build) garantilemek, bu ortamda elle iş.
+
+Canlı doğrulandı: bir kampanya + bir SSS "Footer'da Göster" ile işaretlendi, footer'da doğru
+göründü (kampanya kendi detay sayfasına linkliyor), sonra geri kaldırılıp footer tekrar boş
+hale getirildi (kullanıcı kendi akışını sıfırdan denesin diye). cms: 153/153 test (+8 yeni),
+root: 110/110 test (+4 yeni), her iki tarafta typecheck+lint+build temiz.

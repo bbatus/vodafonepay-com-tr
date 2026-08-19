@@ -10,6 +10,8 @@ import {
   getFaqItems,
   getFeatureCards,
   getFeeRows,
+  getFooterCampaigns,
+  getFooterFaqItems,
   getHomepageFaqItems,
   getLegalPage,
   getLimitTables,
@@ -216,6 +218,36 @@ describe("cms.ts fetch-backed getters", () => {
     const doc = { id: "f1", question: "Q?", answer: "A", category: { label: "Genel", slug: "genel" }, order: 0 };
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
     expect(await getFaqItems()).toEqual([doc]);
+  });
+
+  it("getFooterCampaigns filters to showInFooter=true, capped at 6, sorted by footerOrder", async () => {
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
+    await getFooterCampaigns();
+    const calledUrl = vi.mocked(fetch).mock.calls[0][0] as string;
+    expect(calledUrl).toContain("where[showInFooter][equals]=true");
+    expect(calledUrl).toContain("limit=6");
+    expect(calledUrl).toContain("sort=footerOrder");
+  });
+
+  it("getFooterCampaigns returns docs on success", async () => {
+    const doc = { id: "1", title: "T", description: "D", image: media, category: { label: "Genel", slug: "genel" }, featured: true };
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
+    expect(await getFooterCampaigns()).toEqual([doc]);
+  });
+
+  it("getFooterFaqItems filters to showInFooter=true, capped at 6, sorted by footerOrder", async () => {
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
+    await getFooterFaqItems();
+    const calledUrl = vi.mocked(fetch).mock.calls[0][0] as string;
+    expect(calledUrl).toContain("where[showInFooter][equals]=true");
+    expect(calledUrl).toContain("limit=6");
+    expect(calledUrl).toContain("sort=footerOrder");
+  });
+
+  it("getFooterFaqItems returns docs on success", async () => {
+    const doc = { id: "f1", question: "Q?", answer: "A", category: { label: "Genel", slug: "genel" }, order: 0 };
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
+    expect(await getFooterFaqItems()).toEqual([doc]);
   });
 
   it("getHomepageFaqItems filters by showOnHomepage and sorts by homepageOrder", async () => {

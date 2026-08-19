@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { PayloadRequest } from "payload";
-import { assignNextOrder } from "@/hooks/ordering";
+import { assignFooterOrder, assignNextOrder, FOOTER_ORDER_MAX } from "@/hooks/ordering";
 
 function fakeReq(highest?: number, reject = false) {
   // Same canned response for every find() call (the "highest order" lookup
@@ -131,5 +131,78 @@ describe("the order field must not declare a defaultValue", () => {
     const { req } = fakeReqNoCollision();
     // This is what Payload hands the hook when `defaultValue: 1` is declared.
     expect((await run(assignNextOrder("faq-items", ["category"]), { category: "kampanyalar", order: 1 }, req)).order).toBe(1);
+  });
+});
+
+describe("assignFooterOrder", () => {
+  const runFooter = async (data: Record<string, unknown>, req: PayloadRequest, extra: Record<string, unknown> = {}) =>
+    assignFooterOrder("campaigns")({ data, operation: "create", req, collection: {} as never, context: {}, ...extra } as never) as Promise<
+      Record<string, unknown>
+    >;
+
+  it("is a no-op when showInFooter isn't part of this save", async () => {
+    const { req } = fakeReqNoCollision();
+    const result = await runFooter({ title: "x" }, req);
+    expect(result.footerOrder).toBeUndefined();
+  });
+
+  it("clears footerOrder when showInFooter is explicitly turned off", async () => {
+    const { req } = fakeReqNoCollision();
+    const result = await runFooter({ showInFooter: false, footerOrder: 3 }, req);
+    expect(result.footerOrder).toBeNull();
+  });
+
+  it("assigns slot 1 when nothing else is shown in the footer", async () => {
+    const find = vi.fn().mockResolvedValue({ docs: [], totalDocs: 0 });
+    const req = { payload: { find } } as unknown as PayloadRequest;
+    const result = await runFooter({ showInFooter: true }, req);
+    expect(result.footerOrder).toBe(1);
+  });
+
+  it("fills the first open GAP, not just highest+1 — slots 1,2,4,5,6 taken means 3 is next", async () => {
+    const find = vi.fn().mockResolvedValue({
+      docs: [{ footerOrder: 1 }, { footerOrder: 2 }, { footerOrder: 4 }, { footerOrder: 5 }, { footerOrder: 6 }],
+      totalDocs: 5,
+    });
+    const req = { payload: { find } } as unknown as PayloadRequest;
+    const result = await runFooter({ showInFooter: true }, req);
+    expect(result.footerOrder).toBe(3);
+  });
+
+  it(`rejects turning a 7th item on once all ${FOOTER_ORDER_MAX} slots are taken`, async () => {
+    const find = vi.fn().mockResolvedValue({
+      docs: [1, 2, 3, 4, 5, 6].map((footerOrder) => ({ footerOrder })),
+      totalDocs: 6,
+    });
+    const req = { payload: { find } } as unknown as PayloadRequest;
+    await expect(runFooter({ showInFooter: true }, req)).rejects.toThrow(new RegExp(String(FOOTER_ORDER_MAX)));
+  });
+
+  it("respects an explicit footerOrder when the slot is free", async () => {
+    const { req } = fakeReqNoCollision();
+    const result = await runFooter({ showInFooter: true, footerOrder: 4 }, req);
+    expect(result.footerOrder).toBe(4);
+  });
+
+  it("rejects an explicit footerOrder a sibling already occupies", async () => {
+    const find = vi.fn().mockResolvedValue({ docs: [{ id: "other", title: "Diğer Kampanya" }], totalDocs: 1 });
+    const req = { payload: { find } } as unknown as PayloadRequest;
+    await expect(runFooter({ showInFooter: true, footerOrder: 2 }, req)).rejects.toThrow(/Diğer Kampanya/);
+  });
+
+  it("on update, excludes the document being edited from the collision check", async () => {
+    const find = vi.fn().mockResolvedValue({ docs: [], totalDocs: 0 });
+    const req = { payload: { find } } as unknown as PayloadRequest;
+    await assignFooterOrder("campaigns")({
+      data: { showInFooter: true, footerOrder: 2 },
+      operation: "update",
+      req,
+      originalDoc: { id: "self-id", showInFooter: true, footerOrder: 2 },
+      collection: {} as never,
+      context: {},
+    } as never);
+    expect(find).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { and: expect.arrayContaining([{ id: { not_equals: "self-id" } }]) } })
+    );
   });
 });

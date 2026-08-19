@@ -184,6 +184,24 @@ export async function getCampaigns(): Promise<CmsCampaign[] | null> {
   return data?.docs ?? null;
 }
 
+/**
+ * RFP follow-up: the footer's "Kampanyalar" column used to be either a
+ * hardcoded array or generic NavLinks rows — neither let an editor pick
+ * WHICH campaign shows there. `showInFooter`/`footerOrder`
+ * (cms/src/collections/Campaigns.ts) are the per-campaign switch; this reads
+ * exactly what's flagged, already capped at 6 by the CMS side
+ * (`FOOTER_ORDER_MAX`), sorted by that same field. Same cache tag as
+ * `getCampaigns` — one campaign save already revalidates both.
+ */
+export async function getFooterCampaigns(): Promise<CmsCampaign[] | null> {
+  const data = await cmsFetch(
+    "/campaigns?depth=1&limit=6&sort=footerOrder&where[showInFooter][equals]=true",
+    "campaigns",
+    listResponseSchema(campaignSchema)
+  );
+  return data?.docs ?? null;
+}
+
 const campaignDetailSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   title: z.string(),
@@ -257,6 +275,22 @@ export async function getFaqItems(category?: string): Promise<CmsFaqItem[] | nul
   const categoryQuery = category ? `&where[category.slug][equals]=${encodeURIComponent(category)}` : "";
   const data = await cmsFetch(
     `/faq-items?depth=1&limit=200&sort=order&where[category.scope][equals]=faq${categoryQuery}`,
+    "faq-items",
+    listResponseSchema(faqItemSchema)
+  );
+  return data?.docs ?? null;
+}
+
+/**
+ * RFP follow-up: same pattern as `getFooterCampaigns` — the footer's "Sık
+ * Sorulanlar" column is now driven by each FaqItem's own
+ * `showInFooter`/`footerOrder` (cms/src/collections/FaqItems.ts), not a
+ * hardcoded list. Independent of `category`/`showOnHomepage` — a question
+ * can be footer-flagged regardless of which category or homepage state it's in.
+ */
+export async function getFooterFaqItems(): Promise<CmsFaqItem[] | null> {
+  const data = await cmsFetch(
+    "/faq-items?depth=1&limit=6&sort=footerOrder&where[showInFooter][equals]=true",
     "faq-items",
     listResponseSchema(faqItemSchema)
   );
@@ -391,6 +425,14 @@ export async function getLimitTables(): Promise<CmsLimitTable[] | null> {
   return data?.docs ?? null;
 }
 
+/**
+ * "footer-sss"/"footer-kampanyalar" are no longer offered as NavLinks
+ * options in the CMS (RFP follow-up — those two footer columns are now
+ * driven by each Campaign/FaqItem's own `showInFooter` flag instead, see
+ * `getFooterCampaigns`/`getFooterFaqItems`) but stay in this union because
+ * Footer.tsx still tags its two locally-built columns with them for typing
+ * consistency with `FooterColumn.section`.
+ */
 export type NavLinkSection =
   | "header-products"
   | "header-main"

@@ -4,7 +4,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { dbLabel } from "@/lib/collectionLabels";
-import { assignNextOrder, ORDER_FIELD_DESCRIPTION } from "@/hooks/ordering";
+import { assignFooterOrder, assignNextOrder, FOOTER_ORDER_FIELD_DESCRIPTION, FOOTER_ORDER_MAX, ORDER_FIELD_DESCRIPTION } from "@/hooks/ordering";
 import { CATEGORY_SCOPES } from "@/collections/Categories";
 
 /**
@@ -182,10 +182,42 @@ export const FaqItems: CollectionConfig = {
         },
       },
     },
+    {
+      // RFP follow-up: footer'daki "Sık Sorulanlar" sütunu artık sabit
+      // kod/NavLinks değil, buradan yönetiliyor — işaretlenen sorular (en
+      // fazla FOOTER_ORDER_MAX tanesi) footer'da gösteriliyor.
+      name: "showInFooter",
+      type: "checkbox",
+      defaultValue: false,
+      label: { tr: "Footer'da Göster", en: "Show in Footer" },
+      admin: {
+        description: {
+          tr: "İşaretlenirse bu soru, sitenin her sayfasındaki footer'ın 'Sık Sorulanlar' sütununda görünür.",
+          en: "If checked, this question appears in the footer's 'Sık Sorulanlar' column on every page of the site.",
+        },
+      },
+    },
+    {
+      name: "footerOrder",
+      type: "number",
+      label: { tr: "Footer Sırası", en: "Footer Order" },
+      min: 1,
+      max: FOOTER_ORDER_MAX,
+      admin: {
+        condition: (data) => Boolean(data?.showInFooter),
+        description: FOOTER_ORDER_FIELD_DESCRIPTION,
+        components: {
+          Field: {
+            path: "/components/LiveOrderField#default",
+            clientProps: { collection: "faq-items", watchPath: "showInFooter", mode: "boolean" },
+          },
+        },
+      },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    beforeChange: [assignNextOrder("faq-items", ["category"]), assignNextHomepageOrder],
+    beforeChange: [assignNextOrder("faq-items", ["category"]), assignNextHomepageOrder, assignFooterOrder("faq-items")],
     afterChange: [revalidateTag("faq-items"), auditAfterChange("faq-items")],
     afterDelete: [revalidateTagOnDelete("faq-items"), auditAfterDelete("faq-items")],
   },

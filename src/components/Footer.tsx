@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getNavLinks, type NavLinkSection } from "@/lib/cms";
+import { campaignToCard, getFooterCampaigns, getFooterFaqItems, getNavLinks, type NavLinkSection } from "@/lib/cms";
 
 interface FooterLink {
   label: string;
@@ -14,14 +14,20 @@ interface FooterColumn {
 }
 
 /**
- * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
+ * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY, for the
+ * "Kurumsal"/"Yasal" columns only.
  *
- * Checked against the live DB: the CMS collection behind this section has ZERO
- * rows, so unlike the FAQ/announcement/campaign fallbacks removed in this
- * round, this array is not dead code that only fires on an outage — it IS what
- * the site currently renders. Deleting it would blank a working section rather
- * than reveal a masked failure. Remove it in the same change that seeds the
- * collection; see the round report's "kalan fallback'ler" table.
+ * Checked against the live DB: the CMS collection behind these two sections
+ * has real, published rows now (seeded from this exact fallback — see
+ * docs/RFP-OPEN-ITEMS.md §9), so this only ever fires if that data somehow
+ * comes back empty, not on every normal render. Deleting it would blank a
+ * working section rather than reveal a masked failure.
+ *
+ * "Sık Sorulanlar" and "Kampanyalar" are handled separately below — RFP
+ * follow-up moved them off NavLinks entirely onto a per-record
+ * `showInFooter` flag (Campaigns/FaqItems), so they get NO fallback: an
+ * editor hasn't flagged anything yet means the column is empty, on purpose,
+ * until they do.
  */
 const fallbackColumns: FooterColumn[] = [
   {
@@ -33,29 +39,6 @@ const fallbackColumns: FooterColumn[] = [
       { label: "Kurumsal Yönetim", href: "/kurumsal-yonetim" },
       { label: "Duyurular", href: "/duyurular" },
       { label: "Bilgi Toplum Hizmetleri", href: "https://e-sirket.mkk.com.tr/?page=company&company=21693" },
-    ],
-  },
-  {
-    title: "Sık Sorulanlar",
-    section: "footer-sss",
-    links: [
-      { label: "QR ile Ödeme Nasıl Yapılır?", href: "/sikca-sorulan-sorular" },
-      { label: "İstanbulkart Bakiye Yükleme", href: "/sikca-sorulan-sorular" },
-      { label: "Anında Bakiye ile Market Harcaması", href: "/sikca-sorulan-sorular" },
-      { label: "Vodafone Pay Kart'a Bakiye Yükleme", href: "/sikca-sorulan-sorular" },
-      { label: "Cashback Nedir?", href: "/sikca-sorulan-sorular" },
-      { label: "Ön Ödemeli Kart Nedir?", href: "/sikca-sorulan-sorular" },
-    ],
-  },
-  {
-    title: "Kampanyalar",
-    section: "footer-kampanyalar",
-    links: [
-      { label: "Eğlence Yanımda üyeliklerinde %50 indirim", href: "/kampanyalar" },
-      { label: "Kolay Paket Yüklemelerine 100 TL Nakit İade", href: "/kampanyalar" },
-      { label: "Kurum Faturalarını 100 TL Nakit İade", href: "/kampanyalar" },
-      { label: "İlk QR Harcamanı Yap, %20 İndirim Kazan!", href: "/kampanyalar" },
-      { label: "Netflix ve Spotify Üyelikleriniz 1 Ay Bedava", href: "/kampanyalar" },
     ],
   },
   {
@@ -74,14 +57,32 @@ const fallbackColumns: FooterColumn[] = [
 ];
 
 export async function Footer() {
-  const cmsLinks = await getNavLinks();
+  const [cmsLinks, footerCampaigns, footerFaqItems] = await Promise.all([getNavLinks(), getFooterCampaigns(), getFooterFaqItems()]);
 
-  const columns: FooterColumn[] = fallbackColumns.map((col) => {
+  const staticColumns: FooterColumn[] = fallbackColumns.map((col) => {
     const links = cmsLinks?.length
       ? cmsLinks.filter((l) => l.section === col.section).map((l) => ({ label: l.label, href: l.href }))
       : [];
     return { ...col, links: links.length ? links : col.links };
   });
+  const [kurumsalColumn, yasalColumn] = staticColumns;
+
+  // RFP follow-up: no fallback here, deliberately — see the comment above
+  // fallbackColumns. An empty array just renders the column heading with no
+  // items, which is the whole point: it fills in as an editor checks
+  // "Footer'da Göster" on individual campaigns/questions.
+  const sssColumn: FooterColumn = {
+    title: "Sık Sorulanlar",
+    section: "footer-sss",
+    links: (footerFaqItems ?? []).map((f) => ({ label: f.question, href: "/sikca-sorulan-sorular" })),
+  };
+  const kampanyalarColumn: FooterColumn = {
+    title: "Kampanyalar",
+    section: "footer-kampanyalar",
+    links: (footerCampaigns ?? []).map((c) => ({ label: c.title, href: campaignToCard(c).href })),
+  };
+
+  const columns: FooterColumn[] = [kurumsalColumn, sssColumn, kampanyalarColumn, yasalColumn];
 
   return (
     <footer id="site-footer" className="mt-auto bg-black px-4 py-12 text-white lg:px-16">
