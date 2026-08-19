@@ -24,75 +24,117 @@ import { turkishSlugify, uniqueSlug } from "@/lib/slugify";
  * pages, campaign hubs) without needing a developer.
  */
 
+/**
+ * Butterfly-parity gap-fill (docs/RFP-OPEN-ITEMS.md §9): editors asked for
+ * "hangi layout hangi durumda eklenir" guidance. A Payload `Block`'s
+ * top-level `admin` object has no `description` slot (only individual
+ * FIELDS do — verified via `tsc`, it's a real type-level restriction, not a
+ * style choice) — so the "when to use this" hint lives in `labels.singular`
+ * instead, since that's the one per-block string Payload actually renders,
+ * both in the "+ Add Block" picker and on the block's own collapsed row.
+ */
 const HeroBlock: Block = {
   slug: "hero",
-  labels: { singular: "Hero (Başlık + Görsel)", plural: "Hero Blokları" },
+  labels: {
+    singular: "Hero (Başlık + Görsel) — sayfanın en üstüne büyük afiş",
+    plural: "Hero Blokları",
+  },
   fields: [
-    { name: "heading", type: "text", required: true },
-    { name: "subheading", type: "text" },
-    { name: "image", type: "upload", relationTo: "media", required: true },
-    { name: "ctaLabel", type: "text" },
-    { name: "ctaUrl", type: "text" },
+    { name: "heading", type: "text", required: true, admin: { description: "Büyük, kalın başlık. Örnek: 'Yaz Kampanyası 2026'" } },
+    { name: "subheading", type: "text", admin: { description: "Başlığın altında, daha küçük yazan destek cümlesi. Boş bırakılabilir." } },
+    { name: "image", type: "upload", relationTo: "media", required: true, admin: { description: "Sayfanın en üstünde tam genişlikte görünecek büyük görsel." } },
+    { name: "ctaLabel", type: "text", admin: { description: "Buton üzerinde yazacak metin, örn: 'Detayları Gör'. Boş bırakılırsa buton hiç gösterilmez." } },
+    { name: "ctaUrl", type: "text", admin: { description: "Butona tıklayınca gidilecek adres, örn: /kampanyalar veya https://... . ctaLabel doluysa bu da dolu olmalı." } },
   ],
 };
 
 const RichTextBlock: Block = {
   slug: "richText",
-  labels: { singular: "Metin Bloğu", plural: "Metin Blokları" },
+  labels: {
+    singular: "Metin Bloğu — biçimlendirilmiş yazı/paragraf bölümü",
+    plural: "Metin Blokları",
+  },
   fields: [
-    { name: "heading", type: "text" },
+    { name: "heading", type: "text", admin: { description: "Bu metin bölümünün başlığı, örn: 'Vizyonumuz'. Boş bırakılırsa başlıksız sadece metin gösterilir." } },
     { name: "body", type: "richText", required: true },
   ],
 };
 
 const FaqListBlock: Block = {
   slug: "faqList",
-  labels: { singular: "SSS Bloğu", plural: "SSS Blokları" },
+  labels: {
+    singular: "SSS Bloğu — Kategoriler'deki soruları otomatik listeler",
+    plural: "SSS Blokları",
+  },
   fields: [
-    { name: "heading", type: "text" },
+    { name: "heading", type: "text", admin: { description: "SSS bölümünün başlığı, örn: 'Sıkça Sorulan Sorular'. Boş bırakılabilir." } },
     {
       name: "category",
       type: "text",
-      admin: { description: "FaqItems'daki category değeriyle eşleşmeli (örn: kampanyalar). Boş bırakılırsa tüm SSS'ler gelir." },
+      admin: {
+        description:
+          "Sadece BELİRLİ bir kategorideki soruları göstermek için Kategoriler koleksiyonundaki (Akış: Sık Sorulanlar) o kategorinin slug'ını yazın, örn: kampanyalar. Boş bırakılırsa SSS akışındaki TÜM sorular gelir.",
+      },
     },
   ],
 };
 
 const CampaignGridBlock: Block = {
   slug: "campaignGrid",
-  labels: { singular: "Kampanya Grid Bloğu", plural: "Kampanya Grid Blokları" },
+  labels: {
+    singular: "Kampanya Grid Bloğu — Campaigns'teki kampanyaları kart olarak listeler",
+    plural: "Kampanya Grid Blokları",
+  },
   fields: [
-    { name: "heading", type: "text", required: true },
+    { name: "heading", type: "text", required: true, admin: { description: "Vitrinin başlığı, örn: 'Size Özel Kampanyalar'." } },
     {
       name: "category",
       type: "text",
-      admin: { description: "Campaigns'teki category değeriyle eşleşmeli (örn: kart). Boş bırakılırsa tüm aktif kampanyalar gelir." },
+      admin: {
+        description:
+          "Sadece BELİRLİ bir kategorideki kampanyaları göstermek için Kategoriler koleksiyonundaki (Akış: Kampanyalar) o kategorinin slug'ını yazın, örn: kart. Boş bırakılırsa TÜM aktif kampanyalar gelir.",
+      },
     },
   ],
 };
 
 const VideoBlock: Block = {
   slug: "video",
-  labels: { singular: "Video Bloğu", plural: "Video Blokları" },
+  labels: {
+    singular: "Video Bloğu — oynatılabilir YouTube videosu gömer",
+    plural: "Video Blokları",
+  },
   fields: [
-    { name: "heading", type: "text" },
-    { name: "youtubeId", type: "text", required: true },
+    { name: "heading", type: "text", admin: { description: "Videonun üstünde gösterilecek başlık. Boş bırakılabilir." } },
+    {
+      name: "youtubeId",
+      type: "text",
+      required: true,
+      admin: {
+        description:
+          "Sadece video ID'si — tam URL değil. https://www.youtube.com/watch?v=ABC123XYZ adresindeki ABC123XYZ kısmını yazın.",
+      },
+    },
   ],
 };
 
 const LogoGridBlock: Block = {
   slug: "logoGrid",
-  labels: { singular: "Logo Grid Bloğu", plural: "Logo Grid Blokları" },
+  labels: {
+    singular: "Logo Grid Bloğu — marka/ortak logoları vitrini (İstanbulkart, Kentkart vb. gibi)",
+    plural: "Logo Grid Blokları",
+  },
   fields: [
-    { name: "heading", type: "text" },
+    { name: "heading", type: "text", admin: { description: "Vitrinin başlığı, örn: 'Anlaşmalı Kartlar'. Boş bırakılabilir." } },
     {
       name: "logos",
       type: "array",
       minRows: 1,
+      admin: { description: "Her satır bir logo. '+ Logo Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin." },
       fields: [
-        { name: "name", type: "text", required: true },
-        { name: "logo", type: "upload", relationTo: "media", required: true },
-        { name: "linkUrl", type: "text" },
+        { name: "name", type: "text", required: true, admin: { description: "Logonun adı (ekranda görünmez, erişilebilirlik/alt-text için)." } },
+        { name: "logo", type: "upload", relationTo: "media", required: true, admin: { description: "Logo görseli." } },
+        { name: "linkUrl", type: "text", admin: { description: "Logoya tıklayınca gidilecek adres. Boş bırakılırsa logo tıklanamaz olur." } },
       ],
     },
   ],
@@ -193,7 +235,7 @@ export const Pages: CollectionConfig = {
     // RFP feedback 5.7: was `localized: true` — the only localized field in the
     // whole CMS, which is why the content-locale selector appeared in the
     // header while switching it changed nothing. See payload.config.ts.
-    { name: "title", type: "text", required: true },
+    { name: "title", type: "text", required: true, admin: { description: "Sayfanın adı — hem sayfanın başlığı hem de URL'nin otomatik türetileceği kaynak metin." } },
     {
       name: "slug",
       type: "text",
@@ -205,6 +247,10 @@ export const Pages: CollectionConfig = {
       name: "layout",
       type: "blocks",
       minRows: 1,
+      admin: {
+        description:
+          "Sayfa, aşağıya eklediğiniz bloklardan yukarıdan aşağı sırayla oluşur — her blok bir bölüm demektir. '+ Blok Ekle'ye basınca hangi blok ne işe yarar açıklamasını görürsünüz; sürükleyerek sırasını değiştirebilir, çöp kutusuyla silebilirsiniz. NOT: Bu koleksiyondaki bir sayfa, header'daki 'Ürünler' menüsünde veya footer'da OTOMATİK görünmez — orada göstermek isterseniz Menü Linkleri (NavLinks) koleksiyonuna gidip href=/{slug} ile ayrı bir satır eklemeniz gerekir (bkz. Menü Linkleri koleksiyonundaki açıklama).",
+      },
       blocks: [HeroBlock, RichTextBlock, FaqListBlock, CampaignGridBlock, VideoBlock, LogoGridBlock],
     },
     { name: "seoTitle", type: "text" },
@@ -222,8 +268,8 @@ export const Pages: CollectionConfig = {
       admin: {
         position: "sidebar",
         description: {
-          tr: "Sadece breadcrumb'da gösterilir (Ana Sayfa > Üst Sayfa > Bu Sayfa) — URL /{slug} olarak düz kalır.",
-          en: "Only affects the breadcrumb trail (Home > Parent > This page) — the URL stays flat at /{slug}.",
+          tr: "Sadece breadcrumb'da gösterilir (Ana Sayfa > Üst Sayfa > Bu Sayfa) — URL /{slug} olarak düz kalır. Bu listede sadece DAHA ÖNCE oluşturup kaydettiğiniz başka Page'ler çıkar — ilk sayfanızı oluştururken liste boş görünür, bu bir hata değildir. Örnek: önce 'Kurumsal' adında bir Page oluşturup kaydedin, sonra 'Ekibimiz' adında ikinci bir Page oluşturup Üst Sayfa alanından 'Kurumsal'ı seçin.",
+          en: "Only affects the breadcrumb trail (Home > Parent > This page) — the URL stays flat at /{slug}. This list only shows OTHER Pages you've already created and saved — it's empty for your very first page, that's expected, not a bug. Example: create and save a page called 'Kurumsal' first, then create a second page 'Ekibimiz' and pick 'Kurumsal' here.",
         },
       },
       filterOptions: ({ id }) => (id ? { id: { not_equals: id } } : true),

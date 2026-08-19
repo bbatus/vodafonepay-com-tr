@@ -189,6 +189,12 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "contentManagement.draft": { tr: "Taslak", en: "Draft" },
   "contentManagement.yes": { tr: "Evet", en: "Yes" },
   "contentManagement.no": { tr: "Hayır", en: "No" },
+  "contentManagement.colPath": { tr: "Adres", en: "Path" },
+  "contentManagement.colLinkedFrom": { tr: "Nerede Bağlantılı", en: "Linked From" },
+  "contentManagement.siteRoutesHint": {
+    tr: "Bunlar Pages koleksiyonunda değil, geliştirici tarafından kodla oluşturulmuş sayfalar — burada sadece referans için listeleniyor, düzenlenemezler. İçeriklerinin çoğu yine de CMS'ten geliyor (örn. bu sayfalardaki SSS/kampanya bölümleri).",
+    en: "These aren't Pages documents — they're pages built by a developer in code, listed here for reference only, not editable. Most of their content still comes from the CMS (e.g. the FAQ/campaign sections on these pages).",
+  },
 
   "lockedAccounts.navLabel": { tr: "Kilitli Hesaplar", en: "Locked Accounts" },
   "lockedAccounts.title": { tr: "Kilitli Hesaplar", en: "Locked Accounts" },

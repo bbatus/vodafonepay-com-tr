@@ -262,5 +262,50 @@ export function hasDrafts(slug: string): boolean {
 }
 
 export function tabLabel(slug: string, locale: "tr" | "en"): string {
+  if (slug === SITE_ROUTES_TAB_SLUG) return locale === "tr" ? "Site Sayfaları (geliştirici yapımı)" : "Site Pages (developer-built)";
   return COLLECTION_LABELS[slug]?.[locale] ?? slug;
 }
+
+/**
+ * RFP follow-up: "sistemde kaç tane page varsa ... hangi page var görebilecğimiz
+ * bir liste de lazım". The `pages` tab above already lists every editor-built
+ * Pages document — but roughly 20 of the site's routes (the homepage, product
+ * pages like /vodafone-pay-uygulama, legal pages, etc.) are hand-written
+ * `src/app/*\/page.tsx` files, not Payload documents, so no API call can ever
+ * list them. This is a hand-maintained reference table, not a live query —
+ * update it when a route is added/removed/renamed under src/app. Kept here
+ * (not fetched) rather than skipped, because "no list exists for these" was
+ * the actual gap being reported, not "list only what the API can see".
+ */
+export const SITE_ROUTES_TAB_SLUG = "site-routes";
+
+export type SiteRoute = {
+  path: string;
+  title: string;
+  /** Where this route is (or isn't) linked from today — helps answer "is this reachable at all". */
+  linkedFrom: { tr: string; en: string };
+};
+
+export const HAND_BUILT_ROUTES: SiteRoute[] = [
+  { path: "/", title: "Anasayfa", linkedFrom: { tr: "Logo", en: "Logo" } },
+  { path: "/vodafone-pay-uygulama", title: "Vodafone Pay Uygulaması", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
+  { path: "/vodafone-pay-kart", title: "Vodafone Pay Kart", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
+  { path: "/qr-ile-faturana-yansit", title: "QR ile Faturana Yansıt", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
+  { path: "/faturana-yansit", title: "Faturana Yansıt", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
+  { path: "/aninda-bakiye", title: "Anında Bakiye", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
+  { path: "/kampanyalar", title: "Kampanyalar", linkedFrom: { tr: "Header → Ana Menü", en: "Header → Main menu" } },
+  { path: "/blog", title: "Blog", linkedFrom: { tr: "Header → Ana Menü", en: "Header → Main menu" } },
+  { path: "/ucretler-ve-limitler", title: "Ücretler ve Limitler", linkedFrom: { tr: "Header → Ana Menü", en: "Header → Main menu" } },
+  { path: "/sikca-sorulan-sorular", title: "Sıkça Sorulan Sorular", linkedFrom: { tr: "Header → Ana Menü, Footer → Sık Sorulanlar", en: "Header → Main menu, Footer → FAQ" } },
+  { path: "/temsilciliklerimiz", title: "Temsilciliklerimiz", linkedFrom: { tr: "Footer → Kurumsal", en: "Footer → Corporate" } },
+  { path: "/iletisim", title: "İletişim", linkedFrom: { tr: "Footer → Kurumsal", en: "Footer → Corporate" } },
+  { path: "/kurumsal-yonetim", title: "Kurumsal Yönetim", linkedFrom: { tr: "Footer → Kurumsal", en: "Footer → Corporate" } },
+  { path: "/duyurular", title: "Duyurular", linkedFrom: { tr: "Footer → Kurumsal", en: "Footer → Corporate" } },
+  { path: "/site-haritasi", title: "Site Haritası", linkedFrom: { tr: "Footer → Yasal", en: "Footer → Legal" } },
+  { path: "/gizlilik-ve-guvenlik-politikasi", title: "Gizlilik ve Güvenlik Politikası", linkedFrom: { tr: "Footer → Yasal", en: "Footer → Legal" } },
+  { path: "/cerez-politikasi", title: "Çerez Politikası", linkedFrom: { tr: "Footer → Yasal", en: "Footer → Legal" } },
+  { path: "/bilgi-guvenligi", title: "Bilgi Güvenliği", linkedFrom: { tr: "Footer → Yasal", en: "Footer → Legal" } },
+  { path: "/sozlesmeler-ve-formlar", title: "Sözleşmeler ve Formlar", linkedFrom: { tr: "Footer → Yasal", en: "Footer → Legal" } },
+  { path: "/web-sitesi-hukum-ve-sartlari", title: "Web Sitesi Kullanımı Hüküm ve Şartları", linkedFrom: { tr: "Footer → Yasal", en: "Footer → Legal" } },
+  { path: "/faydali-bilgiler", title: "Faydalı Bilgiler", linkedFrom: { tr: "Footer → Yasal", en: "Footer → Legal" } },
+];

@@ -172,6 +172,44 @@ tercihler olarak duruyor), ve bir "rol/izin yönetimi" admin ekranı (Butterfly'
 gerek yok; canlıya geçiş öncesi tekrar değerlendirilecek açık madde olarak işaretli
 (`RFP-OPEN-ITEMS.md` §7).
 
+### 2.9 Header/Footer menü yönetimi, sayfa envanteri, layout açıklamaları (19.08.2026)
+Kullanıcı sorusu: "Ürünler" menüsündeki (header) ve footer'daki linkleri CMS'ten yönetebiliyor
+muyuz — ekleyip çıkarabiliyor, sıralayabiliyor muyuz? Bulgu: kod zaten TAM olarak buna göre
+yazılmıştı (`NavLinks` koleksiyonu, `section` alanı `header-products`/`header-main`/
+`footer-kurumsal`/`footer-sss`/`footer-kampanyalar`/`footer-yasal`, sürükle-bırak
+`ReorderWidget` zaten bağlı) — ama koleksiyon local DB'de **0 kayıtlıydı**, `Header.tsx`/
+`Footer.tsx`'teki hardcoded fallback dizileri sahnenin tamamını oynatıyordu (kodun kendi
+yorumu bunu zaten söylüyordu: "ZERO rows... this array IS what the site currently renders").
+Yani kontrol MEVCUTTU ama hiç KULLANILMIYORDU — editör NavLinks'e bir satır eklese bile
+göremeyecekti çünkü zaten gösterilen o hardcoded liste değildi (görünüşte aynı içerik
+olduğu için fark edilmiyordu). Düzeltme: fallback dizilerdeki 32 satırın tamamı gerçek
+`nav-links` kayıtları olarak oluşturulup yayınlandı (API üzerinden — ilk seferde `_status`
+belirtilmediği için taslak kalıp hâlâ görünmez oldular, sonra hepsi `published`'a çekildi).
+Canlı doğrulandı: bir satır silinince header'daki "Ürünler" menüsünden gerçekten kayboldu,
+tekrar eklenince geri geldi — artık NavLinks admin ekranından gerçek zamanlı ekleme/çıkarma/
+sıralama çalışıyor, kod değişikliği gerekmiyor.
+
+**Sayfa envanteri:** "Kaç page var, hangileri" sorusuna kısmi cevap zaten vardı — İçerik
+Yönetimi raporunun "Sayfalar" tab'ı `Pages` koleksiyonundaki editör-yapımı sayfaları zaten
+listeliyordu. Eksik olan, site'nin ~20 geliştirici-yapımı rotasıydı (`/vodafone-pay-uygulama`
+gibi src/app/*/page.tsx dosyaları — bunlar Payload dokümanı olmadığı için hiçbir API
+sorgusu bunları listeyemez). İçerik Yönetimi'ne yeni bir "Site Sayfaları (geliştirici
+yapımı)" sekmesi eklendi — elle bakımı yapılan statik bir referans tablosu (adres + hangi
+menüde bağlantılı), API'den çekilmiyor, sadece bilgilendirme.
+
+**Layout blok açıklamaları:** `Pages` koleksiyonunun 6 bloğunun (Hero/Metin/SSS/Kampanya
+Grid/Video/Logo Grid) hepsine "ne zaman kullanılır" açıklaması eklendi — blok seviyesinde
+Payload'ın `admin.description`'ı desteklemediği (sadece alan seviyesinde var, `tsc` ile
+doğrulandı) için bu metin blok `labels.singular`'ına taşındı ("+ Blok Ekle" listesinde ve
+blok başlığında görünüyor); her bloğun içindeki tek tek alanlara da (heading, category,
+youtubeId vb.) iş birimi diliyle örnekli açıklamalar eklendi.
+
+**Üst Sayfa (parent) seçici "çalışmıyor" şikayeti:** Bug değil — `pages` tablosu local DB'de
+sıfır kayıtlıydı, seçilecek başka bir Page yoktu. Canlı kanıtlandı: bir "Kurumsal" Page
+oluşturulup kaydedilince, yeni bir Page açıldığında Üst Sayfa alanında "Kurumsal" seçeneği
+gerçekten çıktı (ekran görüntüsüyle doğrulandı). Alanın açıklaması da bunu netleştirecek
+şekilde güncellendi: "ilk sayfanızı oluştururken liste boş görünür, bu bir hata değildir."
+
 ---
 
 ## 3. Açık Kalan Riskler / Yapılacaklar

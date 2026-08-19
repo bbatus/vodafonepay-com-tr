@@ -6,7 +6,9 @@ import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
 import {
   ALL_REPORTED_SLUGS,
+  HAND_BUILT_ROUTES,
   REPORT_COLLECTIONS,
+  SITE_ROUTES_TAB_SLUG,
   hasDrafts,
   tabLabel,
   type ReportColumn,
@@ -54,7 +56,8 @@ export default function ContentManagementApp() {
 
   const [summaries, setSummaries] = useState<Summary[] | null>(null);
   const [activeSlug, setActiveSlug] = useState(REPORT_COLLECTIONS[0].slug);
-  const tab = useMemo(() => REPORT_COLLECTIONS.find((c) => c.slug === activeSlug)!, [activeSlug]);
+  const isSiteRoutesTab = activeSlug === SITE_ROUTES_TAB_SLUG;
+  const tab = useMemo(() => REPORT_COLLECTIONS.find((c) => c.slug === activeSlug), [activeSlug]);
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -116,6 +119,17 @@ export default function ContentManagementApp() {
 
   // ---- detail list for the active tab --------------------------------------
   const load = useCallback(async () => {
+    // The hand-built-routes tab isn't backed by a Payload collection — see
+    // HAND_BUILT_ROUTES' own comment — so there's no API call to make here;
+    // renderDetail() renders that static table directly instead.
+    if (isSiteRoutesTab || !tab) {
+      setDocs([]);
+      setTotalPages(1);
+      setTotalDocs(HAND_BUILT_ROUTES.length);
+      setLoading(false);
+      setError(null);
+      return;
+    }
     setLoading(true);
     setError(null);
     const params = new URLSearchParams({
@@ -148,7 +162,7 @@ export default function ContentManagementApp() {
     } finally {
       setLoading(false);
     }
-  }, [tab, page, search, t, locale]);
+  }, [tab, page, search, t, locale, isSiteRoutesTab]);
 
   useEffect(() => {
   // startTransition keeps the first setState out of the effect's synchronous
@@ -198,11 +212,40 @@ export default function ContentManagementApp() {
   };
 
   const titleOf = (doc: Doc): string => {
-    const value = doc[tab.titleField];
+    const value = tab ? doc[tab.titleField] : undefined;
     return typeof value === "string" && value ? value : `#${String(doc.id)}`;
   };
 
+  const renderSiteRoutesDetail = () => (
+    <div className="table-wrap">
+      <table className="cm-table">
+        <thead>
+          <tr>
+            <th>{t("contentManagement.colTitle")}</th>
+            <th>{t("contentManagement.colPath")}</th>
+            <th>{t("contentManagement.colLinkedFrom")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {HAND_BUILT_ROUTES.filter(
+            (r) => !search.trim() || r.title.toLowerCase().includes(search.trim().toLowerCase()) || r.path.includes(search.trim())
+          ).map((r) => (
+            <tr key={r.path}>
+              <td>{r.title}</td>
+              <td>
+                <code>{r.path}</code>
+              </td>
+              <td>{r.linkedFrom[locale]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
   const renderDetail = () => {
+    if (isSiteRoutesTab) return renderSiteRoutesDetail();
+    if (!tab) return null;
     if (loading) return <p className="cm-hint">{t("contentManagement.loading")}</p>;
     if (error) return <p className="cm-error">{error}</p>;
     if (docs.length === 0) return <p className="cm-hint">{t("contentManagement.empty")}</p>;
@@ -295,7 +338,16 @@ export default function ContentManagementApp() {
             {tabLabel(c.slug, locale)}
           </button>
         ))}
+        <button
+          type="button"
+          className={`cm-tab${isSiteRoutesTab ? " cm-tab--active" : ""}`}
+          aria-pressed={isSiteRoutesTab}
+          onClick={() => switchTab(SITE_ROUTES_TAB_SLUG)}
+        >
+          {tabLabel(SITE_ROUTES_TAB_SLUG, locale)}
+        </button>
       </div>
+      {isSiteRoutesTab && <p className="cm-hint">{t("contentManagement.siteRoutesHint")}</p>}
 
       <div className="cm-toolbar">
         <input

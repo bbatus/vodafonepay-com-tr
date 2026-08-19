@@ -154,3 +154,34 @@ kolonları elle eklendi, tam SQL `docs/STATUS.md` §2.7'de.
 Canlı doğrulandı: API üzerinden üst+alt sayfa oluşturuldu, breadcrumb sitede doğru render
 oldu, private sayfa hem public API'de hem sitede (404) doğru gizlendi, self-parent denemesi
 400 ile reddedildi. cms: 145/145 test, root: 106/106 test, her iki tarafta typecheck+lint temiz.
+
+---
+
+## 9. Header/Footer menü yönetimi, sayfa envanteri, layout açıklamaları (2026-08-19)
+
+Kullanıcı: header'daki "Ürünler" menüsü ve footer'daki linkler (Kurumsal/Sık Sorulanlar/
+Kampanyalar/Yasal) CMS'ten yönetilebiliyor mu — ekle/çıkar/sırala?
+
+**Bulgu — koddaki mimari zaten doğruydu, veri eksikti:** `NavLinks` koleksiyonu tam da bu iş
+için tasarlanmış (`section` alanı 6 yeri kapsıyor, `ReorderWidget` sürükle-bırak zaten bağlı,
+`href` serbest metin — herhangi bir iç/dış adresi kabul ediyor). Ama local DB'de 0 satır vardı;
+`Header.tsx`/`Footer.tsx`'teki hardcoded fallback dizileri (kodun kendi yorumunda zaten
+"bu fallback ölü kod değil, şu an sahnede olan budur" diye açıkça yazıyordu) tüm görünümü
+üretiyordu. Editör NavLinks'e gitse bile hiçbir değişiklik göremezdi. Kapatıldı: fallback'teki
+32 satırın hepsi gerçek, yayınlanmış `nav-links` kaydı olarak oluşturuldu; canlı test edildi
+(bir satır silinince header'dan gerçekten kayboldu, geri eklenince geri geldi).
+
+**Sayfa envanteri:** Editör-yapımı `Pages` dokümanları zaten İçerik Yönetimi'nin "Sayfalar"
+tab'ında listeleniyordu. Eksik olan ~20 geliştirici-yapımı rota (src/app/*/page.tsx) için
+İçerik Yönetimi'ne yeni, elle bakımlı bir "Site Sayfaları (geliştirici yapımı)" referans
+tablosu eklendi (adres + hangi menüde bağlı olduğu).
+
+**Layout blok açıklamaları:** Pages'in 6 bloğuna (Hero/Metin/SSS/Kampanya Grid/Video/Logo
+Grid) "ne zaman kullanılır" açıklaması eklendi — Payload'ın Block tipinde `admin.description`
+olmadığı için (`tsc` ile doğrulandı) bu metin `labels.singular`'a taşındı; her bloğun tek tek
+alanlarına da iş birimi diliyle örnekli açıklamalar eklendi.
+
+**"Üst sayfa ekleme çalışmıyor" şikayeti — bug değil, veri yokluğu:** `pages` tablosu 0
+kayıtlıydı, seçilecek başka Page yoktu. Canlı kanıtlandı: bir Page kaydedilince ikinci bir
+Page'in Üst Sayfa alanında gerçekten seçenek olarak çıktı. Alan açıklaması bunu netleştirecek
+şekilde güncellendi.

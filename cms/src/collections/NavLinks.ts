@@ -38,12 +38,24 @@ export const NavLinks: CollectionConfig = {
     delete: isNewVerticalMaker,
   },
   fields: [
-    { name: "label", type: "text", required: true },
-    { name: "href", type: "text", required: true },
+    { name: "label", type: "text", required: true, admin: { description: "Menüde/footer'da görünecek yazı, örn: 'Vodafone Pay Kart'." } },
+    {
+      name: "href",
+      type: "text",
+      required: true,
+      admin: {
+        description:
+          "Tıklanınca gidilecek adres. İç sayfa için başında / olacak şekilde yazın (örn. /vodafone-pay-kart veya, Pages'te oluşturduğunuz bir sayfa için /{o sayfanın slug'ı}); dış bağlantı için https:// ile başlayın (örn. Bilgi Toplum Hizmetleri linki gibi). Bu alan HERHANGİ bir adresi kabul eder — geliştirici sitedeki mevcut sayfaların adres listesini size verebilir.",
+      },
+    },
     {
       name: "section",
       type: "select",
       required: true,
+      admin: {
+        description:
+          "Bu link NEREDE görünecek? Header — Ürünler = üst menüdeki 'Ürünler' açılır listesi. Header — Ana Menü = üst menünün geri kalanı (Kampanyalar, Blog vb.). Footer — * seçenekleri footer'daki 4 sütuna karşılık gelir (Kurumsal/Sık Sorulanlar/Kampanyalar/Yasal). Bir linki KALDIRMAK için bu kaydı silin; SIRASINI değiştirmek için listedeki sürükle-bırak aracını kullanın.",
+      },
       options: [
         { label: "Header — Ürünler", value: "header-products" },
         { label: "Header — Ana Menü", value: "header-main" },
