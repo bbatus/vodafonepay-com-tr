@@ -2,8 +2,8 @@ import React from "react";
 
 export default function AdminLogo() {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-      <img src="/admin-logo.svg" alt="Vodafone Pay" style={{ height: 44, width: "auto" }} />
+    <div className="admin-logo">
+      <img src="/admin-logo.svg" alt="Vodafone Pay" className="admin-logo__img" />
     </div>
   );
 }

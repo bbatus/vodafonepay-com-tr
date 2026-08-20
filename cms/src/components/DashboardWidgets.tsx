@@ -10,7 +10,51 @@ import {
 import { loadDbStrings } from "@/lib/loadDbStrings";
 import { applyPlaceholder } from "@/lib/translationDefaults";
 import { loadOwnDrafts, loadPendingCampaigns, type OwnDraft } from "@/lib/campaignApprovals";
-import { IconCheckCircle, IconDraft } from "./DashboardIcons";
+import { IconCheckCircle, IconDraft, IconUsers } from "./DashboardIcons";
+
+type LoginEntry = {
+  userEmail: string;
+  userRole?: string;
+  createdAt: string;
+  ip?: string;
+};
+
+const ROLE_LABELS: Record<string, { tr: string; en: string }> = {
+  [ROLES.NEW_VERTICAL_MAKER]: { tr: "New Vertical — Maker", en: "New Vertical — Maker" },
+  [ROLES.NEW_VERTICAL_CHECKER]: { tr: "New Vertical — Checker", en: "New Vertical — Checker" },
+  [ROLES.GROWTH_MAKER]: { tr: "Growth — Maker", en: "Growth — Maker" },
+  [ROLES.GROWTH_CHECKER]: { tr: "Growth — Checker", en: "Growth — Checker" },
+};
+
+async function loadRecentLogins(payload: Payload): Promise<LoginEntry[]> {
+  const { docs } = await payload.find({
+    collection: "audit-logs",
+    where: { action: { equals: "login" } },
+    sort: "-createdAt",
+    limit: 8,
+    depth: 0,
+    overrideAccess: true,
+  });
+  return docs as unknown as LoginEntry[];
+}
+
+/**
+ * RFP feedback 3.6: "kaç farklı user var login'den bunu tutabilir" — distinct
+ * count derived from who has actually logged in (not just the Users
+ * collection's row count), matching the literal request.
+ */
+async function loadDistinctLoginUserCount(payload: Payload): Promise<number> {
+  const { docs } = await payload.find({
+    collection: "audit-logs",
+    where: { action: { equals: "login" } },
+    limit: 500,
+    depth: 0,
+    select: { userEmail: true },
+    overrideAccess: true,
+  });
+  const emails = new Set((docs as unknown as { userEmail?: string }[]).map((d) => d.userEmail).filter(Boolean));
+  return emails.size;
+}
 
 type CollectionStat = {
   slug: string;
@@ -87,6 +131,9 @@ export default async function DashboardWidgets({
     reviewEmpty: tt("dashboardWidgets.reviewEmpty"),
     reviewCta: tt("dashboardWidgets.reviewCta"),
     openedBy: tt("dashboardWidgets.openedBy"),
+    loginsTitle: tt("dashboardWidgets.loginsTitle"),
+    noLogins: tt("dashboardWidgets.noLogins"),
+    distinctUsers: tt("dashboardWidgets.distinctUsers"),
     ownDraftsTitle: tt("dashboardWidgets.ownDraftsTitle"),
     ownDraftsEmpty: tt("dashboardWidgets.ownDraftsEmpty"),
     ownDraftsPending: tt("dashboardWidgets.ownDraftsPending"),
@@ -94,36 +141,72 @@ export default async function DashboardWidgets({
     editCta: tt("dashboardWidgets.editCta"),
   };
 
+  // RFP feedback 3.6/3.7: "her kullanıcı için" — recent logins (with IP) are
+  // not role-restricted; every role sees who's been logging in.
+  const [logins, distinctUsers] = await Promise.all([loadRecentLogins(payload), loadDistinctLoginUserCount(payload)]);
+  const loginsWidget = (
+    <div className="cm-widget">
+      <p className="cm-widget__title">
+        <IconUsers />
+        {t.loginsTitle}
+        <span className="cm-widget__title-sub">
+          ({distinctUsers} {t.distinctUsers})
+        </span>
+      </p>
+      <div className="card cm-widget__body">
+        {logins.length === 0 ? (
+          <p className="cm-widget__empty">{t.noLogins}</p>
+        ) : (
+          <table className="cm-widget-table">
+            <tbody>
+              {logins.map((entry) => (
+                <tr key={`${entry.userEmail}-${entry.createdAt}`}>
+                  <td>{entry.userEmail}</td>
+                  <td>{entry.userRole ? ROLE_LABELS[entry.userRole]?.[locale] ?? entry.userRole : ""}</td>
+                  <td>{new Date(entry.createdAt).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")}</td>
+                  <td>{entry.ip ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+
   // RFP feedback 2.4 / D1: a Checker's only real job on this dashboard is
   // "is there something to approve" — the generic content-summary cards
   // added nothing actionable. Straight-to-review list instead of stat cards.
   if (isCheckerRole) {
     const pending = await loadPendingCampaigns(payload);
     return (
-      <div className="cm-widget">
-        <p className="cm-widget__title">
-          <IconCheckCircle />
-          {t.reviewTitle}
-        </p>
-        <div className="card cm-widget__body">
-          {pending.length === 0 ? (
-            <p className="cm-widget__empty">{t.reviewEmpty}</p>
-          ) : (
-            <table className="cm-widget-table">
-              <tbody>
-                {pending.map((p) => (
-                  <tr key={p.id}>
-                    <td>{p.title}</td>
-                    <td>{p.createdByEmail ? `${t.openedBy}: ${p.createdByEmail}` : ""}</td>
-                    <td>
-                      <a href={`/admin/collections/campaigns/${p.id}`}>{t.reviewCta}</a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+      <div className="cm-dashboard-widgets">
+        <div className="cm-widget">
+          <p className="cm-widget__title">
+            <IconCheckCircle />
+            {t.reviewTitle}
+          </p>
+          <div className="card cm-widget__body">
+            {pending.length === 0 ? (
+              <p className="cm-widget__empty">{t.reviewEmpty}</p>
+            ) : (
+              <table className="cm-widget-table">
+                <tbody>
+                  {pending.map((p) => (
+                    <tr key={p.id}>
+                      <td>{p.title}</td>
+                      <td>{p.createdByEmail ? `${t.openedBy}: ${p.createdByEmail}` : ""}</td>
+                      <td>
+                        <a href={`/admin/collections/campaigns/${p.id}`}>{t.reviewCta}</a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
+        {loginsWidget}
       </div>
     );
   }
@@ -178,6 +261,7 @@ export default async function DashboardWidgets({
           </div>
         </div>
       )}
+      {loginsWidget}
     </div>
   );
 }

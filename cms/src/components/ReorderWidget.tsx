@@ -255,11 +255,9 @@ function DraggableGroup({
   };
 
   return (
-    <div style={{ marginBottom: "0.75rem" }}>
-      {!hideLabel && groupKey !== "__all__" && (
-        <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: 4 }}>{groupLabel}</p>
-      )}
-      <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+    <div className="reorder-widget-group">
+      {!hideLabel && groupKey !== "__all__" && <p className="reorder-widget-group__label">{groupLabel}</p>}
+      <ul className="reorder-widget-group__list">
         {docs.map((doc, i) => (
           <li
             key={doc.id}
@@ -267,21 +265,14 @@ function DraggableGroup({
             onDragStart={() => setDragIndex(i)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => handleDrop(i)}
-            style={{
-              padding: "0.5rem 0.75rem",
-              background: "white",
-              border: "1px solid #e5e7eb",
-              borderRadius: 4,
-              cursor: "grab",
-              opacity: dragIndex === i ? 0.5 : 1,
-            }}
+            className={`reorder-widget-group__item${dragIndex === i ? " reorder-widget-group__item--dragging" : ""}`}
           >
             ⠿ {labelOf(doc)}
           </li>
         ))}
       </ul>
       {dirty && (
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.5rem" }}>
+        <div className="reorder-widget-group__actions">
           <button
             type="button"
             className="btn btn--style-primary btn--size-small"
@@ -302,10 +293,10 @@ function DraggableGroup({
               <span className="btn__label">{strings.discard}</span>
             </span>
           </button>
-          <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>{strings.unsavedNotice}</span>
+          <span className="reorder-widget-group__hint">{strings.unsavedNotice}</span>
         </div>
       )}
-      {saveError && <p style={{ fontSize: "0.8rem", color: "#b91c1c", marginTop: "0.4rem" }}>{strings.saveError}</p>}
+      {saveError && <p className="reorder-widget-group__error">{strings.saveError}</p>}
     </div>
   );
 }
@@ -395,7 +386,7 @@ export default function ReorderWidget({
     );
   }
 
-  if (error) return <p style={{ color: "red", padding: "1rem" }}>{error}</p>;
+  if (error) return <p className="reorder-widget__error">{error}</p>;
   if (!docs || docs.length < 2) return null;
 
   const groups = groupDocs(docs, groupField, groupLabels).filter(([, , items]) => items.length >= 2);
@@ -406,8 +397,8 @@ export default function ReorderWidget({
   if (groups.length === 1) {
     const [groupKey, groupLabel, groupItems] = groups[0];
     return (
-      <div style={{ margin: "1rem 0", padding: "1rem", border: "1px solid #e5e7eb", borderRadius: 8, background: "#fafafa" }}>
-        <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>{strings.title}</p>
+      <div className="reorder-widget__panel">
+        <p className="reorder-widget__panel-title">{strings.title}</p>
         <DraggableGroup
           collection={collection}
           groupField={groupField}
@@ -457,14 +448,14 @@ function GroupedReorder({
   const [, , selectedItems] = selected;
 
   return (
-    <div style={{ margin: "1rem 0", padding: "1rem", border: "1px solid #e5e7eb", borderRadius: 8, background: "#fafafa" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
-        <p style={{ fontWeight: 600, margin: 0 }}>{title}</p>
+    <div className="reorder-widget__panel">
+      <div className="reorder-widget__panel-head">
+        <p className="reorder-widget__panel-head-title">{title}</p>
         <select
           value={selectedKey}
           disabled={dirty}
           onChange={(e) => setSelectedKey(e.target.value)}
-          style={{ padding: "0.3rem 0.5rem", border: "1px solid #e5e7eb", borderRadius: 4 }}
+          className="reorder-widget__select"
         >
           {groups.map(([key, label]) => (
             <option key={key} value={key}>
@@ -472,7 +463,7 @@ function GroupedReorder({
             </option>
           ))}
         </select>
-        {dirty && <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>{t("reorderWidget.switchGroupBlocked")}</span>}
+        {dirty && <span className="reorder-widget__blocked-hint">{t("reorderWidget.switchGroupBlocked")}</span>}
       </div>
       <DraggableGroup
         // Remounts on group switch — each group keeps its own drag state
@@ -575,16 +566,16 @@ function ServerGroupedReorder({
       .catch(() => setItemsError(true));
   }, [collection, groupField, selectedId]);
 
-  if (loadError) return <p style={{ color: "red", padding: "1rem" }}>{t("reorderWidget.loadError")}</p>;
+  if (loadError) return <p className="reorder-widget__error">{t("reorderWidget.loadError")}</p>;
   if (!options) return null;
   if (options.length === 0) return null;
 
   const selectedOption = options.find((o) => o.id === selectedId) ?? options[0];
 
   return (
-    <div style={{ margin: "1rem 0", padding: "1rem", border: "1px solid #e5e7eb", borderRadius: 8, background: "#fafafa" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
-        <p style={{ fontWeight: 600, margin: 0 }}>{title}</p>
+    <div className="reorder-widget__panel">
+      <div className="reorder-widget__panel-head">
+        <p className="reorder-widget__panel-head-title">{title}</p>
         <select
           value={String(selectedId ?? "")}
           disabled={dirty}
@@ -592,7 +583,7 @@ function ServerGroupedReorder({
             const next = options.find((o) => String(o.id) === e.target.value);
             if (next) setSelectedId(next.id);
           }}
-          style={{ padding: "0.3rem 0.5rem", border: "1px solid #e5e7eb", borderRadius: 4 }}
+          className="reorder-widget__select"
         >
           {options.map((o) => (
             <option key={o.id} value={o.id}>
@@ -600,18 +591,18 @@ function ServerGroupedReorder({
             </option>
           ))}
         </select>
-        {dirty && <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>{t("reorderWidget.switchGroupBlocked")}</span>}
+        {dirty && <span className="reorder-widget__blocked-hint">{t("reorderWidget.switchGroupBlocked")}</span>}
       </div>
 
-      {itemsError && <p style={{ color: "red" }}>{t("reorderWidget.loadError")}</p>}
-      {!itemsError && items === null && <p style={{ fontSize: "0.8rem", color: "#6b7280" }}>{t("reorderWidget.loadingItems")}</p>}
+      {itemsError && <p className="reorder-widget__error">{t("reorderWidget.loadError")}</p>}
+      {!itemsError && items === null && <p className="reorder-widget__loading-hint">{t("reorderWidget.loadingItems")}</p>}
       {!itemsError && items !== null && selectedOption.count < 2 && (
-        <p style={{ fontSize: "0.8rem", color: "#6b7280" }}>{t("reorderWidget.emptyGroup")}</p>
+        <p className="reorder-widget__loading-hint">{t("reorderWidget.emptyGroup")}</p>
       )}
       {!itemsError && items !== null && selectedOption.count >= 2 && (
         <>
           {itemsTotal > items.length && (
-            <p style={{ fontSize: "0.8rem", color: "#b45309", marginBottom: "0.4rem" }}>
+            <p className="reorder-widget__truncated-notice">
               {t("reorderWidget.truncatedNotice").replace("{shown}", String(items.length)).replace("{total}", String(itemsTotal))}
             </p>
           )}

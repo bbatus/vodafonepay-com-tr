@@ -13,7 +13,7 @@ import Link from "next/link";
 export default function SidebarLogo() {
   return (
     <Link href="/admin" className="sidebar-logo" aria-label="Vodafone Pay — Anasayfa" title="Anasayfa">
-      <img src="/admin-logo.svg" alt="Vodafone Pay" style={{ height: 28, width: "auto" }} />
+      <img src="/admin-logo.svg" alt="Vodafone Pay" className="sidebar-logo__img" />
     </Link>
   );
 }

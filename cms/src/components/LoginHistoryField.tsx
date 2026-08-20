@@ -40,31 +40,25 @@ export default function LoginHistoryField() {
 
   let body: React.ReactNode;
   if (entries === null) {
-    body = <p style={{ fontSize: "0.8rem", color: "var(--theme-elevation-450)" }}>{t("loginHistory.loading")}</p>;
+    body = <p className="login-history__hint">{t("loginHistory.loading")}</p>;
   } else if (entries.length === 0) {
-    body = <p style={{ fontSize: "0.8rem", color: "var(--theme-elevation-450)" }}>{t("loginHistory.empty")}</p>;
+    body = <p className="login-history__hint">{t("loginHistory.empty")}</p>;
   } else {
     body = (
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
+      <table className="login-history__table">
         <thead>
           <tr>
-            <th style={{ textAlign: "left", padding: "0.35rem 0.5rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
-              {t("loginHistory.date")}
-            </th>
-            <th style={{ textAlign: "left", padding: "0.35rem 0.5rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
-              {t("loginHistory.ip")}
-            </th>
-            <th style={{ textAlign: "left", padding: "0.35rem 0.5rem", color: "var(--theme-elevation-450)", fontWeight: 500 }}>
-              {t("loginHistory.userAgent")}
-            </th>
+            <th>{t("loginHistory.date")}</th>
+            <th>{t("loginHistory.ip")}</th>
+            <th>{t("loginHistory.userAgent")}</th>
           </tr>
         </thead>
         <tbody>
           {entries.map((e) => (
-            <tr key={`${e.createdAt}-${e.ip ?? ""}`} style={{ borderTop: "1px solid var(--theme-elevation-100)" }}>
-              <td style={{ padding: "0.35rem 0.5rem", whiteSpace: "nowrap" }}>{new Date(e.createdAt).toLocaleString(dateLocale)}</td>
-              <td style={{ padding: "0.35rem 0.5rem" }}>{e.ip ?? "—"}</td>
-              <td style={{ padding: "0.35rem 0.5rem", maxWidth: 320, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={e.userAgent}>
+            <tr key={`${e.createdAt}-${e.ip ?? ""}`}>
+              <td className="login-history__date">{new Date(e.createdAt).toLocaleString(dateLocale)}</td>
+              <td>{e.ip ?? "—"}</td>
+              <td className="login-history__ua" title={e.userAgent}>
                 {e.userAgent ?? "—"}
               </td>
             </tr>
@@ -75,8 +69,8 @@ export default function LoginHistoryField() {
   }
 
   return (
-    <div style={{ margin: "0.5rem 0 1rem" }}>
-      <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>{t("loginHistory.title")}</p>
+    <div className="login-history">
+      <p className="login-history__title">{t("loginHistory.title")}</p>
       {body}
     </div>
   );

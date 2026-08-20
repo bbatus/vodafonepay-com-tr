@@ -17,9 +17,9 @@ export default function ForgotPasswordDisabled() {
   const t = useDbStrings(locale);
 
   return (
-    <div style={{ maxWidth: 420, margin: "2rem auto", padding: "0 1rem", textAlign: "center" }}>
-      <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>{t("forgotPasswordDisabled.title")}</p>
-      <p style={{ color: "var(--theme-elevation-500)", fontSize: "0.9rem" }}>{t("forgotPasswordDisabled.body")}</p>
+    <div className="forgot-password-disabled">
+      <p className="forgot-password-disabled__title">{t("forgotPasswordDisabled.title")}</p>
+      <p className="forgot-password-disabled__body">{t("forgotPasswordDisabled.body")}</p>
     </div>
   );
 }

@@ -28,32 +28,13 @@ export default function UserAvatarIcon() {
   const identity = typedUser?.username || typedUser?.email;
 
   return (
-    <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-      {identity && (
-        <span
-          style={{
-            fontSize: "0.8rem",
-            color: "var(--theme-elevation-600)",
-            maxWidth: 160,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {identity}
-        </span>
-      )}
+    <span className="user-avatar">
+      {identity && <span className="user-avatar__identity">{identity}</span>}
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element -- small 25x25 header icon, not a content image
-        <img
-          src={url}
-          alt=""
-          width={25}
-          height={25}
-          style={{ borderRadius: "50%", objectFit: "cover", display: "block", flexShrink: 0 }}
-        />
+        <img src={url} alt="" width={25} height={25} className="user-avatar__photo" />
       ) : (
-        <svg height="25" viewBox="0 0 25 25" width="25" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+        <svg height="25" viewBox="0 0 25 25" width="25" xmlns="http://www.w3.org/2000/svg" className="user-avatar__fallback">
           <circle cx="12.5" cy="12.5" r="11.5" fill="var(--theme-elevation-150)" />
           <circle cx="12.5" cy="10.73" r="3.98" fill="var(--theme-elevation-400)" />
           <path

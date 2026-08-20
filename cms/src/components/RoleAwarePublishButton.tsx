@@ -290,7 +290,7 @@ function PublishActionsBar({
   onPublish: () => void;
 }) {
   return (
-    <div style={{ display: "flex", gap: "0.5rem" }}>
+    <div className="rapb-actions-bar">
       {showRejectButton && (
         <button type="button" className="btn btn--style-secondary btn--size-medium" onClick={onReject}>
           <span className="btn__content">
@@ -343,17 +343,7 @@ function LiveActions({
 
 function AwaitingNotice({ t }: { t: ButtonStrings }) {
   return (
-    <div
-      title={t.awaitingTitle}
-      style={{
-        padding: "0.5rem 0.8rem",
-        fontSize: "0.8rem",
-        color: "var(--theme-elevation-450)",
-        border: "1px dashed var(--theme-elevation-200)",
-        borderRadius: "var(--style-radius-s)",
-        whiteSpace: "nowrap",
-      }}
-    >
+    <div title={t.awaitingTitle} className="rapb-awaiting">
       {t.awaiting}
     </div>
   );
@@ -375,53 +365,24 @@ function RejectModal({
   onConfirm: () => void;
 }) {
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.5)",
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "2rem",
-      }}
-    >
-      <div
-        style={{
-          background: "white",
-          borderRadius: "var(--style-radius-l)",
-          padding: "1.5rem",
-          width: "min(480px, 100%)",
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-        }}
-      >
+    <div className="rapb-modal-overlay">
+      <div className="rapb-modal">
         <div>
-          <p style={{ fontWeight: 600, fontSize: "1.1rem", margin: 0 }}>{t.rejectHeading}</p>
-          <p style={{ color: "var(--theme-elevation-500)", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>{t.rejectBody}</p>
+          <p className="rapb-modal-title">{t.rejectHeading}</p>
+          <p className="rapb-modal-subtitle">{t.rejectBody}</p>
         </div>
-        <label style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-          <span style={{ fontSize: "0.8rem", fontWeight: 600 }}>{t.rejectReasonLabel}</span>
+        <label className="rapb-field">
+          <span className="rapb-field-label">{t.rejectReasonLabel}</span>
           <textarea
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             placeholder={t.rejectReasonPlaceholder}
             rows={4}
-            style={{
-              padding: "0.5rem 0.75rem",
-              border: "1px solid var(--theme-elevation-150)",
-              borderRadius: "var(--style-radius-m)",
-              fontFamily: "inherit",
-              fontSize: "0.875rem",
-            }}
+            className="rapb-textarea"
           />
-          {!rejectReason.trim() && (
-            <span style={{ fontSize: "0.75rem", color: "var(--theme-error-500)" }}>{t.rejectReasonRequired}</span>
-          )}
+          {!rejectReason.trim() && <span className="rapb-field-error">{t.rejectReasonRequired}</span>}
         </label>
-        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+        <div className="rapb-modal-actions">
           <button type="button" className="btn btn--style-secondary btn--size-medium" disabled={rejecting} onClick={onCancel}>
             <span className="btn__content">
               <span className="btn__label">{t.cancel}</span>
@@ -457,47 +418,20 @@ function ConfirmPublishModal({
   onConfirm: () => void;
 }) {
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.5)",
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "0.75rem",
-      }}
-    >
-      <div
-        style={{
-          background: "white",
-          borderRadius: "var(--style-radius-l)",
-          padding: "1rem",
-          width: "min(1600px, 98vw)",
-          height: "98vh",
-          maxHeight: "98vh",
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.5rem",
-        }}
-      >
-        <div style={{ flexShrink: 0, display: "flex", alignItems: "baseline", gap: "0.75rem", flexWrap: "wrap" }}>
-          <p style={{ fontWeight: 600, fontSize: "1rem", margin: 0 }}>{t.heading}</p>
-          <p style={{ color: "var(--theme-elevation-500)", fontSize: "0.8rem", margin: 0 }}>{t.body}</p>
+    <div className="rapb-modal-overlay rapb-modal-overlay--confirm">
+      <div className="rapb-modal rapb-modal--confirm">
+        <div className="rapb-confirm-head">
+          <p className="rapb-confirm-heading">{t.heading}</p>
+          <p className="rapb-confirm-body">{t.body}</p>
         </div>
 
         {previewHref ? (
-          <iframe
-            src={previewHref}
-            title="preview"
-            style={{ flex: "1 1 auto", minHeight: 0, width: "100%", border: "1px solid var(--theme-elevation-150)", borderRadius: "var(--style-radius-m)" }}
-          />
+          <iframe src={previewHref} title="preview" className="rapb-preview-iframe" />
         ) : (
-          <p style={{ color: "var(--theme-elevation-450)" }}>{t.noPreview}</p>
+          <p className="rapb-no-preview">{t.noPreview}</p>
         )}
 
-        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", flexShrink: 0 }}>
+        <div className="rapb-modal-actions rapb-modal-actions--fixed">
           <button type="button" className="btn btn--style-secondary btn--size-medium" disabled={publishing} onClick={onCancel}>
             <span className="btn__content">
               <span className="btn__label">{t.cancel}</span>

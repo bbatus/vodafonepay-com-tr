@@ -26,59 +26,36 @@ export default function HelpButton({ collection }: { collection: string }) {
   const content = entry?.[locale];
 
   return (
-    <div style={{ margin: "0.5rem 0" }}>
+    <div className="help-button">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: "50%",
-          border: "1px solid #d1d5db",
-          background: open ? "#111827" : "white",
-          color: open ? "white" : "#374151",
-          fontWeight: 700,
-          cursor: "pointer",
-          lineHeight: 1,
-        }}
+        className={`help-button__toggle${open ? " help-button__toggle--open" : ""}`}
         title={locale === "tr" ? "Yardım" : "Help"}
       >
         ?
       </button>
       {open && (
-        <div
-          style={{
-            marginTop: 8,
-            padding: "1rem 1.25rem",
-            border: "1px solid #e5e7eb",
-            borderRadius: 8,
-            background: "#fafafa",
-            maxWidth: 640,
-          }}
-        >
+        <div className="help-button__panel">
           {content && (
             <>
-              <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>{content.title}</p>
-              <ol style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: 6 }}>
+              <p className="help-button__panel-title">{content.title}</p>
+              <ol className="help-button__list">
                 {content.steps.map((step) => (
-                  <li key={step} style={{ fontSize: "0.875rem", color: "#374151" }}>
-                    {step}
-                  </li>
+                  <li key={step}>{step}</li>
                 ))}
               </ol>
             </>
           )}
           {permissions && (
-            <div style={{ marginTop: content ? "1rem" : 0, paddingTop: content ? "0.75rem" : 0, borderTop: content ? "1px solid #e5e7eb" : "none" }}>
-              <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>
+            <div className={`help-button__permissions${content ? " help-button__permissions--after-content" : ""}`}>
+              <p className="help-button__panel-title">
                 {locale === "tr" ? `Sizin yetkiniz (${permissions.roleLabel})` : `Your permissions (${permissions.roleLabel})`}
               </p>
-              <ul style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: 6 }}>
+              <ul className="help-button__list">
                 {permissions.lines.map((line) => (
-                  <li key={line} style={{ fontSize: "0.875rem", color: "#374151" }}>
-                    {line}
-                  </li>
+                  <li key={line}>{line}</li>
                 ))}
               </ul>
             </div>
