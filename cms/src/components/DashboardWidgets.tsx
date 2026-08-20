@@ -20,20 +20,6 @@ type CollectionStat = {
   draft?: number;
 };
 
-type LoginEntry = {
-  userEmail: string;
-  userRole?: string;
-  createdAt: string;
-  ip?: string;
-};
-
-const ROLE_LABELS: Record<string, { tr: string; en: string }> = {
-  [ROLES.NEW_VERTICAL_MAKER]: { tr: "New Vertical — Maker", en: "New Vertical — Maker" },
-  [ROLES.NEW_VERTICAL_CHECKER]: { tr: "New Vertical — Checker", en: "New Vertical — Checker" },
-  [ROLES.GROWTH_MAKER]: { tr: "Growth — Maker", en: "Growth — Maker" },
-  [ROLES.GROWTH_CHECKER]: { tr: "Growth — Checker", en: "Growth — Checker" },
-};
-
 async function loadCollectionStats(payload: Payload, slugs: string[], locale: "tr" | "en"): Promise<CollectionStat[]> {
   const stats = await Promise.all(
     slugs.map(async (slug): Promise<CollectionStat> => {
@@ -66,56 +52,18 @@ async function loadCollectionStats(payload: Payload, slugs: string[], locale: "t
   return stats;
 }
 
-async function loadRecentLogins(payload: Payload): Promise<LoginEntry[]> {
-  const { docs } = await payload.find({
-    collection: "audit-logs",
-    where: { action: { equals: "login" } },
-    sort: "-createdAt",
-    limit: 8,
-    depth: 0,
-    overrideAccess: true,
-  });
-  return docs as unknown as LoginEntry[];
-}
-
-/**
- * RFP feedback 3.6: "kaç farklı user var login'den bunu tutabilir" — distinct
- * count derived from who has actually logged in (not just the Users
- * collection's row count), matching the literal request.
- */
-async function loadDistinctLoginUserCount(payload: Payload): Promise<number> {
-  const { docs } = await payload.find({
-    collection: "audit-logs",
-    where: { action: { equals: "login" } },
-    limit: 500,
-    depth: 0,
-    select: { userEmail: true },
-    overrideAccess: true,
-  });
-  const emails = new Set((docs as unknown as { userEmail?: string }[]).map((d) => d.userEmail).filter(Boolean));
-  return emails.size;
-}
-
 const cardStyle: CSSProperties = {
   padding: "1rem 1.25rem",
   minWidth: 180,
 };
 
-const gridStyle: CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: "0.75rem",
-  margin: "0.5rem 0 1.5rem",
-};
-
 /**
  * Payload's built-in dashboard is just the collection group cards — it says
  * nothing about the actual state of the content. This adds a role-scoped
- * summary (per-collection published/taslak counts) plus, for the one role
- * that can already read Audit Logs (New Vertical Maker), a recent-logins
- * table — reusing data/access rules that already exist rather than
- * exposing anything new. Server Component: runs on the admin server, gets
- * `payload`/`user`/`i18n` directly from Payload's `beforeDashboard` slot.
+ * summary: Checkers get a straight-to-review queue, Makers get their own
+ * in-flight drafts plus a pending-review count. Rendered directly inside
+ * CustomDashboardView (not Payload's `beforeDashboard` slot — see that
+ * file's comment for why).
  */
 export default async function DashboardWidgets({
   payload,
@@ -138,63 +86,18 @@ export default async function DashboardWidgets({
 
   const tt = await loadDbStrings(payload, locale);
   const t = {
-    summaryTitle: tt("dashboardWidgets.summaryTitle"),
     pendingTitle: tt("dashboardWidgets.pendingTitle"),
     pendingBody: (n: number) => applyPlaceholder(tt("dashboardWidgets.pendingBody"), n),
-    published: tt("dashboardWidgets.published"),
-    draft: tt("dashboardWidgets.draft"),
-    total: tt("dashboardWidgets.total"),
-    loginsTitle: tt("dashboardWidgets.loginsTitle"),
-    noLogins: tt("dashboardWidgets.noLogins"),
     reviewTitle: tt("dashboardWidgets.reviewTitle"),
     reviewEmpty: tt("dashboardWidgets.reviewEmpty"),
     reviewCta: tt("dashboardWidgets.reviewCta"),
     openedBy: tt("dashboardWidgets.openedBy"),
-    ip: tt("dashboardWidgets.ip"),
-    distinctUsers: tt("dashboardWidgets.distinctUsers"),
     ownDraftsTitle: tt("dashboardWidgets.ownDraftsTitle"),
     ownDraftsEmpty: tt("dashboardWidgets.ownDraftsEmpty"),
     ownDraftsPending: tt("dashboardWidgets.ownDraftsPending"),
     ownDraftsRejected: tt("dashboardWidgets.ownDraftsRejected"),
     editCta: tt("dashboardWidgets.editCta"),
   };
-
-  // RFP feedback 3.6/3.7: "her kullanıcı için" — recent logins (with IP) are
-  // no longer New Vertical Maker-only; every role sees who's been logging
-  // in. Distinct-login-user-count is a small metric alongside it.
-  const [logins, distinctUsers] = await Promise.all([loadRecentLogins(payload), loadDistinctLoginUserCount(payload)]);
-  const loginsWidget = (
-    <>
-      <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", margin: "0 0 0.25rem" }}>
-        <p style={{ fontWeight: 600, margin: 0 }}>{t.loginsTitle}</p>
-        <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--theme-elevation-450)" }}>
-          ({distinctUsers} {t.distinctUsers})
-        </p>
-      </div>
-      <div className="card" style={{ padding: "0.5rem 0", maxWidth: 640, marginBottom: "1.5rem" }}>
-        {logins.length === 0 ? (
-          <p style={{ margin: "0.5rem 1rem", color: "var(--theme-elevation-500)", fontSize: "0.875rem" }}>{t.noLogins}</p>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
-            <tbody>
-              {logins.map((entry) => (
-                <tr key={`${entry.userEmail}-${entry.createdAt}`}>
-                  <td style={{ padding: "0.35rem 1rem" }}>{entry.userEmail}</td>
-                  <td style={{ padding: "0.35rem 1rem", color: "var(--theme-elevation-500)" }}>
-                    {entry.userRole ? ROLE_LABELS[entry.userRole]?.[locale] ?? entry.userRole : ""}
-                  </td>
-                  <td style={{ padding: "0.35rem 1rem", color: "var(--theme-elevation-500)", whiteSpace: "nowrap" }}>
-                    {new Date(entry.createdAt).toLocaleString(locale === "tr" ? "tr-TR" : "en-US")}
-                  </td>
-                  <td style={{ padding: "0.35rem 1rem", color: "var(--theme-elevation-500)", whiteSpace: "nowrap" }}>{entry.ip ?? "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </>
-  );
 
   // RFP feedback 2.4 / D1: a Checker's only real job on this dashboard is
   // "is there something to approve" — the generic content-summary cards
@@ -227,7 +130,6 @@ export default async function DashboardWidgets({
             </table>
           )}
         </div>
-        {loginsWidget}
       </div>
     );
   }
@@ -281,26 +183,6 @@ export default async function DashboardWidgets({
           <p style={{ margin: 0, color: "var(--theme-elevation-500)", fontSize: "0.875rem" }}>{t.pendingBody(totalDrafts)}</p>
         </div>
       )}
-
-      <p style={{ fontWeight: 600, margin: "0 0 0.25rem" }}>{t.summaryTitle}</p>
-      <div style={gridStyle}>
-        {stats.map((s) => (
-          <div key={s.slug} className="card" style={cardStyle}>
-            <p style={{ fontWeight: 600, margin: "0 0 0.4rem" }}>{s.label}</p>
-            {s.draft !== undefined ? (
-              <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--theme-elevation-500)" }}>
-                {s.published} {t.published} · {s.draft} {t.draft}
-              </p>
-            ) : (
-              <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--theme-elevation-500)" }}>
-                {s.total} {t.total}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {loginsWidget}
     </div>
   );
 }

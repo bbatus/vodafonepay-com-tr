@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Payload, PayloadRequest } from "payload";
 import type { I18nClient } from "@payloadcms/translations";
-import { DefaultTemplate } from "@payloadcms/next/templates";
 import { loadDbStrings } from "@/lib/loadDbStrings";
 import { COLLECTION_LABELS } from "@/lib/collectionLabels";
 import DashboardWidgets from "./DashboardWidgets";
@@ -19,8 +18,15 @@ import DashboardWidgets from "./DashboardWidgets";
  * content above that default grid — it can't remove it. `views.dashboard`
  * (this file) is the actual full-replacement extension point: registering
  * it here means Payload never renders its own dashboard body at all, only
- * whatever this component returns. Same DefaultTemplate wrapper pattern as
- * ContentManagementView/FeesAndLimitsView.
+ * whatever this component returns.
+ *
+ * Unlike ContentManagementView/FeesAndLimitsView (brand-new view keys that
+ * Payload's Root view does NOT wrap), `dashboard` is a recognized built-in
+ * view type — Root already wraps it in DefaultTemplate before rendering
+ * this component (see @payloadcms/next/dist/views/Root/index.js,
+ * `templateType === 'default'`). Wrapping it AGAIN here produced a nested
+ * sidebar/topbar (found live — two full nav rails stacked). So this
+ * component returns bare content only, no DefaultTemplate of its own.
  *
  * This composes three layers, each already role-aware or newly added:
  * 1. A KPI row (NEW) — the "at a glance" numbers the reference dashboard
@@ -109,11 +115,6 @@ export default async function CustomDashboardView(props: {
     | undefined;
   const locale: "tr" | "en" = i18n?.language === "en" ? "en" : "tr";
   const t = await loadDbStrings(payload, locale);
-  const permissions = initPageResult?.permissions as Parameters<typeof DefaultTemplate>[0]["permissions"];
-  const visibleEntities = (initPageResult?.visibleEntities ?? { collections: [], globals: [] }) as Parameters<
-    typeof DefaultTemplate
-  >[0]["visibleEntities"];
-  const req = initPageResult?.req as PayloadRequest;
 
   const kpiSlugs = ["campaigns", "blog-posts", "faq-items", "announcements", "representatives", "pages"] as const;
   const [kpiCounts, pageCount, userCount, faqCount, recentCampaigns, recentBlogPosts, recentPages] = await Promise.all([
@@ -137,16 +138,6 @@ export default async function CustomDashboardView(props: {
   ];
 
   return (
-    <DefaultTemplate
-      req={req}
-      payload={payload}
-      i18n={i18n}
-      locale={props.locale as never}
-      user={user as never}
-      permissions={permissions}
-      visibleEntities={visibleEntities}
-      viewType="dashboard"
-    >
       <div className="cm" style={{ paddingBottom: "1.5rem" }}>
         <h1>{t("dashboardKpi.title")}</h1>
 
@@ -186,6 +177,5 @@ export default async function CustomDashboardView(props: {
           />
         </div>
       </div>
-    </DefaultTemplate>
   );
 }
