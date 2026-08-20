@@ -20,21 +20,16 @@ export const FeeRows: CollectionConfig = {
     useAsTitle: "label",
     defaultColumns: ["label", "value", "order"],
     group: { tr: "Ücretler & Limitler", en: "Fees & Limits" },
-    // RFP follow-up: the combined /admin/fees-and-limits page
-    // (FeesAndLimitsView.tsx) is now the intended day-to-day entry point —
-    // `admin.hidden: true` was tried here first to remove this collection's
-    // own sidebar link, but in this Payload version `hidden` 404s the
-    // collection's ENTIRE admin route tree (list AND edit/create), not just
-    // the nav link — confirmed live, it broke the "click a row to edit"
-    // links the combined page itself depends on. Left visible so those
-    // links (and this list, as a fallback) keep working; the combined page
-    // is still the one promoted via the new sidebar entry.
-    components: {
-      beforeList: [
-        { path: "/components/HelpButton#default", clientProps: { collection: "fee-rows" } },
-        { path: "/components/ReorderWidget#default", clientProps: { collection: "fee-rows" } },
-      ],
-    },
+    // RFP follow-up: /admin/fees-and-limits (FeesAndLimitsView.tsx) is the
+    // ONLY entry point now — `hidden: true` removes this collection from
+    // the sidebar AND 404s its own /admin/collections/fee-rows routes
+    // (confirmed live: Payload's List/Document views check
+    // `visibleEntities`, which `getVisibleEntities` excludes hidden
+    // collections from). That's fine here because FeesAndLimitsApp no
+    // longer links to those routes — it edits/creates fee-rows through
+    // `useDocumentDrawer`, which defaults `overrideEntityVisibility: true`
+    // and bypasses that exact check.
+    hidden: true,
   },
   versions: {
     drafts: true,

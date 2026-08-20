@@ -4,6 +4,7 @@ import type { I18nClient } from "@payloadcms/translations";
 import { loadDbStrings } from "@/lib/loadDbStrings";
 import { COLLECTION_LABELS } from "@/lib/collectionLabels";
 import DashboardWidgets from "./DashboardWidgets";
+import { IconContent, IconPage, IconUsers, IconFaq, IconCampaign, IconBlog, IconClock, IconPlus } from "./DashboardIcons";
 
 /**
  * RFP follow-up: "her rolün dashboard'unda bunlar olmalı... şu an olan her
@@ -28,17 +29,12 @@ import DashboardWidgets from "./DashboardWidgets";
  * sidebar/topbar (found live — two full nav rails stacked). So this
  * component returns bare content only, no DefaultTemplate of its own.
  *
- * This composes three layers, each already role-aware or newly added:
- * 1. A KPI row (NEW) — the "at a glance" numbers the reference dashboard
- *    leads with, not previously shown anywhere.
- * 2. `DashboardWidgets` (UNCHANGED, just relocated here from
- *    beforeDashboard) — the pending-review / own-drafts / per-collection
- *    published+draft stats / recent-logins sections already built and
- *    already role-scoped (Checker sees a review queue, Maker sees their
- *    own drafts, both see stats+logins).
- * 3. Recent-items panels (NEW) — "Son Kampanyalar"/"Son Bloglar"/"Sayfalar"
- *    style lists the reference dashboard has and ours didn't, each linking
- *    straight to the real document.
+ * Styling follow-up: "çok renkli olmasın, vodafone renklerinde olsun" —
+ * moved off per-element inline styles onto the `.cm-kpi-*`/`.cm-panel-*`
+ * classes in custom.css (matching the "no new inline styles in the CMS"
+ * convention that section already documents), one red accent color
+ * (`--vf-red`) instead of a different color per card, plus small inline SVG
+ * icons (DashboardIcons.tsx) rather than a new icon-library dependency.
  */
 
 type RecentDoc = { id: string | number; title?: string; question?: string; updatedAt: string; _status?: string };
@@ -61,33 +57,42 @@ async function loadRecent(payload: Payload, collection: string, titleField: stri
 
 function RecentPanel({
   title,
+  icon,
   collection,
   docs,
   locale,
   statusLabels,
+  addLabel,
 }: {
   title: string;
+  icon: React.ReactNode;
   collection: string;
   docs: RecentDoc[];
   locale: "tr" | "en";
   statusLabels: { published: string; draft: string };
+  addLabel: string;
 }) {
   return (
-    <div className="card cm-card" style={{ minWidth: 260, flex: "1 1 260px" }}>
-      <p style={{ fontWeight: 600, margin: "0.75rem 1rem 0.5rem" }}>{title}</p>
-      {docs.length === 0 ? (
-        <p style={{ margin: "0.5rem 1rem 0.75rem", fontSize: "0.875rem", color: "var(--theme-elevation-500)" }}>
-          {locale === "tr" ? "Kayıt yok." : "No records."}
+    <div className="card cm-card cm-panel">
+      <div className="cm-panel__head">
+        <p className="cm-panel__title">
+          {icon}
+          {title}
         </p>
+        <Link href={`/admin/collections/${collection}/create`} className="cm-panel__add">
+          <IconPlus />
+          {addLabel}
+        </Link>
+      </div>
+      {docs.length === 0 ? (
+        <p className="cm-panel__empty">{locale === "tr" ? "Kayıt yok." : "No records."}</p>
       ) : (
-        <ul style={{ listStyle: "none", margin: 0, padding: "0 0 0.5rem" }}>
+        <ul className="cm-panel__list">
           {docs.map((d) => (
-            <li key={d.id} style={{ padding: "0.35rem 1rem", display: "flex", justifyContent: "space-between", gap: "0.5rem" }}>
-              <Link href={`/admin/collections/${collection}/${d.id}`} style={{ fontSize: "0.875rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {d.title || `#${d.id}`}
-              </Link>
+            <li key={d.id}>
+              <Link href={`/admin/collections/${collection}/${d.id}`}>{d.title || `#${d.id}`}</Link>
               {d._status && (
-                <span className={`cm-badge${d._status === "published" ? " cm-badge--published" : ""}`} style={{ flexShrink: 0 }}>
+                <span className={`cm-badge${d._status === "published" ? " cm-badge--published" : ""}`}>
                   {d._status === "published" ? statusLabels.published : statusLabels.draft}
                 </span>
               )}
@@ -129,53 +134,66 @@ export default async function CustomDashboardView(props: {
   const totalContent = kpiCounts.reduce((sum, n) => sum + n, 0);
 
   const statusLabels = { published: t("contentManagement.published"), draft: t("contentManagement.draft") };
+  const addLabel = locale === "tr" ? "Yeni" : "New";
 
   const kpiCards = [
-    { label: t("dashboardKpi.totalContent"), value: totalContent },
-    { label: COLLECTION_LABELS["pages"]?.[locale] ?? "Sayfalar", value: pageCount },
-    { label: COLLECTION_LABELS["users"]?.[locale] ?? "Kullanıcılar", value: userCount },
-    { label: COLLECTION_LABELS["faq-items"]?.[locale] ?? "SSS", value: faqCount },
+    { label: t("dashboardKpi.totalContent"), value: totalContent, icon: <IconContent /> },
+    { label: COLLECTION_LABELS["pages"]?.[locale] ?? "Sayfalar", value: pageCount, icon: <IconPage /> },
+    { label: COLLECTION_LABELS["users"]?.[locale] ?? "Kullanıcılar", value: userCount, icon: <IconUsers /> },
+    { label: COLLECTION_LABELS["faq-items"]?.[locale] ?? "SSS", value: faqCount, icon: <IconFaq /> },
   ];
 
   return (
-      <div className="cm" style={{ paddingBottom: "1.5rem" }}>
-        <h1>{t("dashboardKpi.title")}</h1>
+    <div className="cm" style={{ paddingBottom: "1.5rem" }}>
+      <h1>{t("dashboardKpi.title")}</h1>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", margin: "1rem 0 1.5rem" }}>
-          {kpiCards.map((c) => (
-            <div key={c.label} className="card" style={{ padding: "1rem 1.5rem", minWidth: 160 }}>
-              <p style={{ margin: "0 0 0.35rem", fontSize: "0.8rem", color: "var(--theme-elevation-500)" }}>{c.label}</p>
-              <p style={{ margin: 0, fontSize: "1.75rem", fontWeight: 700 }}>{c.value}</p>
+      <div className="cm-kpi-row">
+        {kpiCards.map((c) => (
+          <div key={c.label} className="card cm-kpi-card">
+            <span className="cm-kpi-card__icon">{c.icon}</span>
+            <div>
+              <p className="cm-kpi-card__label">{c.label}</p>
+              <p className="cm-kpi-card__value">{c.value}</p>
             </div>
-          ))}
-        </div>
-
-        {user ? <DashboardWidgets payload={payload} user={user} i18n={i18n} /> : null}
-
-        <h2 className="cm-section-title">{t("dashboardKpi.recentTitle")}</h2>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-          <RecentPanel
-            title={COLLECTION_LABELS["campaigns"]?.[locale] ?? "Kampanyalar"}
-            collection="campaigns"
-            docs={recentCampaigns}
-            locale={locale}
-            statusLabels={statusLabels}
-          />
-          <RecentPanel
-            title={COLLECTION_LABELS["blog-posts"]?.[locale] ?? "Bloglar"}
-            collection="blog-posts"
-            docs={recentBlogPosts}
-            locale={locale}
-            statusLabels={statusLabels}
-          />
-          <RecentPanel
-            title={COLLECTION_LABELS["pages"]?.[locale] ?? "Sayfalar"}
-            collection="pages"
-            docs={recentPages}
-            locale={locale}
-            statusLabels={statusLabels}
-          />
-        </div>
+          </div>
+        ))}
       </div>
+
+      {user ? <DashboardWidgets payload={payload} user={user} i18n={i18n} /> : null}
+
+      <h2 className="cm-section-title cm-section-title--icon">
+        <IconClock />
+        {t("dashboardKpi.recentTitle")}
+      </h2>
+      <div className="cm-panel-row">
+        <RecentPanel
+          title={COLLECTION_LABELS["campaigns"]?.[locale] ?? "Kampanyalar"}
+          icon={<IconCampaign />}
+          collection="campaigns"
+          docs={recentCampaigns}
+          locale={locale}
+          statusLabels={statusLabels}
+          addLabel={addLabel}
+        />
+        <RecentPanel
+          title={COLLECTION_LABELS["blog-posts"]?.[locale] ?? "Bloglar"}
+          icon={<IconBlog />}
+          collection="blog-posts"
+          docs={recentBlogPosts}
+          locale={locale}
+          statusLabels={statusLabels}
+          addLabel={addLabel}
+        />
+        <RecentPanel
+          title={COLLECTION_LABELS["pages"]?.[locale] ?? "Sayfalar"}
+          icon={<IconPage />}
+          collection="pages"
+          docs={recentPages}
+          locale={locale}
+          statusLabels={statusLabels}
+          addLabel={addLabel}
+        />
+      </div>
+    </div>
   );
 }

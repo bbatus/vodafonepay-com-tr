@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import type { Payload } from "payload";
 import type { I18nClient } from "@payloadcms/translations";
 import { ROLES } from "@/access/roles";
@@ -11,6 +10,7 @@ import {
 import { loadDbStrings } from "@/lib/loadDbStrings";
 import { applyPlaceholder } from "@/lib/translationDefaults";
 import { loadOwnDrafts, loadPendingCampaigns, type OwnDraft } from "@/lib/campaignApprovals";
+import { IconCheckCircle, IconDraft } from "./DashboardIcons";
 
 type CollectionStat = {
   slug: string;
@@ -51,11 +51,6 @@ async function loadCollectionStats(payload: Payload, slugs: string[], locale: "t
   );
   return stats;
 }
-
-const cardStyle: CSSProperties = {
-  padding: "1rem 1.25rem",
-  minWidth: 180,
-};
 
 /**
  * Payload's built-in dashboard is just the collection group cards — it says
@@ -105,24 +100,23 @@ export default async function DashboardWidgets({
   if (isCheckerRole) {
     const pending = await loadPendingCampaigns(payload);
     return (
-      <div style={{ margin: "0 0 1.5rem" }}>
-        <p style={{ fontWeight: 600, margin: "0 0 0.25rem" }}>{t.reviewTitle}</p>
-        <div className="card" style={{ padding: "0.5rem 0", maxWidth: 640, marginBottom: "1.5rem" }}>
+      <div className="cm-widget">
+        <p className="cm-widget__title">
+          <IconCheckCircle />
+          {t.reviewTitle}
+        </p>
+        <div className="card cm-widget__body">
           {pending.length === 0 ? (
-            <p style={{ margin: "0.5rem 1rem", color: "var(--theme-elevation-500)", fontSize: "0.875rem" }}>{t.reviewEmpty}</p>
+            <p className="cm-widget__empty">{t.reviewEmpty}</p>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+            <table className="cm-widget-table">
               <tbody>
                 {pending.map((p) => (
                   <tr key={p.id}>
-                    <td style={{ padding: "0.5rem 1rem" }}>{p.title}</td>
-                    <td style={{ padding: "0.5rem 1rem", color: "var(--theme-elevation-500)" }}>
-                      {p.createdByEmail ? `${t.openedBy}: ${p.createdByEmail}` : ""}
-                    </td>
-                    <td style={{ padding: "0.5rem 1rem", textAlign: "right" }}>
-                      <a href={`/admin/collections/campaigns/${p.id}`} style={{ color: "var(--vf-red)", fontWeight: 600, whiteSpace: "nowrap" }}>
-                        {t.reviewCta}
-                      </a>
+                    <td>{p.title}</td>
+                    <td>{p.createdByEmail ? `${t.openedBy}: ${p.createdByEmail}` : ""}</td>
+                    <td>
+                      <a href={`/admin/collections/campaigns/${p.id}`}>{t.reviewCta}</a>
                     </td>
                   </tr>
                 ))}
@@ -143,24 +137,25 @@ export default async function DashboardWidgets({
   // the Campaigns list to find what needs a resubmit.
   const ownDrafts: OwnDraft[] = isMakerRole && user?.id ? await loadOwnDrafts(payload, user.id) : [];
   const ownDraftsWidget = isMakerRole ? (
-    <>
-      <p style={{ fontWeight: 600, margin: "0 0 0.25rem" }}>{t.ownDraftsTitle}</p>
-      <div className="card" style={{ padding: "0.5rem 0", maxWidth: 640, marginBottom: "1.5rem" }}>
+    <div className="cm-widget">
+      <p className="cm-widget__title">
+        <IconDraft />
+        {t.ownDraftsTitle}
+      </p>
+      <div className="card cm-widget__body">
         {ownDrafts.length === 0 ? (
-          <p style={{ margin: "0.5rem 1rem", color: "var(--theme-elevation-500)", fontSize: "0.875rem" }}>{t.ownDraftsEmpty}</p>
+          <p className="cm-widget__empty">{t.ownDraftsEmpty}</p>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
+          <table className="cm-widget-table">
             <tbody>
               {ownDrafts.map((d) => (
                 <tr key={d.id}>
-                  <td style={{ padding: "0.5rem 1rem" }}>{d.title}</td>
-                  <td style={{ padding: "0.5rem 1rem", color: d.reviewStatus === "rejected" ? "var(--vf-red)" : "var(--theme-elevation-500)" }}>
+                  <td>{d.title}</td>
+                  <td className={d.reviewStatus === "rejected" ? "cm-rejected" : undefined}>
                     {d.reviewStatus === "rejected" ? t.ownDraftsRejected : t.ownDraftsPending}
                   </td>
-                  <td style={{ padding: "0.5rem 1rem", textAlign: "right" }}>
-                    <a href={`/admin/collections/campaigns/${d.id}`} style={{ color: "var(--vf-red)", fontWeight: 600, whiteSpace: "nowrap" }}>
-                      {t.editCta}
-                    </a>
+                  <td>
+                    <a href={`/admin/collections/campaigns/${d.id}`}>{t.editCta}</a>
                   </td>
                 </tr>
               ))}
@@ -168,19 +163,19 @@ export default async function DashboardWidgets({
           </table>
         )}
       </div>
-    </>
+    </div>
   ) : null;
 
   return (
     <div style={{ margin: "0 0 1rem" }}>
       {ownDraftsWidget}
       {totalDrafts > 0 && (
-        <div
-          className="card"
-          style={{ ...cardStyle, marginBottom: "1rem", borderColor: "var(--vf-red)", maxWidth: 420 }}
-        >
-          <p style={{ fontWeight: 600, margin: "0 0 0.25rem" }}>{t.pendingTitle}</p>
-          <p style={{ margin: 0, color: "var(--theme-elevation-500)", fontSize: "0.875rem" }}>{t.pendingBody(totalDrafts)}</p>
+        <div className="card cm-pending-banner">
+          <IconCheckCircle />
+          <div>
+            <p style={{ fontWeight: 600, margin: "0 0 0.25rem" }}>{t.pendingTitle}</p>
+            <p style={{ margin: 0, color: "var(--theme-elevation-500)", fontSize: "0.875rem" }}>{t.pendingBody(totalDrafts)}</p>
+          </div>
         </div>
       )}
     </div>

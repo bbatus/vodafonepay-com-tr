@@ -204,10 +204,14 @@ export default buildConfig({
       // same DashboardWidgets component alongside new KPI/recent-items
       // panels — see that file's doc comment.
       beforeNav: ["/components/SidebarLogo#default", "/components/LocalePreferenceSync#default"],
+      // Order here is the render order in the sidebar's bottom link block —
+      // FeesAndLimitsNavLink sits right after ContentManagementNavLink (not
+      // after LockedAccountsNavLink) per feedback: "ücretler ve limitler...
+      // içeriğin altına ekle".
       afterNavLinks: [
         "/components/ContentManagementNavLink#default",
-        "/components/LockedAccountsNavLink#default",
         "/components/FeesAndLimitsNavLink#default",
+        "/components/LockedAccountsNavLink#default",
       ],
       views: {
         contentManagement: {

@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useEffect, useState } from "react";
-import Link from "next/link";
+import { useDocumentDrawer } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
 import ReorderWidget from "./ReorderWidget";
@@ -17,13 +17,73 @@ const TAB_LABELS: Record<Tab, { tr: string; en: string }> = {
 };
 
 /**
- * RFP follow-up: one page, two tabs, instead of two separate sidebar
- * entries — see FeesAndLimitsView.tsx's doc comment for why. Each tab is:
- * a real data table (link to the doc's real edit page + published/draft
- * badge) with a "Yeni Oluştur" link, and the EXISTING ReorderWidget
- * embedded directly below it (same component FeeRows/LimitTables already
- * used via `beforeList` — reused as-is here, it's self-contained).
+ * FeeRows/LimitTables are `admin.hidden: true` (see their collection files)
+ * so this combined page is the ONLY way to reach them — no more separate
+ * sidebar entries or direct /admin/collections/{slug} routes (those now
+ * genuinely 404, confirmed live). `admin.hidden` also removes them from
+ * Payload's `visibleEntities`, which the normal Document/List views check
+ * and 404 on — so editing/creating here goes through `useDocumentDrawer`
+ * instead of a real navigation link, since DocumentDrawer defaults
+ * `overrideEntityVisibility` to true and bypasses that check.
  */
+function FeeRowRow({ row, onSaved }: { row: FeeRow; onSaved: () => void }) {
+  const t = useDbStrings(useAdminLocale());
+  const [DocDrawer, DocToggler] = useDocumentDrawer({ collectionSlug: "fee-rows", id: row.id });
+  return (
+    <tr>
+      <td>
+        <DocToggler>{row.label}</DocToggler>
+        <DocDrawer onSave={onSaved} />
+      </td>
+      <td>{row.value}</td>
+      <td>
+        {row._status === "published" ? (
+          <span className="cm-badge cm-badge--published">{t("contentManagement.published")}</span>
+        ) : (
+          <span className="cm-badge">{t("contentManagement.draft")}</span>
+        )}
+      </td>
+      <td>{row.order}</td>
+    </tr>
+  );
+}
+
+function LimitTableRow({ lt, onSaved }: { lt: LimitTable; onSaved: () => void }) {
+  const t = useDbStrings(useAdminLocale());
+  const [DocDrawer, DocToggler] = useDocumentDrawer({ collectionSlug: "limit-tables", id: lt.id });
+  return (
+    <tr>
+      <td>
+        <DocToggler>{lt.title}</DocToggler>
+        <DocDrawer onSave={onSaved} />
+      </td>
+      <td>{lt.rows?.length ?? 0}</td>
+      <td>
+        {lt._status === "published" ? (
+          <span className="cm-badge cm-badge--published">{t("contentManagement.published")}</span>
+        ) : (
+          <span className="cm-badge">{t("contentManagement.draft")}</span>
+        )}
+      </td>
+      <td>{lt.order}</td>
+    </tr>
+  );
+}
+
+function CreateButton({ collectionSlug, label, onSaved }: { collectionSlug: "fee-rows" | "limit-tables"; label: string; onSaved: () => void }) {
+  const [DocDrawer, DocToggler] = useDocumentDrawer({ collectionSlug });
+  return (
+    <div className="cm-toolbar">
+      <DocToggler className="btn btn--style-primary btn--size-small">
+        <span className="btn__content">
+          <span className="btn__label">{label}</span>
+        </span>
+      </DocToggler>
+      <DocDrawer onSave={onSaved} />
+    </div>
+  );
+}
+
 export default function FeesAndLimitsApp() {
   const locale = useAdminLocale();
   const t = useDbStrings(locale);
@@ -32,7 +92,7 @@ export default function FeesAndLimitsApp() {
   const [limitTables, setLimitTables] = useState<LimitTable[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reorderKey, setReorderKey] = useState(0);
-  const refetchAfterReorder = () => setReorderKey((k) => k + 1);
+  const refetch = () => setReorderKey((k) => k + 1);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,17 +117,10 @@ export default function FeesAndLimitsApp() {
     return () => {
       cancelled = true;
     };
-    // reorderKey bump (via ReorderWidget's onSaved below) forces this summary
-    // table to refetch after a drag-reorder save — see ReorderWidget.tsx's
+    // reorderKey bump (via ReorderWidget's onSaved / drawer onSave below)
+    // forces this summary table to refetch — see ReorderWidget.tsx's
     // `onSaved` prop comment for why router.refresh() alone isn't enough here.
   }, [reorderKey, t]);
-
-  const statusBadge = (status?: string) =>
-    status === "published" ? (
-      <span className="cm-badge cm-badge--published">{t("contentManagement.published")}</span>
-    ) : (
-      <span className="cm-badge">{t("contentManagement.draft")}</span>
-    );
 
   return (
     <div className="cm">
@@ -92,13 +145,7 @@ export default function FeesAndLimitsApp() {
 
       {tab === "fee-rows" && (
         <>
-          <div className="cm-toolbar">
-            <Link href="/admin/collections/fee-rows/create" className="btn btn--style-primary btn--size-small">
-              <span className="btn__content">
-                <span className="btn__label">{t("feesAndLimits.createFeeRow")}</span>
-              </span>
-            </Link>
-          </div>
+          <CreateButton collectionSlug="fee-rows" label={t("feesAndLimits.createFeeRow")} onSaved={refetch} />
           <div className="card cm-card">
             {feeRows === null ? (
               <p className="cm-hint">{t("contentManagement.loading")}</p>
@@ -117,14 +164,7 @@ export default function FeesAndLimitsApp() {
                   </thead>
                   <tbody>
                     {feeRows.map((row) => (
-                      <tr key={row.id}>
-                        <td>
-                          <Link href={`/admin/collections/fee-rows/${row.id}`}>{row.label}</Link>
-                        </td>
-                        <td>{row.value}</td>
-                        <td>{statusBadge(row._status)}</td>
-                        <td>{row.order}</td>
-                      </tr>
+                      <FeeRowRow key={row.id} row={row} onSaved={refetch} />
                     ))}
                   </tbody>
                 </table>
@@ -132,19 +172,13 @@ export default function FeesAndLimitsApp() {
             )}
           </div>
           <h2 className="cm-section-title">{t("feesAndLimits.reorderTitle")}</h2>
-          <ReorderWidget collection="fee-rows" onSaved={refetchAfterReorder} />
+          <ReorderWidget collection="fee-rows" onSaved={refetch} />
         </>
       )}
 
       {tab === "limit-tables" && (
         <>
-          <div className="cm-toolbar">
-            <Link href="/admin/collections/limit-tables/create" className="btn btn--style-primary btn--size-small">
-              <span className="btn__content">
-                <span className="btn__label">{t("feesAndLimits.createLimitTable")}</span>
-              </span>
-            </Link>
-          </div>
+          <CreateButton collectionSlug="limit-tables" label={t("feesAndLimits.createLimitTable")} onSaved={refetch} />
           <div className="card cm-card">
             {limitTables === null ? (
               <p className="cm-hint">{t("contentManagement.loading")}</p>
@@ -163,14 +197,7 @@ export default function FeesAndLimitsApp() {
                   </thead>
                   <tbody>
                     {limitTables.map((lt) => (
-                      <tr key={lt.id}>
-                        <td>
-                          <Link href={`/admin/collections/limit-tables/${lt.id}`}>{lt.title}</Link>
-                        </td>
-                        <td>{lt.rows?.length ?? 0}</td>
-                        <td>{statusBadge(lt._status)}</td>
-                        <td>{lt.order}</td>
-                      </tr>
+                      <LimitTableRow key={lt.id} lt={lt} onSaved={refetch} />
                     ))}
                   </tbody>
                 </table>
@@ -178,7 +205,7 @@ export default function FeesAndLimitsApp() {
             )}
           </div>
           <h2 className="cm-section-title">{t("feesAndLimits.reorderTitle")}</h2>
-          <ReorderWidget collection="limit-tables" onSaved={refetchAfterReorder} />
+          <ReorderWidget collection="limit-tables" onSaved={refetch} />
         </>
       )}
     </div>

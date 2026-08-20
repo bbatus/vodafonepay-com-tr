@@ -658,6 +658,24 @@ a {
   max-width: 24rem;
 }
 
+/* FeesAndLimitsApp opens fee-rows/limit-tables edit views through a
+   DocumentDrawer toggler (a plain <button>) instead of a real link, since
+   those collections are admin.hidden — reset it back to link styling. */
+.cm-table button.doc-drawer__toggler {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--theme-text);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cm-table button.doc-drawer__toggler:hover {
+  color: var(--vf-red);
+}
+
 .cm-badge {
   display: inline-block;
   padding: 0.15rem 0.5rem;
@@ -677,6 +695,209 @@ a {
   gap: 0.5rem;
   align-items: center;
   margin-top: 1rem;
+}
+
+/* RFP follow-up: dashboard redesign — one consistent Vodafone-red accent
+   instead of a card-per-color palette, matching the "çok renkli olmasın,
+   vodafone renklerinde olsun" feedback. */
+.cm-section-title--icon {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--theme-elevation-800);
+}
+
+.cm-section-title--icon svg {
+  color: var(--vf-red);
+  flex-shrink: 0;
+}
+
+.cm-kpi-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.cm-kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.25rem;
+  min-width: 180px;
+  flex: 1 1 180px;
+}
+
+.cm-kpi-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: var(--style-radius-m);
+  background: color-mix(in srgb, var(--vf-red) 10%, transparent);
+  color: var(--vf-red);
+}
+
+.cm-kpi-card__label {
+  margin: 0 0 0.2rem;
+  font-size: 0.8rem;
+  color: var(--theme-elevation-450);
+}
+
+.cm-kpi-card__value {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--theme-elevation-800);
+}
+
+.cm-panel-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cm-panel {
+  min-width: 260px;
+  flex: 1 1 260px;
+}
+
+.cm-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 0.5rem;
+}
+
+.cm-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.cm-panel__title svg {
+  color: var(--vf-red);
+  flex-shrink: 0;
+}
+
+.cm-panel__add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--vf-red);
+  white-space: nowrap;
+}
+
+.cm-panel__add:hover {
+  color: var(--vf-red-dark);
+}
+
+.cm-panel__empty {
+  margin: 0.5rem 1rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--theme-elevation-500);
+}
+
+.cm-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0.5rem;
+}
+
+.cm-panel__list li {
+  padding: 0.35rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cm-panel__list a {
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cm-widget {
+  margin: 0 0 1.5rem;
+}
+
+.cm-widget__title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+}
+
+.cm-widget__title svg {
+  color: var(--vf-red);
+  flex-shrink: 0;
+}
+
+.cm-widget__body {
+  padding: 0.5rem 0;
+  max-width: 640px;
+}
+
+.cm-widget__empty {
+  margin: 0.5rem 1rem;
+  color: var(--theme-elevation-500);
+  font-size: 0.875rem;
+}
+
+.cm-pending-banner {
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  max-width: 420px;
+  border-color: var(--vf-red);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.cm-pending-banner svg {
+  color: var(--vf-red);
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.cm-widget-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.cm-widget-table td {
+  padding: 0.5rem 1rem;
+  color: var(--theme-elevation-500);
+}
+
+.cm-widget-table td:first-child {
+  color: var(--theme-text);
+}
+
+.cm-widget-table td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.cm-widget-table a {
+  color: var(--vf-red);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cm-widget-table .cm-rejected {
+  color: var(--vf-red);
 }
 
 /* RFP feedback 5.6: Locked Accounts screen (New Vertical Maker only) and the

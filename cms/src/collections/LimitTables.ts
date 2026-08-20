@@ -20,16 +20,11 @@ export const LimitTables: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "order"],
     group: { tr: "Ücretler & Limitler", en: "Fees & Limits" },
-    // RFP follow-up: see the identical, longer comment in FeeRows.ts —
-    // `admin.hidden: true` was tried and reverted because it 404s this
-    // collection's entire admin route tree in this Payload version, not
-    // just its sidebar link, breaking the combined page's own edit links.
-    components: {
-      beforeList: [
-        { path: "/components/HelpButton#default", clientProps: { collection: "limit-tables" } },
-        { path: "/components/ReorderWidget#default", clientProps: { collection: "limit-tables" } },
-      ],
-    },
+    // RFP follow-up: see the longer comment in FeeRows.ts — hidden here too,
+    // with editing/creating routed through FeesAndLimitsApp's
+    // useDocumentDrawer instead of a direct /admin/collections/limit-tables
+    // link.
+    hidden: true,
   },
   versions: {
     drafts: true,
