@@ -197,7 +197,12 @@ export default buildConfig({
         Icon: "/components/AdminIcon#default",
       },
       beforeLogin: ["/components/LoginBrandPanel#default", "/components/RememberEmailCheckbox#default"],
-      beforeDashboard: ["/components/DashboardWidgets#default"],
+      // RFP follow-up: `beforeDashboard` only PREPENDS content above
+      // Payload's own default dashboard grid (every collection as a link
+      // card) — it can't remove it. Full replacement now happens via
+      // `views.dashboard` below (CustomDashboardView), which composes this
+      // same DashboardWidgets component alongside new KPI/recent-items
+      // panels — see that file's doc comment.
       beforeNav: ["/components/SidebarLogo#default", "/components/LocalePreferenceSync#default"],
       afterNavLinks: [
         "/components/ContentManagementNavLink#default",
@@ -216,6 +221,12 @@ export default buildConfig({
         feesAndLimits: {
           Component: "/components/FeesAndLimitsView#default",
           path: "/fees-and-limits",
+        },
+        // RFP follow-up: full replacement of Payload's own dashboard body
+        // (a generic grid of every collection) with a real, role-scoped
+        // summary — see CustomDashboardView.tsx's doc comment.
+        dashboard: {
+          Component: "/components/CustomDashboardView#default",
         },
         // RFP feedback 5.6: New Vertical Maker's account-unlock screen. A
         // separate top-level view rather than a tab above the Users list —

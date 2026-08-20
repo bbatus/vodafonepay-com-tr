@@ -141,6 +141,10 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "dashboardWidgets.ownDraftsRejected": { tr: "Reddedildi", en: "Rejected" },
   "dashboardWidgets.editCta": { tr: "Düzenle →", en: "Edit →" },
 
+  "dashboardKpi.title": { tr: "Anasayfa", en: "Dashboard" },
+  "dashboardKpi.totalContent": { tr: "Toplam İçerik", en: "Total Content" },
+  "dashboardKpi.recentTitle": { tr: "Son Güncellenen İçerikler", en: "Recently Updated Content" },
+
   "forgotPasswordDisabled.title": { tr: "Parola sıfırlama kapalı", en: "Password reset is disabled" },
   "forgotPasswordDisabled.body": {
     tr: "Bu hesap yönetimi ileride LDAP (vodafone.local) üzerinden yapılacak. Parolanızla ilgili bir sorun yaşıyorsanız IT ile iletişime geçin.",
