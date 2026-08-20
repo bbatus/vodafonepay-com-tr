@@ -167,14 +167,14 @@ export default async function DashboardWidgets({
   ) : null;
 
   return (
-    <div style={{ margin: "0 0 1rem" }}>
+    <div className="cm-dashboard-widgets">
       {ownDraftsWidget}
       {totalDrafts > 0 && (
         <div className="card cm-pending-banner">
           <IconCheckCircle />
           <div>
-            <p style={{ fontWeight: 600, margin: "0 0 0.25rem" }}>{t.pendingTitle}</p>
-            <p style={{ margin: 0, color: "var(--theme-elevation-500)", fontSize: "0.875rem" }}>{t.pendingBody(totalDrafts)}</p>
+            <p className="cm-pending-banner__title">{t.pendingTitle}</p>
+            <p className="cm-pending-banner__body">{t.pendingBody(totalDrafts)}</p>
           </div>
         </div>
       )}

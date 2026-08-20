@@ -144,7 +144,7 @@ export default async function CustomDashboardView(props: {
   ];
 
   return (
-    <div className="cm" style={{ paddingBottom: "1.5rem" }}>
+    <div className="cm cm--dashboard">
       <h1>{t("dashboardKpi.title")}</h1>
 
       <div className="cm-kpi-row">

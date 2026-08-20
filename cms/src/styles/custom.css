@@ -551,6 +551,10 @@ a {
   padding: 2rem;
 }
 
+.cm--dashboard {
+  padding-bottom: 1.5rem;
+}
+
 .cm h1 {
   margin: 0 0 0.5rem;
 }
@@ -756,11 +760,27 @@ a {
 .cm-panel-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
   gap: 1rem;
 }
 
 .cm-panel {
-  min-width: 260px;
+  /* Payload's own `.card` class (Card/index.scss) sets
+     `display: flex; justify-content: space-between` for its own
+     title/actions layout — without overriding flex-direction here, this
+     panel's two children (head, then the list) were laid out as flex-ROW
+     siblings instead of stacked, which is what put the panel title
+     floating mid-column, overlapping the list rows (found live). column
+     + stretch is what actually stacks them and gives the list full width.
+     flex-basis (not min-width) is the sizing hint for cm-panel-row's own
+     wrapping — a min-width floor plus unshrinkable list content below is
+     what caused panels to overflow into each other instead of wrapping
+     (long campaign titles pushing a whole column past its edge); min-width:
+     0 lets this panel actually shrink to fit. */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
   flex: 1 1 260px;
 }
 
@@ -820,10 +840,20 @@ a {
 }
 
 .cm-panel__list a {
+  /* flex children default to min-width: auto (their own content width),
+     which overrides overflow/ellipsis below and was letting long titles
+     force this link — and the whole column — wider than its container.
+     min-width: 0 is what actually makes the ellipsis take effect. */
+  min-width: 0;
+  flex: 1 1 auto;
   font-size: 0.875rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.cm-panel__list .cm-badge {
+  flex-shrink: 0;
 }
 
 .cm-widget {
@@ -868,6 +898,21 @@ a {
   color: var(--vf-red);
   flex-shrink: 0;
   margin-top: 0.15rem;
+}
+
+.cm-pending-banner__title {
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+}
+
+.cm-pending-banner__body {
+  margin: 0;
+  color: var(--theme-elevation-500);
+  font-size: 0.875rem;
+}
+
+.cm-dashboard-widgets {
+  margin: 0 0 1rem;
 }
 
 .cm-widget-table {
