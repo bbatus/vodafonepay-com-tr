@@ -105,6 +105,7 @@ function groupDocs(
  */
 function DraggableGroup({
   collection,
+  groupField,
   groupKey,
   groupLabel,
   initialDocs,
@@ -113,6 +114,24 @@ function DraggableGroup({
   hideLabel = false,
 }: {
   collection: string;
+  /**
+   * The field name this group is scoped by (Categories' "scope", NavLinks'
+   * "section", FaqItems'/StepCards'/FeatureCards' relationship field, …) —
+   * bug found live: without this, `handleSave` PATCHes `{ order }` alone,
+   * and the server's `assignNextOrder`/`rejectIfOrderTaken` (hooks/
+   * ordering.ts) collision check derives its scope constraint FROM the PATCH
+   * body. No scope field in the body means no scope filter at all — the
+   * check compares this document's new `order` against EVERY sibling
+   * collection-wide, not just its own group. Categories' scopes share the
+   * same 1..N numbering (Blog's order=2 and Kampanyalar's order=2 both
+   * exist, correctly, as separate sequences), so an unscoped check almost
+   * always finds a same-number "collision" against a document in a
+   * completely different group and rejects the save with a 400. Confirmed
+   * live: dragging within one scope failed every time. Including
+   * `{ [groupField]: groupKey }` in the PATCH restores the same scoping the
+   * hook already expects from a normal single-document edit.
+   */
+  groupField?: string;
   groupKey: string;
   groupLabel: string;
   initialDocs: ReorderableDoc[];
@@ -179,19 +198,39 @@ function DraggableGroup({
       // "unset" everywhere else (it's the value the old defaultValue produced)
       // and made the saved sequence indistinguishable from a brand-new record.
       const nextOrder = docs.map((doc, i) => ({ ...doc, order: i + 1 }));
-      const results = await Promise.all(
-        nextOrder.map((doc, i) =>
-          docs[i].order === doc.order
-            ? Promise.resolve(true)
-            : fetch(`/api/${collection}/${doc.id}`, {
-                method: "PATCH",
-                credentials: "include",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ order: doc.order }),
-              }).then((res) => res.ok)
-        )
-      );
-      if (results.some((ok) => !ok)) {
+      const changed = nextOrder.filter((doc, i) => docs[i].order !== doc.order);
+
+      const patchOne = (id: string | number, order: number) =>
+        fetch(`/api/${collection}/${id}`, {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "content-type": "application/json" },
+          // groupField+groupKey included so the server's scoped-collision
+          // check (assignNextOrder/rejectIfOrderTaken, hooks/ordering.ts)
+          // actually scopes to this group instead of the whole collection
+          // — see the prop comment above for the bug this fixes.
+          body: JSON.stringify(groupField && groupKey !== "__all__" ? { order, [groupField]: groupKey } : { order }),
+        }).then((res) => res.ok);
+
+      // Bug found live testing this exact fix: two items simply SWAPPING
+      // positions (A: 1→2, B: 2→1) sent as one parallel Promise.all batch
+      // always collided — A's PATCH to order=2 finds B still holding 2 (B's
+      // own PATCH hasn't landed yet) and gets rejected, and vice versa,
+      // regardless of the scoping fix above. This is the standard fix for
+      // "swap under a uniqueness constraint": move every changing item to a
+      // guaranteed-free value first (real orders are always < 10000 in this
+      // codebase; `order` has no `max`, only `min: 1`, so a large offset
+      // never trips field validation), THEN set real values — by the time
+      // phase 2 runs, nothing in the group still holds a target number.
+      const phase1 = await Promise.all(changed.map((doc, i) => patchOne(doc.id, 10000 + i)));
+      if (phase1.some((ok) => !ok)) {
+        setSaveError(true);
+        toast.error(strings.saveError);
+        onSaved();
+        return;
+      }
+      const phase2 = await Promise.all(changed.map((doc) => patchOne(doc.id, doc.order)));
+      if (phase2.some((ok) => !ok)) {
         // Best-effort, not all-or-nothing: some PATCHes above may have
         // already landed server-side by the time one fails. Deliberately
         // does NOT move the local "saved" baseline here — which of the
@@ -356,6 +395,7 @@ export default function ReorderWidget({
         <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>{strings.title}</p>
         <DraggableGroup
           collection={collection}
+          groupField={groupField}
           groupKey={groupKey}
           groupLabel={groupLabel}
           initialDocs={groupItems}
@@ -365,7 +405,9 @@ export default function ReorderWidget({
     );
   }
 
-  return <GroupedReorder collection={collection} groups={groups} title={strings.title} onSaved={() => router.refresh()} />;
+  return (
+    <GroupedReorder collection={collection} groupField={groupField} groups={groups} title={strings.title} onSaved={() => router.refresh()} />
+  );
 }
 
 /**
@@ -378,11 +420,13 @@ export default function ReorderWidget({
  */
 function GroupedReorder({
   collection,
+  groupField,
   groups,
   title,
   onSaved,
 }: {
   collection: string;
+  groupField?: string;
   groups: [string, string, ReorderableDoc[]][];
   title: string;
   onSaved: () => void;
@@ -420,6 +464,7 @@ function GroupedReorder({
         // via initialDocs instead of this component reconciling stale rows.
         key={selectedKey}
         collection={collection}
+        groupField={groupField}
         groupKey={selectedKey}
         groupLabel={selected[1]}
         initialDocs={selectedItems}
@@ -558,6 +603,7 @@ function ServerGroupedReorder({
           <DraggableGroup
             key={selectedId}
             collection={collection}
+            groupField={groupField}
             groupKey={String(selectedId)}
             groupLabel={selectedOption.label}
             initialDocs={items}

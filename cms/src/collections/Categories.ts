@@ -96,6 +96,13 @@ export const Categories: CollectionConfig = {
         { path: "/components/HelpButton#default", clientProps: { collection: "categories" } },
         // RFP follow-up: full-column CSV export, Turkish-Excel safe.
         "/components/CategoriesExportButton#default",
+      ],
+      // RFP follow-up: editor wanted the list itself first (what's actually
+      // there right now), the drag-to-reorder tool below it — not the other
+      // way around, which read as "here's a sorting tool" before "here's
+      // what you're sorting". Same component, moved from beforeList to
+      // afterList; nothing about the widget itself changed.
+      afterList: [
         {
           path: "/components/ReorderWidget#default",
           clientProps: {
