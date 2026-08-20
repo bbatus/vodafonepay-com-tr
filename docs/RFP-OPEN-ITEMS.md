@@ -322,3 +322,35 @@ tekrar boş duruma getirildi.
 
 Canlı doğrulandı: "Footer'da Göster" işaretlenince alan HİÇBİR buton tıklaması olmadan doğru
 sayıyla doldu. cms: 153/153 test, typecheck+lint+build temiz.
+
+---
+
+## 13. Pages'in "Layout Ekle" ekranı — gerçekten açıklayıcı hale getirildi (2026-08-19)
+
+Kullanıcı, §9'da eklenen blok açıklamalarının işe yaramadığını bir EKRAN GÖRÜNTÜSÜYLE gösterdi:
+"+ Layout Ekle" modalındaki 10 kartın hepsi aynı jenerik dağ/resim placeholder'ını taşıyordu ve
+başlıklar tam da açıklamanın başladığı yerde "…" ile kesiliyordu ("Hero (Başlık + Görsel) — sayfanı…").
+§9'daki çözüm (açıklamayı `labels.singular`'a taşımak) modalın kart genişliğinde (~150px)
+gerçekte ÇALIŞMIYORDU — kesilmiş bir açıklama, açıklama yokluğundan daha kötü.
+
+**Kök neden ve gerçek çözüm:** Payload'ın blok picker'ı `admin.images.thumbnail` alanını
+destekliyor (3:2 oranlı bir görsel, kartın üzerinde büyükçe gösteriliyor) — daha önce
+araştırılmamıştı. Her 10 bloğa, o bloğun düzenini basitçe çizen küçük bir inline SVG diyagram
+eklendi (`Pages.ts`'teki `blockThumb()` yardımcı fonksiyonu) — "3 kart yan yana", "numaralı
+dikey liste", "sekmeli video" gibi görseller, bir iş kullanıcısının metinden çok daha hızlı
+kavradığı bir dil. Etiketler sadece kısa isme indirildi (`"Hero (Başlık + Görsel)"`) ki tam
+görünsün.
+
+**"Ürünler menüsüne nasıl bağlarım" sorusu için gerçek çözüm — Yardım butonu:** Pages'te zaten
+bir `HelpButton` bileşeni vardı (`helpContent.ts`), ama SADECE liste ekranında — sayfa
+oluşturma/düzenleme formunda hiç görünmüyordu, tam da kullanıcının takıldığı yerde. İki şey
+yapıldı: (1) `HelpButton`, Payload'ın `admin.components.edit.beforeDocumentControls` extension
+point'i üzerinden create/edit formuna da eklendi; (2) `helpContent.ts`'teki `pages` girdisi
+baştan yazıldı — artık 7 adımlı, gerçekten eksiksiz bir anlatım: başlık→slug, 10 bloğun TAM
+listesi (ne zaman kullanılır), SEO, **"EN SIK KARIŞTIRILAN ADIM" olarak işaretlenmiş NavLinks
+bağlama adımı (somut örnekle: Label/Href/Section ne yazılır)**, Üst Sayfa, Görünürlük, Önizleme.
+
+Canlı doğrulandı: "+ Layout Ekle" modalında artık her kart kendine özgü, tanınabilir bir görsel
+taşıyor, başlıklar tam görünüyor; "?" butonu hem liste hem create formunda çalışıyor ve tam
+anlatımı gösteriyor; bir test sayfası uçtan uca oluşturulup (Title→otomatik slug→Taslağı
+Kaydet) temizlendi. cms: 153/153 test, typecheck+lint+build temiz.

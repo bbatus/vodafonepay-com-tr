@@ -252,6 +252,19 @@ neredeyse eşzamanlı iki kayıt aynı boş slotu görüp aynı sırayı alabili
 atomik değil) — `hooks/ordering.ts`'e not düşüldü, çözülmedi (kapsam dışı, gerçek çözüm bir
 unique constraint). Detay `docs/RFP-OPEN-ITEMS.md` §12'de.
 
+### 2.13 Pages "Layout Ekle" ekranı gerçekten açıklayıcı hale getirildi (19.08.2026)
+Kullanıcı bir ekran görüntüsüyle gösterdi: §9'da eklenen blok açıklamaları işe yaramamış — "+
+Layout Ekle" modalında 10 kart hepsi aynı jenerik placeholder görseli taşıyor, başlıklar "…" ile
+tam açıklamanın başladığı yerde kesiliyor. Kök neden: Payload'ın block picker'ı kart genişliği
+~150px, uzun `labels.singular` değerleri orada gerçekte çalışmıyor. Çözüm: (1) Payload'ın
+`admin.images.thumbnail` desteği kullanılarak her bloğa kendi düzenini gösteren küçük bir SVG
+diyagram eklendi (`blockThumb()`, `Pages.ts`), etiketler kısa isme indirildi; (2) Pages'te zaten
+var olan ama SADECE liste ekranında görünen `HelpButton`, `admin.components.edit.
+beforeDocumentControls` ile create/edit formuna da eklendi; (3) `helpContent.ts`'teki `pages`
+girdisi 7 adımlı, eksiksiz bir anlatıma yeniden yazıldı — "EN SIK KARIŞTIRILAN ADIM" olarak
+işaretlenmiş, somut örnekli NavLinks bağlama talimatı dahil. Canlı doğrulandı. Detay
+`docs/RFP-OPEN-ITEMS.md` §13'te.
+
 ---
 
 ## 3. Açık Kalan Riskler / Yapılacaklar

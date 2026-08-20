@@ -25,19 +25,46 @@ import { turkishSlugify, uniqueSlug } from "@/lib/slugify";
  */
 
 /**
- * Butterfly-parity gap-fill (docs/RFP-OPEN-ITEMS.md §9): editors asked for
- * "hangi layout hangi durumda eklenir" guidance. A Payload `Block`'s
- * top-level `admin` object has no `description` slot (only individual
- * FIELDS do — verified via `tsc`, it's a real type-level restriction, not a
- * style choice) — so the "when to use this" hint lives in `labels.singular`
- * instead, since that's the one per-block string Payload actually renders,
- * both in the "+ Add Block" picker and on the block's own collapsed row.
+ * Butterfly-parity gap-fill (docs/RFP-OPEN-ITEMS.md §9, §13): editors asked
+ * for "hangi layout hangi durumda eklenir" guidance. Two things were tried
+ * and abandoned before this:
+ *
+ * 1. A Payload `Block`'s top-level `admin` object has no `description` slot
+ *    (only individual FIELDS do — verified via `tsc`), so there's nowhere
+ *    to put a paragraph of guidance that Payload renders IN the "+ Add
+ *    Block" picker itself.
+ * 2. Cramming the explanation into `labels.singular` (tried first) put it
+ *    in the one place Payload does render per-block — but live testing
+ *    (a real screenshot from the editor) showed the picker's cards are only
+ *    ~150px wide and truncate the label with "…" right where the
+ *    explanation started. A truncated "Hero (Başlık + Görsel) — sayfanı…"
+ *    is worse than no explanation, not better.
+ *
+ * What actually works: labels are short names ONLY (so they display in
+ * full), each block gets a real `admin.images.thumbnail` (a small inline
+ * SVG diagram of its layout via `blockThumb` below — Payload's own picker
+ * renders these at a 3:2 ratio, so a picture of "3 cards in a row" reads
+ * instantly to a non-technical editor in a way text never did), and the
+ * actual "when to use this" prose now lives in the Pages help content
+ * (`?` button, top of the list/create view — see helpContent.ts's `pages`
+ * entry) as one single, comprehensive, actually-readable walkthrough,
+ * rather than fragments scattered across 10 truncated card labels.
  */
+function blockThumb(inner: string): { thumbnail: { url: string; alt: string } } {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320"><rect width="480" height="320" fill="#ffffff"/>${inner}</svg>`;
+  return { thumbnail: { url: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`, alt: "" } };
+}
+
 const HeroBlock: Block = {
   slug: "hero",
   labels: {
-    singular: "Hero (Başlık + Görsel) — sayfanın en üstüne büyük afiş",
+    singular: "Hero (Başlık + Görsel)",
     plural: "Hero Blokları",
+  },
+  admin: {
+    images: blockThumb(
+      `<rect x="20" y="20" width="440" height="180" rx="8" fill="#e5e7eb"/><path d="M20 170 L140 110 L220 160 L320 90 L460 170 Z" fill="#d1d5db"/><circle cx="120" cy="80" r="20" fill="#f3f4f6"/><rect x="20" y="216" width="440" height="84" rx="4" fill="#f3f4f6"/><rect x="150" y="236" width="180" height="14" rx="3" fill="#111827"/><rect x="190" y="258" width="100" height="8" rx="2" fill="#9ca3af"/><rect x="200" y="276" width="80" height="18" rx="4" fill="#e60000"/>`
+    ),
   },
   fields: [
     { name: "heading", type: "text", required: true, admin: { description: "Büyük, kalın başlık. Örnek: 'Yaz Kampanyası 2026'" } },
@@ -51,8 +78,13 @@ const HeroBlock: Block = {
 const RichTextBlock: Block = {
   slug: "richText",
   labels: {
-    singular: "Metin Bloğu — biçimlendirilmiş yazı/paragraf bölümü",
+    singular: "Metin Bloğu",
     plural: "Metin Blokları",
+  },
+  admin: {
+    images: blockThumb(
+      `<rect x="40" y="40" width="200" height="18" rx="3" fill="#111827"/><rect x="40" y="80" width="400" height="10" rx="2" fill="#9ca3af"/><rect x="40" y="100" width="400" height="10" rx="2" fill="#9ca3af"/><rect x="40" y="120" width="320" height="10" rx="2" fill="#9ca3af"/><rect x="40" y="150" width="400" height="10" rx="2" fill="#9ca3af"/><rect x="40" y="170" width="400" height="10" rx="2" fill="#9ca3af"/><rect x="40" y="190" width="260" height="10" rx="2" fill="#9ca3af"/>`
+    ),
   },
   fields: [
     { name: "heading", type: "text", admin: { description: "Bu metin bölümünün başlığı, örn: 'Vizyonumuz'. Boş bırakılırsa başlıksız sadece metin gösterilir." } },
@@ -63,8 +95,13 @@ const RichTextBlock: Block = {
 const FaqListBlock: Block = {
   slug: "faqList",
   labels: {
-    singular: "SSS Bloğu — Kategoriler'deki soruları otomatik listeler",
+    singular: "SSS Bloğu",
     plural: "SSS Blokları",
+  },
+  admin: {
+    images: blockThumb(
+      `<rect x="40" y="40" width="400" height="60" rx="6" fill="#f3f4f6"/><rect x="60" y="64" width="240" height="12" rx="3" fill="#111827"/><path d="M410 64 l10 10 l10 -10" stroke="#e60000" stroke-width="4" fill="none"/><rect x="40" y="130" width="400" height="60" rx="6" fill="#f3f4f6"/><rect x="60" y="154" width="240" height="12" rx="3" fill="#111827"/><path d="M410 154 l10 10 l10 -10" stroke="#e60000" stroke-width="4" fill="none"/><rect x="40" y="220" width="400" height="60" rx="6" fill="#f3f4f6"/><rect x="60" y="244" width="240" height="12" rx="3" fill="#111827"/><path d="M410 244 l10 10 l10 -10" stroke="#e60000" stroke-width="4" fill="none"/>`
+    ),
   },
   fields: [
     { name: "heading", type: "text", admin: { description: "SSS bölümünün başlığı, örn: 'Sıkça Sorulan Sorular'. Boş bırakılabilir." } },
@@ -82,8 +119,13 @@ const FaqListBlock: Block = {
 const CampaignGridBlock: Block = {
   slug: "campaignGrid",
   labels: {
-    singular: "Kampanya Grid Bloğu — Campaigns'teki kampanyaları kart olarak listeler",
+    singular: "Kampanya Grid Bloğu",
     plural: "Kampanya Grid Blokları",
+  },
+  admin: {
+    images: blockThumb(
+      `<rect x="40" y="40" width="130" height="90" rx="6" fill="#e5e7eb"/><rect x="40" y="140" width="130" height="10" rx="2" fill="#111827"/><rect x="40" y="156" width="90" height="8" rx="2" fill="#9ca3af"/><rect x="190" y="40" width="130" height="90" rx="6" fill="#e5e7eb"/><rect x="190" y="140" width="130" height="10" rx="2" fill="#111827"/><rect x="190" y="156" width="90" height="8" rx="2" fill="#9ca3af"/><rect x="340" y="40" width="130" height="90" rx="6" fill="#e5e7eb"/><rect x="340" y="140" width="130" height="10" rx="2" fill="#111827"/><rect x="340" y="156" width="90" height="8" rx="2" fill="#9ca3af"/>`
+    ),
   },
   fields: [
     { name: "heading", type: "text", required: true, admin: { description: "Vitrinin başlığı, örn: 'Size Özel Kampanyalar'." } },
@@ -101,8 +143,13 @@ const CampaignGridBlock: Block = {
 const VideoBlock: Block = {
   slug: "video",
   labels: {
-    singular: "Video Bloğu — oynatılabilir YouTube videosu gömer",
+    singular: "Video Bloğu",
     plural: "Video Blokları",
+  },
+  admin: {
+    images: blockThumb(
+      `<rect x="60" y="40" width="360" height="220" rx="8" fill="#111827"/><circle cx="240" cy="150" r="36" fill="#ffffff" opacity="0.9"/><path d="M228 130 L228 170 L262 150 Z" fill="#e60000"/>`
+    ),
   },
   fields: [
     { name: "heading", type: "text", admin: { description: "Videonun üstünde gösterilecek başlık. Boş bırakılabilir." } },
@@ -121,8 +168,13 @@ const VideoBlock: Block = {
 const LogoGridBlock: Block = {
   slug: "logoGrid",
   labels: {
-    singular: "Logo Grid Bloğu — marka/ortak logoları vitrini (İstanbulkart, Kentkart vb. gibi)",
+    singular: "Logo Grid Bloğu",
     plural: "Logo Grid Blokları",
+  },
+  admin: {
+    images: blockThumb(
+      `<rect x="40" y="130" width="64" height="60" rx="4" fill="#f3f4f6" stroke="#9ca3af"/><rect x="124" y="130" width="64" height="60" rx="4" fill="#f3f4f6" stroke="#9ca3af"/><rect x="208" y="130" width="64" height="60" rx="4" fill="#f3f4f6" stroke="#9ca3af"/><rect x="292" y="130" width="64" height="60" rx="4" fill="#f3f4f6" stroke="#9ca3af"/><rect x="376" y="130" width="64" height="60" rx="4" fill="#f3f4f6" stroke="#9ca3af"/>`
+    ),
   },
   fields: [
     { name: "heading", type: "text", admin: { description: "Vitrinin başlığı, örn: 'Anlaşmalı Kartlar'. Boş bırakılabilir." } },
@@ -156,8 +208,13 @@ const LogoGridBlock: Block = {
 const IconCardsBlock: Block = {
   slug: "iconCards",
   labels: {
-    singular: "İkonlu Kartlar Bloğu — kısa özellik/fayda listesi (ikon + başlık + açıklama)",
+    singular: "İkonlu Kartlar Bloğu",
     plural: "İkonlu Kartlar Blokları",
+  },
+  admin: {
+    images: blockThumb(
+      `<rect x="40" y="40" width="130" height="150" rx="8" fill="#f9fafb" stroke="#e5e7eb"/><circle cx="105" cy="80" r="18" fill="#e60000" opacity="0.85"/><rect x="55" y="115" width="100" height="10" rx="2" fill="#111827"/><rect x="55" y="135" width="100" height="8" rx="2" fill="#9ca3af"/><rect x="55" y="150" width="70" height="8" rx="2" fill="#9ca3af"/><rect x="190" y="40" width="130" height="150" rx="8" fill="#f9fafb" stroke="#e5e7eb"/><circle cx="255" cy="80" r="18" fill="#e60000" opacity="0.85"/><rect x="205" y="115" width="100" height="10" rx="2" fill="#111827"/><rect x="205" y="135" width="100" height="8" rx="2" fill="#9ca3af"/><rect x="205" y="150" width="70" height="8" rx="2" fill="#9ca3af"/><rect x="340" y="40" width="130" height="150" rx="8" fill="#f9fafb" stroke="#e5e7eb"/><circle cx="405" cy="80" r="18" fill="#e60000" opacity="0.85"/><rect x="355" y="115" width="100" height="10" rx="2" fill="#111827"/><rect x="355" y="135" width="100" height="8" rx="2" fill="#9ca3af"/><rect x="355" y="150" width="70" height="8" rx="2" fill="#9ca3af"/>`
+    ),
   },
   fields: [
     { name: "heading", type: "text", admin: { description: "Bölümün başlığı, örn: 'Akıllı Ödeme Yöntemleri'. Boş bırakılabilir." } },
@@ -178,8 +235,13 @@ const IconCardsBlock: Block = {
 const StepsBlock: Block = {
   slug: "steps",
   labels: {
-    singular: "Adım Listesi Bloğu — numaralı 'nasıl yapılır' adımları (görsel eşliğinde)",
+    singular: "Adım Listesi Bloğu",
     plural: "Adım Listesi Blokları",
+  },
+  admin: {
+    images: blockThumb(
+      `<circle cx="70" cy="55" r="18" fill="#e60000"/><text x="70" y="60" font-size="14" fill="#ffffff" text-anchor="middle" font-family="sans-serif">01</text><rect x="115" y="35" width="60" height="40" rx="4" fill="#e5e7eb"/><rect x="190" y="45" width="260" height="10" rx="2" fill="#9ca3af"/><rect x="190" y="61" width="200" height="10" rx="2" fill="#9ca3af"/><circle cx="70" cy="140" r="18" fill="#e60000"/><text x="70" y="145" font-size="14" fill="#ffffff" text-anchor="middle" font-family="sans-serif">02</text><rect x="115" y="120" width="60" height="40" rx="4" fill="#e5e7eb"/><rect x="190" y="130" width="260" height="10" rx="2" fill="#9ca3af"/><rect x="190" y="146" width="200" height="10" rx="2" fill="#9ca3af"/><circle cx="70" cy="225" r="18" fill="#e60000"/><text x="70" y="230" font-size="14" fill="#ffffff" text-anchor="middle" font-family="sans-serif">03</text><rect x="115" y="205" width="60" height="40" rx="4" fill="#e5e7eb"/><rect x="190" y="215" width="260" height="10" rx="2" fill="#9ca3af"/><rect x="190" y="231" width="200" height="10" rx="2" fill="#9ca3af"/>`
+    ),
   },
   fields: [
     { name: "heading", type: "text", admin: { description: "Bölümün başlığı, örn: 'Nasıl Kullanırım?'. Boş bırakılabilir." } },
@@ -200,8 +262,13 @@ const StepsBlock: Block = {
 const ImageTextSlidesBlock: Block = {
   slug: "imageTextSlides",
   labels: {
-    singular: "Görsel + Metin Slayt Bloğu — kaydırmalı görsel/metin vitrini",
+    singular: "Görsel + Metin Slayt Bloğu",
     plural: "Görsel + Metin Slayt Blokları",
+  },
+  admin: {
+    images: blockThumb(
+      `<rect x="30" y="60" width="130" height="90" rx="6" fill="#e5e7eb"/><rect x="30" y="158" width="130" height="8" rx="2" fill="#9ca3af"/><rect x="30" y="172" width="90" height="8" rx="2" fill="#9ca3af"/><rect x="180" y="60" width="130" height="90" rx="6" fill="#e5e7eb"/><rect x="180" y="158" width="130" height="8" rx="2" fill="#9ca3af"/><rect x="180" y="172" width="90" height="8" rx="2" fill="#9ca3af"/><rect x="330" y="60" width="130" height="90" rx="6" fill="#e5e7eb"/><rect x="330" y="158" width="130" height="8" rx="2" fill="#9ca3af"/><rect x="330" y="172" width="90" height="8" rx="2" fill="#9ca3af"/><rect x="466" y="60" width="14" height="90" rx="3" fill="#e5e7eb" opacity="0.6"/><path d="M400 240 h50 M436 228 l16 12 l-16 12" stroke="#e60000" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`
+    ),
   },
   fields: [
     { name: "heading", type: "text", admin: { description: "Bölümün başlığı, örn: 'Neler Kazanırsın?'. Boş bırakılabilir." } },
@@ -221,8 +288,13 @@ const ImageTextSlidesBlock: Block = {
 const VideoListBlock: Block = {
   slug: "videoList",
   labels: {
-    singular: "Çoklu Video Bloğu — başlıklı, sekmeli birden fazla YouTube videosu",
+    singular: "Çoklu Video Bloğu",
     plural: "Çoklu Video Blokları",
+  },
+  admin: {
+    images: blockThumb(
+      `<rect x="40" y="40" width="120" height="30" rx="4" fill="#e60000"/><rect x="170" y="40" width="120" height="30" rx="4" fill="#f3f4f6"/><rect x="300" y="40" width="120" height="30" rx="4" fill="#f3f4f6"/><rect x="40" y="90" width="400" height="170" rx="8" fill="#111827"/><circle cx="240" cy="175" r="30" fill="#ffffff" opacity="0.9"/><path d="M230 158 L230 192 L260 175 Z" fill="#e60000"/>`
+    ),
   },
   fields: [
     { name: "heading", type: "text", admin: { description: "Bölümün başlığı. Boş bırakılabilir." } },
@@ -322,10 +394,18 @@ export const Pages: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "slug", "_status"],
     group: { tr: "İçerik", en: "Content" },
-    description: "Yeni sayfalar (kampanya landing, hub sayfası vb.) — geliştirici gerekmeden, blokları sürükleyip bırakarak oluşturulur.",
+    description:
+      "Yeni sayfalar (kampanya landing, hub sayfası vb.) — geliştirici gerekmeden, blokları sürükleyip bırakarak oluşturulur. İlk defa mı yapıyorsunuz? Yukarıdaki '?' butonuna basın — adım adım anlatım orada.",
     preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/${doc.slug}`) : null),
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "pages" } }],
+      // RFP follow-up: an editor confused mid-way through building a page
+      // (which block to use, how to connect it to the menu) was stuck on the
+      // create/edit view, where HelpButton wasn't rendered at all — only on
+      // the list, one screen back. Same component, second placement.
+      edit: {
+        beforeDocumentControls: [{ path: "/components/HelpButton#default", clientProps: { collection: "pages" } }],
+      },
     },
   },
   versions: {
@@ -356,7 +436,7 @@ export const Pages: CollectionConfig = {
       minRows: 1,
       admin: {
         description:
-          "Sayfa, aşağıya eklediğiniz bloklardan yukarıdan aşağı sırayla oluşur — her blok bir bölüm demektir. '+ Blok Ekle'ye basınca hangi blok ne işe yarar açıklamasını görürsünüz; sürükleyerek sırasını değiştirebilir, çöp kutusuyla silebilirsiniz. NOT: Bu koleksiyondaki bir sayfa, header'daki 'Ürünler' menüsünde veya footer'da OTOMATİK görünmez — orada göstermek isterseniz Menü Linkleri (NavLinks) koleksiyonuna gidip href=/{slug} ile ayrı bir satır eklemeniz gerekir (bkz. Menü Linkleri koleksiyonundaki açıklama).",
+          "Sayfa, aşağıya eklediğiniz bloklardan yukarıdan aşağı sırayla oluşur — her blok bir bölüm demektir. Sürükleyerek sırasını değiştirebilir, çöp kutusuyla silebilirsiniz. '+ Layout Ekle'deki kartların üzerindeki küçük görsel her bloğun ne işe yaradığını gösterir; hangi bloğu ne zaman kullanacağınızın TAM listesi ve ÖNEMLİSİ bu sayfayı 'Ürünler' menüsünde/footer'da nasıl göstereceğinizin adım adım anlatımı, sayfanın en üstündeki '?' (Yardım) butonunda.",
       },
       blocks: [
         HeroBlock,
