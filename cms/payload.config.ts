@@ -199,11 +199,23 @@ export default buildConfig({
       beforeLogin: ["/components/LoginBrandPanel#default", "/components/RememberEmailCheckbox#default"],
       beforeDashboard: ["/components/DashboardWidgets#default"],
       beforeNav: ["/components/SidebarLogo#default", "/components/LocalePreferenceSync#default"],
-      afterNavLinks: ["/components/ContentManagementNavLink#default", "/components/LockedAccountsNavLink#default"],
+      afterNavLinks: [
+        "/components/ContentManagementNavLink#default",
+        "/components/LockedAccountsNavLink#default",
+        "/components/FeesAndLimitsNavLink#default",
+      ],
       views: {
         contentManagement: {
           Component: "/components/ContentManagementView#default",
           path: "/content-management",
+        },
+        // RFP follow-up: "ücret ve limit tabloları tek sayfada, tabli geçişle
+        // yönetilebilmeli" — one combined view replaces the two separate
+        // FeeRows/LimitTables sidebar entries (now `admin.hidden`, see both
+        // collection configs).
+        feesAndLimits: {
+          Component: "/components/FeesAndLimitsView#default",
+          path: "/fees-and-limits",
         },
         // RFP feedback 5.6: New Vertical Maker's account-unlock screen. A
         // separate top-level view rather than a tab above the Users list —

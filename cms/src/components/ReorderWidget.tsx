@@ -322,6 +322,7 @@ export default function ReorderWidget({
   groupField,
   groupLabels,
   groupsFrom,
+  onSaved: onSavedExtra,
 }: {
   collection: string;
   groupField?: string;
@@ -336,8 +337,22 @@ export default function ReorderWidget({
    * grouping client-side.
    */
   groupsFrom?: GroupsFrom;
+  /**
+   * Every existing caller wires this in via `admin.components.beforeList`/
+   * `afterList`, where `router.refresh()` alone is enough — it re-renders
+   * the surrounding Payload list view's server component. FeesAndLimitsApp
+   * embeds this widget directly inside its OWN client component instead (no
+   * Payload list view involved), so `router.refresh()` has nothing to
+   * re-render there — its own summary table would go stale after a save
+   * with no other signal. Optional so no existing caller has to change.
+   */
+  onSaved?: () => void;
 }) {
   const router = useRouter();
+  const notifySaved = () => {
+    router.refresh();
+    onSavedExtra?.();
+  };
   const [docs, setDocs] = useState<ReorderableDoc[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const locale = useAdminLocale();
@@ -375,7 +390,7 @@ export default function ReorderWidget({
         groupField={groupField ?? ""}
         groupsFrom={groupsFrom}
         title={strings.title}
-        onSaved={() => router.refresh()}
+        onSaved={notifySaved}
       />
     );
   }
@@ -399,14 +414,14 @@ export default function ReorderWidget({
           groupKey={groupKey}
           groupLabel={groupLabel}
           initialDocs={groupItems}
-          onSaved={() => router.refresh()}
+          onSaved={notifySaved}
         />
       </div>
     );
   }
 
   return (
-    <GroupedReorder collection={collection} groupField={groupField} groups={groups} title={strings.title} onSaved={() => router.refresh()} />
+    <GroupedReorder collection={collection} groupField={groupField} groups={groups} title={strings.title} onSaved={notifySaved} />
   );
 }
 

@@ -203,6 +203,22 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
     en: "These aren't Pages documents — they're pages built by a developer in code, listed here for reference only, not editable. Most of their content still comes from the CMS (e.g. the FAQ/campaign sections on these pages).",
   },
 
+  "feesAndLimits.title": { tr: "Ücretler ve Limitler", en: "Fees and Limits" },
+  "feesAndLimits.intro": {
+    tr: "Ücret Tablosu ve Limit Tabloları artık bu tek sayfadan yönetiliyor — sekmeler arasında geçiş yapın, bir satıra tıklayıp düzenleyin, ya da aşağıdaki sürükle-bırak aracıyla sırasını değiştirin.",
+    en: "Fee Rows and Limit Tables are now managed from this single page — switch between the tabs, click a row to edit it, or reorder with the drag-and-drop tool below.",
+  },
+  "feesAndLimits.createFeeRow": { tr: "Yeni Ücret Satırı", en: "New Fee Row" },
+  "feesAndLimits.createLimitTable": { tr: "Yeni Limit Tablosu", en: "New Limit Table" },
+  "feesAndLimits.colLabel": { tr: "Etiket", en: "Label" },
+  "feesAndLimits.colValue": { tr: "Değer", en: "Value" },
+  "feesAndLimits.colTitleCol": { tr: "Başlık", en: "Title" },
+  "feesAndLimits.colRowCount": { tr: "Satır Sayısı", en: "Row Count" },
+  "feesAndLimits.colStatus": { tr: "Durum", en: "Status" },
+  "feesAndLimits.colOrder": { tr: "Sıra", en: "Order" },
+  "feesAndLimits.reorderTitle": { tr: "Sürükleyerek Sırala", en: "Drag to Reorder" },
+  "feesAndLimits.navLabel": { tr: "Ücretler ve Limitler", en: "Fees and Limits" },
+
   "lockedAccounts.navLabel": { tr: "Kilitli Hesaplar", en: "Locked Accounts" },
   "lockedAccounts.title": { tr: "Kilitli Hesaplar", en: "Locked Accounts" },
   "lockedAccounts.intro": {
