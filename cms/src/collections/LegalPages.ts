@@ -47,7 +47,7 @@ export const LegalPages: CollectionConfig = {
       ],
     },
     { name: "title", type: "text", required: true },
-    { name: "intro", type: "textarea", required: true, admin: { description: "Paragraflar arasına boş satır bırakın." } },
+    { name: "intro", type: "richText", required: true },
     {
       name: "documents",
       type: "array",

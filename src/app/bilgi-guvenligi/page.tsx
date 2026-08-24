@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
+import { getLegalPage, getPageMeta, richTextToLines } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -55,7 +55,7 @@ const fallbackTips = [
 
 export default async function BilgiGuvenligi() {
   const cmsPage = await getLegalPage("bilgi-guvenligi");
-  const tips = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackTips;
+  const tips = cmsPage ? richTextToLines(cmsPage.intro) : fallbackTips;
 
   const pageMeta = await getPageMeta("/bilgi-guvenligi");
 

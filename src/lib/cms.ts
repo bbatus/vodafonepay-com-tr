@@ -345,6 +345,37 @@ export function richTextToPlainText(node: unknown, maxLength: number): string {
   return `${full.slice(0, maxLength).trimEnd()}...`;
 }
 
+/**
+ * RFP §3.2.5: LegalPages.intro moved from a plain textarea (paragraphs
+ * split on blank lines, via `textToParagraphs`) to a real richText field so
+ * editors get actual formatting on the two pages that render it as prose
+ * (Çerez Politikası, Gizlilik ve Güvenlik Politikası — see their own
+ * `<RichText data={cmsPage.intro} />` usage).
+ *
+ * Three OTHER legal pages (Sözleşmeler ve Formlar, Web Sitesi Hüküm ve
+ * Şartları, Bilgi Güvenliği) don't use `intro` as prose at all — each line
+ * is a distinct, separately-clickable item (a document/tip one-per-<li>),
+ * matched by index in Sözleşmeler's case to the `documents` upload array.
+ * That structure predates this change and still has to work, so this
+ * extracts each top-level block's plain text as one array entry — same
+ * shape `textToParagraphs` used to produce, sourced from richText instead
+ * of a blank-line-delimited string.
+ */
+export function richTextToLines(node: unknown): string[] {
+  const root = (node as { root?: { children?: unknown[] } } | null | undefined)?.root;
+  if (!root?.children) return [];
+
+  const extractText = (n: unknown): string => {
+    if (!n || typeof n !== "object") return "";
+    const obj = n as { text?: string; children?: unknown[] };
+    if (typeof obj.text === "string") return obj.text;
+    if (Array.isArray(obj.children)) return obj.children.map(extractText).join("");
+    return "";
+  };
+
+  return root.children.map(extractText).map((t) => t.trim()).filter(Boolean);
+}
+
 const blogPostSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   title: z.string(),
@@ -580,7 +611,7 @@ const legalPageSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   slug: z.custom<LegalPageSlug>((v) => typeof v === "string"),
   title: z.string(),
-  intro: z.string(),
+  intro: z.unknown().nullable().optional(),
   documents: z.array(legalDocumentSchema).nullable().optional().transform((v) => v ?? []),
 });
 export type CmsLegalPage = z.infer<typeof legalPageSchema>;

@@ -5,8 +5,9 @@ import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { cookieRows as fallbackCookieRows } from "./cookieRows";
-import { getCookieRows, getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
+import { getCookieRows, getLegalPage, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
+import { RichText } from "@/components/RichText";
 
 export async function generateMetadata(): Promise<Metadata> {
   const pageMeta = await getPageMeta("/cerez-politikasi");
@@ -36,7 +37,6 @@ const fallbackIntro = [
 
 export default async function CerezPolitikasi() {
   const [cmsPage, cmsCookieRows] = await Promise.all([getLegalPage("cerez-politikasi"), getCookieRows()]);
-  const intro = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackIntro;
   const cookieRows = cmsCookieRows?.length ? cmsCookieRows : fallbackCookieRows;
 
   const pageMeta = await getPageMeta("/cerez-politikasi");
@@ -54,11 +54,15 @@ export default async function CerezPolitikasi() {
         <div className="mt-10 flex flex-col gap-y-6 text-sm leading-6 text-gray-700">
           <div>
             <h2 className="text-xl font-bold text-black">Veri Sorumlusu Kimdir?</h2>
-            {intro.map((p) => (
-              <p key={p} className="mt-3">
-                {p}
-              </p>
-            ))}
+            {cmsPage ? (
+              <RichText data={cmsPage.intro} className="mt-3 flex flex-col gap-y-3" />
+            ) : (
+              fallbackIntro.map((p) => (
+                <p key={p} className="mt-3">
+                  {p}
+                </p>
+              ))
+            )}
           </div>
 
           <div>

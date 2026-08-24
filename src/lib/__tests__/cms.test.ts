@@ -22,6 +22,7 @@ import {
   getProductHero,
   getStepCards,
   getTranslation,
+  richTextToLines,
   richTextToPlainText,
   textToParagraphs,
   type CmsCampaign,
@@ -54,6 +55,35 @@ describe("richTextToPlainText", () => {
     const result = richTextToPlainText(doc([paragraph(long)]), 20);
     expect(result).toBe("Toplu taşıma kartlar...");
     expect(result.length).toBe(23);
+  });
+});
+
+describe("richTextToLines", () => {
+  const doc = (children: unknown[]) => ({ root: { children } });
+  const text = (t: string) => ({ text: t });
+  const paragraph = (t: string) => ({ children: [text(t)] });
+
+  it("returns an empty array for null/malformed input", () => {
+    expect(richTextToLines(null)).toEqual([]);
+    expect(richTextToLines({})).toEqual([]);
+  });
+
+  it("returns one array entry per top-level block, unlike richTextToPlainText's single joined string", () => {
+    expect(richTextToLines(doc([paragraph("Birinci belge"), paragraph("İkinci belge")]))).toEqual([
+      "Birinci belge",
+      "İkinci belge",
+    ]);
+  });
+
+  it("drops empty/whitespace-only blocks", () => {
+    expect(richTextToLines(doc([paragraph("Gerçek satır"), paragraph("   "), paragraph("")]))).toEqual([
+      "Gerçek satır",
+    ]);
+  });
+
+  it("concatenates multiple text runs within one block with no extra spacing (unlike richTextToPlainText)", () => {
+    const boldWithinParagraph = { children: [text("Kalın "), text("kelime")] };
+    expect(richTextToLines(doc([boldWithinParagraph]))).toEqual(["Kalın kelime"]);
   });
 });
 

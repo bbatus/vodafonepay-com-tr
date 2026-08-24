@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
+import { getLegalPage, getPageMeta, richTextToLines } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -31,7 +31,7 @@ const fallbackDocuments = ["Hüküm ve Şartlar için tıklayınız"];
 
 export default async function WebSitesiHukumVeSartlari() {
   const cmsPage = await getLegalPage("web-sitesi-hukum-ve-sartlari");
-  const documents = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackDocuments;
+  const documents = cmsPage ? richTextToLines(cmsPage.intro) : fallbackDocuments;
 
   const pageMeta = await getPageMeta("/web-sitesi-hukum-ve-sartlari");
 

@@ -4,7 +4,7 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
+import { getLegalPage, getPageMeta, richTextToLines } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -36,7 +36,7 @@ const fallbackDocuments = [
 
 export default async function SozlesmelerVeFormlar() {
   const cmsPage = await getLegalPage("sozlesmeler-ve-formlar");
-  const documents = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackDocuments;
+  const documents = cmsPage ? richTextToLines(cmsPage.intro) : fallbackDocuments;
   const downloads = cmsPage?.documents ?? [];
   const pageMeta = await getPageMeta("/sozlesmeler-ve-formlar");
 

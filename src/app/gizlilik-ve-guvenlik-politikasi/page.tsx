@@ -4,8 +4,9 @@ import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getLegalPage, getPageMeta, textToParagraphs } from "@/lib/cms";
+import { getLegalPage, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
+import { RichText } from "@/components/RichText";
 
 export async function generateMetadata(): Promise<Metadata> {
   const pageMeta = await getPageMeta("/gizlilik-ve-guvenlik-politikasi");
@@ -91,7 +92,6 @@ const cookieTypes = [
 
 export default async function GizlilikVeGuvenlikPolitikasi() {
   const cmsPage = await getLegalPage("gizlilik-ve-guvenlik-politikasi");
-  const intro = cmsPage ? textToParagraphs(cmsPage.intro) : fallbackIntro;
 
   const pageMeta = await getPageMeta("/gizlilik-ve-guvenlik-politikasi");
 
@@ -108,11 +108,15 @@ export default async function GizlilikVeGuvenlikPolitikasi() {
         <div className="mt-10 flex flex-col gap-y-10 text-sm leading-6 text-gray-700">
           <div>
             <h2 className="text-2xl font-bold text-black">Vodafone Yanımda Uygulaması İşlemlerine Dair Aydınlatma Metni</h2>
-            {intro.map((p, i) => (
-              <p key={p} className={i === 0 ? "mt-4" : "mt-3"}>
-                {p}
-              </p>
-            ))}
+            {cmsPage ? (
+              <RichText data={cmsPage.intro} className="mt-4 flex flex-col gap-y-3" />
+            ) : (
+              fallbackIntro.map((p, i) => (
+                <p key={p} className={i === 0 ? "mt-4" : "mt-3"}>
+                  {p}
+                </p>
+              ))
+            )}
 
             <h3 className="mt-6 font-bold text-black">
               İşlenen Kişisel Verileriniz, Kişisel Verilerinizin İşlenme Amaçları ve Hukuki Sebepleri
