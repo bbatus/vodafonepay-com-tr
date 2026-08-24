@@ -714,9 +714,11 @@ a {
   width: auto;
 }
 
-.admin-icon__img {
-  height: 18px;
-  width: 18px;
+/* AdminIcon.tsx — the StepNav home-icon override. Muted, not brand-red, so
+   it reads as a quiet breadcrumb utility icon rather than a second logo
+   next to the sidebar's own "Vodafone | Pay" wordmark. */
+.step-nav__home svg {
+  color: var(--theme-elevation-400);
 }
 
 .user-avatar {
