@@ -60,6 +60,42 @@ export default function RoleAwarePublishButton() {
   const role = (user as { role?: string } | undefined)?.role;
   const userId = (user as { id?: string | number } | undefined)?.id;
 
+  // RFP §3.1 delegation: the segregation-of-duties branch below (`role ===
+  // ROLES.GROWTH_MAKER`) used to be unconditional, so a Growth Maker
+  // standing in as an active checker delegate — already allowed to publish
+  // server-side, see denyRolePublish's hasActiveCheckerDelegate bypass in
+  // access/roles.ts — still only ever saw the Maker's "submit for review"
+  // view here and had no actual way to click Publish. This component is a
+  // client component (useAuth() only knows the session's own role), so it
+  // asks the same question hasActiveCheckerDelegate answers server-side, via
+  // a plain REST query users.read is already open to (`read: authenticated`
+  // in Users.ts) — no dedicated endpoint needed.
+  const [isActiveDelegate, setIsActiveDelegate] = useState(false);
+  useEffect(() => {
+    if (role !== ROLES.GROWTH_MAKER || !userId) return;
+    const params = new URLSearchParams({
+      limit: "1",
+      depth: "0",
+      "where[and][0][delegateTo][equals]": String(userId),
+      "where[and][1][role][in][0]": ROLES.NEW_VERTICAL_CHECKER,
+      "where[and][1][role][in][1]": ROLES.GROWTH_CHECKER,
+      "where[and][2][or][0][delegationExpiresAt][exists]": "false",
+      "where[and][2][or][1][delegationExpiresAt][greater_than]": new Date().toISOString(),
+    });
+    let cancelled = false;
+    fetch(`/api/users?${params.toString()}`, { credentials: "same-origin" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled) setIsActiveDelegate((data?.totalDocs ?? 0) > 0);
+      })
+      .catch(() => {
+        if (!cancelled) setIsActiveDelegate(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [role, userId]);
+
   const { id, collectionSlug, globalSlug, hasPublishedDoc, setHasPublishedDoc, setMostRecentVersionIsAutosaved, setUnpublishedVersionCount, unpublishedVersionCount } =
     useDocumentInfo();
   const { submit } = useForm();
@@ -184,7 +220,7 @@ export default function RoleAwarePublishButton() {
     [collectionSlug, config.routes.api, id, localeCode, submit, userId]
   );
 
-  if (role === ROLES.GROWTH_MAKER) {
+  if (role === ROLES.GROWTH_MAKER && !isActiveDelegate) {
     if (hasPublishedDoc) {
       return (
         <LiveActions
