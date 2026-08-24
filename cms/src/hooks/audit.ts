@@ -1,4 +1,4 @@
-import type { CollectionAfterChangeHook, CollectionAfterDeleteHook, GlobalAfterChangeHook, PayloadRequest } from "payload";
+import type { CollectionAfterChangeHook, CollectionAfterDeleteHook, Endpoint, GlobalAfterChangeHook, PayloadRequest } from "payload";
 
 function actorOf(req: PayloadRequest): { email: string; role?: string } {
   const user = req.user as { email?: string; role?: string } | undefined;
@@ -95,6 +95,30 @@ export function auditAfterChange(collectionSlug: string): CollectionAfterChangeH
   };
 }
 
+/**
+ * RFP §7.2: "record all updates/changes to userID access rights" — a role
+ * change used to disappear into `auditAfterChange("users")`'s generic
+ * "users: X güncellendi" entry, indistinguishable from an avatar upload or a
+ * locale-preference tweak. Wire this into Users.ts's `afterChange` array
+ * ALONGSIDE (not instead of) `auditAfterChange("users")` — that one still
+ * owns create/update/publish in general; this only fires the extra, more
+ * specific entry when `role` itself actually changed.
+ */
+export const auditRoleChange: CollectionAfterChangeHook = async ({ req, operation, doc, previousDoc }) => {
+  if (operation !== "update") return doc;
+  const before = previousDoc?.role;
+  const after = doc?.role;
+  if (!after || before === after) return doc;
+  const target = doc?.email ?? String(doc?.id ?? "");
+  await writeAuditLog(req, {
+    action: "role_changed",
+    collectionSlug: "users",
+    documentId: String(doc?.id ?? ""),
+    summary: `${target} kullanıcısının rolü "${before ?? "—"}" → "${after}" olarak değiştirildi`,
+  });
+  return doc;
+};
+
 /** Globals (e.g. ContactInfo) have no id/create/delete concept — every write is an "update". */
 export function auditGlobalAfterChange(globalSlug: string): GlobalAfterChangeHook {
   return async ({ req, doc }) => {
@@ -118,3 +142,40 @@ export function auditAfterDelete(collectionSlug: string): CollectionAfterDeleteH
     });
   };
 }
+
+/**
+ * RFP §7.2: "record every print-out/export of certain predefined
+ * reports/data entities" — a plain `GET /api/{collection}` (what every CSV
+ * export button already does to fetch its rows) is a read, so no
+ * `afterChange`/`afterDelete` hook ever sees it. This is a small, dedicated
+ * endpoint the client fires *after* a successful export completes, purely to
+ * record that it happened — see CsvExportButton.tsx.
+ *
+ * Deliberately doesn't try to re-fetch or re-derive the exported rows itself
+ * (that would duplicate the REST GET the button already made) — it trusts
+ * the caller's own collection/count, the same "best effort, must never block
+ * the actual user action" posture every other audit write in this file has.
+ */
+export const auditExportEndpoint: Endpoint = {
+  path: "/audit/export",
+  method: "post",
+  handler: async (req) => {
+    if (!req.user?.id) {
+      return Response.json({ errors: [{ message: "Giriş yapmalısınız." }] }, { status: 401 });
+    }
+    let body: { collection?: string; count?: number } = {};
+    try {
+      if (req.json) body = await req.json();
+    } catch {
+      // Malformed body shouldn't block the (already-completed) export.
+    }
+    const collectionSlug = typeof body.collection === "string" && body.collection ? body.collection : "unknown";
+    const count = typeof body.count === "number" ? body.count : undefined;
+    await writeAuditLog(req, {
+      action: "export",
+      collectionSlug,
+      summary: `${collectionSlug}: ${count ?? "?"} kayıt CSV olarak dışa aktarıldı`,
+    });
+    return Response.json({ ok: true });
+  },
+};

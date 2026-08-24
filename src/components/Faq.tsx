@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { FaqChevronIcon } from "@/components/icons";
 import type { FaqItem } from "@/types/homepage";
 
@@ -38,6 +39,11 @@ export function Faq({ items, showHeading = true }: { items: FaqItem[]; showHeadi
               {isOpen && (
                 <div className="rounded bg-gray-50 px-5 py-4">
                   <p className="text-sm text-gray-700">{item.answer}</p>
+                  {item.deeplink && (
+                    <Link href={item.deeplink} className="mt-3 inline-block text-sm font-bold text-vf-red hover:underline">
+                      Detaylı bilgi →
+                    </Link>
+                  )}
                 </div>
               )}
             </div>

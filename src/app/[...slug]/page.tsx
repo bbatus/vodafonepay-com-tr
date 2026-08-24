@@ -76,7 +76,7 @@ async function BlockRenderer({ block }: { block: CmsPageBlock }) {
       const items = await getFaqItems(block.category || undefined);
       return (
         <Faq
-          items={(items ?? []).map((f) => ({ question: f.question, answer: f.answer }))}
+          items={(items ?? []).map((f) => ({ question: f.question, answer: f.answer, deeplink: f.deeplink }))}
           showHeading={Boolean(block.heading)}
         />
       );

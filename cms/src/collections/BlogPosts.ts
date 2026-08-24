@@ -148,6 +148,23 @@ export const BlogPosts: CollectionConfig = {
     },
     { name: "seoTitle", type: "text" },
     { name: "seoDescription", type: "textarea" },
+    {
+      // RFP §3.1.7: "Each content item should have a deeplink field in
+      // order to enable redirection." A post's own /blog/{slug} page is
+      // already its primary destination, so this is deliberately an
+      // ADDITIONAL, optional related link (rendered on the post's detail
+      // page) rather than something that overrides the card's own
+      // navigation — see src/app/blog/[slug]/page.tsx on the site.
+      name: "deeplink",
+      type: "text",
+      label: { tr: "İlgili Bağlantı", en: "Related Link" },
+      admin: {
+        description: {
+          tr: "Opsiyonel — yazının altında gösterilecek ilgili bir sayfa/kampanya bağlantısı, örn: /kampanyalar/yaz-2026",
+          en: "Optional — a related page/campaign link shown below the post, e.g. /kampanyalar/yaz-2026",
+        },
+      },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],

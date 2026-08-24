@@ -1,7 +1,8 @@
 import type { CollectionBeforeChangeHook, CollectionConfig, Endpoint } from "payload";
+import { AuthenticationError, LockedAuth } from "payload";
 import { isNewVerticalMaker, ROLE_OPTIONS, ROLES } from "@/access/roles";
 import { authenticated } from "@/access/authenticated";
-import { auditAfterChange, auditAfterDelete, writeAuditLog, ipOf, userAgentOf } from "@/hooks/audit";
+import { auditAfterChange, auditAfterDelete, auditRoleChange, writeAuditLog, ipOf, userAgentOf } from "@/hooks/audit";
 import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
 import { dbLabel } from "@/lib/collectionLabels";
 
@@ -399,10 +400,33 @@ export const Users: CollectionConfig = {
     afterError: [
       async ({ error, req }) => {
         const attempted = (req.data as { email?: string } | undefined)?.email;
-        // AuthenticationError is what a wrong password/unknown user produces;
-        // gate on an attempted email too so unrelated 401s aren't logged as
-        // login attempts.
-        if (!attempted || error?.name !== "AuthenticationError") return;
+        if (!attempted) return;
+        // RFP §7.2 "record all userID locks": Payload throws a distinct
+        // `LockedAuth` (not `AuthenticationError`) when the account itself is
+        // locked, BEFORE it even checks the password — confirmed in
+        // node_modules/payload/dist/auth/operations/login.js. Logging this
+        // separately from a plain wrong-password attempt is what lets
+        // "someone is hammering a locked account" actually show up as its
+        // own signal in the audit log instead of blending into ordinary
+        // failed logins.
+        //
+        // `instanceof`, NOT `error?.name === "LockedAuth"` — found live: the
+        // production build minifies error class names (`this.name =
+        // this.constructor.name` in Payload's own ExtendableError base
+        // resolves to a mangled identifier like "as" once bundled), so a
+        // string comparison against the class name silently never matched
+        // outside dev. `instanceof` checks the prototype chain instead of a
+        // name string, so it survives minification.
+        if (error instanceof LockedAuth) {
+          await writeAuditLog(req, {
+            action: "locked",
+            summary: `${attempted} kilitli hesapla giriş denedi`,
+            actorEmail: attempted,
+          });
+          return;
+        }
+        // AuthenticationError is what a wrong password/unknown user produces.
+        if (!(error instanceof AuthenticationError)) return;
         await writeAuditLog(req, {
           action: "login_failed",
           summary: `${attempted} için başarısız giriş denemesi`,
@@ -415,7 +439,7 @@ export const Users: CollectionConfig = {
     // is provenance metadata, so this never blocks — it records what got
     // orphaned in the audit log. See referentialIntegrity.ts for why.
     beforeDelete: [blockDeleteIfReferenced("users")],
-    afterChange: [auditAfterChange("users")],
+    afterChange: [auditAfterChange("users"), auditRoleChange],
     afterDelete: [auditAfterDelete("users")],
   },
 };

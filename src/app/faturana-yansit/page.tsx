@@ -148,7 +148,7 @@ export default async function FaturanaYansit() {
     getContentBlocks("brand-logos"),
   ]);
   const faqs: FaqItem[] = cmsFaqItems?.length
-    ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer }))
+    ? cmsFaqItems.map((f) => ({ question: f.question, answer: f.answer, deeplink: f.deeplink }))
     : fallbackFaqs;
   const cards = cmsCards?.length
     ? cmsCards.map((c) => ({ icon: c.icon.url, title: c.title, text: c.text }))

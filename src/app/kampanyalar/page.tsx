@@ -52,7 +52,7 @@ export default async function Kampanyalar() {
     endDate: c.endDate,
     featured: c.featured,
   }));
-  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer }));
+  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer, deeplink: f.deeplink }));
 
   const pageMeta = await getPageMeta("/kampanyalar");
 

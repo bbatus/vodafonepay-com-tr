@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   quality:
@@ -32,5 +32,52 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      - name: Test
+        run: npm run test
+
       - name: Build
         run: npm run build
+
+  cms-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: cms
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: cms/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        # Payload's config validates these env vars are present at module-load
+        # time (cms/src/env.ts) even for a build that never opens a real DB
+        # connection — every admin/API route is server-rendered on demand
+        # (confirmed via `next build`'s own route summary: none are static),
+        # so throwaway values are enough here; no Postgres service needed in
+        # this job.
+        run: npm run build
+        env:
+          DATABASE_URI: postgres://ci:ci@localhost:5432/ci
+          PAYLOAD_SECRET: ci-only-dummy-secret-not-for-production-000000
+          REVALIDATE_SECRET: ci-only-dummy-secret
+          PREVIEW_SECRET: ci-only-dummy-secret

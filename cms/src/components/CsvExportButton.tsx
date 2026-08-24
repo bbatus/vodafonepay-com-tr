@@ -66,6 +66,15 @@ export function CsvExportButton<T>({
       const { header, rows } = buildTable(data.docs ?? [], locale);
       downloadCsv(buildCsv(header, rows), `${filenamePrefix}-${new Date().toISOString().slice(0, 10)}.csv`);
       toast.success(t(`${translationPrefix}.done`));
+      // RFP §7.2: "record every export of predefined reports/data entities"
+      // — best-effort, fire-and-forget so a logging hiccup never blocks a
+      // download the user already has in hand.
+      void fetch("/api/audit/export", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ collection, count: rows.length }),
+      }).catch(() => {});
     } catch (err) {
       toast.error(err instanceof Error && err.message ? err.message : describeApiError({ err, locale, context: "export" }));
     } finally {

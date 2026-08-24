@@ -23,4 +23,6 @@ export interface CampaignCard {
 export interface FaqItem {
   question: string;
   answer: string;
+  /** CMS-editable related link (faqItem.deeplink), shown below the answer when set. */
+  deeplink?: string | null;
 }

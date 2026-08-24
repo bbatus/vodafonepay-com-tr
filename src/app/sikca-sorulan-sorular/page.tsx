@@ -27,6 +27,7 @@ export default async function SikcaSorulanSorular() {
   const items = (cmsFaqItems ?? []).map((f) => ({
     question: f.question,
     answer: f.answer,
+    deeplink: f.deeplink,
     category: f.category?.slug,
   }));
 

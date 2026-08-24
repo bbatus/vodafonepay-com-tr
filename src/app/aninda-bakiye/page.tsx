@@ -68,7 +68,7 @@ export default async function AnindaBakiye() {
   ]);
   // RFP feedback 5.0: no hardcoded FAQ fallback — an empty CMS result renders
   // no FAQ section at all rather than copy nobody can edit.
-  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer }));
+  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer, deeplink: f.deeplink }));
   const cards = cmsCards?.length
     ? cmsCards.map((c) => ({ icon: c.icon.url, title: c.title, text: c.text }))
     : fallbackCards;

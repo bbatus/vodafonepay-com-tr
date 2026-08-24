@@ -36,7 +36,7 @@ export default async function Home() {
   // identically whether the CMS was healthy or dead. Now an empty CMS result
   // stays empty and the section simply doesn't render.
   const featuredCampaigns = (cmsCampaigns ?? []).filter((c) => c.featured).map(campaignToCard);
-  const faqItems = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer }));
+  const faqItems = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer, deeplink: f.deeplink }));
   const steps: StepProduct[] = (cmsSteps ?? []).map((s) => ({
     title: s.title ?? "",
     description: s.text ?? "",

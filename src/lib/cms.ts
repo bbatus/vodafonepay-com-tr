@@ -256,6 +256,9 @@ const faqItemSchema = z.object({
   // SET NULL) rather than the fetch breaking.
   category: categoryRefSchema.nullable(),
   order: z.number(),
+  // RFP §3.1.7 follow-up: optional related-link field, shown below the
+  // answer text in the shared Faq.tsx accordion — see FaqItems.ts.
+  deeplink: nullableString(),
 });
 export type CmsFaqItem = z.infer<typeof faqItemSchema>;
 
@@ -376,6 +379,9 @@ const blogPostDetailSchema = z.object({
   publishedDate: nullableString(),
   seoTitle: nullableString(),
   seoDescription: nullableString(),
+  // RFP §3.1.7 follow-up: optional related-link field, shown at the bottom
+  // of the post's own detail page — see BlogPosts.ts's field comment.
+  deeplink: nullableString(),
 });
 export type CmsBlogPostDetail = z.infer<typeof blogPostDetailSchema>;
 

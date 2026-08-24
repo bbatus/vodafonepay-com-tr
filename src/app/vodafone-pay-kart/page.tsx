@@ -33,7 +33,7 @@ export default async function VodafonePayKart() {
   // RFP feedback 5.0: faq-items and content-blocks are both seeded for this
   // page, so these fallbacks only ever fired on a CMS failure — masking it.
   // An empty result now renders no section instead of hardcoded copy.
-  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer }));
+  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer, deeplink: f.deeplink }));
   const slides = (cmsSlides ?? []).map((s) => ({ image: s.image?.url ?? "", text: s.text ?? "" }));
   const videos = (cmsVideos ?? []).map((v) => ({ title: v.title ?? "", youtubeId: v.youtubeId ?? "" }));
 

@@ -89,6 +89,21 @@ export const FaqItems: CollectionConfig = {
     { name: "question", type: "text", required: true },
     { name: "answer", type: "textarea", required: true },
     {
+      // RFP §3.1.7: "Each content item should have a deeplink field in
+      // order to enable redirection." An FAQ answer is often "see the full
+      // details here" — rendered as an optional link under the answer text
+      // in the shared Faq.tsx accordion component on the site.
+      name: "deeplink",
+      type: "text",
+      label: { tr: "İlgili Bağlantı", en: "Related Link" },
+      admin: {
+        description: {
+          tr: "Opsiyonel — cevabın altında gösterilecek ilgili bir sayfa bağlantısı, örn: /vodafone-pay-kart",
+          en: "Optional — a related page link shown below the answer, e.g. /vodafone-pay-kart",
+        },
+      },
+    },
+    {
       // Was a hardcoded `select` (fixed option list baked into code, same
       // problem Campaigns/BlogPosts.category had before their own
       // Categories migration — RFP feedback 1.3). Every product page fetches

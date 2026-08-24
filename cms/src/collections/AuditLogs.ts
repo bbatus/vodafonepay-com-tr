@@ -62,6 +62,21 @@ export const AuditLogs: CollectionConfig = {
         { label: "Silindi", value: "delete" },
         // RFP feedback 5.6: who unlocked whose account, and when.
         { label: "Kilit kaldırıldı", value: "unlock" },
+        // RFP §7.2: "record all userID locks" — logged the moment a locked
+        // account is used to attempt a login (see Users.ts's `afterError`
+        // hook, which distinguishes this from a plain wrong-password
+        // `login_failed` via Payload's `LockedAuth` error class).
+        { label: "Kilitli hesapla giriş denendi", value: "locked" },
+        // RFP §7.2: "record all updates/changes to userID access rights" —
+        // a role change used to disappear into a generic "update" entry
+        // indistinguishable from any other user-doc edit; see Users.ts's
+        // `auditRoleChange` hook.
+        { label: "Rol değiştirildi", value: "role_changed" },
+        // RFP §7.2: "record every print-out/export of certain predefined
+        // reports/data entities" — the 5 CSV export buttons (Users,
+        // Campaigns, Blog, Categories, Audit Logs) now report here; see
+        // CsvExportButton.tsx and the `/audit/export` endpoint below.
+        { label: "Dışa aktarıldı (export)", value: "export" },
       ],
     },
     { name: "collectionSlug", type: "text", label: "Koleksiyon" },

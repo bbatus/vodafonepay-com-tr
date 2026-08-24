@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
@@ -54,6 +55,11 @@ export default async function BlogYazisi({ params }: { params: Promise<{ slug: s
         <div className="mt-8">
           <RichText data={post.body} />
         </div>
+        {post.deeplink && (
+          <Link href={post.deeplink} className="mt-8 inline-block text-sm font-bold text-vf-red hover:underline">
+            İlgili bağlantı →
+          </Link>
+        )}
       </section>
 
       <Footer />
