@@ -1,6 +1,6 @@
 # Genel Durum — Tek Takip Dosyası
 
-_Son güncelleme: 18.08.2026, branch `main` (her adımda doğrudan `main`'e push edildi)._
+_Son güncelleme: 24.08.2026, branch `main` (her adımda doğrudan `main`'e push edildi). Bu güncelleme, projedeki **tüm** `docs/*.md` dosyaları (ham prompt kayıtları hariç) tek tek okunup, `main`'in güncel commit geçmişiyle (bu dosyanın son güncellenişinden bu yana 20+ yeni commit) çapraz kontrol edilerek yazıldı — amaç: hiçbir açık maddenin raporlar arasında kaybolmamasını garanti etmek._
 
 Bu dosya projenin **tek genel durum özeti**dir — "ne yapıldı, ne kaldı" sorusunun
 cevabı için önce buraya bakın. Diğer `docs/*.md` dosyaları hâlâ duruyor (tarihsel detay,
@@ -51,8 +51,8 @@ Docker Compose servisleri: `vodafonepaycomtr` (site, :3000), `vodafonepaycomtr-c
 - Referans bütünlüğü (bağlı kayıt varken silme engellensin), kampanya filtresi/tarihi, hesap kilidi + kilit kaldırma ekranı, Content Management salt-okunur rapor sayfası (22 koleksiyon) — hepsi bu turda.
 
 ### 2.5 Test & Kalite altyapısı
-- Kök: Vitest + Testing Library, **106 test** (9 dosya) — hepsi geçiyor.
-- `cms/`: Vitest, **130 test** (16 dosya) — hepsi geçiyor.
+- Kök: Vitest + Testing Library, **110 test** (9 dosya) — hepsi geçiyor (24.08 itibarıyla yeniden çalıştırılıp doğrulandı).
+- `cms/`: Vitest, **153 test** (18 dosya) — hepsi geçiyor (24.08 itibarıyla yeniden çalıştırılıp doğrulandı).
 - Her iki projede de `npm run check` (lint+typecheck+test+build) yeşil.
 - SonarQube + Trivy her büyük değişiklikten sonra zorunlu adım (`AGENTS.md`'de yazılı) — Trivy bu turda da (rich text editörü kök `package.json`'a eklendiğinde) çalıştırıldı ve bulunan tek HIGH (`undici`) kapatıldı; **SonarQube bu turda çalıştırılamadı** (token yok/401 — bkz. §3).
 
@@ -265,25 +265,127 @@ girdisi 7 adımlı, eksiksiz bir anlatıma yeniden yazıldı — "EN SIK KARIŞT
 işaretlenmiş, somut örnekli NavLinks bağlama talimatı dahil. Canlı doğrulandı. Detay
 `docs/RFP-OPEN-ITEMS.md` §13'te.
 
+### 2.14 CMS admin görsel/UX temizliği ve dashboard yeniden tasarımı (20-24.08.2026)
+
+Bu turun teması: RFP maddesi kapatmak değil, panelin kendisinin "enterprise" hissetmesi —
+kullanıcının kendi ifadesiyle "vibe coding app gibi durmasın".
+
+- **Dashboard tamamen yeniden yazıldı:** Payload'ın varsayılan anasayfası (her koleksiyonu
+  bir link kartı olarak listeleyen jenerik grid) `views.dashboard` extension point'i ile TAM
+  değiştirildi (eski `beforeDashboard` sadece üste ekliyordu, kaldıramıyordu). Yeni anasayfa:
+  KPI kartları (Toplam İçerik/Sayfalar/Kullanıcılar/SSS), role göre değişen aksiyon widget'ı
+  (Checker'a "İncelemeni Bekleyen Kampanyalar", Maker'a "Taslaklarınız"+"Onay Bekleyen
+  Taslaklar"), "Son Giriş Yapanlar" tablosu, "Son Güncellenen İçerikler" panelleri
+  (Kampanyalar/Blog/Sayfalar, her birinde "+ Yeni" linki). Canlı olarak 4 rolün hepsiyle
+  test edildi. Süreçte iki gerçek CSS bug'ı bulunup düzeltildi: `views.dashboard` Payload'ın
+  KENDİ sardığı (Root view zaten `DefaultTemplate` içine alıyor) bir view tipi olduğu için
+  bileşenin kendi içinde İKİNCİ bir `DefaultTemplate` sarmalaması çift sidebar/topbar
+  üretiyordu; ve Payload'ın kendi `.card` sınıfının `display:flex` varsayılanı, üstüne
+  bindirilen panel kartlarının başlığını listenin ortasına düşürüyordu (`flex-direction:
+  column` ile düzeltildi) — ikisi de canlı ekran görüntüsüyle bulundu, koddan tahmin
+  edilmedi.
+- **Ücretler ve Limitler artık gerçekten tek erişim noktası:** `fee-rows`/`limit-tables`
+  sidebar'da ayrı görünmüyor (`admin.hidden: true`), ama düzenleme/oluşturma
+  `useDocumentDrawer` (Payload'ın modal-içi belge düzenleyicisi, `overrideEntityVisibility`
+  varsayılan açık) üzerinden birleşik sayfadan çalışıyor — eski yaklaşım (`hidden`+normal
+  link) collection'ın kendi düzenleme rotalarını da 404'letiyordu, kök neden bulunup drawer'a
+  geçilerek çözüldü. Canlı doğrulandı: eski URL'ler gerçekten 404, birleşik sayfadan
+  satıra tıklamak/yeni oluşturmak çalışıyor.
+- **Tüm inline CSS temizlendi:** `cms/src/components/`'taki 11 dosyada kalan her
+  `style={{...}}` `custom.css`'e class olarak taşındı (durum bağımlı stiller — HelpButton'ın
+  açık/kapalı rengi, ReorderWidget'ın sürüklenen öğe saydamlığı — koşullu className'e
+  çevrildi), projenin zaten var olan "CMS'de yeni inline style yok" kuralına uydurmak için.
+- **"CMS Saha Rehberi" adında bir iç referans artifact'ı yayınlandı** (Claude Artifacts,
+  bu oturuma özel bağlantı) — sidebar/topbar arayüz incelemesi (aşağıda), 22 koleksiyon +
+  1 global'in tamamının gerçek kullanım örnekleri VE her biri için "hangi test kullanıcısıyla
+  nasıl adım adım test edilir" tarifleri, ve kod okunurken bulunan 5 küçük tekrar/anomali
+  notu (en somutu: `order` alanının ~15 satırlık açıklaması 9 koleksiyon dosyasında birebir
+  kopyalanmış — merkezi bir `orderField()` fabrikasıyla toplanabilir).
+- **Sidebar/topbar çift marka işareti — bulundu, ÇÖZÜLMEDİ, kullanıcı onayı bekliyor:**
+  Sidebar'da tam "Vodafone | Pay" logosu VE topbar'da (Payload'ın standart StepNav
+  ana-sayfa-ikonu, `AdminIcon.tsx` ile override edilmiş) ayrı, küçük, ikon-only bir "Pay"
+  karesi aynı anda görünüyor — kod hatası değil (Payload'ın her kurulumda olan standart
+  yapısı), ama iki farklı marka görselinin aynı ekranda tekrar etmesi tutarsız duruyor.
+  Önerilen düzeltme (topbar ikonunu sadeleştirmek, tek dosya) rehberde belgelendi ama
+  "varolan yapıyı çok değiştirmeyelim" talimatı gereği UYGULANMADI — bkz. §3.
+
+### 2.15 RFP gap-analizi kapatma turu (24.08.2026)
+
+`docs/RFP-GAP-ANALYSIS-2026-08-24.md` (bu turun başında yazılan, RFP'nin 19 bölümünün
+tamamını satır satır kodla karşılaştıran taze analiz) kendi "hâlâ açık, kolayca kodla
+kapatılabilir" listesinden 10 maddeyi aynı gün içinde kapattı:
+
+- **CI/CD gerçekten çalışır hale geldi:** `.github/workflows/ci.yml` `branches: [master]`
+  izliyordu, repo'nun varsayılan dalı `main` — pipeline muhtemelen HİÇ tetiklenmemişti.
+  Düzeltildi + `cms/`'in kendi lint/typecheck/test/build'ini çalıştıran ikinci bir
+  `cms-quality` job'ı eklendi (öncesinde CI yalnız kök paketi kontrol ediyordu).
+- **Audit log'daki 4 gerçek boşluk kapatıldı:** (1) 5 CSV export butonunun kullanımı artık
+  loglanıyor (yeni `/api/audit/export` endpoint'i). (2) Rol değişikliği artık genel
+  "güncellendi" yerine ayrı bir `role_changed` kaydı olarak (eski/yeni rol adıyla)
+  loglanıyor. (3) Hesap kilitlenme ANI artık loglanıyor (açılması zaten loglanıyordu) —
+  süreçte gerçek bir üretim bug'ı bulundu: `error?.name === "AuthenticationError"` kontrolü
+  production build'de minification yüzünden hiç eşleşmiyordu (`instanceof` kontrolüne
+  çevrilip düzeltildi, canlı doğrulandı — eski kod 6 script'lenmiş başarısız girişte SIFIR
+  audit satırı üretiyordu). (4) Reddedilen (403) yazma denemeleri artık loglanıyor
+  (`auditForbiddenAttempt`, `payload.config.ts`'in kök seviyesindeki `afterError` hook'una
+  bağlı — tüm koleksiyonları tek yerden kapsıyor).
+- **Checker yetki devri (delegation) — RFP'nin literal isteği, artık var:** Bir Checker
+  kendi Users kaydında bir vekil (+ opsiyonel bitiş tarihi) atayabiliyor;
+  `hasActiveCheckerDelegate()` bunun tek doğruluk kaynağı, hem sunucu tarafında
+  (`denyRolePublish`'in publish izni) hem dashboard'da (inceleme kuyruğu) hem istemci
+  tarafında (yayınla butonunun görünmesi) kullanılıyor. Vekilin kendi `role` alanına
+  dokunulmuyor — dar kapsamlı, geri alınabilir, zaman sınırlı bir yetki, gerçek bir rol
+  değişikliği değil. Frontend'de canlı tıklama testiyle bir gerçek boşluk bulunup
+  düzeltildi: backend izni açık olsa da `RoleAwarePublishButton` hâlâ sadece "Onaya Gönder"
+  görünümünü gösteriyordu, buton hiç çıkmıyordu — düzeltildi.
+- **Media dosya boyutu sınırı genelleştirildi:** Önceden yalnız kullanıcı avatarı 2MB'la
+  sınırlıydı; artık tüm Media yüklemeleri görsel için 10MB, video için 100MB ile sınırlı.
+- **Önizleme modalına masaüstü/mobil geçiş toggle'ı eklendi.**
+- **`deeplink` alanı** BlogPosts/FaqItems/Pages/LegalPages'e eklendi — BlogPosts (yazı detay
+  sayfası) ve FaqItems (paylaşılan `Faq.tsx` akordeonu + 8 çağrı noktası) tarafında tam
+  bağlandı; Pages/LegalPages'te bilinçli olarak sadece alan var, render edilmiyor (her
+  ikisinin de tek bir doğal render noktası yok — kendi koleksiyon yorumlarında gerekçeli).
+- **Yeni alanlar için elle Postgres migration'ı** (bu ortamda `push: true` yalnız `next dev`
+  üzerinden çalışıyor, prod build'de değil) uygulandı: `users.delegate_to_id`,
+  `users.delegation_expires_at`, `enum_audit_logs_action`'a `denied`/`locked`/`role_changed`
+  eklendi, deeplink kolonları.
+- **Bu turda bulunan, DÜZELTİLMEMİŞ yeni bir üretim riski** — bkz. §3'teki ilk madde:
+  sitenin statik build'i (`next build`), CMS henüz ayakta olmadığı bir Docker build
+  aşamasında çalışıyor; her CMS-beslemeli statik sayfa (kampanyalar, blog, SSS, nav-links —
+  bu turda dokunulmayanlar dahil TÜMÜ) container gerçekten ayağa kalkıp ilk revalidate
+  gelene kadar BOŞ içerikle donmuş kalıyor. Build-time log'unda `[cms] fetch failed for
+  "..."` satırlarıyla doğrulandı.
+
 ---
 
 ## 3. Açık Kalan Riskler / Yapılacaklar
 
+_Bu tablo 24.08.2026 itibarıyla yeniden gözden geçirildi — §2.15'te kapatılan 10 madde (CI,
+4 audit boşluğu, delegation, media boyut sınırı, mobil önizleme, deeplink) buradan çıkarıldı._
+
 | ID | Konu | Durum |
 |---|---|---|
-| R-10 | `payload migrate:create`/`generate:importmap` çalışmıyor (`ERR_REQUIRE_ASYNC_MODULE`) — yeni collection/field/lexical özelliği eklemek elle `importMap.js` düzenlemesi gerektiriyor, unutulursa sessiz başarısızlık. **En kritik yapısal açık — bu tur boyunca defalarca elle düzeltildi.** | Açık |
-| R-26 | Postgres native enum'lar, migration olmadan `select` seçenek değişikliğinde manuel `ALTER TYPE` istiyor — R-10'un somut bir belirtisi. | Açık |
-| Yeni | SonarQube taraması bu turda çalıştırılamadı (token eksik/401) — bir sonraki oturumda token alınıp `scripts/sonar-scan.sh all` ile taranmalı. | Açık |
-| Yeni | Eşzamanlı editör yarışı: `LiveOrderField`'ın "önerilen sıra"sı, iki editör aynı grupta aynı anda kayıt oluşturursa ikisine de aynı sayıyı önerebilir — `assignNextOrder` hook'unun zaten taşıdığı sınıfın bir uzantısı, çözülmedi. `assignFooterOrder`'da da aynı sınıf risk var, canlı test sırasında gerçekten tetiklendi (3 kayıt aynı slotu paylaştı) — gerçek çözüm bir DB unique constraint, bu turun kapsamı dışında. | Bilinçli açık |
+| **Yeni — önemli** | **Statik build CMS'e ulaşamıyor:** `next build`, CMS container henüz ayakta olmadığı bir Docker build aşamasında (izole build-network) çalışıyor. Kampanyalar/blog/SSS/nav-links dahil CMS'ten beslenen HER statik sayfa, container gerçekten çalışmaya başlayıp ilk on-demand revalidate gelene kadar **boş içerikle donmuş** kalıyor. Build log'unda `[cms] fetch failed for "..."` ile doğrulandı (24.08, `1d6f75c` commit mesajında not düşüldü, henüz düzeltilmedi). Kalıcı çözüm: build sırasında CMS'e erişim (build-stage'i aynı Docker network'e almak) ya da deploy sonrası otomatik bir "warm-up" revalidate adımı. | **Açık — henüz kimse bakmadı** |
+| **Yeni** | Sidebar/topbar çift marka işareti (§2.14) — düzeltme önerisi hazır (`AdminIcon.tsx`'i sadeleştirmek, tek dosya), kullanıcı onayı bekleniyor. | Öneri hazır, onay bekliyor |
+| R-10 | `payload migrate:create`/`generate:importmap` çalışmıyor (`ERR_REQUIRE_ASYNC_MODULE`) — yeni collection/field/lexical özelliği eklemek elle `importMap.js` düzenlemesi gerektiriyor, unutulursa sessiz başarısızlık. **En kritik yapısal açık — bu ve önceki turlar boyunca defalarca elle düzeltildi, sonu gelmiyor.** | Açık |
+| R-26 | Postgres native enum'lar, migration olmadan `select` seçenek değişikliğinde manuel `ALTER TYPE` istiyor — R-10'un somut bir belirtisi. 24.08'de yine elle SQL uygulandı (delegation/audit/deeplink alanları için). | Açık |
+| Yeni | SonarQube taraması hâlâ çalıştırılamadı (token eksik/401) — bu turda da denenmedi. Bir sonraki oturumda token alınıp `scripts/sonar-scan.sh all` ile taranmalı. | Açık |
+| Yeni | Audit trail'de RFP §7'nin hâlâ karşılamadığı ~4 alt madde: değişen verinin before/after diff'i audit-logs'ta tutulmuyor (Payload'ın kendi version history'si dolaylı sağlıyor); "hangi dosya indirildi/okundu" loglanmıyor (sadece yazmalar); SIEM/CEF formatında export (ArcSight) yok, sadece CSV; userID karşılaştırma tabloları yok. Detay: `docs/RFP-GAP-ANALYSIS-2026-08-24.md` §5. | Açık — bir kısmı gerçek altyapı gerektiriyor |
+| Yeni | Eşzamanlı editör yarışı: `LiveOrderField`'ın "önerilen sıra"sı ve `assignFooterOrder`'ın boş-slot bulma mantığı, iki editör aynı grupta/footer'da aynı anda kayıt oluşturursa ikisine de aynı sayıyı önerebilir — canlı test sırasında gerçekten tetiklendi (3 kayıt aynı slotu paylaştı). Gerçek çözüm bir DB unique constraint, henüz yapılmadı. | Bilinçli açık |
 | Yeni | `EXPERIMENTAL_TableFeature`/`TextStateFeature` — paketin kendisinin "deneysel" işaretlediği API'ler; gelecekteki bir `@payloadcms/richtext-lexical` yükseltmesinde davranış değişebilir. | İzlenmeli |
 | Yeni | Rich text editöründe dahili sayfa linki (internal doc link) kapalı — sitenin slug→URL çözücüsü yazılmadığı için sadece özel URL girilebiliyor. | Bilinçli açık |
 | R-22 | 5 legal sayfa + 3 kurumsal sayfa gövdesi hâlâ hardcoded (bilinçli — hukuki doğruluk riski). | Bilinçli açık |
 | R-23 | `VideosWithTabs` CMS'e bağlanmadı (gerçek video yok, ürün kararı bekliyor). | Bilinçli açık |
 | R-15..R-21 | Yapısal/operasyonel P2'ler: şablon `package.json` kimliği, workspace ayrımı yok, Node/Next sürüm hizası, prod image domain'i, dev servisinin prod compose'da olması, `/api/health` yok, sitemap/robots/error sayfaları eksik. | Dokunulmadı |
-| CI | `.github/workflows/ci.yml` hâlâ `master`'ı izliyor, gerçek branch `main` — muhtemelen hiç çalışmıyor; `cms/`'i hiç doğrulamıyor. | Açık |
+| Yeni | 5 elle-yazılmış ürün sayfasından yalnız 1'i (`vodafone-pay-uygulama`) `Pages` koleksiyonuna göçürüldü (pilot, §2.10) — kalan 4 (aninda-bakiye, faturana-yansit, vodafone-pay-kart, qr-ile-faturana-yansit) kullanıcı onayı bekliyor. | Kullanıcı onayı bekliyor |
+| Yeni | `docs/CMS_INTEGRATION_PLAN.md` Strapi öneriyor, proje Payload ile inşa edildi — bu sapmanın gerekçesi hiçbir yerde yazılı değil (dokümantasyon boşluğu, fonksiyonel değil). | Küçük, dokümantasyon-only |
+| Yeni | `docker compose up`'taki `dev` servisi (port 3001, hot-reload) host tarafında bir Docker Desktop dosya-paylaşımı izin hatasıyla başlamıyor (`operation not permitted`) — kod/config sorunu değil, host ayarı (Docker Desktop → Settings → Resources → File Sharing). Ana CMS/site stack'i (postgres/minio/app/cms) etkilenmiyor. | Açık, host-seviyesi |
+| Yeni | `docs/varnish-cache.md` (1023 satır, "Butterfly CMS - Customer Segment & Varnish Deployment Analizi") repo'da untracked duruyor — bu projeyle ilgisi belirsiz, kimin bıraktığı/neden burada olduğu netleşmedi. | Belirsiz, kullanıcıya sorulmalı |
+| CI | ~~`.github/workflows/ci.yml` `master`'ı izliyordu~~ — **24.08'de düzeltildi** (§2.15), artık `main`'i izliyor + `cms/`'i de kontrol ediyor. Henüz gerçek bir push/PR ile tetiklenip yeşil döndüğü doğrulanmadı (yalnız dosya doğru okundu). | Düzeltildi, ilk gerçek çalıştırma doğrulanmalı |
 | LDAP | Gerçek LDAP/AccessPoint bağlantısı kurulmadı (kullanıcı kararı). Plan hazır: `docs/RFP-OPEN-ITEMS.md` §6. | Kullanıcı kararıyla bekliyor |
 | Analytics/Sentry/çoklu kanal | RFP'nin gerçek 3. parti hesap/altyapı gerektiren maddeleri (§3.2.10, §3.2.11, §4 hata izleme, §3.5.2-3.5.5 rol-özel raporlama ekranları) — gerçek hesap bilgisi olmadan sahte entegrasyon eklemek anlamsız. | Kapsam dışı (bilgi bekliyor) |
 | Masaüstü/mobil ayrı URL (§3.2.2) | Hiç alan yok — niş bir istek, modern responsive tasarımla zaten karşılanıyor. | Açık, düşük öncelik |
+| Bilinçli açık (değişmedi) | SSO/LDAP gerçek entegrasyonu, ayrı test ortamı+promosyon akışı, içerik-seviyesi çok dillilik, RFP'nin 5 rol taksonomisi yerine mevcut 4 rol, meta `keywords` alanı — hepsi kullanıcı kararıyla bilinçli olarak kapsam dışı, teknik eksiklik değil. Detay: `docs/RFP-GAP-ANALYSIS-2026-08-24.md` §9. | Kullanıcı kararıyla kapsam dışı |
 
 ---
 
@@ -321,7 +423,8 @@ tarihsel/madde-madde detay taşıyorlar — silinmediler, sadece günlük takip 
 ### Durum/rapor dosyaları (kronolojik)
 | Dosya | Ne için |
 |---|---|
-| `docs/RFP-GAP-ANALYSIS.md` | Orijinal RFP uyum analizi (11.08.2026) — PoC'un devredilebilir olup olmadığı sorusuna ilk cevap, tüm eksiklerin kaynak listesi. |
+| `docs/RFP-GAP-ANALYSIS-2026-08-24.md` | **Güncel RFP uyum analizi** — 19 bölümün tamamı satır satır koda karşı yeniden doğrulandı, `docs/RFP-GAP-ANALYSIS.md`'nin (11.08) yerini alıyor. §9'daki "hâlâ açık" listesinin çoğu aynı gün §2.15'te kapatıldı — bu dosyanın §3'ü ikisinin birleşik/güncel hali. |
+| `docs/RFP-GAP-ANALYSIS.md` | Orijinal RFP uyum analizi (11.08.2026) — artık tarihsel referans, yerini yukarıdaki 2026-08-24 versiyonu aldı. |
 | `docs/T0-PRODUCTION-READINESS.md` | Detaylı risk kaydı (R-01..R-26), olgunluk skoru, fazlı yol haritası — bu dosyadaki §3 tablosunun kaynağı. |
 | `docs/AUDIT-CONTENT-CMS.md` | İçerik parity + CMS yeterlilik denetimi — 5 paralel ajanın (canlı site envanteri, repo envanteri, CMS şema denetimi, hardcoded içerik taraması, teknik/SEO denetimi) bulgu sentezi. |
 | `docs/BACKLOG-CONTENT-CMS.md` | Yukarıdaki denetimin P0/P1/P2 görev listesi — büyük ölçüde tamamlanmış işin orijinal planı. |
