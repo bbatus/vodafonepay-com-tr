@@ -12,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Bilgi Güvenliği | Vodafone Pay",
     description: pageMeta?.seoDescription || "Vodafone Pay müşteri bilgileri ve hassas ödeme verilerinin güvenliği için alınması gereken önlemler.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/bilgi-guvenligi",
     image: pageMeta?.ogImage?.url,
   });

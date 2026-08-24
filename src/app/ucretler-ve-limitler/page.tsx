@@ -15,6 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Ücretler ve Limitler | Vodafone Pay",
     description: pageMeta?.seoDescription || "Vodafone Pay ürün ve hizmetlerine ait güncel ücret ve limit bilgileri.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/ucretler-ve-limitler",
     image: pageMeta?.ogImage?.url,
   });

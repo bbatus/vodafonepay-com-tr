@@ -13,6 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Site Haritası | Vodafone Pay",
     description: pageMeta?.seoDescription || "Vodafone Pay web sitesindeki tüm sayfalara bu site haritasından ulaşabilirsiniz.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/site-haritasi",
     image: pageMeta?.ogImage?.url,
   });

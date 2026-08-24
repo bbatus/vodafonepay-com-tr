@@ -12,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Sıkça Sorulan Sorular | Vodafone Pay",
     description: pageMeta?.seoDescription || "Vodafone Pay hakkında en çok merak edilen sorular ve cevapları.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/sikca-sorulan-sorular",
     image: pageMeta?.ogImage?.url,
   });

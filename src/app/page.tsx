@@ -18,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       pageMeta?.seoDescription ||
       "Vodafone Pay ile cüzdanınıza bakış açınız kökten değişiyor, hazır mısınız? Vodafone Pay hakkında detaylı bilgi almak için tıklayın.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/",
     image: pageMeta?.ogImage?.url,
   });

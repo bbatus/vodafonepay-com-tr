@@ -23,6 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return buildMetadata({
     title: post.seoTitle || `${post.title} | Vodafone Pay`,
     description: post.seoDescription || richTextToPlainText(post.body, 155),
+    keywords: post.seoKeywords || undefined,
     path: `/blog/${post.slug}`,
     image: post.coverImage.url,
   });

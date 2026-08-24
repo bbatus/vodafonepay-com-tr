@@ -4,6 +4,7 @@ import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead }
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { dbLabel } from "@/lib/collectionLabels";
+import { seoKeywordsField } from "@/lib/seoFields";
 
 /**
  * RFP §3.2.3/§3.2.4/§3.2.6: breadcrumb text and SEO meta (title/description/
@@ -42,6 +43,7 @@ export const PageMeta: CollectionConfig = {
     { name: "breadcrumbLabel", type: "text" },
     { name: "seoTitle", type: "text" },
     { name: "seoDescription", type: "textarea" },
+    seoKeywordsField,
     { name: "ogImage", type: "upload", relationTo: "media" },
   ],
   hooks: {

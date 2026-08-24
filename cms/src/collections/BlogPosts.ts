@@ -7,6 +7,7 @@ import { sitePreviewUrl } from "@/lib/preview";
 import { dbLabel } from "@/lib/collectionLabels";
 import { CATEGORY_SCOPES } from "@/collections/Categories";
 import { turkishSlugify, uniqueSlug } from "@/lib/slugify";
+import { seoKeywordsField } from "@/lib/seoFields";
 
 /**
  * RFP follow-up: was a manually-typed, `unique: true` text field — an
@@ -148,6 +149,7 @@ export const BlogPosts: CollectionConfig = {
     },
     { name: "seoTitle", type: "text" },
     { name: "seoDescription", type: "textarea" },
+    seoKeywordsField,
     {
       // RFP §3.1.7: "Each content item should have a deeplink field in
       // order to enable redirection." A post's own /blog/{slug} page is

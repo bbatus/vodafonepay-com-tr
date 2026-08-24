@@ -30,6 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return buildMetadata({
     title: page.seoTitle || `${page.title} | Vodafone Pay`,
     description: page.seoDescription || page.title,
+    keywords: page.seoKeywords || undefined,
     path: `/${page.slug}`,
     image: page.ogImage?.url,
   });

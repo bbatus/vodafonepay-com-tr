@@ -20,6 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Faturana Yansıt | Mobil Ödeme | Vodafone Pay",
     description: pageMeta?.seoDescription || "Yalnızca cep telefonu numaranızı kullanarak indirimli alışverişin keyfini çıkarın!",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/faturana-yansit",
     image: pageMeta?.ogImage?.url,
   });

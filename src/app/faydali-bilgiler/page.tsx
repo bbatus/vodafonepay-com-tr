@@ -13,6 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Faydalı Bilgiler | Vodafone Pay",
     description: pageMeta?.seoDescription || "Vodafone Pay kullanımına dair faydalı bilgiler.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/faydali-bilgiler",
     image: pageMeta?.ogImage?.url,
   });

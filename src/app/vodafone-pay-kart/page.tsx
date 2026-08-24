@@ -18,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Vodafone Pay Kart",
     description: pageMeta?.seoDescription || "Vodafone Pay Sanal ve Fiziksel Kart ile harcamalarını kolayca ve güvenli bir şekilde gerçekleştirebilir, kazandığın nakit iadelerle daha fazla harcayabilirsin.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/vodafone-pay-kart",
     image: pageMeta?.ogImage?.url,
   });

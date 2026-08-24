@@ -17,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Anında Bakiye ile Sana Özel Mobil Ödeme Limiti | Vodafone Pay",
     description: pageMeta?.seoDescription || "Size özel limitinizle dilediğiniz yerde harcama yapabilirsiniz!",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/aninda-bakiye",
     image: pageMeta?.ogImage?.url,
   });

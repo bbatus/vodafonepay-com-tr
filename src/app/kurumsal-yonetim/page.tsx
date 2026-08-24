@@ -12,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Vodafone Pay Kurumsal Yönetim | Hakkımızda",
     description: pageMeta?.seoDescription || "Vodafone Pay hakkında, vizyon, misyon, ortaklık yapısı ve yönetim kurulu bilgileri.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/kurumsal-yonetim",
     image: pageMeta?.ogImage?.url,
   });

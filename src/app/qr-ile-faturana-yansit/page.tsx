@@ -17,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "QR ile Faturana Yansıt | Vodafone Pay",
     description: pageMeta?.seoDescription || "Artık QR ile yapacağınız fiziksel harcamalarınızı Vodafone faturanıza yansıtabilir, üstelik harcama tutarınızı ilk çıkacak fatura döneminize kadar erteleyebilirsiniz!",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/qr-ile-faturana-yansit",
     image: pageMeta?.ogImage?.url,
   });

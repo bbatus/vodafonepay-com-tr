@@ -14,6 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "En Yakın Temsilciliklerimiz | Vodafone Pay",
     description: pageMeta?.seoDescription || "İl ve ilçe seçerek size en yakın Vodafone Pay temsilciliğini bulun.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/temsilciliklerimiz",
     image: pageMeta?.ogImage?.url,
   });

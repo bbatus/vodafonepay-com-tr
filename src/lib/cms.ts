@@ -213,6 +213,7 @@ const campaignDetailSchema = z.object({
   terms: z.unknown().nullable().optional(),
   seoTitle: nullableString(),
   seoDescription: nullableString(),
+  seoKeywords: nullableString(),
   startDate: nullableString(),
   endDate: nullableString(),
   ctaLabel: nullableString(),
@@ -410,6 +411,7 @@ const blogPostDetailSchema = z.object({
   publishedDate: nullableString(),
   seoTitle: nullableString(),
   seoDescription: nullableString(),
+  seoKeywords: nullableString(),
   // RFP §3.1.7 follow-up: optional related-link field, shown at the bottom
   // of the post's own detail page — see BlogPosts.ts's field comment.
   deeplink: nullableString(),
@@ -697,6 +699,7 @@ const pageMetaSchema = z.object({
   breadcrumbLabel: nullableString(),
   seoTitle: nullableString(),
   seoDescription: nullableString(),
+  seoKeywords: nullableString(),
   ogImage: mediaSchema.nullable().optional().transform((v) => v ?? undefined),
 });
 export type CmsPageMeta = z.infer<typeof pageMetaSchema>;
@@ -813,6 +816,7 @@ const pageSchema = z.object({
   layout: z.array(pageBlockSchema).nullable().optional().transform((v) => v ?? []),
   seoTitle: nullableString(),
   seoDescription: nullableString(),
+  seoKeywords: nullableString(),
   ogImage: mediaSchema.nullable().optional().transform((v) => v ?? undefined),
   parent: pageParentSchema.nullable().optional().transform((v) => v ?? undefined),
 });

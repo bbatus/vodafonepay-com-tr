@@ -14,16 +14,31 @@ export function buildMetadata({
   description,
   path,
   image = DEFAULT_OG_IMAGE,
+  keywords,
 }: {
   title: string;
   description: string;
   path: string;
   image?: string;
+  /**
+   * RFP §3.2.6 ("meta tags: title/description/keywords"). Google's stopped
+   * using this tag for ranking since 2009 — this exists because the RFP
+   * literally asks for it, not because it does anything for SEO. Comma-split
+   * into an array since that's the format Next's Metadata API/most crawlers
+   * that still read it expect; a blank/undefined value omits the tag
+   * entirely rather than rendering an empty `content=""`.
+   */
+  keywords?: string | null;
 }): Metadata {
   const url = `${SITE_URL}${path}`;
+  const keywordList = keywords
+    ?.split(",")
+    .map((k) => k.trim())
+    .filter(Boolean);
   return {
     title,
     description,
+    ...(keywordList?.length ? { keywords: keywordList } : {}),
     alternates: { canonical: url },
     openGraph: {
       title,

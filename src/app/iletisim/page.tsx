@@ -12,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Vodafone Pay İletişim | Müşteri Hizmetleri",
     description: pageMeta?.seoDescription || "Vodafone Pay şirket bilgileri, müşteri hizmetleri ve denetim mercii iletişim bilgileri.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/iletisim",
     image: pageMeta?.ogImage?.url,
   });

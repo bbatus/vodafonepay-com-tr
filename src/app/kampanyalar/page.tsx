@@ -17,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Nakit İade Kampanyaları | Pay'lilere Özel Fırsatlar | Vodafone Pay",
     description: pageMeta?.seoDescription || "Vodafone Pay'in nakit iade ve indirim kampanyalarını incele, avantajlardan yararlan.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/kampanyalar",
     image: pageMeta?.ogImage?.url,
   });

@@ -13,6 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Gizlilik ve Güvenlik Politikası | Vodafone Pay",
     description: pageMeta?.seoDescription || "Vodafone Pay kişisel verilerin korunması, gizlilik ve güvenlik politikası aydınlatma metinleri.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/gizlilik-ve-guvenlik-politikasi",
     image: pageMeta?.ogImage?.url,
   });

@@ -8,6 +8,7 @@ import { sitePreviewUrl } from "@/lib/preview";
 import { dbLabel } from "@/lib/collectionLabels";
 import { CATEGORY_SCOPES } from "@/collections/Categories";
 import { assignFooterOrder, FOOTER_ORDER_FIELD_DESCRIPTION, FOOTER_ORDER_MAX } from "@/hooks/ordering";
+import { seoKeywordsField } from "@/lib/seoFields";
 
 /**
  * Growth Maker can never publish its own campaigns (denyMakerPublish), but
@@ -397,6 +398,7 @@ export const Campaigns: CollectionConfig = {
           "Google arama sonuçlarında başlığın altında görünecek kısa açıklama (1-2 cümle). Boş bırakılırsa yukarıdaki 'Description' alanı kullanılır.",
       },
     },
+    seoKeywordsField,
     {
       type: "row",
       fields: [

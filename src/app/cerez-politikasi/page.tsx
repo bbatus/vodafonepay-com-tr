@@ -14,6 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Çerez Politikası | Vodafone Pay",
     description: pageMeta?.seoDescription || "Vodafone Pay web sitesinde kullanılan çerezler, türleri ve yönetimi hakkında bilgi.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/cerez-politikasi",
     image: pageMeta?.ogImage?.url,
   });

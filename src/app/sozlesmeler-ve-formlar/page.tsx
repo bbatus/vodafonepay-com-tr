@@ -12,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     title: pageMeta?.seoTitle || "Sözleşmeler ve Formlar | Vodafone Pay",
     description: pageMeta?.seoDescription || "Vodafone Pay sözleşme, form ve ticari koşullar belgelerine buradan ulaşabilirsiniz.",
+    keywords: pageMeta?.seoKeywords || undefined,
     path: "/sozlesmeler-ve-formlar",
     image: pageMeta?.ogImage?.url,
   });

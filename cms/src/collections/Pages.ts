@@ -7,6 +7,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { sitePreviewUrl } from "@/lib/preview";
 import { dbLabel } from "@/lib/collectionLabels";
 import { turkishSlugify, uniqueSlug } from "@/lib/slugify";
+import { seoKeywordsField } from "@/lib/seoFields";
 
 /**
  * RFP §3.3 (Lifecycle Management) / §3.2.13 (drag-and-drop web page design):
@@ -453,6 +454,7 @@ export const Pages: CollectionConfig = {
     },
     { name: "seoTitle", type: "text" },
     { name: "seoDescription", type: "textarea" },
+    seoKeywordsField,
     { name: "ogImage", type: "upload", relationTo: "media" },
     {
       // Butterfly-parity gap-fill: simple parent reference for a breadcrumb
