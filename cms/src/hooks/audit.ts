@@ -1,4 +1,5 @@
-import type { CollectionAfterChangeHook, CollectionAfterDeleteHook, Endpoint, GlobalAfterChangeHook, PayloadRequest } from "payload";
+import { Forbidden } from "payload";
+import type { AfterErrorHook, CollectionAfterChangeHook, CollectionAfterDeleteHook, Endpoint, GlobalAfterChangeHook, PayloadRequest } from "payload";
 
 function actorOf(req: PayloadRequest): { email: string; role?: string } {
   const user = req.user as { email?: string; role?: string } | undefined;
@@ -178,4 +179,43 @@ export const auditExportEndpoint: Endpoint = {
     });
     return Response.json({ ok: true });
   },
+};
+
+const VERB_BY_METHOD: Record<string, string> = {
+  DELETE: "silme",
+  PATCH: "değiştirme",
+  PUT: "değiştirme",
+  POST: "oluşturma/ekleme",
+};
+
+/**
+ * RFP §7.2: "record all attempts to delete, write or append certain
+ * predefined data entities" — until now only the SUCCESSFUL half of a write
+ * was ever logged (afterChange/afterDelete only fire once an operation has
+ * already gone through). A rejected write never left a trace anywhere.
+ *
+ * Wired into `payload.config.ts`'s root-level `hooks.afterError` — that's
+ * the one extension point that fires for EVERY collection's errors in one
+ * place (confirmed in @payloadcms/next's routeError.js: it calls the
+ * collection's own `afterError` array, THEN the root config's, regardless
+ * of which collection the request targeted), so this doesn't need wiring
+ * into each collection's hooks individually the way audit.ts's other
+ * factories do.
+ *
+ * Scoped to `Forbidden` (403) specifically — a 400 validation error or a
+ * 404 isn't "someone attempting something they're not allowed to do", it's
+ * just an honest mistake, and logging every typo would drown the signal
+ * this is actually for. Anonymous 403s are skipped too: without a known
+ * `req.user`, "who attempted this" has nothing to name.
+ */
+export const auditForbiddenAttempt: AfterErrorHook = async ({ error, req, collection }) => {
+  if (!(error instanceof Forbidden)) return;
+  if (!req.user) return;
+  const collectionSlug = collection?.slug;
+  const verb = VERB_BY_METHOD[req.method ?? ""] ?? "işlem";
+  await writeAuditLog(req, {
+    action: "denied",
+    collectionSlug,
+    summary: `${collectionSlug ?? "sistem"} üzerinde yetkisiz ${verb} denemesi engellendi`,
+  });
 };

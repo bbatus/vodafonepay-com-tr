@@ -262,6 +262,43 @@ export const Users: CollectionConfig = {
       admin: { description: "En fazla 2MB — MinIO'da saklanır." },
     },
     {
+      // RFP §3.1 User Role Management: "Checker may delegate his/her rights
+      // to another user if necessary (e.g while out of office or on
+      // leave)." Self-service, same access shape as preferredLocale — no
+      // field-level override here, so it inherits the collection's default
+      // update rule (self OR New Vertical Maker). Setting this does NOT
+      // change the delegate's own `role`; it's read by
+      // `hasActiveCheckerDelegate` (access/roles.ts) wherever "is this user
+      // currently allowed to act as a checker" actually matters — publish
+      // access (`denyRolePublish`) and the dashboard's review-queue widget.
+      name: "delegateTo",
+      type: "relationship",
+      relationTo: "users",
+      label: { tr: "Yetki Devredilen Kişi", en: "Delegate" },
+      admin: {
+        position: "sidebar",
+        description: {
+          tr: "Sadece Checker rolündeyseniz anlamlıdır: izinliyken/tatildeyken onay yetkinizi geçici olarak devretmek istediğiniz kişi. Boş bırakırsanız devir yok.",
+          en: "Only meaningful for Checker roles: who to temporarily hand your approval rights to while out of office. Leave empty for no delegation.",
+        },
+      },
+      filterOptions: ({ id }) => (id ? { id: { not_equals: id } } : true),
+    },
+    {
+      name: "delegationExpiresAt",
+      type: "date",
+      label: { tr: "Devir Bitiş Tarihi", en: "Delegation Expires" },
+      admin: {
+        position: "sidebar",
+        date: { pickerAppearance: "dayAndTime" },
+        condition: (data) => Boolean(data?.delegateTo),
+        description: {
+          tr: "Bu tarihten sonra devir otomatik olarak geçersiz sayılır. Boş bırakılırsa devir siz kaldırana kadar sürer.",
+          en: "After this date the delegation automatically stops counting. Leave empty for it to last until you remove it.",
+        },
+      },
+    },
+    {
       name: "preferredLocale",
       type: "select",
       label: "Dil Tercihi",

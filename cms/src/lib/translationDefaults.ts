@@ -74,6 +74,8 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
     tr: "Yayından kaldırma talebiniz Checker onayında.",
     en: "Your unpublish request is awaiting Checker approval.",
   },
+  "roleAwarePublishButton.previewDesktop": { tr: "Masaüstü", en: "Desktop" },
+  "roleAwarePublishButton.previewMobile": { tr: "Mobil", en: "Mobile" },
 
   "roleAwarePublishButton.reject": { tr: "Reddet", en: "Reject" },
   "roleAwarePublishButton.rejecting": { tr: "Reddediliyor…", en: "Rejecting…" },

@@ -1,3 +1,4 @@
+import { APIError } from "payload";
 import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
 import { isNewVerticalMaker, mediaCreate, newVerticalReadWrite } from "@/access/roles";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
@@ -21,6 +22,35 @@ const deriveMediaType: CollectionBeforeChangeHook = ({ data }) => {
   return data;
 };
 
+// RFP §3.1.4 "image size capability is necessary to ensure smooth
+// functioning": only Users.avatar had a cap (2MB) — general Media uploads
+// were unbounded. Payload's `upload` config has no built-in size-limit
+// option (checked payload/dist/uploads/types.d.ts), so this is a plain
+// hook, same shape as Users.ts's enforceAvatarSizeLimit. Images and videos
+// get different caps since a promo video is legitimately much larger than
+// any photo this CMS uses.
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024; // 100MB
+
+const enforceFileSizeLimit: CollectionBeforeChangeHook = ({ data, req }) => {
+  const filesize = data?.filesize as number | undefined;
+  if (typeof filesize !== "number") return data;
+  const isVideo = typeof data?.mimeType === "string" && (data.mimeType as string).startsWith("video/");
+  const max = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+  if (filesize <= max) return data;
+
+  const maxMb = max / (1024 * 1024);
+  const isEnglish = req.i18n?.language === "en";
+  throw new APIError(
+    isEnglish
+      ? `File is too large — ${isVideo ? "videos" : "images"} must be under ${maxMb}MB.`
+      : `Dosya çok büyük — ${isVideo ? "videolar" : "görseller"} ${maxMb}MB'den küçük olmalı.`,
+    400,
+    undefined,
+    true
+  );
+};
+
 export const Media: CollectionConfig = {
   slug: "media",
   labels: {
@@ -30,6 +60,7 @@ export const Media: CollectionConfig = {
   admin: {
     hideAPIURL: true,
     group: { tr: "Sistem", en: "System" },
+    description: { tr: "Görseller en fazla 10MB, videolar en fazla 100MB olabilir.", en: "Images up to 10MB, videos up to 100MB." },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "media" } },
@@ -107,7 +138,7 @@ export const Media: CollectionConfig = {
     ],
   },
   hooks: {
-    beforeChange: [deriveMediaType, setOwnerOnCreate("uploadedBy")],
+    beforeChange: [deriveMediaType, enforceFileSizeLimit, setOwnerOnCreate("uploadedBy")],
     beforeDelete: [blockDeleteIfReferenced("media")],
     afterChange: [auditAfterChange("media")],
     afterDelete: [auditAfterDelete("media")],

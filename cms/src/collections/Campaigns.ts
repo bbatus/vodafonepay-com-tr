@@ -3,7 +3,7 @@ import type { Access, CollectionAfterChangeHook, CollectionBeforeChangeHook, Col
 import { revalidateCampaignPaths, revalidateCampaignPathsOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete, writeAuditLog } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
-import { campaignsCreate, campaignsReadWrite, denyMakerPublish, isNewVerticalMaker, ROLES } from "@/access/roles";
+import { campaignsCreate, campaignsReadWrite, denyMakerPublish, hasActiveCheckerDelegate, isNewVerticalMaker, ROLES } from "@/access/roles";
 import { sitePreviewUrl } from "@/lib/preview";
 import { dbLabel } from "@/lib/collectionLabels";
 import { CATEGORY_SCOPES } from "@/collections/Categories";
@@ -242,7 +242,13 @@ export const Campaigns: CollectionConfig = {
         condition: (data) => data?.reviewStatus === "rejected",
       },
       access: {
-        update: ({ req }) => (req.user as { role?: string } | undefined)?.role !== ROLES.GROWTH_MAKER,
+        // RFP §3.1 delegation: a Growth Maker standing in as an active
+        // checker delegate can reject a campaign too, not just publish it —
+        // see hasActiveCheckerDelegate's doc comment (access/roles.ts).
+        update: async ({ req }) => {
+          if ((req.user as { role?: string } | undefined)?.role !== ROLES.GROWTH_MAKER) return true;
+          return req.user?.id ? hasActiveCheckerDelegate(req.payload, req.user.id) : false;
+        },
       },
     },
     {

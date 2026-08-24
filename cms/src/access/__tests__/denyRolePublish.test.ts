@@ -32,35 +32,35 @@ const run = (
   } as never);
 
 describe("denyRolePublish", () => {
-  it("blocks the maker publishing a draft", () => {
-    expect(() => run({ _status: "published" }, ROLES.GROWTH_MAKER, { originalDoc: { _status: "draft" } })).toThrow();
+  it("blocks the maker publishing a draft", async () => {
+    await expect(
+      run({ _status: "published" }, ROLES.GROWTH_MAKER, { originalDoc: { _status: "draft" } })
+    ).rejects.toThrow();
   });
 
-  it("blocks the maker creating something already published", () => {
-    expect(() => run({ _status: "published" }, ROLES.GROWTH_MAKER, { operation: "create" })).toThrow();
+  it("blocks the maker creating something already published", async () => {
+    await expect(run({ _status: "published" }, ROLES.GROWTH_MAKER, { operation: "create" })).rejects.toThrow();
   });
 
-  it("leaves draft saves alone", () => {
-    expect(() => run({ _status: "draft" }, ROLES.GROWTH_MAKER, { originalDoc: { _status: "draft" } })).not.toThrow();
+  it("leaves draft saves alone", async () => {
+    await run({ _status: "draft" }, ROLES.GROWTH_MAKER, { originalDoc: { _status: "draft" } });
   });
 
-  it("does not apply to other roles", () => {
+  it("does not apply to other roles", async () => {
     for (const role of [ROLES.NEW_VERTICAL_MAKER, ROLES.NEW_VERTICAL_CHECKER, ROLES.GROWTH_CHECKER]) {
-      expect(() => run({ _status: "published" }, role, { originalDoc: { _status: "draft" } })).not.toThrow();
+      await run({ _status: "published" }, role, { originalDoc: { _status: "draft" } });
     }
   });
 
-  it("allows a publication-neutral save on an ALREADY published document", () => {
-    expect(() =>
-      run({ _status: "published", unpublishRequest: "pending" }, ROLES.GROWTH_MAKER, {
-        originalDoc: { _status: "published" },
-      })
-    ).not.toThrow();
+  it("allows a publication-neutral save on an ALREADY published document", async () => {
+    await run({ _status: "published", unpublishRequest: "pending" }, ROLES.GROWTH_MAKER, {
+      originalDoc: { _status: "published" },
+    });
   });
 
-  it("still refuses to let that relaxation republish something that had gone back to draft", () => {
-    expect(() =>
+  it("still refuses to let that relaxation republish something that had gone back to draft", async () => {
+    await expect(
       run({ _status: "published" }, ROLES.GROWTH_MAKER, { originalDoc: { _status: "draft" } })
-    ).toThrow();
+    ).rejects.toThrow();
   });
 });

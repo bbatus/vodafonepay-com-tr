@@ -77,6 +77,13 @@ export const AuditLogs: CollectionConfig = {
         // Campaigns, Blog, Categories, Audit Logs) now report here; see
         // CsvExportButton.tsx and the `/audit/export` endpoint below.
         { label: "Dışa aktarıldı (export)", value: "export" },
+        // RFP §7.2: "record all attempts to delete, write or append certain
+        // predefined data entities" — a 403 from access control used to be
+        // invisible everywhere (only the SUCCESSFUL half of a write was ever
+        // logged). See payload.config.ts's root-level `hooks.afterError`
+        // (auditForbiddenAttempt, hooks/audit.ts) — one hook covers every
+        // collection instead of wiring this into each one individually.
+        { label: "Yetkisiz işlem denemesi engellendi", value: "denied" },
       ],
     },
     { name: "collectionSlug", type: "text", label: "Koleksiyon" },

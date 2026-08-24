@@ -55,7 +55,7 @@ import { ROLES } from "./src/access/roles";
 import { env } from "./src/env";
 import { TRANSLATION_DEFAULTS } from "./src/lib/translationDefaults";
 import { refreshLabelCache } from "./src/lib/collectionLabels";
-import { auditExportEndpoint } from "./src/hooks/audit";
+import { auditExportEndpoint, auditForbiddenAttempt } from "./src/hooks/audit";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -360,6 +360,12 @@ export default buildConfig({
   // endpoint is the extension point for that, unrelated to any one
   // collection's own CRUD lifecycle.
   endpoints: [auditExportEndpoint],
+  // RFP §7.2: logs every rejected (403) write attempt, across every
+  // collection at once — see auditForbiddenAttempt's doc comment
+  // (hooks/audit.ts) for why root-level is the right extension point here.
+  hooks: {
+    afterError: [auditForbiddenAttempt],
+  },
   // RFP follow-up (§3.6): was `lexicalEditor()` with zero feature config —
   // that leaves the editor with only bold/italic/underline/paragraph and no
   // headings, lists, links, tables, or images, which is why editors couldn't

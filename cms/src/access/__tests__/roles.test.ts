@@ -85,22 +85,22 @@ describe("denyMakerPublish", () => {
       req: reqWithRole(role),
     } as never);
 
-  it("throws when GROWTH_MAKER tries to publish", () => {
-    expect(() => call(ROLES.GROWTH_MAKER, "published")).toThrow();
+  it("throws when GROWTH_MAKER tries to publish", async () => {
+    await expect(call(ROLES.GROWTH_MAKER, "published")).rejects.toThrow();
   });
 
-  it("allows GROWTH_MAKER to save a draft", () => {
-    expect(() => call(ROLES.GROWTH_MAKER, "draft")).not.toThrow();
+  it("allows GROWTH_MAKER to save a draft", async () => {
+    await call(ROLES.GROWTH_MAKER, "draft");
   });
 
-  it("allows other roles to publish", () => {
-    expect(() => call(ROLES.NEW_VERTICAL_MAKER, "published")).not.toThrow();
-    expect(() => call(ROLES.GROWTH_CHECKER, "published")).not.toThrow();
+  it("allows other roles to publish", async () => {
+    await call(ROLES.NEW_VERTICAL_MAKER, "published");
+    await call(ROLES.GROWTH_CHECKER, "published");
   });
 
-  it("returns the data unchanged when it does not throw", () => {
+  it("returns the data unchanged when it does not throw", async () => {
     const data = { _status: "draft", title: "x" };
-    const result = denyMakerPublish({ data, req: reqWithRole(ROLES.GROWTH_MAKER) } as never);
+    const result = await denyMakerPublish({ data, req: reqWithRole(ROLES.GROWTH_MAKER) } as never);
     expect(result).toBe(data);
   });
 });

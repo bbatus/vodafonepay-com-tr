@@ -1,5 +1,5 @@
 import { Forbidden } from "payload";
-import type { Access, CollectionBeforeChangeHook, PayloadRequest } from "payload";
+import type { Access, CollectionBeforeChangeHook, Payload, PayloadRequest } from "payload";
 
 /**
  * Internal role slugs — deliberately NOT Vodafone AccessPoint's literal LDAP
@@ -141,9 +141,13 @@ export const campaignsReadWrite: Access = ({ req }) => {
  * reuse it) rather than hardcoded to the one case it currently covers.
  */
 export function denyRolePublish(blockedRole: RoleValue): CollectionBeforeChangeHook {
-  return ({ data, operation, originalDoc, req }) => {
+  return async ({ data, operation, originalDoc, req }) => {
     if (roleOf(req) !== blockedRole) return data;
     if (data?._status !== "published") return data;
+
+    // An active delegate stands in for an absent checker — see
+    // hasActiveCheckerDelegate's doc comment.
+    if (req.user?.id && (await hasActiveCheckerDelegate(req.payload, req.user.id))) return data;
 
     // The rule is "this role may never PUBLISH", i.e. never move a document
     // INTO the published state. It used to be written as "never save anything
@@ -167,3 +171,37 @@ export function denyRolePublish(blockedRole: RoleValue): CollectionBeforeChangeH
 }
 
 export const denyMakerPublish = denyRolePublish(ROLES.GROWTH_MAKER);
+
+/**
+ * RFP §3.1 User Role Management: "Checker may delegate his/her rights to
+ * another user if necessary (e.g while out of office or on leave)." A
+ * checker names a delegate + optional expiry on their own Users doc
+ * (`Users.ts`'s `delegateTo`/`delegationExpiresAt` fields, self-service like
+ * `preferredLocale`). This is the one place that answers "is `userId`
+ * currently standing in for an absent checker" — reused by `denyRolePublish`
+ * (so a delegate can actually publish) and by `DashboardWidgets.tsx` (so the
+ * delegate sees the review queue, not just the ability to act on it).
+ *
+ * Deliberately does NOT change the delegate's own `role` field — this is a
+ * temporary, revocable capability grant, not a role reassignment. A Growth
+ * Maker delegate still can't create content outside Campaigns, still can't
+ * touch anything New Vertical-scoped; the delegation only lifts the ONE
+ * "can't publish" restriction `denyRolePublish` would otherwise apply.
+ */
+export async function hasActiveCheckerDelegate(payload: Payload, userId: string | number): Promise<boolean> {
+  const now = new Date().toISOString();
+  const { totalDocs } = await payload.find({
+    collection: "users",
+    where: {
+      and: [
+        { delegateTo: { equals: userId } },
+        { role: { in: [ROLES.NEW_VERTICAL_CHECKER, ROLES.GROWTH_CHECKER] } },
+        { or: [{ delegationExpiresAt: { exists: false } }, { delegationExpiresAt: { greater_than: now } }] },
+      ],
+    },
+    limit: 1,
+    depth: 0,
+    overrideAccess: true,
+  });
+  return totalDocs > 0;
+}

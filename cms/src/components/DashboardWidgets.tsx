@@ -1,6 +1,6 @@
 import type { Payload } from "payload";
 import type { I18nClient } from "@payloadcms/translations";
-import { ROLES } from "@/access/roles";
+import { ROLES, hasActiveCheckerDelegate } from "@/access/roles";
 import {
   COLLECTION_LABELS,
   DRAFT_ENABLED_COLLECTIONS,
@@ -119,8 +119,15 @@ export default async function DashboardWidgets({
   // D1: both Checker roles review Campaigns (see the "campaigns" MATRIX
   // category in rolePermissions.ts — publish:true for both), so both get
   // the straight-to-review list, not just Growth Checker.
-  const isCheckerRole = role === ROLES.NEW_VERTICAL_CHECKER || role === ROLES.GROWTH_CHECKER;
-  const isMakerRole = role === ROLES.NEW_VERTICAL_MAKER || role === ROLES.GROWTH_MAKER;
+  //
+  // RFP §3.1 delegation: a maker/checker temporarily standing in for an
+  // absent checker (see hasActiveCheckerDelegate) sees the SAME review
+  // queue a real checker would — otherwise they'd have publish rights
+  // (denyRolePublish already lets them through) with no dashboard signal
+  // telling them there's anything to review.
+  const isActiveDelegate = user?.id != null && (await hasActiveCheckerDelegate(payload, user.id));
+  const isCheckerRole = role === ROLES.NEW_VERTICAL_CHECKER || role === ROLES.GROWTH_CHECKER || isActiveDelegate;
+  const isMakerRole = (role === ROLES.NEW_VERTICAL_MAKER || role === ROLES.GROWTH_MAKER) && !isActiveDelegate;
   const collectionSlugs = isNewVertical ? NEW_VERTICAL_DASHBOARD_COLLECTIONS : GROWTH_DASHBOARD_COLLECTIONS;
 
   const tt = await loadDbStrings(payload, locale);

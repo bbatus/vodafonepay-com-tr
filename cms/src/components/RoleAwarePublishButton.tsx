@@ -54,6 +54,8 @@ export default function RoleAwarePublishButton() {
     unpublishing: tt("roleAwarePublishButton.unpublishing"),
     requestUnpublish: tt("roleAwarePublishButton.requestUnpublish"),
     unpublishRequested: tt("roleAwarePublishButton.unpublishRequested"),
+    previewDesktop: tt("roleAwarePublishButton.previewDesktop"),
+    previewMobile: tt("roleAwarePublishButton.previewMobile"),
   };
   const role = (user as { role?: string } | undefined)?.role;
   const userId = (user as { id?: string | number } | undefined)?.id;
@@ -272,7 +274,9 @@ type ButtonStrings = Record<
   | "unpublish"
   | "unpublishing"
   | "requestUnpublish"
-  | "unpublishRequested",
+  | "unpublishRequested"
+  | "previewDesktop"
+  | "previewMobile",
   string
 >;
 
@@ -417,16 +421,47 @@ function ConfirmPublishModal({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  // RFP §3.2.12: "System should provide design review capability for both
+  // mobile and desktop view while or after design" — the confirm-before-
+  // publish preview used to be one fixed-width iframe. `width: 100%` (the
+  // iframe's own CSS) already makes "desktop" mean "as wide as the modal";
+  // "mobile" just caps that same iframe to a phone-width column instead of
+  // rendering a second iframe, so there's only ever one live preview to
+  // load per view rather than two.
+  const [previewWidth, setPreviewWidth] = useState<"desktop" | "mobile">("desktop");
+
   return (
     <div className="rapb-modal-overlay rapb-modal-overlay--confirm">
       <div className="rapb-modal rapb-modal--confirm">
         <div className="rapb-confirm-head">
           <p className="rapb-confirm-heading">{t.heading}</p>
           <p className="rapb-confirm-body">{t.body}</p>
+          {previewHref && (
+            <div className="rapb-preview-toggle" role="group" aria-label="preview width">
+              <button
+                type="button"
+                className={`rapb-preview-toggle__btn${previewWidth === "desktop" ? " rapb-preview-toggle__btn--active" : ""}`}
+                aria-pressed={previewWidth === "desktop"}
+                onClick={() => setPreviewWidth("desktop")}
+              >
+                {t.previewDesktop}
+              </button>
+              <button
+                type="button"
+                className={`rapb-preview-toggle__btn${previewWidth === "mobile" ? " rapb-preview-toggle__btn--active" : ""}`}
+                aria-pressed={previewWidth === "mobile"}
+                onClick={() => setPreviewWidth("mobile")}
+              >
+                {t.previewMobile}
+              </button>
+            </div>
+          )}
         </div>
 
         {previewHref ? (
-          <iframe src={previewHref} title="preview" className="rapb-preview-iframe" />
+          <div className={`rapb-preview-frame${previewWidth === "mobile" ? " rapb-preview-frame--mobile" : ""}`}>
+            <iframe src={previewHref} title="preview" className="rapb-preview-iframe" />
+          </div>
         ) : (
           <p className="rapb-no-preview">{t.noPreview}</p>
         )}
