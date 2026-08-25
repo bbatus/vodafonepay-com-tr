@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { NextRequest } from "next/server";
 
-vi.mock("next/cache", () => ({ revalidateTag: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidateTag: vi.fn(), revalidatePath: vi.fn() }));
 
 const OLD_ENV = process.env;
 
@@ -89,6 +89,30 @@ describe("POST /api/revalidate", () => {
       const res = await POST(fakeRequest({ secret: "test-secret-value", body: { tag } }));
       expect(res.status, `tag "${tag}" should be allowed`).toBe(200);
     }
+  });
+
+  it("accepts pathType 'layout' for path \"/\" and calls revalidatePath with the layout type", async () => {
+    const { POST } = await loadRoute();
+    const { revalidatePath } = await import("next/cache");
+    const res = await POST(fakeRequest({ secret: "test-secret-value", body: { tag: "campaigns", paths: ["/"], pathType: "layout" } }));
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json).toMatchObject({ revalidated: true, pathType: "layout" });
+    expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
+  });
+
+  it("rejects pathType 'layout' for any path other than \"/\"", async () => {
+    const { POST } = await loadRoute();
+    const res = await POST(fakeRequest({ secret: "test-secret-value", body: { tag: "campaigns", paths: ["/kampanyalar"], pathType: "layout" } }));
+    expect(res.status).toBe(400);
+  });
+
+  it("defaults to page-level revalidation when pathType is omitted", async () => {
+    const { POST } = await loadRoute();
+    const { revalidatePath } = await import("next/cache");
+    const res = await POST(fakeRequest({ secret: "test-secret-value", body: { tag: "campaigns", paths: ["/kampanyalar"] } }));
+    expect(res.status).toBe(200);
+    expect(revalidatePath).toHaveBeenCalledWith("/kampanyalar", undefined);
   });
 
   it("rate-limits after too many requests in the window", async () => {

@@ -18,7 +18,7 @@ describe("revalidate hooks", () => {
     vi.restoreAllMocks();
   });
 
-  it("revalidateTag POSTs the tag with the secret header", async () => {
+  it("revalidateTag POSTs the tag plus a full-site layout sweep with the secret header", async () => {
     const hook = revalidateTag("campaigns");
     await hook({} as never);
 
@@ -27,7 +27,7 @@ describe("revalidate hooks", () => {
       expect.objectContaining({
         method: "POST",
         headers: expect.objectContaining({ "x-revalidate-secret": "s3cret" }),
-        body: JSON.stringify({ tag: "campaigns" }),
+        body: JSON.stringify({ tag: "campaigns", paths: ["/"], pathType: "layout" }),
       })
     );
   });
