@@ -3,6 +3,7 @@ import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/a
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
 import { dbLabel } from "@/lib/collectionLabels";
+import { normalizeUploadFilename } from "@/hooks/normalizeUploadFilename";
 
 /**
  * Separate from Media (which is image-only, with imageSizes/focalPoint that
@@ -46,6 +47,7 @@ export const Documents: CollectionConfig = {
     mimeTypes: ["application/pdf", "audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/ogg", "audio/mp4", "audio/x-m4a"],
   },
   hooks: {
+    beforeOperation: [normalizeUploadFilename],
     beforeDelete: [blockDeleteIfReferenced("documents")],
     afterChange: [auditAfterChange("documents")],
     afterDelete: [auditAfterDelete("documents")],

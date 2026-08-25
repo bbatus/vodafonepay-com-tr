@@ -605,6 +605,10 @@ export type LegalPageSlug =
   | "web-sitesi-hukum-ve-sartlari";
 
 const legalDocumentSchema = z.object({
+  // Non-clickable text shown before the link, e.g. "Tüketici Hakları Bilgi
+  // Formu için " — `label` is the clickable link text alone (e.g.
+  // "tıklayınız"), not the whole sentence.
+  prefix: nullableString(),
   label: z.string(),
   // Follow-up 25.08: a document row is now EITHER an uploaded PDF
   // (`source: "pdf"`, has `file`) or a page written in the CMS

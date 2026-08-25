@@ -6,7 +6,7 @@ import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { dbLabel } from "@/lib/collectionLabels";
 
-type DocumentRow = { label?: string; source?: string; slug?: string };
+type DocumentRow = { prefix?: string; label?: string; source?: string; slug?: string };
 type GroupRow = { documents?: DocumentRow[] };
 
 /**
@@ -36,7 +36,10 @@ const fillDocumentSlugs: CollectionBeforeValidateHook = ({ data }) => {
     for (const doc of group?.documents ?? []) {
       if (doc?.source !== "page") continue;
       if (typeof doc.slug === "string" && doc.slug.trim()) continue;
-      const base = turkishSlugify(doc.label ?? "");
+      // Prefer the descriptive prefix for the slug ("tıketici-haklari-..."
+      // reads far better than "tiklayiniz" repeated on every row) — fall
+      // back to the label alone when there's no prefix to work with.
+      const base = turkishSlugify(`${doc.prefix ?? ""} ${doc.label ?? ""}`.trim() || doc.label || "");
       if (!base) continue;
       let candidate = base;
       let suffix = 2;
@@ -137,7 +140,39 @@ export const LegalPages: CollectionConfig = {
           type: "array",
           label: { tr: "Belgeler", en: "Documents" },
           fields: [
-            { name: "label", type: "text", required: true, label: { tr: "Belge Adı", en: "Document Label" } },
+            {
+              // Follow-up 25.08: "tıklayınız öncesine de metin girebilmem
+              // lazım ... grup başlığının altına text girip ... url'i
+              // yanına çekmem lazım." Previously the WHOLE line was one
+              // field (`label`) and became the entire clickable link — fine
+              // for a document literally titled "Tıklayınız", useless for
+              // "Tüketici Hakları Bilgi Formu için tıklayınız" (the real
+              // site's own phrasing), where only the last word is meant to
+              // be clickable. Splitting this into a plain prefix + a
+              // separately-clickable label is what lets an editor type that
+              // exact sentence and have only "tıklayınız" be the link.
+              name: "prefix",
+              type: "text",
+              label: { tr: "Açıklama Metni", en: "Description Text" },
+              admin: {
+                description: {
+                  tr: "Bağlantıdan ÖNCE görünen, tıklanamayan kısım. Örn: 'Tüketici Hakları Bilgi Formu için '. Boş bırakılabilir — o zaman satır sadece bağlantı metninden oluşur.",
+                  en: "The non-clickable part shown BEFORE the link. E.g. 'For the Consumer Rights Information Form, '. Optional — leave empty for a line that's just the link text.",
+                },
+              },
+            },
+            {
+              name: "label",
+              type: "text",
+              required: true,
+              label: { tr: "Bağlantı Metni", en: "Link Text" },
+              admin: {
+                description: {
+                  tr: "Tıklanabilir kısım. Örn: 'tıklayınız'.",
+                  en: "The clickable part. E.g. 'click here'.",
+                },
+              },
+            },
             {
               /**
                * Follow-up 25.08: "PDF yükle veya kendin olustur seklinde …

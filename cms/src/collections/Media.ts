@@ -5,6 +5,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
 import { dbLabel } from "@/lib/collectionLabels";
 import { setOwnerOnCreate } from "@/hooks/ownership";
+import { normalizeUploadFilename } from "@/hooks/normalizeUploadFilename";
 
 /**
  * RFP feedback C1: `mediaType` is auto-derived from the uploaded file's
@@ -191,7 +192,7 @@ export const Media: CollectionConfig = {
     ],
   },
   hooks: {
-    beforeOperation: [skipCropForSvg],
+    beforeOperation: [normalizeUploadFilename, skipCropForSvg],
     beforeChange: [deriveMediaType, enforceFileSizeLimit, setOwnerOnCreate("uploadedBy")],
     beforeDelete: [blockDeleteIfReferenced("media")],
     afterChange: [auditAfterChange("media")],

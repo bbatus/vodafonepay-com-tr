@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
-export type SozlesmeDoc = { label: string; href: string };
+export type SozlesmeDoc = { prefix?: string | null; label: string; href: string };
 export type SozlesmeGroup = { label: string; documents: SozlesmeDoc[] };
 
 /**
@@ -43,6 +43,7 @@ export function SozlesmelerAccordion({ groups }: { groups: SozlesmeGroup[] }) {
                 <ul className="flex flex-col gap-y-4">
                   {group.documents.map((doc) => (
                     <li key={doc.href} className="text-sm leading-6 text-gray-800">
+                      {doc.prefix ? <span>{doc.prefix}</span> : null}
                       <Link href={doc.href} className="text-vf-red underline underline-offset-2 hover:text-red-700">
                         {doc.label}
                       </Link>

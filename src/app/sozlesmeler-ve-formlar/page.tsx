@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { getLegalPage, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 import { buildDocumentViewerHref } from "@/lib/documentViewer";
+import { RichText } from "@/components/RichText";
 import { SozlesmelerAccordion, type SozlesmeGroup } from "./SozlesmelerAccordion";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -35,10 +36,10 @@ const fallbackGroups: SozlesmeGroup[] = [
   {
     label: "Sözleşmeler ve Formlar",
     documents: [
-      { label: "Tüketici Hakları Bilgi Formu için tıklayınız", href: "#" },
-      { label: "18.08.2026 tarihine kadar geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.", href: "#" },
-      { label: "18.08.2026 tarihi itibarı ile geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.", href: "#" },
-      { label: "Ticari Koşullar için tıklayınız.", href: "#" },
+      { prefix: "Tüketici Hakları Bilgi Formu için ", label: "tıklayınız", href: "#" },
+      { prefix: "18.08.2026 tarihine kadar geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için ", label: "tıklayınız", href: "#" },
+      { prefix: "18.08.2026 tarihi itibarı ile geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için ", label: "tıklayınız", href: "#" },
+      { prefix: "Ticari Koşullar için ", label: "tıklayınız", href: "#" },
     ],
   },
 ];
@@ -58,8 +59,9 @@ export default async function SozlesmelerVeFormlar() {
           .filter((d) => d.enabled)
           .map((d) =>
             d.source === "page" && d.slug
-              ? { label: d.label, href: `/sozlesmeler-ve-formlar/${d.slug}` }
+              ? { prefix: d.prefix, label: d.label, href: `/sozlesmeler-ve-formlar/${d.slug}` }
               : {
+                  prefix: d.prefix,
                   label: d.label,
                   href: d.file?.url ? buildDocumentViewerHref({ url: d.file.url, label: d.label, mimeType: d.file.mimeType }) : "#",
                 }
@@ -85,7 +87,11 @@ export default async function SozlesmelerVeFormlar() {
             className="mb-8 h-auto w-full rounded-md object-cover"
           />
         ) : null}
-        <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Sözleşmeler ve Formlar</h1>
+        <h1 className="text-center text-[40px] font-light leading-[48px] text-black">
+          {cmsPage?.title || "Sözleşmeler ve Formlar"}
+        </h1>
+
+        {cmsPage?.intro ? <RichText data={cmsPage.intro} className="mt-4 flex flex-col gap-y-3 text-center" /> : null}
 
         <SozlesmelerAccordion groups={groups} />
       </section>
