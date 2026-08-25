@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
+import { QrDownloadBadge } from "@/components/QrDownloadBadge";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getPageMeta, getRepresentatives } from "@/lib/cms";
@@ -44,13 +44,7 @@ export default async function Temsilciliklerimiz() {
               QR kodu okutarak Vodafone Pay uygulamasını hemen indirebilirsiniz.
             </p>
           </div>
-          <Image
-            src="/images/sticky-qr.png"
-            alt="Vodafone Pay QR Kodu"
-            width={100}
-            height={130}
-            className="h-auto w-[80px] shrink-0 rounded-lg shadow-md"
-          />
+          <QrDownloadBadge className="h-auto w-[80px] shrink-0 rounded-lg shadow-md" />
         </div>
       </section>
 
