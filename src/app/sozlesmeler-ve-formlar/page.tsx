@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getLegalPage, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
+import { buildDocumentViewerHref } from "@/lib/documentViewer";
 import { SozlesmelerAccordion, type SozlesmeGroup } from "./SozlesmelerAccordion";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -34,10 +35,10 @@ const fallbackGroups: SozlesmeGroup[] = [
   {
     label: "Sözleşmeler ve Formlar",
     documents: [
-      { label: "Tüketici Hakları Bilgi Formu için tıklayınız", href: "#", external: false },
-      { label: "18.08.2026 tarihine kadar geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.", href: "#", external: false },
-      { label: "18.08.2026 tarihi itibarı ile geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.", href: "#", external: false },
-      { label: "Ticari Koşullar için tıklayınız.", href: "#", external: false },
+      { label: "Tüketici Hakları Bilgi Formu için tıklayınız", href: "#" },
+      { label: "18.08.2026 tarihine kadar geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.", href: "#" },
+      { label: "18.08.2026 tarihi itibarı ile geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.", href: "#" },
+      { label: "Ticari Koşullar için tıklayınız.", href: "#" },
     ],
   },
 ];
@@ -45,8 +46,11 @@ const fallbackGroups: SozlesmeGroup[] = [
 export default async function SozlesmelerVeFormlar() {
   const cmsPage = await getLegalPage("sozlesmeler-ve-formlar");
   // Follow-up 25.08: each row resolves to one of the two flows the editor
-  // chose between — an uploaded PDF (served from MinIO, opens in a new tab) or
-  // a page written in the CMS (an internal route on our own domain).
+  // chose between — an uploaded PDF/audio file (never linked to its raw
+  // MinIO URL — see buildDocumentViewerHref's doc comment for why it routes
+  // through our own /sozlesmeler-ve-formlar/belge viewer instead) or a page
+  // written in the CMS (an internal route on our own domain). Both are
+  // ordinary internal routes now.
   const groups: SozlesmeGroup[] = cmsPage
     ? cmsPage.groups.map((g) => ({
         label: g.label,
@@ -54,8 +58,11 @@ export default async function SozlesmelerVeFormlar() {
           .filter((d) => d.enabled)
           .map((d) =>
             d.source === "page" && d.slug
-              ? { label: d.label, href: `/sozlesmeler-ve-formlar/${d.slug}`, external: false }
-              : { label: d.label, href: d.file?.url ?? "#", external: Boolean(d.file?.url) }
+              ? { label: d.label, href: `/sozlesmeler-ve-formlar/${d.slug}` }
+              : {
+                  label: d.label,
+                  href: d.file?.url ? buildDocumentViewerHref({ url: d.file.url, label: d.label, mimeType: d.file.mimeType }) : "#",
+                }
           ),
       }))
     : fallbackGroups;

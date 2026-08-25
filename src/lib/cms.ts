@@ -616,8 +616,12 @@ const legalDocumentSchema = z.object({
     .nullable()
     .optional()
     .transform((v) => v ?? "pdf"),
+  // `mimeType` is what the belge/page.tsx viewer route uses to decide
+  // between an embedded PDF viewer and an audio player — see that route's
+  // doc comment for why a query param carries this rather than trusting the
+  // file extension.
   file: z
-    .object({ url: z.string() })
+    .object({ url: z.string(), mimeType: z.string().nullable().optional() })
     .nullable()
     .optional()
     .transform((v) => v ?? null),

@@ -4,8 +4,14 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
 import { dbLabel } from "@/lib/collectionLabels";
 
-/** Separate from Media (which is image-only, with imageSizes/focalPoint that make no
- * sense for a PDF) — used for downloadable documents, e.g. LegalPages.documents. */
+/**
+ * Separate from Media (which is image-only, with imageSizes/focalPoint that
+ * make no sense here) — used for downloadable documents, e.g.
+ * LegalPages.groups.documents. PDF + common audio types: LegalPages'
+ * "Sözleşmeler ve Formlar" record needs both — a plain PDF group and a
+ * "Seslendirilmiş Sözleşme ve Formlar" (voiced/audio) group, matching the
+ * live vodafonepay.com.tr page's own two accordion sections.
+ */
 export const Documents: CollectionConfig = {
   slug: "documents",
   labels: {
@@ -37,7 +43,7 @@ export const Documents: CollectionConfig = {
   },
   fields: [],
   upload: {
-    mimeTypes: ["application/pdf"],
+    mimeTypes: ["application/pdf", "audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/ogg", "audio/mp4", "audio/x-m4a"],
   },
   hooks: {
     beforeDelete: [blockDeleteIfReferenced("documents")],

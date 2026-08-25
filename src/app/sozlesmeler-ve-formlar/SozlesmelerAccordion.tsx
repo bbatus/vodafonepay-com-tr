@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
-export type SozlesmeDoc = { label: string; href: string; external: boolean };
+export type SozlesmeDoc = { label: string; href: string };
 export type SozlesmeGroup = { label: string; documents: SozlesmeDoc[] };
 
 /**
@@ -12,10 +12,10 @@ export type SozlesmeGroup = { label: string; documents: SozlesmeDoc[] };
  * "Seslendirilmiş Sözleşme ve Formlar", …) with its links inside. The first
  * group starts open, matching the real page.
  *
- * A row links to one of two places depending on how the editor created it (see
- * LegalPages.ts's `source` field): an uploaded PDF opens in a new tab, while a
- * page written in the CMS is an ordinary internal route, so it stays on our own
- * domain and gets prefetched like any other link.
+ * Every row is now an internal route (see LegalPages.ts's `source` field and
+ * lib/documentViewer.ts): an uploaded PDF/audio file opens our own dedicated
+ * viewer page, and a page written in the CMS is an ordinary internal route —
+ * neither ever sends a visitor to a raw MinIO URL.
  */
 export function SozlesmelerAccordion({ groups }: { groups: SozlesmeGroup[] }) {
   const [openIndex, setOpenIndex] = useState(0);
@@ -43,20 +43,9 @@ export function SozlesmelerAccordion({ groups }: { groups: SozlesmeGroup[] }) {
                 <ul className="flex flex-col gap-y-4">
                   {group.documents.map((doc) => (
                     <li key={doc.href} className="text-sm leading-6 text-gray-800">
-                      {doc.external ? (
-                        <a
-                          href={doc.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-vf-red underline underline-offset-2 hover:text-red-700"
-                        >
-                          {doc.label}
-                        </a>
-                      ) : (
-                        <Link href={doc.href} className="text-vf-red underline underline-offset-2 hover:text-red-700">
-                          {doc.label}
-                        </Link>
-                      )}
+                      <Link href={doc.href} className="text-vf-red underline underline-offset-2 hover:text-red-700">
+                        {doc.label}
+                      </Link>
                     </li>
                   ))}
                 </ul>

@@ -156,40 +156,44 @@ export const LegalPages: CollectionConfig = {
               defaultValue: "pdf",
               label: { tr: "Belge Kaynağı", en: "Document Source" },
               options: [
-                { label: { tr: "PDF Yükle", en: "Upload a PDF" }, value: "pdf" },
+                { label: { tr: "PDF / Ses Dosyası Yükle", en: "Upload a PDF / Audio File" }, value: "pdf" },
                 { label: { tr: "Kendin Oluştur (sayfa)", en: "Write it here (page)" }, value: "page" },
               ],
               admin: {
                 layout: "horizontal",
                 description: {
-                  tr: "PDF Yükle: imzalı/resmî bir belgeyi olduğu gibi yükleyip indirilebilir link verir. Kendin Oluştur: metni buraya yazarsınız, kendi adresimizde (/sozlesmeler-ve-formlar/...) gerçek bir sayfa olarak yayınlanır.",
-                  en: "Upload a PDF: publish a signed/official file as-is with a download link. Write it here: type the text and it's published as a real page on our own domain (/sozlesmeler-ve-formlar/...).",
+                  tr: "PDF / Ses Dosyası Yükle: imzalı/resmî bir belgeyi ya da seslendirilmiş bir kaydı olduğu gibi yükleyin — ör. 'Seslendirilmiş Sözleşme ve Formlar' grubu için bir ses dosyası. Kendin Oluştur: metni buraya yazarsınız, kendi adresimizde (/sozlesmeler-ve-formlar/...) gerçek bir sayfa olarak yayınlanır.",
+                  en: "Upload a PDF / Audio File: publish a signed/official document or a voiced recording as-is — e.g. an audio file for the 'Seslendirilmiş Sözleşme ve Formlar' group. Write it here: type the text and it's published as a real page on our own domain (/sozlesmeler-ve-formlar/...).",
                 },
               },
             },
             {
-              // A PDF uploaded here creates a Documents record via a drawer
-              // (Documents.ts is `admin.hidden: true` now — this is the ONLY
-              // real entry point for adding one) rather than requiring a trip
-              // to a separate collection first. Stored in MinIO like every
-              // other upload, so the link stays on infrastructure we control.
+              // A PDF/audio file uploaded here creates a Documents record via
+              // a drawer (Documents.ts is `admin.hidden: true` now — this is
+              // the ONLY real entry point for adding one) rather than
+              // requiring a trip to a separate collection first. Stored in
+              // MinIO like every other upload, so the link stays on
+              // infrastructure we control — never a static file baked into
+              // the site's own codebase, and never a raw link straight to
+              // MinIO either; see the site's belge/page.tsx viewer route,
+              // which is what actually gets linked to.
               name: "file",
               type: "upload",
               relationTo: "documents",
-              label: { tr: "PDF Dosyası", en: "PDF File" },
+              label: { tr: "PDF / Ses Dosyası", en: "PDF / Audio File" },
               admin: {
                 condition: (_data, siblingData) => siblingData?.source !== "page",
                 description: {
-                  tr: "Yüklenen PDF MinIO'da saklanır ve kendi adresimizden servis edilir.",
-                  en: "The uploaded PDF is stored in MinIO and served from our own address.",
+                  tr: "Yüklenen dosya MinIO'da saklanır. Sitede tıklandığında, dosyayı kendi ayrı görüntüleyici sayfamızda açar (PDF için gömülü görüntüleyici, ses dosyası için oynatıcı) — kullanıcı doğrudan bir MinIO adresine gitmez.",
+                  en: "The uploaded file is stored in MinIO. On the site, clicking it opens our own dedicated viewer page (an embedded viewer for PDFs, a player for audio) — the user never lands on a raw MinIO address.",
                 },
               },
               // `required: true` can't be used with a `condition`: Payload
               // still validates a hidden field, so switching to "page" would
-              // block the save on a PDF that isn't supposed to exist.
+              // block the save on a file that isn't supposed to exist.
               validate: (value: unknown, { siblingData }: { siblingData?: { source?: string } }) => {
                 if (siblingData?.source === "page") return true;
-                return value ? true : "PDF Yükle seçiliyken bir dosya seçmelisiniz.";
+                return value ? true : "PDF / Ses Dosyası Yükle seçiliyken bir dosya seçmelisiniz.";
               },
             },
             {
