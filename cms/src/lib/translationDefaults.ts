@@ -339,6 +339,10 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "auditLogsExport.exporting": { tr: "Hazırlanıyor…", en: "Preparing…" },
   "auditLogsExport.done": { tr: "Liste indirildi.", en: "List downloaded." },
   "auditLogsExport.error": { tr: "Liste indirilemedi.", en: "Couldn't download list." },
+  "auditLogsCefExport.button": { tr: "Dışa Aktar (CEF)", en: "Export (CEF)" },
+  "auditLogsCefExport.exporting": { tr: "Hazırlanıyor…", en: "Preparing…" },
+  "auditLogsCefExport.done": { tr: "CEF dosyası indirildi.", en: "CEF file downloaded." },
+  "auditLogsCefExport.error": { tr: "CEF dosyası indirilemedi.", en: "Couldn't download CEF file." },
 };
 
 export function applyPlaceholder(template: string, n: number): string {

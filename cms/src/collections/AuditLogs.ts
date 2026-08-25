@@ -24,9 +24,11 @@ export const AuditLogs: CollectionConfig = {
     description: "Salt okunur değişiklik kaydı — kimse bu kayıtları düzenleyemez veya silemez.",
     components: {
       // RFP feedback: "audit log CSV export" — see AuditLogsExportButton.tsx.
+      // RFP §6: "export in CEF format for SIEM ingestion" — see AuditLogsCefExportButton.tsx.
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "audit-logs" } },
         "/components/AuditLogsExportButton#default",
+        "/components/AuditLogsCefExportButton#default",
       ],
     },
   },
@@ -91,5 +93,28 @@ export const AuditLogs: CollectionConfig = {
     { name: "summary", type: "text", required: true, label: "Özet" },
     { name: "ip", type: "text", label: "IP" },
     { name: "userAgent", type: "text", label: "Cihaz / Tarayıcı" },
+    {
+      // RFP §7.2: "before/after image of changed data" — a shallow,
+      // top-level-field diff (see hooks/audit.ts's diffFields()), only
+      // populated on real updates (a create/publish/delete has nothing to
+      // diff against). Array of rows rather than a raw JSON blob so it's
+      // actually scannable in the admin list without opening dev tools.
+      name: "changes",
+      type: "array",
+      label: { tr: "Değişiklikler", en: "Changes" },
+      admin: {
+        readOnly: true,
+        description: {
+          tr: "Bu kayıtta değişen alanlar (üst seviye alanlar; iç içe zengin metin/blok içeriği kısaltılmıştır).",
+          en: "Fields that changed in this save (top-level only; nested rich text/block content is truncated).",
+        },
+        condition: (data) => Array.isArray(data?.changes) && data.changes.length > 0,
+      },
+      fields: [
+        { name: "field", type: "text", label: { tr: "Alan", en: "Field" } },
+        { name: "before", type: "text", label: { tr: "Önce", en: "Before" } },
+        { name: "after", type: "text", label: { tr: "Sonra", en: "After" } },
+      ],
+    },
   ],
 };

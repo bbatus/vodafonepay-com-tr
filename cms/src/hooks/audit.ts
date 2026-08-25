@@ -35,6 +35,8 @@ export async function writeAuditLog(req: PayloadRequest, entry: {
   /** Override for hooks (e.g. afterLogin) where req.user may not yet reflect the actor. */
   actorEmail?: string;
   actorRole?: string;
+  /** RFP §7.2 "before/after image of changed data" — see diffFields() below. */
+  changes?: FieldDiff[];
 }) {
   const actor = entry.actorEmail ? { email: entry.actorEmail, role: entry.actorRole } : actorOf(req);
   try {
@@ -50,6 +52,7 @@ export async function writeAuditLog(req: PayloadRequest, entry: {
         summary: entry.summary,
         ip: ipOf(req),
         userAgent: userAgentOf(req),
+        changes: entry.changes,
       },
     });
   } catch (err) {
@@ -57,6 +60,56 @@ export async function writeAuditLog(req: PayloadRequest, entry: {
     // operation the user is trying to perform.
     console.error(`[audit] failed to write log entry for "${entry.action}" on "${entry.collectionSlug}":`, err);
   }
+}
+
+export type FieldDiff = { field: string; before: string; after: string };
+
+/** Fields that change on every save regardless of real content edits, or that are never meaningful to show as a "before/after". */
+const DIFF_IGNORE_FIELDS = new Set([
+  "id",
+  "createdAt",
+  "updatedAt",
+  "_status",
+  "sessions",
+  "password",
+  "salt",
+  "hash",
+  "loginAttempts",
+  "lockUntil",
+]);
+
+/** Longest a single before/after value is allowed to be before truncation — a rich-text body diffed in full would bloat every save's audit row. */
+const DIFF_VALUE_MAX_LENGTH = 300;
+
+function stringifyForDiff(value: unknown): string {
+  if (value === undefined) return "—";
+  if (value === null) return "null";
+  const raw = typeof value === "string" ? value : JSON.stringify(value);
+  return raw.length > DIFF_VALUE_MAX_LENGTH ? `${raw.slice(0, DIFF_VALUE_MAX_LENGTH)}…` : raw;
+}
+
+/**
+ * RFP §7.2: "before/after image of the data that was changed" — the audit
+ * log's own `summary` was always just a one-line "X güncellendi", with no
+ * record of WHAT changed. Shallow, top-level-field diff only (not recursive
+ * into arrays/blocks/richText internals) — deep-diffing a Lexical AST or a
+ * Pages `layout` blocks array would produce noise no one could read, and the
+ * point here is an audit trail a human can actually scan, not a full
+ * document patch. Values are stringified and truncated (see
+ * DIFF_VALUE_MAX_LENGTH) for the same reason.
+ */
+export function diffFields(before: Record<string, unknown> | null | undefined, after: Record<string, unknown> | null | undefined): FieldDiff[] {
+  if (!before || !after) return [];
+  const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
+  const diffs: FieldDiff[] = [];
+  for (const key of keys) {
+    if (DIFF_IGNORE_FIELDS.has(key)) continue;
+    const beforeValue = before[key];
+    const afterValue = after[key];
+    if (JSON.stringify(beforeValue) === JSON.stringify(afterValue)) continue;
+    diffs.push({ field: key, before: stringifyForDiff(beforeValue), after: stringifyForDiff(afterValue) });
+  }
+  return diffs;
 }
 
 /**
@@ -86,11 +139,16 @@ export function auditAfterChange(collectionSlug: string): CollectionAfterChangeH
     }
     const title = doc?.title ?? doc?.label ?? doc?.name ?? doc?.businessName ?? doc?.email ?? String(doc?.id ?? "");
     const actionVerb = { create: "oluşturuldu", publish: "yayınlandı", update: "güncellendi" }[action];
+    // Only a real update has a previousDoc to diff against — a fresh create
+    // has nothing to compare, and diffing it against `{}` would just list
+    // every field as "changed", which isn't a meaningful before/after.
+    const changes = operation === "update" ? diffFields(previousDoc, doc) : undefined;
     await writeAuditLog(req, {
       action,
       collectionSlug,
       documentId: String(doc?.id ?? ""),
       summary: `${collectionSlug}: "${title}" ${actionVerb}`,
+      changes,
     });
     return doc;
   };
