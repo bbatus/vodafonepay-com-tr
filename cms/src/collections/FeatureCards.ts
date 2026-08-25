@@ -38,11 +38,22 @@ export const FeatureCards: CollectionConfig = {
     delete: isNewVerticalMaker,
   },
   fields: [
-    { name: "page", type: "text", required: true, admin: { description: "Örn: vodafone-pay-uygulama, faturana-yansit" } },
+    {
+      name: "page",
+      type: "text",
+      required: true,
+      admin: { description: { tr: "Örn: vodafone-pay-uygulama, faturana-yansit", en: "E.g.: vodafone-pay-uygulama, faturana-yansit" } },
+    },
     { name: "icon", type: "upload", relationTo: "media", required: true },
     { name: "title", type: "text", required: true },
     { name: "text", type: "textarea", required: true },
-    { name: "deeplink", type: "text", admin: { description: "Kart tıklanınca gidilecek sayfa/deeplink (opsiyonel)." } },
+    {
+      name: "deeplink",
+      type: "text",
+      admin: {
+        description: { tr: "Kart tıklanınca gidilecek sayfa/deeplink (opsiyonel).", en: "Page/deeplink to go to when the card is clicked (optional)." },
+      },
+    },
     {
       name: "order",
       type: "number",

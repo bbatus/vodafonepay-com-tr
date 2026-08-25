@@ -28,21 +28,30 @@ type ExportUser = {
  * Fetch/serialise/download/toast lives in CsvExportButton, shared with the
  * audit-log and campaign exports; this file is just the column list.
  */
-const HEADER = ["E-posta", "Rol", "Dil Tercihi", "Hesap Durumu", "Son Giriş", "Son Giriş IP", "Oluşturulma", "Güncellenme"];
+const HEADER = {
+  tr: ["E-posta", "Rol", "Dil Tercihi", "Hesap Durumu", "Son Giriş", "Son Giriş IP", "Oluşturulma", "Güncellenme"],
+  en: ["Email", "Role", "Language Preference", "Account Status", "Last Login", "Last Login IP", "Created", "Updated"],
+};
+
+const LABELS = {
+  tr: { turkish: "Türkçe", english: "English", locked: "Kilitli", active: "Aktif" },
+  en: { turkish: "Turkish", english: "English", locked: "Locked", active: "Active" },
+};
 
 function roleLabel(role: string | undefined): string {
   return ROLE_OPTIONS.find((opt) => opt.value === role)?.label ?? role ?? "";
 }
 
-function buildTable(docs: ExportUser[]): CsvTable {
+function buildTable(docs: ExportUser[], locale: "tr" | "en"): CsvTable {
+  const L = LABELS[locale];
   return {
-    header: HEADER,
+    header: HEADER[locale],
     rows: docs.map((u) => [
       u.email ?? "",
       roleLabel(u.role),
-      u.preferredLocale === "en" ? "English" : "Türkçe",
+      u.preferredLocale === "en" ? L.english : L.turkish,
       // RFP feedback 5.6: lock state belongs in the export too, not just the list.
-      u.lockUntil && new Date(u.lockUntil) > new Date() ? `Kilitli (${formatDateTr(u.lockUntil)})` : "Aktif",
+      u.lockUntil && new Date(u.lockUntil) > new Date() ? `${L.locked} (${formatDateTr(u.lockUntil)})` : L.active,
       formatDateTr(u.lastLoginAt),
       u.lastLoginIp ?? "",
       formatDateTr(u.createdAt),

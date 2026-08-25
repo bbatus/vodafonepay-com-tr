@@ -46,8 +46,10 @@ export const Translations: CollectionConfig = {
     useAsTitle: "key",
     defaultColumns: ["key", "tr", "en"],
     group: { tr: "Sistem", en: "System" },
-    description:
-      "Admin panelindeki özel bileşenlerin (sidebar, butonlar, login ekranı vb.) metinleri. 'key' değerini değiştirmeyin — kod bu değere göre metni bulur.",
+    description: {
+      tr: "Admin panelindeki özel bileşenlerin (sidebar, butonlar, login ekranı vb.) metinleri. 'key' değerini değiştirmeyin — kod bu değere göre metni bulur.",
+      en: "Text for the admin panel's custom components (sidebar, buttons, login screen, etc.). Don't change the 'key' value — code looks up the text by it.",
+    },
     // Follow-up 25.08 (second pass): "bosver. görmesin kimse." Initially this
     // was hidden from every role EXCEPT New Vertical Maker; the correction is
     // that these keys are developer-owned infrastructure (they're seeded from
@@ -79,10 +81,15 @@ export const Translations: CollectionConfig = {
       type: "text",
       required: true,
       unique: true,
-      admin: { description: "Bileşen kodu bu değere göre metni bulur — örn. loginBrandPanel.headline" },
+      admin: {
+        description: {
+          tr: "Bileşen kodu bu değere göre metni bulur — örn. loginBrandPanel.headline",
+          en: "Component code looks up the text by this value — e.g. loginBrandPanel.headline",
+        },
+      },
     },
-    { name: "tr", type: "text", required: true, label: "Türkçe" },
-    { name: "en", type: "text", required: true, label: "English" },
+    { name: "tr", type: "text", required: true, label: { tr: "Türkçe", en: "Turkish" } },
+    { name: "en", type: "text", required: true, label: { tr: "İngilizce", en: "English" } },
     {
       name: "isCustomized",
       type: "checkbox",

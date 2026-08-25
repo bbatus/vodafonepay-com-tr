@@ -76,6 +76,8 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   },
   "roleAwarePublishButton.previewDesktop": { tr: "Masaüstü", en: "Desktop" },
   "roleAwarePublishButton.previewMobile": { tr: "Mobil", en: "Mobile" },
+  "roleAwarePublishButton.previewWidthGroup": { tr: "önizleme genişliği", en: "preview width" },
+  "roleAwarePublishButton.previewFrameTitle": { tr: "önizleme", en: "preview" },
 
   // Follow-up 25.08 — the "acil düzeltme" escape hatch on a live campaign.
   "roleAwarePublishButton.forceRecommended": {
@@ -322,6 +324,8 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "accountForm.avatarUploading": { tr: "Yükleniyor…", en: "Uploading…" },
   "accountForm.avatarSaved": { tr: "Profil fotoğrafı güncellendi.", en: "Profile photo updated." },
   "accountForm.avatarError": { tr: "Fotoğraf yüklenemedi.", en: "Couldn't upload photo." },
+  "accountForm.avatarTooLarge": { tr: "Profil fotoğrafı {maxMb}MB'den küçük olmalı.", en: "Profile photo must be under {maxMb}MB." },
+  "accountForm.avatarBadType": { tr: "Sadece JPEG, PNG, WebP veya GIF yükleyebilirsiniz.", en: "Only JPEG, PNG, WebP, or GIF can be uploaded." },
   "accountForm.locale": { tr: "Dil Tercihi", en: "Language Preference" },
   "accountForm.localeDescription": {
     tr: "Her girişte panel bu dilde açılır — üstteki geçici dil değiştiriciden farklı olarak kalıcıdır.",

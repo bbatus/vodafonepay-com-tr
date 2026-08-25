@@ -15,7 +15,10 @@ export const Representatives: CollectionConfig = {
     useAsTitle: "businessName",
     defaultColumns: ["businessName", "province", "district", "phone"],
     group: { tr: "İçerik Yönetimi", en: "Content Management" },
-    description: "Temsilcilik/bayi kayıtları — /temsilciliklerimiz arama formu ve /temsilci/[id] detay sayfası bu veriyi kullanır.",
+    description: {
+      tr: "Temsilcilik/bayi kayıtları — /temsilciliklerimiz arama formu ve /temsilci/[id] detay sayfası bu veriyi kullanır.",
+      en: "Representative/dealer records — the /temsilciliklerimiz search form and the /temsilci/[id] detail page use this data.",
+    },
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "representatives" } }],
     },
@@ -28,7 +31,7 @@ export const Representatives: CollectionConfig = {
   },
   fields: [
     { name: "businessName", type: "text", required: true },
-    { name: "repCode", type: "text", admin: { description: "Temsilci kodu, ör. 835343KGSM" } },
+    { name: "repCode", type: "text", admin: { description: { tr: "Temsilci kodu, ör. 835343KGSM", en: "Representative code, e.g. 835343KGSM" } } },
     { name: "activityDescription", type: "textarea" },
     { name: "phone", type: "text" },
     { name: "mersisNo", type: "text" },

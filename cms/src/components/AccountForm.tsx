@@ -55,12 +55,12 @@ export default function AccountForm({ user }: { user: AccountUser }) {
     // endpoint itself enforces, checked here first so a Checker doesn't
     // wait on a round-trip just to get told their file is too big/wrong type.
     if (file.size > AVATAR_MAX_BYTES) {
-      toast.error(`Profil fotoğrafı ${AVATAR_MAX_BYTES / (1024 * 1024)}MB'den küçük olmalı.`);
+      toast.error(t("accountForm.avatarTooLarge").replace("{maxMb}", String(AVATAR_MAX_BYTES / (1024 * 1024))));
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
     if (!AVATAR_MIME_TYPES.has(file.type)) {
-      toast.error("Sadece JPEG, PNG, WebP veya GIF yükleyebilirsiniz.");
+      toast.error(t("accountForm.avatarBadType"));
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }

@@ -29,8 +29,10 @@ export const ContentBlocks: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["page", "blockType", "title", "order"],
     group: { tr: "İçerik Yönetimi", en: "Content Management" },
-    description:
-      "StepPhones/AppFeatures/EarnWithCard/FeatureHighlights/VideoGuideSection/VideosWithTabs/BrandLogoGrid gibi tekil bileşenlerin içerik blokları. `page` alanı hangi bileşen/sayfaya ait olduğunu belirler.",
+    description: {
+      tr: "StepPhones/AppFeatures/EarnWithCard/FeatureHighlights/VideoGuideSection/VideosWithTabs/BrandLogoGrid gibi tekil bileşenlerin içerik blokları. `page` alanı hangi bileşen/sayfaya ait olduğunu belirler.",
+      en: "Content blocks for one-off components like StepPhones/AppFeatures/EarnWithCard/FeatureHighlights/VideoGuideSection/VideosWithTabs/BrandLogoGrid. The `page` field determines which component/page each one belongs to.",
+    },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "content-blocks" } },
@@ -53,7 +55,12 @@ export const ContentBlocks: CollectionConfig = {
       name: "page",
       type: "text",
       required: true,
-      admin: { description: "Örn: anasayfa-steps, uygulama-ayricalikli, kart-earn, brand-logos, kart-video-guide, faturana-yansit-videos" },
+      admin: {
+        description: {
+          tr: "Örn: anasayfa-steps, uygulama-ayricalikli, kart-earn, brand-logos, kart-video-guide, faturana-yansit-videos",
+          en: "E.g.: anasayfa-steps, uygulama-ayricalikli, kart-earn, brand-logos, kart-video-guide, faturana-yansit-videos",
+        },
+      },
     },
     {
       name: "blockType",
@@ -61,16 +68,21 @@ export const ContentBlocks: CollectionConfig = {
       required: true,
       defaultValue: "slide",
       options: [
-        { label: "Adım (başlık + açıklama + görsel)", value: "step" },
-        { label: "Slayt (açıklama + görsel)", value: "slide" },
-        { label: "Video (başlık + YouTube ID)", value: "video" },
-        { label: "Logo (isim + logo)", value: "logo" },
+        { label: { tr: "Adım (başlık + açıklama + görsel)", en: "Step (heading + text + image)" }, value: "step" },
+        { label: { tr: "Slayt (açıklama + görsel)", en: "Slide (text + image)" }, value: "slide" },
+        { label: { tr: "Video (başlık + YouTube ID)", en: "Video (heading + YouTube ID)" }, value: "video" },
+        { label: { tr: "Logo (isim + logo)", en: "Logo (name + logo)" }, value: "logo" },
       ],
     },
-    { name: "title", type: "text", admin: { description: "step / video / logo için" } },
-    { name: "text", type: "textarea", admin: { description: "step / slide için" } },
-    { name: "image", type: "upload", relationTo: "media", admin: { description: "step / slide / logo için" } },
-    { name: "youtubeId", type: "text", admin: { description: "video için, örn: 7CCEsOaoH2A" } },
+    { name: "title", type: "text", admin: { description: { tr: "step / video / logo için", en: "For step / video / logo" } } },
+    { name: "text", type: "textarea", admin: { description: { tr: "step / slide için", en: "For step / slide" } } },
+    {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      admin: { description: { tr: "step / slide / logo için", en: "For step / slide / logo" } },
+    },
+    { name: "youtubeId", type: "text", admin: { description: { tr: "video için, örn: 7CCEsOaoH2A", en: "For video, e.g.: 7CCEsOaoH2A" } } },
     { name: "linkUrl", type: "text" },
     {
       name: "order",

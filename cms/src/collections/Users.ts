@@ -1,5 +1,5 @@
 import type { CollectionBeforeChangeHook, CollectionBeforeOperationHook, CollectionConfig, Endpoint } from "payload";
-import { AuthenticationError, LockedAuth } from "payload";
+import { APIError, AuthenticationError, LockedAuth } from "payload";
 import { isNewVerticalMaker, ROLE_OPTIONS, ROLES } from "@/access/roles";
 import { authenticated } from "@/access/authenticated";
 import { auditAfterChange, auditAfterDelete, auditRoleChange, writeAuditLog, ipOf, userAgentOf } from "@/hooks/audit";
@@ -41,8 +41,9 @@ const avatarUploadEndpoint: Endpoint = {
   path: "/me/avatar",
   method: "post",
   handler: async (req) => {
+    const isEnglish = req.i18n?.language === "en";
     if (!req.user?.id) {
-      return Response.json({ errors: [{ message: "Giriş yapmalısınız." }] }, { status: 401 });
+      return Response.json({ errors: [{ message: isEnglish ? "You must be logged in." : "Giriş yapmalısınız." }] }, { status: 401 });
     }
 
     let formData: FormData;
@@ -50,26 +51,34 @@ const avatarUploadEndpoint: Endpoint = {
       if (!req.formData) throw new Error("formData unsupported");
       formData = await req.formData();
     } catch {
-      return Response.json({ errors: [{ message: "Geçersiz istek gövdesi." }] }, { status: 400 });
+      return Response.json({ errors: [{ message: isEnglish ? "Invalid request body." : "Geçersiz istek gövdesi." }] }, { status: 400 });
     }
 
     const file = formData.get("file");
     if (!(file instanceof File)) {
-      return Response.json({ errors: [{ message: "Dosya bulunamadı." }] }, { status: 400 });
+      return Response.json({ errors: [{ message: isEnglish ? "No file found." : "Dosya bulunamadı." }] }, { status: 400 });
     }
     if (file.size > AVATAR_MAX_BYTES) {
+      const maxMb = AVATAR_MAX_BYTES / (1024 * 1024);
       return Response.json(
-        { errors: [{ message: `Profil fotoğrafı ${AVATAR_MAX_BYTES / (1024 * 1024)}MB'den küçük olmalı.` }] },
+        {
+          errors: [
+            { message: isEnglish ? `Profile photo must be under ${maxMb}MB.` : `Profil fotoğrafı ${maxMb}MB'den küçük olmalı.` },
+          ],
+        },
         { status: 400 }
       );
     }
     if (!AVATAR_MIME_TYPES.has(file.type)) {
-      return Response.json({ errors: [{ message: "Sadece JPEG, PNG, WebP veya GIF yükleyebilirsiniz." }] }, { status: 400 });
+      return Response.json(
+        { errors: [{ message: isEnglish ? "Only JPEG, PNG, WebP, or GIF can be uploaded." : "Sadece JPEG, PNG, WebP veya GIF yükleyebilirsiniz." }] },
+        { status: 400 }
+      );
     }
 
     try {
       const buffer = Buffer.from(await file.arrayBuffer());
-      const email = (req.user as { email?: string }).email ?? "kullanıcı";
+      const email = (req.user as { email?: string }).email ?? (isEnglish ? "user" : "kullanıcı");
       const media = await req.payload.create({
         collection: "media",
         overrideAccess: true,
@@ -87,7 +96,7 @@ const avatarUploadEndpoint: Endpoint = {
       });
       return Response.json({ doc: updated });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Bilinmeyen hata.";
+      const message = err instanceof Error ? err.message : isEnglish ? "Unknown error." : "Bilinmeyen hata.";
       console.error("[users] avatar upload failed:", err);
       return Response.json({ errors: [{ message }] }, { status: 500 });
     }
@@ -101,7 +110,14 @@ const enforceAvatarSizeLimit: CollectionBeforeChangeHook = async ({ data, req, o
   const media = await req.payload.findByID({ collection: "media", id: avatarId as string | number, depth: 0, overrideAccess: true });
   const filesize = (media as { filesize?: number } | null)?.filesize;
   if (typeof filesize === "number" && filesize > AVATAR_MAX_BYTES) {
-    throw new Error(`Profil fotoğrafı ${AVATAR_MAX_BYTES / (1024 * 1024)}MB'den küçük olmalı.`);
+    const maxMb = AVATAR_MAX_BYTES / (1024 * 1024);
+    const isEnglish = req.i18n?.language === "en";
+    throw new APIError(
+      isEnglish ? `Profile photo must be under ${maxMb}MB.` : `Profil fotoğrafı ${maxMb}MB'den küçük olmalı.`,
+      400,
+      undefined,
+      true
+    );
   }
   return data;
 };
@@ -288,8 +304,10 @@ export const Users: CollectionConfig = {
       options: ROLE_OPTIONS,
       admin: {
         readOnly: true,
-        description:
-          "Rol AccessPoint üzerinden talep edilir ve LDAP grubuna göre atanır — burada değiştirilemez. Sadece LDAP'a bağlı ve bu 4 rolden birine sahip kullanıcılar giriş yapabilir. Hangi AD grubunun hangi role eşleneceği access/roleMapping.ts içinde tanımlanır.",
+        description: {
+          tr: "Rol AccessPoint üzerinden talep edilir ve LDAP grubuna göre atanır — burada değiştirilemez. Sadece LDAP'a bağlı ve bu 4 rolden birine sahip kullanıcılar giriş yapabilir. Hangi AD grubunun hangi role eşleneceği access/roleMapping.ts içinde tanımlanır.",
+          en: "Role is requested through AccessPoint and assigned from the LDAP group — it can't be changed here. Only LDAP-active users holding one of these 4 roles can log in. Which AD group maps to which role is defined in access/roleMapping.ts.",
+        },
       },
       access: {
         update: () => false,
@@ -334,8 +352,8 @@ export const Users: CollectionConfig = {
       name: "avatar",
       type: "upload",
       relationTo: "media",
-      label: "Profil Fotoğrafı",
-      admin: { description: "En fazla 2MB — MinIO'da saklanır." },
+      label: { tr: "Profil Fotoğrafı", en: "Profile Photo" },
+      admin: { description: { tr: "En fazla 2MB — MinIO'da saklanır.", en: "Up to 2MB — stored in MinIO." } },
     },
     {
       // RFP §3.1 User Role Management: "Checker may delegate his/her rights
@@ -377,20 +395,26 @@ export const Users: CollectionConfig = {
     {
       name: "preferredLocale",
       type: "select",
-      label: "Dil Tercihi",
+      label: { tr: "Dil Tercihi", en: "Language Preference" },
       defaultValue: "tr",
       options: [
+        // Deliberately Turkish-only, both languages: a language picker
+        // names each language in itself, not the current admin locale (same
+        // convention as AccountForm.tsx's LOCALE_OPTIONS).
         { label: "Türkçe", value: "tr" },
         { label: "English", value: "en" },
       ],
       admin: {
-        description: "Her girişte panel bu dilde açılır — üstteki geçici dil değiştiriciden farklı olarak kalıcıdır.",
+        description: {
+          tr: "Her girişte panel bu dilde açılır — üstteki geçici dil değiştiriciden farklı olarak kalıcıdır.",
+          en: "The panel opens in this language every time you log in — unlike the temporary switcher above, this one persists.",
+        },
       },
     },
     {
       name: "loginHistory",
       type: "ui",
-      label: "Son Girişler",
+      label: { tr: "Son Girişler", en: "Recent Logins" },
       admin: {
         position: "sidebar",
         components: { Field: "/components/LoginHistoryField#default" },
@@ -404,14 +428,19 @@ export const Users: CollectionConfig = {
     {
       name: "lastLoginAt",
       type: "date",
-      label: "Son Giriş",
+      label: { tr: "Son Giriş", en: "Last Login" },
       admin: { position: "sidebar", readOnly: true, date: { pickerAppearance: "dayAndTime" } },
     },
-    { name: "lastLoginIp", type: "text", label: "Son Giriş IP", admin: { position: "sidebar", readOnly: true } },
+    {
+      name: "lastLoginIp",
+      type: "text",
+      label: { tr: "Son Giriş IP", en: "Last Login IP" },
+      admin: { position: "sidebar", readOnly: true },
+    },
     {
       name: "lastLoginUserAgent",
       type: "text",
-      label: "Son Giriş Cihazı",
+      label: { tr: "Son Giriş Cihazı", en: "Last Login Device" },
       admin: { position: "sidebar", readOnly: true },
     },
   ],

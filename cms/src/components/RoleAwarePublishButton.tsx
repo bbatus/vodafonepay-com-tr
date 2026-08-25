@@ -56,6 +56,8 @@ export default function RoleAwarePublishButton() {
     unpublishRequested: tt("roleAwarePublishButton.unpublishRequested"),
     previewDesktop: tt("roleAwarePublishButton.previewDesktop"),
     previewMobile: tt("roleAwarePublishButton.previewMobile"),
+    previewWidthGroup: tt("roleAwarePublishButton.previewWidthGroup"),
+    previewFrameTitle: tt("roleAwarePublishButton.previewFrameTitle"),
     forceEdit: tt("roleAwarePublishButton.forceEdit"),
     forceEditing: tt("roleAwarePublishButton.forceEditing"),
     forceHeading: tt("roleAwarePublishButton.forceHeading"),
@@ -405,6 +407,8 @@ type ButtonStrings = Record<
   | "unpublishRequested"
   | "previewDesktop"
   | "previewMobile"
+  | "previewWidthGroup"
+  | "previewFrameTitle"
   | "forceEdit"
   | "forceEditing"
   | "forceHeading"
@@ -630,7 +634,7 @@ function ConfirmPublishModal({
           <p className="rapb-confirm-heading">{t.heading}</p>
           <p className="rapb-confirm-body">{t.body}</p>
           {previewHref && (
-            <div className="rapb-preview-toggle" role="group" aria-label="preview width">
+            <div className="rapb-preview-toggle" role="group" aria-label={t.previewWidthGroup}>
               <button
                 type="button"
                 className={`rapb-preview-toggle__btn${previewWidth === "desktop" ? " rapb-preview-toggle__btn--active" : ""}`}
@@ -653,7 +657,7 @@ function ConfirmPublishModal({
 
         {previewHref ? (
           <div className={`rapb-preview-frame${previewWidth === "mobile" ? " rapb-preview-frame--mobile" : ""}`}>
-            <iframe src={previewHref} title="preview" className="rapb-preview-iframe" />
+            <iframe src={previewHref} title={t.previewFrameTitle} className="rapb-preview-iframe" />
           </div>
         ) : (
           <p className="rapb-no-preview">{t.noPreview}</p>

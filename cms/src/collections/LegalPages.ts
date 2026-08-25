@@ -65,8 +65,10 @@ export const LegalPages: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "slug"],
     group: { tr: "Site Yapısı", en: "Site Structure" },
-    description:
-      "Bu yasal sayfaların tablo/liste gibi yapısal kısımları kodda sabit kalır; burada yönetilen giriş metni, ve Sözleşmeler ve Formlar için sayfa görseli + belge grupları.",
+    description: {
+      tr: "Bu yasal sayfaların tablo/liste gibi yapısal kısımları kodda sabit kalır; burada yönetilen giriş metni, ve Sözleşmeler ve Formlar için sayfa görseli + belge grupları.",
+      en: "Structural parts of these legal pages (tables/lists) stay fixed in code; what's managed here is intro text, plus the page image and document groups for Sözleşmeler ve Formlar.",
+    },
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "legal-pages" } }],
     },
@@ -88,11 +90,14 @@ export const LegalPages: CollectionConfig = {
       required: true,
       unique: true,
       options: [
-        { label: "Gizlilik ve Güvenlik Politikası", value: "gizlilik-ve-guvenlik-politikasi" },
-        { label: "Çerez Politikası", value: "cerez-politikasi" },
-        { label: "Bilgi Güvenliği", value: "bilgi-guvenligi" },
-        { label: "Sözleşmeler ve Formlar", value: "sozlesmeler-ve-formlar" },
-        { label: "Web Sitesi Kullanımı Hüküm ve Şartları", value: "web-sitesi-hukum-ve-sartlari" },
+        { label: { tr: "Gizlilik ve Güvenlik Politikası", en: "Gizlilik ve Güvenlik Politikası (Privacy & Security Policy)" }, value: "gizlilik-ve-guvenlik-politikasi" },
+        { label: { tr: "Çerez Politikası", en: "Çerez Politikası (Cookie Policy)" }, value: "cerez-politikasi" },
+        { label: { tr: "Bilgi Güvenliği", en: "Bilgi Güvenliği (Information Security)" }, value: "bilgi-guvenligi" },
+        { label: { tr: "Sözleşmeler ve Formlar", en: "Sözleşmeler ve Formlar (Contracts & Forms)" }, value: "sozlesmeler-ve-formlar" },
+        {
+          label: { tr: "Web Sitesi Kullanımı Hüküm ve Şartları", en: "Web Sitesi Kullanımı Hüküm ve Şartları (Terms of Use)" },
+          value: "web-sitesi-hukum-ve-sartlari",
+        },
       ],
     },
     { name: "title", type: "text", required: true },
@@ -207,11 +212,14 @@ export const LegalPages: CollectionConfig = {
               // a drawer (Documents.ts is `admin.hidden: true` now — this is
               // the ONLY real entry point for adding one) rather than
               // requiring a trip to a separate collection first. Stored in
-              // MinIO like every other upload, so the link stays on
-              // infrastructure we control — never a static file baked into
-              // the site's own codebase, and never a raw link straight to
-              // MinIO either; see the site's belge/page.tsx viewer route,
-              // which is what actually gets linked to.
+              // MinIO like every other upload — never a static file baked
+              // into the site's own codebase. Follow-up 25.08 (3): the site
+              // used to route this through its own /belge viewer page; that
+              // route is gone — the link on the site now goes straight to
+              // the file's own MinIO/CDN URL (leaving vodafonepaycomtr
+              // entirely on click), matching the real vodafonepay.com.tr's
+              // own cms.vodafone.com.tr redirect. See
+              // src/lib/documentViewer.ts.
               name: "file",
               type: "upload",
               relationTo: "documents",
@@ -219,16 +227,19 @@ export const LegalPages: CollectionConfig = {
               admin: {
                 condition: (_data, siblingData) => siblingData?.source !== "page",
                 description: {
-                  tr: "Yüklenen dosya MinIO'da saklanır. Sitede tıklandığında, dosyayı kendi ayrı görüntüleyici sayfamızda açar (PDF için gömülü görüntüleyici, ses dosyası için oynatıcı) — kullanıcı doğrudan bir MinIO adresine gitmez.",
-                  en: "The uploaded file is stored in MinIO. On the site, clicking it opens our own dedicated viewer page (an embedded viewer for PDFs, a player for audio) — the user never lands on a raw MinIO address.",
+                  tr: "Yüklenen dosya MinIO'da saklanır. Sitede tıklandığında, kullanıcı doğrudan bu dosyaya gider (vodafonepaycomtr'den ayrılır) — tarayıcının kendi PDF görüntüleyicisi/ses oynatıcısı devreye girer.",
+                  en: "The uploaded file is stored in MinIO. On the site, clicking it takes the user straight to the file (leaving vodafonepaycomtr) — the browser's own PDF viewer/audio player takes over.",
                 },
               },
               // `required: true` can't be used with a `condition`: Payload
               // still validates a hidden field, so switching to "page" would
               // block the save on a file that isn't supposed to exist.
-              validate: (value: unknown, { siblingData }: { siblingData?: { source?: string } }) => {
+              validate: (value: unknown, { siblingData, req }: { siblingData?: { source?: string }; req?: { i18n?: { language?: string } } }) => {
                 if (siblingData?.source === "page") return true;
-                return value ? true : "PDF / Ses Dosyası Yükle seçiliyken bir dosya seçmelisiniz.";
+                if (value) return true;
+                return req?.i18n?.language === "en"
+                  ? "You must select a file when 'Upload a PDF / Audio File' is chosen."
+                  : "PDF / Ses Dosyası Yükle seçiliyken bir dosya seçmelisiniz.";
               },
             },
             {
@@ -257,9 +268,12 @@ export const LegalPages: CollectionConfig = {
                   en: "Write the contract/form text here. Headings, lists, tables and links are available.",
                 },
               },
-              validate: (value: unknown, { siblingData }: { siblingData?: { source?: string } }) => {
+              validate: (value: unknown, { siblingData, req }: { siblingData?: { source?: string }; req?: { i18n?: { language?: string } } }) => {
                 if (siblingData?.source !== "page") return true;
-                return value ? true : "Kendin Oluştur seçiliyken sayfa içeriği boş olamaz.";
+                if (value) return true;
+                return req?.i18n?.language === "en"
+                  ? "Page content can't be empty when 'Write it here' is chosen."
+                  : "Kendin Oluştur seçiliyken sayfa içeriği boş olamaz.";
               },
             },
             {

@@ -109,10 +109,14 @@ export const Categories: CollectionConfig = {
             collection: "categories",
             groupField: "scope",
             // `clientProps` is static config, evaluated once — it can't call
-            // useAdminLocale()/useDbStrings() the way the rest of this
-            // widget's UI does, so this dropdown stays Turkish regardless of
-            // the admin's language pick. Values must match CATEGORY_SCOPES.
-            groupLabels: { campaign: "Kampanyalar", blog: "Blog", faq: "Sık Sorulan Sorular" },
+            // useAdminLocale()/useDbStrings() itself, so it hands ReorderWidget
+            // both languages and lets IT pick via its own useAdminLocale() call
+            // at render time. Values must match CATEGORY_SCOPES.
+            groupLabels: {
+              campaign: { tr: "Kampanyalar", en: "Campaigns" },
+              blog: { tr: "Blog", en: "Blog" },
+              faq: { tr: "Sık Sorulan Sorular", en: "FAQ" },
+            },
           },
         },
       ],
@@ -154,7 +158,12 @@ export const Categories: CollectionConfig = {
       name: "label",
       type: "text",
       required: true,
-      admin: { description: "Filtre sekmesinde ve kampanya listesinde görünen isim. Örnek: Kart" },
+      admin: {
+        description: {
+          tr: "Filtre sekmesinde ve kampanya listesinde görünen isim. Örnek: Kart",
+          en: "Name shown on the filter tab and the campaign list. E.g.: Kart",
+        },
+      },
     },
     {
       // E1: auto-generated from `label` on create (see generateSlug above)
@@ -171,7 +180,10 @@ export const Categories: CollectionConfig = {
       admin: {
         position: "sidebar",
         readOnly: true,
-        description: "Otomatik üretilir (isimden) — teknik referans, kaydedildikten sonra değişmez.",
+        description: {
+          tr: "Otomatik üretilir (isimden) — teknik referans, kaydedildikten sonra değişmez.",
+          en: "Auto-generated (from the name) — a technical reference, doesn't change after saving.",
+        },
       },
     },
     {

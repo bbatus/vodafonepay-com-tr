@@ -275,21 +275,24 @@ export const Campaigns: CollectionConfig = {
       // "pending" — see manageReviewCycle above.
       name: "reviewStatus",
       type: "select",
-      label: "İnceleme Durumu",
+      label: { tr: "İnceleme Durumu", en: "Review Status" },
       defaultValue: "pending",
       options: [
-        { label: "İncelemede", value: "pending" },
-        { label: "Reddedildi", value: "rejected" },
+        { label: { tr: "İncelemede", en: "Pending review" }, value: "pending" },
+        { label: { tr: "Reddedildi", en: "Rejected" }, value: "rejected" },
       ],
       admin: { position: "sidebar", readOnly: true },
     },
     {
       name: "rejectionReason",
       type: "textarea",
-      label: "Red Sebebi",
+      label: { tr: "Red Sebebi", en: "Rejection Reason" },
       admin: {
         position: "sidebar",
-        description: "Checker reddederse sebep burada görünür. Taslağı tekrar kaydettiğinizde otomatik temizlenir.",
+        description: {
+          tr: "Checker reddederse sebep burada görünür. Taslağı tekrar kaydettiğinizde otomatik temizlenir.",
+          en: "If the Checker rejects, the reason appears here. Cleared automatically when you resave the draft.",
+        },
         condition: (data) => data?.reviewStatus === "rejected",
       },
       access: {
@@ -305,7 +308,7 @@ export const Campaigns: CollectionConfig = {
     {
       name: "rejectedAt",
       type: "date",
-      label: "Reddedilme Tarihi",
+      label: { tr: "Reddedilme Tarihi", en: "Rejected At" },
       admin: {
         position: "sidebar",
         readOnly: true,
@@ -317,7 +320,7 @@ export const Campaigns: CollectionConfig = {
       name: "rejectedBy",
       type: "relationship",
       relationTo: "users",
-      label: "Reddeden",
+      label: { tr: "Reddeden", en: "Rejected By" },
       admin: { position: "sidebar", readOnly: true, condition: (data) => data?.reviewStatus === "rejected" },
     },
     {
@@ -371,7 +374,7 @@ export const Campaigns: CollectionConfig = {
       type: "text",
       required: true,
       unique: true,
-      label: "URL Adı (slug)",
+      label: { tr: "URL Adı (slug)", en: "URL Name (slug)" },
       admin: {
         position: "sidebar",
         readOnly: true,
@@ -382,20 +385,31 @@ export const Campaigns: CollectionConfig = {
           },
         },
       },
-      validate: (value: unknown) => {
+      validate: (value: unknown, { req }: { req?: { i18n?: { language?: string } } }) => {
         // Kept as a backstop for direct API writes — the admin can no longer
         // produce an invalid value, but the REST/GraphQL API still can.
-        if (typeof value !== "string" || value.length === 0) return "Zorunlu alan";
+        const isEnglish = req?.i18n?.language === "en";
+        if (typeof value !== "string" || value.length === 0) return isEnglish ? "Required field" : "Zorunlu alan";
         if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(value)) {
-          return "Sadece küçük harf, rakam ve tire (-) kullanabilirsiniz — boşluk, büyük harf veya Türkçe karakter olmaz. Örnek: yaz-kampanyasi-2026";
+          return isEnglish
+            ? "Only lowercase letters, digits, and hyphens (-) are allowed — no spaces, capitals, or Turkish characters. Example: yaz-kampanyasi-2026"
+            : "Sadece küçük harf, rakam ve tire (-) kullanabilirsiniz — boşluk, büyük harf veya Türkçe karakter olmaz. Örnek: yaz-kampanyasi-2026";
         }
         return true;
       },
     },
     { name: "description", type: "textarea", required: true },
     { name: "image", type: "upload", relationTo: "media", required: true },
-    { name: "body", type: "richText", admin: { description: "Detay sayfasının gövde metni" } },
-    { name: "terms", type: "richText", admin: { description: "Katılım koşulları / kampanya esasları" } },
+    {
+      name: "body",
+      type: "richText",
+      admin: { description: { tr: "Detay sayfasının gövde metni", en: "The detail page's body copy" } },
+    },
+    {
+      name: "terms",
+      type: "richText",
+      admin: { description: { tr: "Katılım koşulları / kampanya esasları", en: "Terms of participation / campaign rules" } },
+    },
     {
       // RFP feedback 1.3: was a hardcoded `select` (4 fixed options baked
       // into code, business couldn't add/rename one). Now a real,
@@ -408,8 +422,10 @@ export const Campaigns: CollectionConfig = {
       // pickers from offering each other's options (see Categories.ts).
       filterOptions: () => ({ scope: { equals: CATEGORY_SCOPES.CAMPAIGN } }),
       admin: {
-        description:
-          "Kampanyanın ait olduğu kategori (Kampanyalar/Blog akışındaki kategoriler). Listede yoksa sol menüden Kategoriler'e gidip 'Akış: Kampanyalar ve Blog' ile yeni bir tane ekleyebilirsiniz.",
+        description: {
+          tr: "Kampanyanın ait olduğu kategori (Kampanyalar/Blog akışındaki kategoriler). Listede yoksa sol menüden Kategoriler'e gidip 'Akış: Kampanyalar ve Blog' ile yeni bir tane ekleyebilirsiniz.",
+          en: "The category this campaign belongs to (categories in the Campaigns/Blog flow). If it's not in the list, go to Categories in the sidebar and create one with 'Flow: Campaigns and Blog'.",
+        },
       },
     },
     {
@@ -422,44 +438,65 @@ export const Campaigns: CollectionConfig = {
       type: "select",
       defaultValue: "active",
       options: [
-        { label: "Aktif", value: "active" },
-        { label: "Süresi doldu", value: "expired" },
+        { label: { tr: "Aktif", en: "Active" }, value: "active" },
+        { label: { tr: "Süresi doldu", en: "Expired" }, value: "expired" },
       ],
-      admin: { description: "Süresi dolan kampanya liste sayfalarından kalkar, detay sayfası erişilebilir kalır" },
+      admin: {
+        description: {
+          tr: "Süresi dolan kampanya liste sayfalarından kalkar, detay sayfası erişilebilir kalır",
+          en: "An expired campaign is removed from list pages; its detail page stays reachable",
+        },
+      },
     },
-    { name: "featured", type: "checkbox", defaultValue: false, label: "Bu ayın favorilerinde göster" },
+    {
+      name: "featured",
+      type: "checkbox",
+      defaultValue: false,
+      label: { tr: "Bu ayın favorilerinde göster", en: "Show in this month's favorites" },
+    },
     {
       name: "ctaLabel",
       type: "text",
       defaultValue: "Detayları gör",
-      label: "Buton Yazısı",
-      admin: { description: "Kampanya kartındaki butonun üzerinde yazacak metin. Örnek: Detayları Gör, Hemen Katıl" },
+      label: { tr: "Buton Yazısı", en: "Button Label" },
+      admin: {
+        description: {
+          tr: "Kampanya kartındaki butonun üzerinde yazacak metin. Örnek: Detayları Gör, Hemen Katıl",
+          en: "Text on the campaign card's button. E.g.: Detayları Gör, Hemen Katıl",
+        },
+      },
     },
     {
       name: "ctaUrl",
       type: "text",
-      label: "Buton Linki",
+      label: { tr: "Buton Linki", en: "Button Link" },
       admin: {
-        description:
-          "Butona tıklandığında gidilecek adres. Boş bırakılırsa buton bu kampanyanın kendi detay sayfasına (/kampanyalar/{slug}) götürür — çoğu kampanya için boş bırakmanız yeterlidir.",
+        description: {
+          tr: "Butona tıklandığında gidilecek adres. Boş bırakılırsa buton bu kampanyanın kendi detay sayfasına (/kampanyalar/{slug}) götürür — çoğu kampanya için boş bırakmanız yeterlidir.",
+          en: "Address to go to when the button is clicked. If left empty, the button goes to this campaign's own detail page (/kampanyalar/{slug}) — leaving it empty is enough for most campaigns.",
+        },
       },
     },
     {
       name: "seoTitle",
       type: "text",
-      label: "SEO Başlığı",
+      label: { tr: "SEO Başlığı", en: "SEO Title" },
       admin: {
-        description:
-          "Google arama sonuçlarında ve link paylaşımlarında görünecek başlık. Boş bırakılırsa yukarıdaki 'Title' alanı kullanılır.",
+        description: {
+          tr: "Google arama sonuçlarında ve link paylaşımlarında görünecek başlık. Boş bırakılırsa yukarıdaki 'Title' alanı kullanılır.",
+          en: "Title shown in Google search results and link shares. If left empty, the 'Title' field above is used.",
+        },
       },
     },
     {
       name: "seoDescription",
       type: "textarea",
-      label: "SEO Açıklaması",
+      label: { tr: "SEO Açıklaması", en: "SEO Description" },
       admin: {
-        description:
-          "Google arama sonuçlarında başlığın altında görünecek kısa açıklama (1-2 cümle). Boş bırakılırsa yukarıdaki 'Description' alanı kullanılır.",
+        description: {
+          tr: "Google arama sonuçlarında başlığın altında görünecek kısa açıklama (1-2 cümle). Boş bırakılırsa yukarıdaki 'Description' alanı kullanılır.",
+          en: "Short description (1-2 sentences) shown below the title in Google search results. If left empty, the 'Description' field above is used.",
+        },
       },
     },
     seoKeywordsField,
@@ -469,19 +506,22 @@ export const Campaigns: CollectionConfig = {
         {
           name: "startDate",
           type: "date",
-          label: "Başlangıç Tarihi (opsiyonel)",
+          label: { tr: "Başlangıç Tarihi (opsiyonel)", en: "Start Date (optional)" },
           admin: {
             date: { pickerAppearance: "dayOnly" },
-            description: "İkisi de opsiyoneldir — boş bırakılırsa kampanya süresiz görünür.",
+            description: { tr: "İkisi de opsiyoneldir — boş bırakılırsa kampanya süresiz görünür.", en: "Both are optional — if left empty, the campaign shows as ongoing." },
           },
         },
         {
           name: "endDate",
           type: "date",
-          label: "Bitiş Tarihi (opsiyonel)",
+          label: { tr: "Bitiş Tarihi (opsiyonel)", en: "End Date (optional)" },
           admin: {
             date: { pickerAppearance: "dayOnly" },
-            description: "Bu tarih geçince kampanya liste sayfalarından otomatik kalkar (detay sayfası erişilebilir kalır).",
+            description: {
+              tr: "Bu tarih geçince kampanya liste sayfalarından otomatik kalkar (detay sayfası erişilebilir kalır).",
+              en: "Once this date passes, the campaign is automatically removed from list pages (its detail page stays reachable).",
+            },
           },
         },
       ],

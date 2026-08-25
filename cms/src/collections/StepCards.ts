@@ -38,11 +38,22 @@ export const StepCards: CollectionConfig = {
     delete: isNewVerticalMaker,
   },
   fields: [
-    { name: "page", type: "text", required: true, admin: { description: "Örn: qr-ile-faturana-yansit, aninda-bakiye" } },
+    {
+      name: "page",
+      type: "text",
+      required: true,
+      admin: { description: { tr: "Örn: qr-ile-faturana-yansit, aninda-bakiye", en: "E.g.: qr-ile-faturana-yansit, aninda-bakiye" } },
+    },
     { name: "number", type: "text", required: true },
     { name: "text", type: "textarea", required: true },
     { name: "image", type: "upload", relationTo: "media", required: true },
-    { name: "deeplink", type: "text", admin: { description: "Adım tıklanınca gidilecek sayfa/deeplink (opsiyonel)." } },
+    {
+      name: "deeplink",
+      type: "text",
+      admin: {
+        description: { tr: "Adım tıklanınca gidilecek sayfa/deeplink (opsiyonel).", en: "Page/deeplink to go to when the step is clicked (optional)." },
+      },
+    },
     {
       name: "order",
       type: "number",

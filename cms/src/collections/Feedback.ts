@@ -31,20 +31,24 @@ const submitFeedbackEndpoint: Endpoint = {
   path: "/submit",
   method: "post",
   handler: async (req) => {
+    const isEnglish = req.i18n?.language === "en";
     if (!req.user?.id) {
-      return Response.json({ errors: [{ message: "Giriş yapmalısınız." }] }, { status: 401 });
+      return Response.json({ errors: [{ message: isEnglish ? "You must be logged in." : "Giriş yapmalısınız." }] }, { status: 401 });
     }
 
     let body: { message?: string; area?: string; pagePath?: string } = {};
     try {
       if (req.json) body = await req.json();
     } catch {
-      return Response.json({ errors: [{ message: "Geçersiz istek gövdesi." }] }, { status: 400 });
+      return Response.json({ errors: [{ message: isEnglish ? "Invalid request body." : "Geçersiz istek gövdesi." }] }, { status: 400 });
     }
 
     const message = typeof body.message === "string" ? body.message.trim() : "";
     if (!message) {
-      return Response.json({ errors: [{ message: "Lütfen geri bildiriminizi yazın." }] }, { status: 400 });
+      return Response.json(
+        { errors: [{ message: isEnglish ? "Please write your feedback." : "Lütfen geri bildiriminizi yazın." }] },
+        { status: 400 }
+      );
     }
 
     const user = req.user as { email?: string; role?: string };
@@ -64,7 +68,7 @@ const submitFeedbackEndpoint: Endpoint = {
       });
     } catch (err) {
       console.error("[feedback] failed to store submission:", err);
-      return Response.json({ errors: [{ message: "Geri bildirim kaydedilemedi." }] }, { status: 500 });
+      return Response.json({ errors: [{ message: isEnglish ? "Couldn't save feedback." : "Geri bildirim kaydedilemedi." }] }, { status: 500 });
     }
 
     return Response.json({ ok: true });
@@ -85,7 +89,8 @@ const feedbackCountEndpoint: Endpoint = {
   method: "get",
   handler: async (req) => {
     if (!req.user?.id) {
-      return Response.json({ errors: [{ message: "Giriş yapmalısınız." }] }, { status: 401 });
+      const isEnglish = req.i18n?.language === "en";
+      return Response.json({ errors: [{ message: isEnglish ? "You must be logged in." : "Giriş yapmalısınız." }] }, { status: 401 });
     }
     const { totalDocs } = await req.payload.count({ collection: "feedback", overrideAccess: true });
     return Response.json({ count: totalDocs });

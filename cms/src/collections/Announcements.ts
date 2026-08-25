@@ -38,12 +38,32 @@ export const Announcements: CollectionConfig = {
     delete: isNewVerticalMaker,
   },
   fields: [
-    { name: "title", type: "text", required: true, admin: { description: "Örn: 18.08.2026 02:00-08:00 Vodafone Pay Planlı Altyapı Çalışması" } },
-    { name: "body", type: "textarea", required: true, admin: { description: "Paragraflar arasına boş satır bırakın." } },
+    {
+      name: "title",
+      type: "text",
+      required: true,
+      admin: {
+        description: {
+          tr: "Örn: 18.08.2026 02:00-08:00 Vodafone Pay Planlı Altyapı Çalışması",
+          en: "E.g.: 18.08.2026 02:00-08:00 Vodafone Pay Planned Infrastructure Maintenance",
+        },
+      },
+    },
+    {
+      name: "body",
+      type: "textarea",
+      required: true,
+      admin: { description: { tr: "Paragraflar arasına boş satır bırakın.", en: "Leave a blank line between paragraphs." } },
+    },
     {
       name: "deeplink",
       type: "text",
-      admin: { description: "Örn: /kampanyalar/{slug} veya bir uygulama deeplink'i — verilirse duyuru tıklanabilir olur." },
+      admin: {
+        description: {
+          tr: "Örn: /kampanyalar/{slug} veya bir uygulama deeplink'i — verilirse duyuru tıklanabilir olur.",
+          en: "E.g.: /kampanyalar/{slug} or an app deeplink — if set, the announcement becomes clickable.",
+        },
+      },
     },
     {
       name: "order",

@@ -21,7 +21,10 @@ export const AuditLogs: CollectionConfig = {
     useAsTitle: "summary",
     defaultColumns: ["createdAt", "userEmail", "action", "collectionSlug", "summary", "ip"],
     group: { tr: "Sistem", en: "System" },
-    description: "Salt okunur değişiklik kaydı — kimse bu kayıtları düzenleyemez veya silemez.",
+    description: {
+      tr: "Salt okunur değişiklik kaydı — kimse bu kayıtları düzenleyemez veya silemez.",
+      en: "Read-only change log — nobody can edit or delete these entries.",
+    },
     components: {
       // RFP feedback: "audit log CSV export" — see AuditLogsExportButton.tsx.
       // RFP §6: "export in CEF format for SIEM ingestion" — see AuditLogsCefExportButton.tsx.
@@ -46,53 +49,53 @@ export const AuditLogs: CollectionConfig = {
     delete: () => false,
   },
   fields: [
-    { name: "userEmail", type: "text", required: true, label: "Kullanıcı" },
-    { name: "userRole", type: "text", label: "Rol" },
+    { name: "userEmail", type: "text", required: true, label: { tr: "Kullanıcı", en: "User" } },
+    { name: "userRole", type: "text", label: { tr: "Rol", en: "Role" } },
     {
       name: "action",
       type: "select",
       required: true,
-      label: "İşlem",
+      label: { tr: "İşlem", en: "Action" },
       options: [
-        { label: "Giriş", value: "login" },
-        { label: "Başarısız giriş", value: "login_failed" },
-        { label: "Çıkış", value: "logout" },
-        { label: "Oluşturuldu", value: "create" },
-        { label: "Güncellendi", value: "update" },
-        { label: "Yayınlandı", value: "publish" },
-        { label: "Reddedildi", value: "rejected" },
-        { label: "Silindi", value: "delete" },
+        { label: { tr: "Giriş", en: "Login" }, value: "login" },
+        { label: { tr: "Başarısız giriş", en: "Failed login" }, value: "login_failed" },
+        { label: { tr: "Çıkış", en: "Logout" }, value: "logout" },
+        { label: { tr: "Oluşturuldu", en: "Created" }, value: "create" },
+        { label: { tr: "Güncellendi", en: "Updated" }, value: "update" },
+        { label: { tr: "Yayınlandı", en: "Published" }, value: "publish" },
+        { label: { tr: "Reddedildi", en: "Rejected" }, value: "rejected" },
+        { label: { tr: "Silindi", en: "Deleted" }, value: "delete" },
         // RFP feedback 5.6: who unlocked whose account, and when.
-        { label: "Kilit kaldırıldı", value: "unlock" },
+        { label: { tr: "Kilit kaldırıldı", en: "Unlocked" }, value: "unlock" },
         // RFP §7.2: "record all userID locks" — logged the moment a locked
         // account is used to attempt a login (see Users.ts's `afterError`
         // hook, which distinguishes this from a plain wrong-password
         // `login_failed` via Payload's `LockedAuth` error class).
-        { label: "Kilitli hesapla giriş denendi", value: "locked" },
+        { label: { tr: "Kilitli hesapla giriş denendi", en: "Login attempted on locked account" }, value: "locked" },
         // RFP §7.2: "record all updates/changes to userID access rights" —
         // a role change used to disappear into a generic "update" entry
         // indistinguishable from any other user-doc edit; see Users.ts's
         // `auditRoleChange` hook.
-        { label: "Rol değiştirildi", value: "role_changed" },
+        { label: { tr: "Rol değiştirildi", en: "Role changed" }, value: "role_changed" },
         // RFP §7.2: "record every print-out/export of certain predefined
         // reports/data entities" — the 5 CSV export buttons (Users,
         // Campaigns, Blog, Categories, Audit Logs) now report here; see
         // CsvExportButton.tsx and the `/audit/export` endpoint below.
-        { label: "Dışa aktarıldı (export)", value: "export" },
+        { label: { tr: "Dışa aktarıldı (export)", en: "Exported" }, value: "export" },
         // RFP §7.2: "record all attempts to delete, write or append certain
         // predefined data entities" — a 403 from access control used to be
         // invisible everywhere (only the SUCCESSFUL half of a write was ever
         // logged). See payload.config.ts's root-level `hooks.afterError`
         // (auditForbiddenAttempt, hooks/audit.ts) — one hook covers every
         // collection instead of wiring this into each one individually.
-        { label: "Yetkisiz işlem denemesi engellendi", value: "denied" },
+        { label: { tr: "Yetkisiz işlem denemesi engellendi", en: "Unauthorized attempt blocked" }, value: "denied" },
       ],
     },
-    { name: "collectionSlug", type: "text", label: "Koleksiyon" },
-    { name: "documentId", type: "text", label: "Doküman ID" },
-    { name: "summary", type: "text", required: true, label: "Özet" },
+    { name: "collectionSlug", type: "text", label: { tr: "Koleksiyon", en: "Collection" } },
+    { name: "documentId", type: "text", label: { tr: "Doküman ID", en: "Document ID" } },
+    { name: "summary", type: "text", required: true, label: { tr: "Özet", en: "Summary" } },
     { name: "ip", type: "text", label: "IP" },
-    { name: "userAgent", type: "text", label: "Cihaz / Tarayıcı" },
+    { name: "userAgent", type: "text", label: { tr: "Cihaz / Tarayıcı", en: "Device / Browser" } },
     {
       // RFP §7.2: "before/after image of changed data" — a shallow,
       // top-level-field diff (see hooks/audit.ts's diffFields()), only

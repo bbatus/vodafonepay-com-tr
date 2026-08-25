@@ -124,14 +124,19 @@ const cmsServerUrl = process.env.CMS_SERVER_URL || `http://localhost:${cmsPort}`
  */
 const YouTubeEmbedBlock: Block = {
   slug: "youtubeEmbed",
-  labels: { singular: "YouTube Video", plural: "YouTube Videoları" },
+  labels: { singular: { tr: "YouTube Video", en: "YouTube Video" }, plural: { tr: "YouTube Videoları", en: "YouTube Videos" } },
   fields: [
     {
       name: "youtubeUrl",
       type: "text",
       required: true,
-      label: "YouTube Video Linki",
-      admin: { description: "youtube.com/watch?v=..., youtu.be/... veya embed linki yapıştırabilirsiniz." },
+      label: { tr: "YouTube Video Linki", en: "YouTube Video Link" },
+      admin: {
+        description: {
+          tr: "youtube.com/watch?v=..., youtu.be/... veya embed linki yapıştırabilirsiniz.",
+          en: "Paste a youtube.com/watch?v=..., youtu.be/..., or embed link.",
+        },
+      },
     },
   ],
 };
@@ -443,12 +448,12 @@ export default buildConfig({
                 name: "width",
                 type: "select",
                 defaultValue: "large",
-                label: "Görsel Boyutu",
+                label: { tr: "Görsel Boyutu", en: "Image Size" },
                 options: [
-                  { label: "Küçük", value: "small" },
-                  { label: "Orta", value: "medium" },
-                  { label: "Büyük", value: "large" },
-                  { label: "Tam Genişlik", value: "full" },
+                  { label: { tr: "Küçük", en: "Small" }, value: "small" },
+                  { label: { tr: "Orta", en: "Medium" }, value: "medium" },
+                  { label: { tr: "Büyük", en: "Large" }, value: "large" },
+                  { label: { tr: "Tam Genişlik", en: "Full Width" }, value: "full" },
                 ],
               },
             ],
@@ -473,6 +478,10 @@ export default buildConfig({
       TextStateFeature({
         state: {
           color: {
+            // `TextStateFeature`'s `label` type is `string`, not Payload's
+            // usual bilingual StaticLabel (@payloadcms/richtext-lexical's
+            // feature.server.d.ts) — this toolbar entry can't be localized
+            // the normal way.
             vurgu: { css: { color: "#e60000" }, label: "Vurgu" },
           },
         },

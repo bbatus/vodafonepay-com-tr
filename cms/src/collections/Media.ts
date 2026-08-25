@@ -124,8 +124,8 @@ export const Media: CollectionConfig = {
       type: "select",
       admin: { position: "sidebar", readOnly: true },
       options: [
-        { label: "Görsel", value: "image" },
-        { label: "Video", value: "video" },
+        { label: { tr: "Görsel", en: "Image" }, value: "image" },
+        { label: { tr: "Video", en: "Video" }, value: "video" },
       ],
     },
     {
@@ -139,14 +139,26 @@ export const Media: CollectionConfig = {
     {
       name: "usageUrl",
       type: "text",
-      label: "Kullanım Yeri (URL)",
-      admin: { position: "sidebar", description: "Bu görselin/videonun site üzerinde nerede kullanıldığı — serbest metin, örn: /kampanyalar#yaz-2026" },
+      label: { tr: "Kullanım Yeri (URL)", en: "Used On (URL)" },
+      admin: {
+        position: "sidebar",
+        description: {
+          tr: "Bu görselin/videonun site üzerinde nerede kullanıldığı — serbest metin, örn: /kampanyalar#yaz-2026",
+          en: "Where this image/video is used on the site — free text, e.g.: /kampanyalar#yaz-2026",
+        },
+      },
     },
     {
       name: "usageNote",
       type: "textarea",
-      label: "Kullanım Notu",
-      admin: { position: "sidebar", description: "Ek not — aşağıdaki 'Kullanıldığı Yerler' otomatik liste sadece bilinen alanları tarar, burası serbest metindir." },
+      label: { tr: "Kullanım Notu", en: "Usage Note" },
+      admin: {
+        position: "sidebar",
+        description: {
+          tr: "Ek not — aşağıdaki 'Kullanıldığı Yerler' otomatik liste sadece bilinen alanları tarar, burası serbest metindir.",
+          en: "Extra note — the 'Used In' auto-list below only scans known fields; this one is free text.",
+        },
+      },
     },
     {
       // RFP feedback C2: automatic list, alongside the manual usageUrl/

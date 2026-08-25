@@ -68,7 +68,11 @@ export const BlogPosts: CollectionConfig = {
       type: "text",
       required: true,
       unique: true,
-      admin: { position: "sidebar", readOnly: true, description: "URL için otomatik oluşturulur: /blog/{slug}" },
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description: { tr: "URL için otomatik oluşturulur: /blog/{slug}", en: "Auto-generated for the URL: /blog/{slug}" },
+      },
     },
     {
       // The card grid (src/components/CardListGrid.tsx) crops every cover to
@@ -81,7 +85,12 @@ export const BlogPosts: CollectionConfig = {
       type: "upload",
       relationTo: "media",
       required: true,
-      admin: { description: "Liste kartında 361x240 (yatay/dikdörtgen) kırpılır — kare değil, yatay fotoğraf tercih edin." },
+      admin: {
+        description: {
+          tr: "Liste kartında 361x240 (yatay/dikdörtgen) kırpılır — kare değil, yatay fotoğraf tercih edin.",
+          en: "Cropped to 361x240 (landscape) on the list card — prefer a landscape photo over a square one.",
+        },
+      },
     },
     {
       // RFP follow-up: `excerpt` (a separate short-summary field) removed.
@@ -121,8 +130,10 @@ export const BlogPosts: CollectionConfig = {
       // before this switch, so there was no existing data to migrate.
       filterOptions: () => ({ scope: { equals: CATEGORY_SCOPES.BLOG } }),
       admin: {
-        description:
-          "Blog listesindeki filtre sekmesini belirler (Blog akışındaki kategoriler). Listede yoksa Kategoriler'e gidip 'Akış: Blog' ile yeni bir tane oluşturun.",
+        description: {
+          tr: "Blog listesindeki filtre sekmesini belirler (Blog akışındaki kategoriler). Listede yoksa Kategoriler'e gidip 'Akış: Blog' ile yeni bir tane oluşturun.",
+          en: "Determines the filter tab on the blog list (categories in the Blog flow). If it's not in the list, go to Categories and create one with 'Flow: Blog'.",
+        },
       },
     },
     {
@@ -132,7 +143,12 @@ export const BlogPosts: CollectionConfig = {
       type: "text",
       defaultValue: "Detayları gör",
       label: { tr: "Buton Yazısı", en: "Button Label" },
-      admin: { description: "Blog kartındaki butonun üzerinde yazacak metin. Örnek: Detayları Gör, Yazıyı Oku" },
+      admin: {
+        description: {
+          tr: "Blog kartındaki butonun üzerinde yazacak metin. Örnek: Detayları Gör, Yazıyı Oku",
+          en: "Text on the blog card's button. E.g.: Detayları Gör, Yazıyı Oku",
+        },
+      },
     },
     { name: "publishedDate", type: "date", admin: { date: { pickerAppearance: "dayOnly" } } },
     {
@@ -142,10 +158,15 @@ export const BlogPosts: CollectionConfig = {
       type: "select",
       defaultValue: "active",
       options: [
-        { label: "Aktif", value: "active" },
-        { label: "Arşivlendi", value: "archived" },
+        { label: { tr: "Aktif", en: "Active" }, value: "active" },
+        { label: { tr: "Arşivlendi", en: "Archived" }, value: "archived" },
       ],
-      admin: { description: "Arşivlenen yazı liste sayfasından kalkar, detay sayfası erişilebilir kalır" },
+      admin: {
+        description: {
+          tr: "Arşivlenen yazı liste sayfasından kalkar, detay sayfası erişilebilir kalır",
+          en: "An archived post is removed from the list page; its detail page stays reachable",
+        },
+      },
     },
     { name: "seoTitle", type: "text" },
     { name: "seoDescription", type: "textarea" },

@@ -38,14 +38,26 @@ export const NavLinks: CollectionConfig = {
     delete: isNewVerticalMaker,
   },
   fields: [
-    { name: "label", type: "text", required: true, admin: { description: "Menüde/footer'da görünecek yazı, örn: 'Vodafone Pay Kart'." } },
+    {
+      name: "label",
+      type: "text",
+      required: true,
+      admin: {
+        description: {
+          tr: "Menüde/footer'da görünecek yazı, örn: 'Vodafone Pay Kart'.",
+          en: "Text shown in the menu/footer, e.g.: 'Vodafone Pay Kart'.",
+        },
+      },
+    },
     {
       name: "href",
       type: "text",
       required: true,
       admin: {
-        description:
-          "Tıklanınca gidilecek adres. İç sayfa için başında / olacak şekilde yazın (örn. /vodafone-pay-kart veya, Pages'te oluşturduğunuz bir sayfa için /{o sayfanın slug'ı}); dış bağlantı için https:// ile başlayın (örn. Bilgi Toplum Hizmetleri linki gibi). Bu alan HERHANGİ bir adresi kabul eder — geliştirici sitedeki mevcut sayfaların adres listesini size verebilir.",
+        description: {
+          tr: "Tıklanınca gidilecek adres. İç sayfa için başında / olacak şekilde yazın (örn. /vodafone-pay-kart veya, Pages'te oluşturduğunuz bir sayfa için /{o sayfanın slug'ı}); dış bağlantı için https:// ile başlayın (örn. Bilgi Toplum Hizmetleri linki gibi). Bu alan HERHANGİ bir adresi kabul eder — geliştirici sitedeki mevcut sayfaların adres listesini size verebilir.",
+          en: "Address to go to when clicked. For an internal page start with / (e.g. /vodafone-pay-kart, or /{that page's slug} for a page you created in Pages); for an external link start with https:// (e.g. the Bilgi Toplum Hizmetleri link). This field accepts ANY address — a developer can give you the list of the site's existing page addresses.",
+        },
       },
     },
     {
@@ -53,14 +65,16 @@ export const NavLinks: CollectionConfig = {
       type: "select",
       required: true,
       admin: {
-        description:
-          "Bu link NEREDE görünecek? Header — Ürünler = üst menüdeki 'Ürünler' açılır listesi. Header — Ana Menü = üst menünün geri kalanı (Kampanyalar, Blog vb.). Footer — Kurumsal/Yasal, footer'daki o iki sütuna karşılık gelir. Footer'daki 'Sık Sorulanlar' ve 'Kampanyalar' sütunları artık BURADAN değil, ilgili Sık Sorulanlar/Kampanyalar kaydındaki 'Footer'da Göster' kutusundan yönetiliyor. Bir linki KALDIRMAK için bu kaydı silin; SIRASINI değiştirmek için listedeki sürükle-bırak aracını kullanın.",
+        description: {
+          tr: "Bu link NEREDE görünecek? Header — Ürünler = üst menüdeki 'Ürünler' açılır listesi. Header — Ana Menü = üst menünün geri kalanı (Kampanyalar, Blog vb.). Footer — Kurumsal/Yasal, footer'daki o iki sütuna karşılık gelir. Footer'daki 'Sık Sorulanlar' ve 'Kampanyalar' sütunları artık BURADAN değil, ilgili Sık Sorulanlar/Kampanyalar kaydındaki 'Footer'da Göster' kutusundan yönetiliyor. Bir linki KALDIRMAK için bu kaydı silin; SIRASINI değiştirmek için listedeki sürükle-bırak aracını kullanın.",
+          en: "WHERE will this link appear? Header — Ürünler = the 'Ürünler' dropdown in the top menu. Header — Ana Menü = the rest of the top menu (Kampanyalar, Blog, etc.). Footer — Kurumsal/Yasal correspond to those two footer columns. The footer's 'Sık Sorulanlar' and 'Kampanyalar' columns are no longer managed HERE — use the 'Show in Footer' checkbox on the relevant FAQ/Campaign record instead. To REMOVE a link, delete this record; to reorder, use the drag-and-drop tool on the list.",
+        },
       },
       options: [
-        { label: "Header — Ürünler", value: "header-products" },
-        { label: "Header — Ana Menü", value: "header-main" },
-        { label: "Footer — Kurumsal", value: "footer-kurumsal" },
-        { label: "Footer — Yasal", value: "footer-yasal" },
+        { label: { tr: "Header — Ürünler", en: "Header — Products" }, value: "header-products" },
+        { label: { tr: "Header — Ana Menü", en: "Header — Main Menu" }, value: "header-main" },
+        { label: { tr: "Footer — Kurumsal", en: "Footer — Corporate" }, value: "footer-kurumsal" },
+        { label: { tr: "Footer — Yasal", en: "Footer — Legal" }, value: "footer-yasal" },
       ],
     },
     {

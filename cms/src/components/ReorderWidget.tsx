@@ -82,6 +82,7 @@ function groupDocs(
   docs: ReorderableDoc[],
   groupField?: string,
   groupLabels?: Record<string, string>
+  // (^ already resolved to the current locale by the caller — see ReorderWidget's own `groupLabels` prop below)
 ): [string, string, ReorderableDoc[]][] {
   const groups = new Map<string, { label: string; items: ReorderableDoc[] }>();
   for (const doc of docs) {
@@ -327,13 +328,14 @@ export type GroupsFrom = {
 export default function ReorderWidget({
   collection,
   groupField,
-  groupLabels,
+  groupLabels: groupLabelsByLocale,
   groupsFrom,
   onSaved: onSavedExtra,
 }: {
   collection: string;
   groupField?: string;
-  groupLabels?: Record<string, string>;
+  /** Bilingual — resolved to a flat value→label map below once `locale` is known. */
+  groupLabels?: Record<string, { tr: string; en: string }>;
   /**
    * When set, the group list (and each group's item count) comes from the
    * server up front — including groups with zero or one item, which used to
@@ -365,6 +367,9 @@ export default function ReorderWidget({
   const locale = useAdminLocale();
   const t = useDbStrings(locale);
   const strings = { title: t("reorderWidget.title"), saving: t("reorderWidget.saving"), loadError: t("reorderWidget.loadError") };
+  const groupLabels = groupLabelsByLocale
+    ? Object.fromEntries(Object.entries(groupLabelsByLocale).map(([key, value]) => [key, value[locale]]))
+    : undefined;
   const { user } = useAuth();
   const role = (user as { role?: string } | undefined)?.role;
   // Every collection this widget is wired into (see admin.components.beforeList

@@ -16,7 +16,10 @@ export const CookieRows: CollectionConfig = {
     useAsTitle: "name",
     defaultColumns: ["name", "provider", "party", "category"],
     group: { tr: "Site Yapısı", en: "Site Structure" },
-    description: "/cerez-politikasi sayfasındaki çerez tablosunun satırları.",
+    description: {
+      tr: "/cerez-politikasi sayfasındaki çerez tablosunun satırları.",
+      en: "Rows of the cookie table on the /cerez-politikasi page.",
+    },
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "cookie-rows" } }],
     },
@@ -39,8 +42,8 @@ export const CookieRows: CollectionConfig = {
       type: "select",
       required: true,
       options: [
-        { label: "Birinci taraf", value: "Birinci taraf" },
-        { label: "Üçüncü taraf", value: "Üçüncü taraf" },
+        { label: { tr: "Birinci taraf", en: "First party" }, value: "Birinci taraf" },
+        { label: { tr: "Üçüncü taraf", en: "Third party" }, value: "Üçüncü taraf" },
       ],
     },
     {
@@ -48,10 +51,10 @@ export const CookieRows: CollectionConfig = {
       type: "select",
       required: true,
       options: [
-        { label: "Zorunlu", value: "Zorunlu" },
-        { label: "İşlevsel", value: "İşlevsel" },
-        { label: "Performans (Analitik)", value: "Performans (Analitik)" },
-        { label: "Reklam/Pazarlama", value: "Reklam/Pazarlama" },
+        { label: { tr: "Zorunlu", en: "Necessary" }, value: "Zorunlu" },
+        { label: { tr: "İşlevsel", en: "Functional" }, value: "İşlevsel" },
+        { label: { tr: "Performans (Analitik)", en: "Performance (Analytics)" }, value: "Performans (Analitik)" },
+        { label: { tr: "Reklam/Pazarlama", en: "Advertising/Marketing" }, value: "Reklam/Pazarlama" },
       ],
     },
     { name: "description", type: "textarea", required: true },

@@ -122,8 +122,10 @@ export const FaqItems: CollectionConfig = {
       // Categories.ts for why this has to be a separate list at all.
       filterOptions: () => ({ scope: { equals: CATEGORY_SCOPES.FAQ } }),
       admin: {
-        description:
-          "Bu sorunun hangi ürün sayfasında ve /sikca-sorulan-sorular sekmesinde görüneceğini belirler (SSS akışındaki kategoriler). Listede yoksa Kategoriler'e gidip 'Akış: Sık Sorulan Sorular' ile yeni bir tane oluşturun.",
+        description: {
+          tr: "Bu sorunun hangi ürün sayfasında ve /sikca-sorulan-sorular sekmesinde görüneceğini belirler (SSS akışındaki kategoriler). Listede yoksa Kategoriler'e gidip 'Akış: Sık Sorulan Sorular' ile yeni bir tane oluşturun.",
+          en: "Determines which product page and /sikca-sorulan-sorular tab this question shows on (categories in the FAQ flow). If it's not in the list, go to Categories and create one with 'Flow: FAQ'.",
+        },
       },
     },
     {

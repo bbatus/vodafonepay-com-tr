@@ -23,7 +23,10 @@ export const PageMeta: CollectionConfig = {
     useAsTitle: "pageKey",
     defaultColumns: ["pageKey", "breadcrumbLabel", "seoTitle"],
     group: { tr: "Site Yapısı", en: "Site Structure" },
-    description: "Sayfa başına breadcrumb metni ve SEO alanları. pageKey, sitedeki route ile birebir eşleşmeli (örn: /aninda-bakiye).",
+    description: {
+      tr: "Sayfa başına breadcrumb metni ve SEO alanları. pageKey, sitedeki route ile birebir eşleşmeli (örn: /aninda-bakiye).",
+      en: "Per-page breadcrumb text and SEO fields. pageKey must exactly match the site's route (e.g.: /aninda-bakiye).",
+    },
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "page-meta" } }],
     },
@@ -39,7 +42,13 @@ export const PageMeta: CollectionConfig = {
     delete: isNewVerticalMaker,
   },
   fields: [
-    { name: "pageKey", type: "text", required: true, unique: true, admin: { description: "Örn: /, /aninda-bakiye, /kampanyalar" } },
+    {
+      name: "pageKey",
+      type: "text",
+      required: true,
+      unique: true,
+      admin: { description: { tr: "Örn: /, /aninda-bakiye, /kampanyalar", en: "E.g.: /, /aninda-bakiye, /kampanyalar" } },
+    },
     { name: "breadcrumbLabel", type: "text" },
     { name: "seoTitle", type: "text" },
     { name: "seoDescription", type: "textarea" },

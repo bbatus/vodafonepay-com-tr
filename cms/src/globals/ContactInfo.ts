@@ -13,7 +13,7 @@ export const ContactInfo: GlobalConfig = {
   label: { tr: "İletişim Bilgileri", en: "Contact Info" },
   admin: {
     hideAPIURL: true,
-    group: "Site Yapısı",
+    group: { tr: "Site Yapısı", en: "Site Structure" },
     description: {
       tr: "Sitenin her sayfasındaki footer'da ve İletişim / Kurumsal Yönetim sayfalarında gösterilen resmî şirket ve başvuru bilgileri. Tek kayıttır — burada yapılan değişiklik sitenin tamamını etkiler.",
       en: "The official company and complaint-channel details shown in the footer on every page and on the Contact / Corporate Governance pages. Single record — a change here affects the whole site.",

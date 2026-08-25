@@ -75,8 +75,8 @@ function blockThumb(inner: string, defs = ""): { thumbnail: { url: string; alt: 
 const HeroBlock: Block = {
   slug: "hero",
   labels: {
-    singular: "Hero (Başlık + Görsel)",
-    plural: "Hero Blokları",
+    singular: { tr: "Hero (Başlık + Görsel)", en: "Hero (Heading + Image)" },
+    plural: { tr: "Hero Blokları", en: "Hero Blocks" },
   },
   admin: {
     images: blockThumb(
@@ -85,19 +85,67 @@ const HeroBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", required: true, admin: { description: "Sayfanın en üstündeki büyük, kalın başlık. Kısa ve iddialı olsun. Örnek: \"Vodafone'lu Ol, Ödemenin Akıllı Halini Keşfet!\" · \"Faturana Yansıt, Sonra Öde\"" } },
-    { name: "subheading", type: "text", admin: { description: "Başlığın altındaki destek cümlesi — başlıktaki vaadi somutlaştırır. Örnek: \"Hemen Vodafone Pay'e geç, alışverişini tek dokunuşla tamamla.\" Boş bırakılabilir." } },
-    { name: "image", type: "upload", relationTo: "media", required: true, admin: { description: "Sayfanın en üstünde tam genişlikte görünecek büyük görsel. Vodafone marka görseli kullanın (kırmızı zemin + Pay logosu, ya da uygulama ekran görüntüsü). Önerilen ölçü: 1440x600 piksel." } },
-    { name: "ctaLabel", type: "text", admin: { description: "Buton üzerinde yazacak metin. Örnek: \"Hemen Başla\" · \"Detayları Gör\" · \"Uygulamayı İndir\". Boş bırakılırsa buton hiç gösterilmez." } },
-    { name: "ctaUrl", type: "text", admin: { description: "Butona tıklayınca gidilecek adres, örn: /kampanyalar veya https://... . ctaLabel doluysa bu da dolu olmalı." } },
+    {
+      name: "heading",
+      type: "text",
+      required: true,
+      admin: {
+        description: {
+          tr: "Sayfanın en üstündeki büyük, kalın başlık. Kısa ve iddialı olsun. Örnek: \"Vodafone'lu Ol, Ödemenin Akıllı Halini Keşfet!\" · \"Faturana Yansıt, Sonra Öde\"",
+          en: "The large, bold heading at the top of the page. Keep it short and bold. E.g.: \"Vodafone'lu Ol, Ödemenin Akıllı Halini Keşfet!\" · \"Faturana Yansıt, Sonra Öde\"",
+        },
+      },
+    },
+    {
+      name: "subheading",
+      type: "text",
+      admin: {
+        description: {
+          tr: "Başlığın altındaki destek cümlesi — başlıktaki vaadi somutlaştırır. Örnek: \"Hemen Vodafone Pay'e geç, alışverişini tek dokunuşla tamamla.\" Boş bırakılabilir.",
+          en: "The supporting line under the heading — makes the heading's promise concrete. E.g.: \"Hemen Vodafone Pay'e geç, alışverişini tek dokunuşla tamamla.\" Optional.",
+        },
+      },
+    },
+    {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      required: true,
+      admin: {
+        description: {
+          tr: "Sayfanın en üstünde tam genişlikte görünecek büyük görsel. Vodafone marka görseli kullanın (kırmızı zemin + Pay logosu, ya da uygulama ekran görüntüsü). Önerilen ölçü: 1440x600 piksel.",
+          en: "The large full-width image at the top of the page. Use Vodafone brand imagery (red background + Pay logo, or an app screenshot). Recommended size: 1440x600px.",
+        },
+      },
+    },
+    {
+      name: "ctaLabel",
+      type: "text",
+      admin: {
+        description: {
+          tr: "Buton üzerinde yazacak metin. Örnek: \"Hemen Başla\" · \"Detayları Gör\" · \"Uygulamayı İndir\". Boş bırakılırsa buton hiç gösterilmez.",
+          en: "Text on the button. E.g.: \"Hemen Başla\" · \"Detayları Gör\" · \"Uygulamayı İndir\". If left empty, no button is shown.",
+        },
+      },
+    },
+    {
+      name: "ctaUrl",
+      type: "text",
+      admin: {
+        description: {
+          tr: "Butona tıklayınca gidilecek adres, örn: /kampanyalar veya https://... . ctaLabel doluysa bu da dolu olmalı.",
+          en: "Address to go to when the button is clicked, e.g.: /kampanyalar or https://... . Must be filled if ctaLabel is filled.",
+        },
+      },
+    },
   ],
 };
 
 const RichTextBlock: Block = {
   slug: "richText",
   labels: {
-    singular: "Metin Bloğu",
-    plural: "Metin Blokları",
+    singular: { tr: "Metin Bloğu", en: "Text Block" },
+    plural: { tr: "Metin Blokları", en: "Text Blocks" },
   },
   admin: {
     images: blockThumb(
@@ -105,7 +153,16 @@ const RichTextBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "Bu metin bölümünün başlığı. Örnek: \"Vodafone Pay Nedir?\" · \"Neden Vodafone Pay?\". Boş bırakılırsa başlıksız sadece metin gösterilir." } },
+    {
+      name: "heading",
+      type: "text",
+      admin: {
+        description: {
+          tr: "Bu metin bölümünün başlığı. Örnek: \"Vodafone Pay Nedir?\" · \"Neden Vodafone Pay?\". Boş bırakılırsa başlıksız sadece metin gösterilir.",
+          en: "This text section's heading. E.g.: \"Vodafone Pay Nedir?\" · \"Neden Vodafone Pay?\". If left empty, only the text shows, with no heading.",
+        },
+      },
+    },
     { name: "body", type: "richText", required: true },
   ],
 };
@@ -113,8 +170,8 @@ const RichTextBlock: Block = {
 const FaqListBlock: Block = {
   slug: "faqList",
   labels: {
-    singular: "SSS Bloğu",
-    plural: "SSS Blokları",
+    singular: { tr: "SSS Bloğu", en: "FAQ Block" },
+    plural: { tr: "SSS Blokları", en: "FAQ Blocks" },
   },
   admin: {
     images: blockThumb(
@@ -122,13 +179,24 @@ const FaqListBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "SSS bölümünün başlığı. Örnek: \"Vodafone Pay Hakkında Merak Edilenler\". Boş bırakılabilir." } },
+    {
+      name: "heading",
+      type: "text",
+      admin: {
+        description: {
+          tr: "SSS bölümünün başlığı. Örnek: \"Vodafone Pay Hakkında Merak Edilenler\". Boş bırakılabilir.",
+          en: "The FAQ section's heading. E.g.: \"Vodafone Pay Hakkında Merak Edilenler\". Optional.",
+        },
+      },
+    },
     {
       name: "category",
       type: "text",
       admin: {
-        description:
-          "Sadece BELİRLİ bir kategorideki soruları göstermek için Kategoriler koleksiyonundaki (Akış: Sık Sorulanlar) o kategorinin slug'ını yazın, örn: kampanyalar. Boş bırakılırsa SSS akışındaki TÜM sorular gelir.",
+        description: {
+          tr: "Sadece BELİRLİ bir kategorideki soruları göstermek için Kategoriler koleksiyonundaki (Akış: Sık Sorulanlar) o kategorinin slug'ını yazın, örn: kampanyalar. Boş bırakılırsa SSS akışındaki TÜM sorular gelir.",
+          en: "To show questions from only ONE SPECIFIC category, enter that category's slug from the Categories collection (Flow: FAQ), e.g.: kampanyalar. If left empty, ALL questions in the FAQ flow are shown.",
+        },
       },
     },
   ],
@@ -137,8 +205,8 @@ const FaqListBlock: Block = {
 const CampaignGridBlock: Block = {
   slug: "campaignGrid",
   labels: {
-    singular: "Kampanya Grid Bloğu",
-    plural: "Kampanya Grid Blokları",
+    singular: { tr: "Kampanya Grid Bloğu", en: "Campaign Grid Block" },
+    plural: { tr: "Kampanya Grid Blokları", en: "Campaign Grid Blocks" },
   },
   admin: {
     images: blockThumb(
@@ -147,13 +215,25 @@ const CampaignGridBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", required: true, admin: { description: "Vitrinin başlığı. Örnek: \"Vodafone'lulara Özel Kampanyalar\" · \"Bu Ayın Fırsatları\"." } },
+    {
+      name: "heading",
+      type: "text",
+      required: true,
+      admin: {
+        description: {
+          tr: "Vitrinin başlığı. Örnek: \"Vodafone'lulara Özel Kampanyalar\" · \"Bu Ayın Fırsatları\".",
+          en: "The showcase's heading. E.g.: \"Vodafone'lulara Özel Kampanyalar\" · \"Bu Ayın Fırsatları\".",
+        },
+      },
+    },
     {
       name: "category",
       type: "text",
       admin: {
-        description:
-          "Sadece BELİRLİ bir kategorideki kampanyaları göstermek için Kategoriler koleksiyonundaki (Akış: Kampanyalar) o kategorinin slug'ını yazın, örn: kart. Boş bırakılırsa TÜM aktif kampanyalar gelir.",
+        description: {
+          tr: "Sadece BELİRLİ bir kategorideki kampanyaları göstermek için Kategoriler koleksiyonundaki (Akış: Kampanyalar) o kategorinin slug'ını yazın, örn: kart. Boş bırakılırsa TÜM aktif kampanyalar gelir.",
+          en: "To show campaigns from only ONE SPECIFIC category, enter that category's slug from the Categories collection (Flow: Campaigns), e.g.: kart. If left empty, ALL active campaigns are shown.",
+        },
       },
     },
   ],
@@ -162,8 +242,8 @@ const CampaignGridBlock: Block = {
 const VideoBlock: Block = {
   slug: "video",
   labels: {
-    singular: "Video Bloğu",
-    plural: "Video Blokları",
+    singular: { tr: "Video Bloğu", en: "Video Block" },
+    plural: { tr: "Video Blokları", en: "Video Blocks" },
   },
   admin: {
     images: blockThumb(
@@ -172,14 +252,25 @@ const VideoBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "Videonun üstünde gösterilecek başlık. Örnek: \"Vodafone Pay Nasıl Kullanılır?\" · \"60 Saniyede Faturana Yansıt\". Boş bırakılabilir." } },
+    {
+      name: "heading",
+      type: "text",
+      admin: {
+        description: {
+          tr: "Videonun üstünde gösterilecek başlık. Örnek: \"Vodafone Pay Nasıl Kullanılır?\" · \"60 Saniyede Faturana Yansıt\". Boş bırakılabilir.",
+          en: "The heading shown above the video. E.g.: \"Vodafone Pay Nasıl Kullanılır?\" · \"60 Saniyede Faturana Yansıt\". Optional.",
+        },
+      },
+    },
     {
       name: "youtubeId",
       type: "text",
       required: true,
       admin: {
-        description:
-          "Sadece video ID'si — tam URL değil. https://www.youtube.com/watch?v=ABC123XYZ adresindeki ABC123XYZ kısmını yazın.",
+        description: {
+          tr: "Sadece video ID'si — tam URL değil. https://www.youtube.com/watch?v=ABC123XYZ adresindeki ABC123XYZ kısmını yazın.",
+          en: "Just the video ID — not the full URL. Enter the ABC123XYZ part of https://www.youtube.com/watch?v=ABC123XYZ.",
+        },
       },
     },
   ],
@@ -188,8 +279,8 @@ const VideoBlock: Block = {
 const LogoGridBlock: Block = {
   slug: "logoGrid",
   labels: {
-    singular: "Logo Grid Bloğu",
-    plural: "Logo Grid Blokları",
+    singular: { tr: "Logo Grid Bloğu", en: "Logo Grid Block" },
+    plural: { tr: "Logo Grid Blokları", en: "Logo Grid Blocks" },
   },
   admin: {
     images: blockThumb(
@@ -197,16 +288,49 @@ const LogoGridBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "Vitrinin başlığı. Örnek: \"Anlaşmalı Bankalar\" · \"Vodafone Pay'i Kullanabileceğiniz Yerler\". Boş bırakılabilir." } },
+    {
+      name: "heading",
+      type: "text",
+      admin: {
+        description: {
+          tr: "Vitrinin başlığı. Örnek: \"Anlaşmalı Bankalar\" · \"Vodafone Pay'i Kullanabileceğiniz Yerler\". Boş bırakılabilir.",
+          en: "The showcase's heading. E.g.: \"Anlaşmalı Bankalar\" · \"Vodafone Pay'i Kullanabileceğiniz Yerler\". Optional.",
+        },
+      },
+    },
     {
       name: "logos",
       type: "array",
       minRows: 1,
-      admin: { description: "Her satır bir logo. '+ Logo Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin." },
+      admin: {
+        description: {
+          tr: "Her satır bir logo. '+ Logo Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin.",
+          en: "Each row is one logo. Use '+ Add Logo' to add a new one, drag to reorder.",
+        },
+      },
       fields: [
-        { name: "name", type: "text", required: true, admin: { description: "Logonun adı (ekranda görünmez, erişilebilirlik/alt-text için)." } },
-        { name: "logo", type: "upload", relationTo: "media", required: true, admin: { description: "Logo görseli." } },
-        { name: "linkUrl", type: "text", admin: { description: "Logoya tıklayınca gidilecek adres. Boş bırakılırsa logo tıklanamaz olur." } },
+        {
+          name: "name",
+          type: "text",
+          required: true,
+          admin: {
+            description: {
+              tr: "Logonun adı (ekranda görünmez, erişilebilirlik/alt-text için).",
+              en: "The logo's name (not shown on screen, used for accessibility/alt text).",
+            },
+          },
+        },
+        { name: "logo", type: "upload", relationTo: "media", required: true, admin: { description: { tr: "Logo görseli.", en: "The logo image." } } },
+        {
+          name: "linkUrl",
+          type: "text",
+          admin: {
+            description: {
+              tr: "Logoya tıklayınca gidilecek adres. Boş bırakılırsa logo tıklanamaz olur.",
+              en: "Address to go to when the logo is clicked. If left empty, the logo isn't clickable.",
+            },
+          },
+        },
       ],
     },
   ],
@@ -228,8 +352,8 @@ const LogoGridBlock: Block = {
 const IconCardsBlock: Block = {
   slug: "iconCards",
   labels: {
-    singular: "İkonlu Kartlar Bloğu",
-    plural: "İkonlu Kartlar Blokları",
+    singular: { tr: "İkonlu Kartlar Bloğu", en: "Icon Cards Block" },
+    plural: { tr: "İkonlu Kartlar Blokları", en: "Icon Cards Blocks" },
   },
   admin: {
     images: blockThumb(
@@ -237,16 +361,61 @@ const IconCardsBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "Bölümün başlığı. Örnek: \"Vodafone Pay Ayrıcalıkları\" · \"Akıllı Ödeme Yöntemleri\". Boş bırakılabilir." } },
+    {
+      name: "heading",
+      type: "text",
+      admin: {
+        description: {
+          tr: "Bölümün başlığı. Örnek: \"Vodafone Pay Ayrıcalıkları\" · \"Akıllı Ödeme Yöntemleri\". Boş bırakılabilir.",
+          en: "The section's heading. E.g.: \"Vodafone Pay Ayrıcalıkları\" · \"Akıllı Ödeme Yöntemleri\". Optional.",
+        },
+      },
+    },
     {
       name: "cards",
       type: "array",
       minRows: 1,
-      admin: { description: "Her satır bir kart (ikon + başlık + kısa açıklama). '+ Kart Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin. Genelde 3 kart kullanılır." },
+      admin: {
+        description: {
+          tr: "Her satır bir kart (ikon + başlık + kısa açıklama). '+ Kart Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin. Genelde 3 kart kullanılır.",
+          en: "Each row is one card (icon + title + short text). Use '+ Add Card' to add a new one, drag to reorder. Usually 3 cards are used.",
+        },
+      },
       fields: [
-        { name: "icon", type: "upload", relationTo: "media", required: true, admin: { description: "Küçük ikon görseli — Vodafone ikon setinden, tercihen tek renk (kırmızı ya da koyu gri), 64x64 piksel." } },
-        { name: "title", type: "text", required: true, admin: { description: "Kartın başlığı — 2-4 kelime. Örnek: \"Size Özel Limit\" · \"Anında Bakiye\" · \"Temassız Öde\"." } },
-        { name: "text", type: "textarea", required: true, admin: { description: "Kartın kısa açıklama metni, 1-2 cümle. Örnek: \"Faturana yansıt, ay sonunda tek seferde öde. Ekstra ücret yok.\"" } },
+        {
+          name: "icon",
+          type: "upload",
+          relationTo: "media",
+          required: true,
+          admin: {
+            description: {
+              tr: "Küçük ikon görseli — Vodafone ikon setinden, tercihen tek renk (kırmızı ya da koyu gri), 64x64 piksel.",
+              en: "A small icon image — from the Vodafone icon set, preferably a single color (red or dark grey), 64x64px.",
+            },
+          },
+        },
+        {
+          name: "title",
+          type: "text",
+          required: true,
+          admin: {
+            description: {
+              tr: "Kartın başlığı — 2-4 kelime. Örnek: \"Size Özel Limit\" · \"Anında Bakiye\" · \"Temassız Öde\".",
+              en: "The card's title — 2-4 words. E.g.: \"Size Özel Limit\" · \"Anında Bakiye\" · \"Temassız Öde\".",
+            },
+          },
+        },
+        {
+          name: "text",
+          type: "textarea",
+          required: true,
+          admin: {
+            description: {
+              tr: "Kartın kısa açıklama metni, 1-2 cümle. Örnek: \"Faturana yansıt, ay sonunda tek seferde öde. Ekstra ücret yok.\"",
+              en: "The card's short text, 1-2 sentences. E.g.: \"Faturana yansıt, ay sonunda tek seferde öde. Ekstra ücret yok.\"",
+            },
+          },
+        },
       ],
     },
   ],
@@ -255,8 +424,8 @@ const IconCardsBlock: Block = {
 const StepsBlock: Block = {
   slug: "steps",
   labels: {
-    singular: "Adım Listesi Bloğu",
-    plural: "Adım Listesi Blokları",
+    singular: { tr: "Adım Listesi Bloğu", en: "Steps Block" },
+    plural: { tr: "Adım Listesi Blokları", en: "Steps Blocks" },
   },
   admin: {
     images: blockThumb(
@@ -265,16 +434,46 @@ const StepsBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "Bölümün başlığı. Örnek: \"3 Adımda Vodafone Pay\" · \"Nasıl Kullanırım?\". Boş bırakılabilir." } },
+    {
+      name: "heading",
+      type: "text",
+      admin: {
+        description: {
+          tr: "Bölümün başlığı. Örnek: \"3 Adımda Vodafone Pay\" · \"Nasıl Kullanırım?\". Boş bırakılabilir.",
+          en: "The section's heading. E.g.: \"3 Adımda Vodafone Pay\" · \"Nasıl Kullanırım?\". Optional.",
+        },
+      },
+    },
     {
       name: "steps",
       type: "array",
       minRows: 1,
-      admin: { description: "Her satır bir adım (sıra numarası + açıklama + o adımı gösteren görsel). '+ Adım Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin." },
+      admin: {
+        description: {
+          tr: "Her satır bir adım (sıra numarası + açıklama + o adımı gösteren görsel). '+ Adım Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin.",
+          en: "Each row is one step (number + text + an image showing that step). Use '+ Add Step' to add a new one, drag to reorder.",
+        },
+      },
       fields: [
-        { name: "number", type: "text", required: true, admin: { description: "Adım numarası, örn: '01', '02'." } },
-        { name: "text", type: "textarea", required: true, admin: { description: "Bu adımda kullanıcının ne yapacağını anlatan metin." } },
-        { name: "image", type: "upload", relationTo: "media", required: true, admin: { description: "Bu adımı gösteren ekran görüntüsü/görsel." } },
+        {
+          name: "number",
+          type: "text",
+          required: true,
+          admin: { description: { tr: "Adım numarası, örn: '01', '02'.", en: "The step number, e.g.: '01', '02'." } },
+        },
+        {
+          name: "text",
+          type: "textarea",
+          required: true,
+          admin: { description: { tr: "Bu adımda kullanıcının ne yapacağını anlatan metin.", en: "Text describing what the user does at this step." } },
+        },
+        {
+          name: "image",
+          type: "upload",
+          relationTo: "media",
+          required: true,
+          admin: { description: { tr: "Bu adımı gösteren ekran görüntüsü/görsel.", en: "A screenshot/image showing this step." } },
+        },
       ],
     },
   ],
@@ -283,8 +482,8 @@ const StepsBlock: Block = {
 const ImageTextSlidesBlock: Block = {
   slug: "imageTextSlides",
   labels: {
-    singular: "Görsel + Metin Slayt Bloğu",
-    plural: "Görsel + Metin Slayt Blokları",
+    singular: { tr: "Görsel + Metin Slayt Bloğu", en: "Image + Text Slides Block" },
+    plural: { tr: "Görsel + Metin Slayt Blokları", en: "Image + Text Slides Blocks" },
   },
   admin: {
     images: blockThumb(
@@ -293,15 +492,24 @@ const ImageTextSlidesBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "Bölümün başlığı, örn: 'Neler Kazanırsın?'. Boş bırakılabilir." } },
+    {
+      name: "heading",
+      type: "text",
+      admin: { description: { tr: "Bölümün başlığı, örn: 'Neler Kazanırsın?'. Boş bırakılabilir.", en: "The section's heading, e.g.: 'Neler Kazanırsın?'. Optional." } },
+    },
     {
       name: "slides",
       type: "array",
       minRows: 1,
-      admin: { description: "Her satır bir slayt (görsel + açıklama metni). '+ Slayt Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin." },
+      admin: {
+        description: {
+          tr: "Her satır bir slayt (görsel + açıklama metni). '+ Slayt Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin.",
+          en: "Each row is one slide (image + text). Use '+ Add Slide' to add a new one, drag to reorder.",
+        },
+      },
       fields: [
-        { name: "image", type: "upload", relationTo: "media", required: true, admin: { description: "Slaytın görseli." } },
-        { name: "text", type: "textarea", required: true, admin: { description: "Slaytın açıklama metni." } },
+        { name: "image", type: "upload", relationTo: "media", required: true, admin: { description: { tr: "Slaytın görseli.", en: "The slide's image." } } },
+        { name: "text", type: "textarea", required: true, admin: { description: { tr: "Slaytın açıklama metni.", en: "The slide's text." } } },
       ],
     },
   ],
@@ -310,8 +518,8 @@ const ImageTextSlidesBlock: Block = {
 const VideoListBlock: Block = {
   slug: "videoList",
   labels: {
-    singular: "Çoklu Video Bloğu",
-    plural: "Çoklu Video Blokları",
+    singular: { tr: "Çoklu Video Bloğu", en: "Video List Block" },
+    plural: { tr: "Çoklu Video Blokları", en: "Video List Blocks" },
   },
   admin: {
     images: blockThumb(
@@ -320,21 +528,33 @@ const VideoListBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "Bölümün başlığı. Boş bırakılabilir." } },
+    { name: "heading", type: "text", admin: { description: { tr: "Bölümün başlığı. Boş bırakılabilir.", en: "The section's heading. Optional." } } },
     {
       name: "videos",
       type: "array",
       minRows: 1,
-      admin: { description: "Her satır bir video (sekme başlığı + video). Tek video için de kullanılabilir; birden fazla eklenirse sekmeli gösterilir." },
+      admin: {
+        description: {
+          tr: "Her satır bir video (sekme başlığı + video). Tek video için de kullanılabilir; birden fazla eklenirse sekmeli gösterilir.",
+          en: "Each row is one video (tab title + video). Can also be used for a single video; if more than one is added, it shows as tabs.",
+        },
+      },
       fields: [
-        { name: "title", type: "text", required: true, admin: { description: "Bu videonun sekme/başlık metni, örn: 'Nasıl Kart Alırım?'." } },
+        {
+          name: "title",
+          type: "text",
+          required: true,
+          admin: { description: { tr: "Bu videonun sekme/başlık metni, örn: 'Nasıl Kart Alırım?'.", en: "This video's tab/title text, e.g.: 'Nasıl Kart Alırım?'." } },
+        },
         {
           name: "youtubeId",
           type: "text",
           required: true,
           admin: {
-            description:
-              "Sadece video ID'si — tam URL değil. https://www.youtube.com/watch?v=ABC123XYZ adresindeki ABC123XYZ kısmını yazın.",
+            description: {
+              tr: "Sadece video ID'si — tam URL değil. https://www.youtube.com/watch?v=ABC123XYZ adresindeki ABC123XYZ kısmını yazın.",
+              en: "Just the video ID — not the full URL. Enter the ABC123XYZ part of https://www.youtube.com/watch?v=ABC123XYZ.",
+            },
           },
         },
       ],
@@ -417,8 +637,10 @@ export const Pages: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "slug", "_status"],
     group: { tr: "İçerik Yönetimi", en: "Content Management" },
-    description:
-      "Yeni sayfalar (kampanya landing, hub sayfası vb.) — geliştirici gerekmeden, blokları sürükleyip bırakarak oluşturulur. İlk defa mı yapıyorsunuz? Yukarıdaki '?' butonuna basın — adım adım anlatım orada.",
+    description: {
+      tr: "Yeni sayfalar (kampanya landing, hub sayfası vb.) — geliştirici gerekmeden, blokları sürükleyip bırakarak oluşturulur. İlk defa mı yapıyorsunuz? Yukarıdaki '?' butonuna basın — adım adım anlatım orada.",
+      en: "New pages (campaign landing, hub page, etc.) — built by dragging and dropping blocks, no developer needed. First time? Click the '?' button above — the step-by-step walkthrough is there.",
+    },
     preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/${doc.slug}`) : null),
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "pages" } }],
@@ -445,21 +667,36 @@ export const Pages: CollectionConfig = {
     // RFP feedback 5.7: was `localized: true` — the only localized field in the
     // whole CMS, which is why the content-locale selector appeared in the
     // header while switching it changed nothing. See payload.config.ts.
-    { name: "title", type: "text", required: true, admin: { description: "Sayfanın adı — hem sayfanın başlığı hem de URL'nin otomatik türetileceği kaynak metin." } },
+    {
+      name: "title",
+      type: "text",
+      required: true,
+      admin: {
+        description: {
+          tr: "Sayfanın adı — hem sayfanın başlığı hem de URL'nin otomatik türetileceği kaynak metin.",
+          en: "The page's name — both the page's title and the source text the URL is auto-derived from.",
+        },
+      },
+    },
     {
       name: "slug",
       type: "text",
       required: true,
       unique: true,
-      admin: { readOnly: true, description: "URL için otomatik oluşturulur: /{slug}" },
+      admin: {
+        readOnly: true,
+        description: { tr: "URL için otomatik oluşturulur: /{slug}", en: "Auto-generated for the URL: /{slug}" },
+      },
     },
     {
       name: "layout",
       type: "blocks",
       minRows: 1,
       admin: {
-        description:
-          "Sayfa, aşağıya eklediğiniz bloklardan yukarıdan aşağı sırayla oluşur — her blok bir bölüm demektir. Sürükleyerek sırasını değiştirebilir, çöp kutusuyla silebilirsiniz. '+ Layout Ekle'deki kartların üzerindeki küçük görsel her bloğun ne işe yaradığını gösterir; hangi bloğu ne zaman kullanacağınızın TAM listesi ve ÖNEMLİSİ bu sayfayı 'Ürünler' menüsünde/footer'da nasıl göstereceğinizin adım adım anlatımı, sayfanın en üstündeki '?' (Yardım) butonunda.",
+        description: {
+          tr: "Sayfa, aşağıya eklediğiniz bloklardan yukarıdan aşağı sırayla oluşur — her blok bir bölüm demektir. Sürükleyerek sırasını değiştirebilir, çöp kutusuyla silebilirsiniz. '+ Layout Ekle'deki kartların üzerindeki küçük görsel her bloğun ne işe yaradığını gösterir; hangi bloğu ne zaman kullanacağınızın TAM listesi ve ÖNEMLİSİ bu sayfayı 'Ürünler' menüsünde/footer'da nasıl göstereceğinizin adım adım anlatımı, sayfanın en üstündeki '?' (Yardım) butonunda.",
+          en: "The page is built top-to-bottom from the blocks you add below — each block is one section. Drag to reorder, use the trash icon to delete. The small image on each '+ Add Layout' card shows what that block is for; the FULL list of which block to use when — and IMPORTANTLY, how to show this page in the 'Ürünler' menu/footer — is in the '?' (Help) button at the top of the page.",
+        },
       },
       blocks: [
         HeroBlock,
