@@ -384,7 +384,7 @@ describe("cms.ts fetch-backed getters", () => {
   it("getLegalPage returns the first doc, or null if none", async () => {
     const doc = { id: "lp1", slug: "cerez-politikasi", title: "T", intro: "I" };
     vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [doc] }));
-    expect(await getLegalPage("cerez-politikasi")).toEqual({ ...doc, documents: [] });
+    expect(await getLegalPage("cerez-politikasi")).toEqual({ ...doc, heroImage: null, groups: [] });
 
     vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [] }));
     expect(await getLegalPage("cerez-politikasi")).toBeNull();
@@ -446,17 +446,26 @@ describe("cms.ts fetch-backed getters", () => {
     expect(await getPages()).toEqual([doc]);
   });
 
-  it("getLegalPage passes through downloadable documents when present", async () => {
+  it("getLegalPage passes through document groups and hero image when present", async () => {
     const doc = {
       id: "lp1",
       slug: "sozlesmeler-ve-formlar",
       title: "T",
       intro: "I",
-      documents: [{ label: "Form", file: { url: "/docs/form.pdf" } }],
+      heroImage: { url: "/media/hero.png", alt: "Hero" },
+      groups: [
+        {
+          label: "Belgeler",
+          documents: [{ label: "Form", file: { url: "/docs/form.pdf" }, enabled: true }],
+        },
+      ],
     };
     vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [doc] }));
     const result = await getLegalPage("sozlesmeler-ve-formlar");
-    expect(result?.documents).toEqual([{ label: "Form", file: { url: "/docs/form.pdf" } }]);
+    expect(result?.heroImage).toEqual({ url: "/media/hero.png", alt: "Hero" });
+    expect(result?.groups).toEqual([
+      { label: "Belgeler", documents: [{ label: "Form", file: { url: "/docs/form.pdf" }, enabled: true }] },
+    ]);
   });
 
   it("getContactInfo returns the global when companyName is present", async () => {

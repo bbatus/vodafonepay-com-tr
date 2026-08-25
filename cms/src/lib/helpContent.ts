@@ -302,6 +302,7 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
         "KVKK, kullanım koşulları gibi sabit hukuki metinler burada tutulur.",
         "'intro' alanına paragraflar arasında boş satır bırakarak yazın.",
         "Değişiklikler versiyonlanır — bir onay/hukuk incelemesi sonrası hatalı bir değişikliği geri alabilirsiniz.",
+        "Sadece 'Sözleşmeler ve Formlar' kaydında: 'Sayfa Görseli' ve 'Belge Grupları' alanları da görünür. Her grup bir başlık + altına eklediğiniz PDF'lerden oluşur; PDF eklerken 'Yeni Oluştur' ile ayrı bir koleksiyona gitmeden doğrudan buradan yükleyebilirsiniz. Bir belgeyi siteden kaldırmak için silmek yerine 'Sitede Göster' kutusunun işaretini kaldırın.",
       ],
     },
     en: {
@@ -310,6 +311,7 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
         "Fixed legal text such as privacy policy or terms of use is kept here.",
         "Write the 'intro' field with a blank line between paragraphs.",
         "Changes are versioned — you can roll back a mistaken edit after a legal review.",
+        "Only on the 'Sözleşmeler ve Formlar' record: a 'Page Image' and 'Document Groups' field also appear. Each group is a label plus the PDFs you add under it — use 'Create New' to upload a PDF right here, no need to visit a separate collection. To pull a document off the site without deleting it, uncheck 'Show on site' instead.",
       ],
     },
   },

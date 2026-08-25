@@ -1,5 +1,5 @@
 import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
-import { isNewVerticalMaker } from "@/access/roles";
+import { isNewVerticalMaker, ROLES } from "@/access/roles";
 import { dbLabel, refreshLabelCache } from "@/lib/collectionLabels";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 
@@ -48,8 +48,24 @@ export const Translations: CollectionConfig = {
     group: { tr: "Sistem", en: "System" },
     description:
       "Admin panelindeki özel bileşenlerin (sidebar, butonlar, login ekranı vb.) metinleri. 'key' değerini değiştirmeyin — kod bu değere göre metni bulur.",
+    // Follow-up 25.08: "business/product bu key'i nereden bilecek ki, bunu
+    // arkaplanda tutalım" — fair point, a raw `loginBrandPanel.headline`-style
+    // key means nothing without reading the code. Hidden from the sidebar
+    // (and the collection list/document routes) for every role except New
+    // Vertical Maker, who's the one actually wiring these keys into new
+    // components. Read access below STAYS public (see its own comment) —
+    // this only hides the collection as a place non-maker roles browse to,
+    // it doesn't block the fetches every role's own UI depends on.
+    hidden: ({ user }) => (user as { role?: string } | undefined)?.role !== ROLES.NEW_VERTICAL_MAKER,
   },
   access: {
+    // Every role's admin UI — not just New Vertical Maker's — renders its
+    // own custom components' button labels/help text by fetching this
+    // collection (see useDbStrings/loadDbStrings); narrowing this to
+    // isNewVerticalMaker would silently break every OTHER role's UI text,
+    // not just hide a collection from them. `admin.hidden` above is what
+    // actually answers "business/product'un görmesi mantıksız" — read access
+    // has to stay open for the app to keep functioning.
     read: () => true,
     create: isNewVerticalMaker,
     update: isNewVerticalMaker,

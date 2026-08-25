@@ -19,6 +19,15 @@ export const Documents: CollectionConfig = {
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "documents" } }],
     },
+    // Follow-up 25.08: "dökümanlar ve hukuki sayfalar için 2 ayrı collection
+    // olmasına gerek yok, sidebarda tekleşsin" — same shape as
+    // FeeRows/LimitTables' `hidden: true`. LegalPages' `groups.documents.file`
+    // field is a plain `type: "upload"` pointing here, whose "Yeni Oluştur"
+    // button opens a document DRAWER (Payload core, not our own code) —
+    // drawers default `overrideEntityVisibility: true`, so uploading/editing
+    // a PDF from inside a legal page keeps working; only the standalone
+    // /admin/collections/documents sidebar entry and direct routes are gone.
+    hidden: true,
   },
   access: {
     read: () => true,

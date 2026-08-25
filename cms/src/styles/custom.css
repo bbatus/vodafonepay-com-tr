@@ -710,7 +710,10 @@ a {
 }
 
 .sidebar-logo__img {
-  height: 28px;
+  /* RFP follow-up 25.08: sidebar should be the ONE brand mark on screen —
+     made deliberately larger than before (was 28px) now that the topbar
+     icon (AdminIcon.tsx) is a plain, unbranded home glyph. */
+  height: 40px;
   width: auto;
 }
 
@@ -1471,6 +1474,12 @@ a {
   font-weight: 600;
 }
 
+.unlock-account__status {
+  font-size: 0.8125rem;
+  color: var(--theme-elevation-600);
+  margin: 0 0 0.5rem;
+}
+
 .access-matrix__intro {
   color: var(--theme-elevation-450);
   font-size: 0.875rem;
@@ -1541,12 +1550,23 @@ a {
   }
 }
 
+/* Follow-up 25.08: "yeni oluştur akışlarında collectionlarda dönemiyorum" —
+   this breadcrumb already links back to the collection list (Payload core),
+   but at the default size/weight it reads as static header text, not a
+   clickable "go back" control. Making it visibly a link (underline, bolder,
+   bigger) rather than adding a second, redundant back button. */
 .step-nav a {
   color: var(--theme-elevation-500);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--theme-elevation-200);
+  text-underline-offset: 2px;
 }
 
 .step-nav a:hover {
   color: var(--vf-red);
+  text-decoration-color: var(--vf-red);
 }
 
 /* ---------------------------------------------------------------------

@@ -45,8 +45,6 @@ import default_19 from "../../../components/AuditLogsExportButton";
 import default_20 from "../../../components/MediaFilterTabs";
 import default_21 from "../../../components/MediaUsageField";
 import default_22 from "../../../components/RememberEmailCheckbox";
-import default_23 from "../../../components/LockedAccountsView";
-import default_24 from "../../../components/LockedAccountsNavLink";
 import default_25 from "../../../components/LockedAccountsBanner";
 import default_26 from "../../../components/CampaignsExportButton";
 import default_27 from "../../../components/LiveOrderField";
@@ -59,6 +57,7 @@ import default_33 from "../../../components/CustomDashboardView";
 import default_34 from "../../../components/AuditLogsCefExportButton";
 import default_35 from "../../../components/AccessMatrixView";
 import default_36 from "../../../components/AccessMatrixNavLink";
+import default_37 from "../../../components/UnlockAccountField";
 import { S3ClientUploadHandler as S3ClientUploadHandler_2 } from "@payloadcms/storage-s3/client";
 import { CollectionCards as CollectionCards_1 } from "@payloadcms/next/rsc";
 import { RscEntryLexicalField, RscEntryLexicalCell, LexicalDiffComponent } from "@payloadcms/richtext-lexical/rsc";
@@ -111,8 +110,6 @@ export const importMap = {
   "/components/MediaFilterTabs#default": default_20,
   "/components/MediaUsageField#default": default_21,
   "/components/RememberEmailCheckbox#default": default_22,
-  "/components/LockedAccountsView#default": default_23,
-  "/components/LockedAccountsNavLink#default": default_24,
   "/components/LockedAccountsBanner#default": default_25,
   "/components/CampaignsExportButton#default": default_26,
   "/components/LiveOrderField#default": default_27,
@@ -125,6 +122,7 @@ export const importMap = {
   "/components/AuditLogsCefExportButton#default": default_34,
   "/components/AccessMatrixView#default": default_35,
   "/components/AccessMatrixNavLink#default": default_36,
+  "/components/UnlockAccountField#default": default_37,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_2,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_1,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField,

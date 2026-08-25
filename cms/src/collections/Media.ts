@@ -1,5 +1,5 @@
 import { APIError } from "payload";
-import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
+import type { CollectionBeforeChangeHook, CollectionBeforeOperationHook, CollectionConfig } from "payload";
 import { isNewVerticalMaker, mediaCreate, newVerticalReadWrite } from "@/access/roles";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
@@ -32,23 +32,54 @@ const deriveMediaType: CollectionBeforeChangeHook = ({ data }) => {
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10MB
 const MAX_VIDEO_BYTES = 100 * 1024 * 1024; // 100MB
 
+// Follow-up 25.08: "gerçekten yüklemek istiyor musun diye bir onay ekranı
+// olsun, engellemeyelim" — turned from a hard block into a soft one. The
+// admin's stock upload widget sends the whole file in the same request that
+// creates the document (confirmed live — there's no separate "attach, then
+// save later" step to hook a native confirm() into), so the "are you sure"
+// step is the sizeOverrideConfirmed checkbox below: oversized without it →
+// blocked with a message telling the editor to check the box and save
+// again; oversized WITH it checked → allowed through.
 const enforceFileSizeLimit: CollectionBeforeChangeHook = ({ data, req }) => {
   const filesize = data?.filesize as number | undefined;
   if (typeof filesize !== "number") return data;
   const isVideo = typeof data?.mimeType === "string" && (data.mimeType as string).startsWith("video/");
   const max = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
-  if (filesize <= max) return data;
+  if (filesize <= max || data?.sizeOverrideConfirmed === true) return data;
 
   const maxMb = max / (1024 * 1024);
   const isEnglish = req.i18n?.language === "en";
   throw new APIError(
     isEnglish
-      ? `File is too large — ${isVideo ? "videos" : "images"} must be under ${maxMb}MB.`
-      : `Dosya çok büyük — ${isVideo ? "videolar" : "görseller"} ${maxMb}MB'den küçük olmalı.`,
+      ? `File is too large — ${isVideo ? "videos" : "images"} are usually under ${maxMb}MB. Check "Upload anyway, over the size limit" in the sidebar and save again if you really want to upload it.`
+      : `Dosya büyük — ${isVideo ? "videolar" : "görseller"} genelde ${maxMb}MB'den küçük olur. Yine de yüklemek istiyorsanız kenar çubuğundaki "Boyut sınırını aşan dosyayı yine de yükle" kutusunu işaretleyip tekrar kaydedin.`,
     400,
     undefined,
     true
   );
+};
+
+/**
+ * Follow-up 25.08: "SVG yüklemiyoruz sanırım". SVG uploads DO succeed on
+ * their own — `mimeTypes: ["image/*"]` already covers `image/svg+xml`, and
+ * Payload skips imageSizes generation for it automatically. What actually
+ * breaks is the admin UI's crop/focal-point editor: it always sends
+ * `uploadEdits` (crop + pixel dimensions) on save regardless of file type,
+ * and sharp can't `extract_area` a crop rectangle computed against an SVG's
+ * viewBox — reproduced live: `Error: extract_area: bad extract area`. Since
+ * Payload has no per-mimetype way to disable the crop UI itself, this drops
+ * any `uploadEdits` BEFORE Payload's own `generateFileData` reads them
+ * (verified in `generateFileData.js`: `beforeOperation` runs first, and an
+ * empty/absent `uploadEdits` short-circuits `shouldReupload` to false) — so
+ * an SVG upload behaves exactly like the crop step never happened, instead
+ * of crashing.
+ */
+const skipCropForSvg: CollectionBeforeOperationHook = ({ req, args }) => {
+  const file = (req as unknown as { file?: { mimetype?: string } }).file;
+  if (file?.mimetype === "image/svg+xml" && req.query && "uploadEdits" in req.query) {
+    delete (req.query as Record<string, unknown>).uploadEdits;
+  }
+  return args;
 };
 
 export const Media: CollectionConfig = {
@@ -60,7 +91,10 @@ export const Media: CollectionConfig = {
   admin: {
     hideAPIURL: true,
     group: { tr: "Sistem", en: "System" },
-    description: { tr: "Görseller en fazla 10MB, videolar en fazla 100MB olabilir.", en: "Images up to 10MB, videos up to 100MB." },
+    description: {
+      tr: "Görseller (PNG/JPG/SVG dahil) en fazla 10MB, videolar en fazla 100MB — daha büyüğü kenar çubuğundaki onay kutusuyla yüklenebilir.",
+      en: "Images (PNG/JPG/SVG included) up to 10MB, videos up to 100MB — larger files can go through with the sidebar checkbox.",
+    },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "media" } },
@@ -124,6 +158,25 @@ export const Media: CollectionConfig = {
         components: { Field: "/components/MediaUsageField#default" },
       },
     },
+    {
+      // Follow-up 25.08 — see enforceFileSizeLimit's comment: this is the
+      // "yine de yüklemek istiyor musun" confirmation, done as a real field
+      // instead of a JS confirm() (the stock upload widget sends the file
+      // and the rest of the form in one request, so there's no separate
+      // moment to intercept with a dialog before the bytes are already
+      // uploaded).
+      name: "sizeOverrideConfirmed",
+      type: "checkbox",
+      defaultValue: false,
+      label: { tr: "Boyut sınırını aşan dosyayı yine de yükle", en: "Upload anyway, over the size limit" },
+      admin: {
+        position: "sidebar",
+        description: {
+          tr: "10MB (görsel) / 100MB (video) sınırını aşan bir dosya kaydedilemez — bunu işaretleyip tekrar kaydederseniz sınıra rağmen yüklenir.",
+          en: "Files over 10MB (images) / 100MB (videos) are blocked — check this and save again to upload anyway.",
+        },
+      },
+    },
   ],
   upload: {
     // RFP §3.1.2: video content must be supported too — the homepage's
@@ -138,6 +191,7 @@ export const Media: CollectionConfig = {
     ],
   },
   hooks: {
+    beforeOperation: [skipCropForSvg],
     beforeChange: [deriveMediaType, enforceFileSizeLimit, setOwnerOnCreate("uploadedBy")],
     beforeDelete: [blockDeleteIfReferenced("media")],
     afterChange: [auditAfterChange("media")],

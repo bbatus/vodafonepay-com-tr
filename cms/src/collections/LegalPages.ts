@@ -17,7 +17,7 @@ export const LegalPages: CollectionConfig = {
     defaultColumns: ["title", "slug"],
     group: { tr: "Site Yapısı", en: "Site Structure" },
     description:
-      "Bu yasal sayfaların tablo/liste gibi yapısal kısımları kodda sabit kalır; burada yönetilen sadece giriş metnidir.",
+      "Bu yasal sayfaların tablo/liste gibi yapısal kısımları kodda sabit kalır; burada yönetilen giriş metni, ve Sözleşmeler ve Formlar için sayfa görseli + belge grupları.",
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "legal-pages" } }],
     },
@@ -49,15 +49,66 @@ export const LegalPages: CollectionConfig = {
     { name: "title", type: "text", required: true },
     { name: "intro", type: "richText", required: true },
     {
-      name: "documents",
-      type: "array",
+      // Follow-up 25.08: "sözleşmeler ve formlar sayfasının görselini
+      // değiştirebilsin" — only meaningful for the one slug that actually
+      // renders it (see the `condition` below and
+      // src/app/sozlesmeler-ve-formlar/page.tsx), so it stays out of the way
+      // on the other 4 (pure-prose) legal pages.
+      name: "heroImage",
+      type: "upload",
+      relationTo: "media",
+      label: { tr: "Sayfa Görseli", en: "Page Image" },
       admin: {
-        description:
-          "Yalnızca Sözleşmeler ve Formlar sayfası için: indirilebilir belge listesi. Sırası, yukarıdaki 'Giriş Metni' alanındaki satır sırasıyla eşleşmeli (1. satır → 1. belge, vb.).",
+        condition: (data) => data?.slug === "sozlesmeler-ve-formlar",
+        description: {
+          tr: "Sözleşmeler ve Formlar sayfasının başlığının üstünde gösterilir. Opsiyonel.",
+          en: "Shown above the Sözleşmeler ve Formlar page's title. Optional.",
+        },
+      },
+    },
+    {
+      // Follow-up 25.08: "altına ekleyebileceği grupları seçebilsin" —
+      // replaces the old flat `documents` array (which had no real grouping
+      // and depended on matching each PDF to a LINE of the `intro` richText
+      // by array index — a fragile, invisible coupling). Each group now
+      // carries its own label and owns its documents directly, and each
+      // document's OWN `label` is what's shown as its button text — no more
+      // implicit index-matching against `intro`.
+      name: "groups",
+      type: "array",
+      label: { tr: "Belge Grupları", en: "Document Groups" },
+      admin: {
+        condition: (data) => data?.slug === "sozlesmeler-ve-formlar",
+        description: {
+          tr: "Yalnızca Sözleşmeler ve Formlar sayfası için: indirilebilir belgeler, başlıklı gruplar halinde.",
+          en: "Only for the Sözleşmeler ve Formlar page: downloadable documents, organized into labeled groups.",
+        },
       },
       fields: [
-        { name: "label", type: "text", required: true },
-        { name: "file", type: "upload", relationTo: "documents", required: true },
+        { name: "label", type: "text", required: true, label: { tr: "Grup Başlığı", en: "Group Label" } },
+        {
+          name: "documents",
+          type: "array",
+          label: { tr: "Belgeler", en: "Documents" },
+          fields: [
+            { name: "label", type: "text", required: true, label: { tr: "Belge Adı", en: "Document Label" } },
+            // A PDF uploaded here creates a Documents record via a drawer
+            // (Documents.ts is `admin.hidden: true` now — this is the ONLY
+            // real entry point for adding one) rather than requiring a trip
+            // to a separate collection first.
+            { name: "file", type: "upload", relationTo: "documents", required: true },
+            {
+              // Follow-up 25.08: "disable edebilsin" — same
+              // enabled/disabled pattern as Campaigns/Announcements, so a
+              // document can be pulled from the live page without deleting
+              // the underlying PDF (e.g. an expired contract version).
+              name: "enabled",
+              type: "checkbox",
+              defaultValue: true,
+              label: { tr: "Sitede Göster", en: "Show on site" },
+            },
+          ],
+        },
       ],
     },
     {

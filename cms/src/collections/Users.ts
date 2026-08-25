@@ -138,10 +138,11 @@ export const Users: CollectionConfig = {
   //
   // 5 attempts: enough headroom for a genuine typo or a stale saved password,
   // few enough that online password guessing gets nowhere. 15 minutes rather
-  // than Payload's 10: an NV Maker can now clear a lock instantly from
-  // /admin/locked-accounts, so a locked-out colleague is unblocked by asking
-  // rather than by waiting — which makes a longer automatic window cheap for
-  // real users and meaningfully more expensive for an attacker.
+  // than Payload's 10: an NV Maker can now clear a lock instantly right on
+  // the user's own edit screen (see UnlockAccountField.tsx), so a locked-out
+  // colleague is unblocked by asking rather than by waiting — which makes a
+  // longer automatic window cheap for real users and meaningfully more
+  // expensive for an attacker.
   //
   // RFP feedback 3.3: "remember me" was requested, but Payload 3.x's login
   // cookie is httpOnly (client JS can't read/rewrite it) and a session's
@@ -242,9 +243,14 @@ export const Users: CollectionConfig = {
         readOnly: true,
         date: { pickerAppearance: "dayAndTime" },
         description: {
-          tr: "Doluysa hesap art arda hatalı parola denemesi yüzünden kilitli. Bir New Vertical Maker 'Kilitli Hesaplar' ekranından hemen açabilir.",
-          en: "If set, the account is locked after repeated failed password attempts. A New Vertical Maker can clear it from the Locked Accounts screen.",
+          tr: "Doluysa hesap art arda hatalı parola denemesi yüzünden kilitli. Bir New Vertical Maker hemen bu ekrandan açabilir.",
+          en: "If set, the account is locked after repeated failed password attempts. A New Vertical Maker can clear it right here.",
         },
+        // Follow-up 25.08: "kilit açma ayrı bir ekran olmasın, Users
+        // sayfasının kendisinde olsun" — replaces the plain readOnly date
+        // display with status text + an inline Unlock button. See
+        // UnlockAccountField.tsx.
+        components: { Field: "/components/UnlockAccountField#default" },
       },
     },
     {

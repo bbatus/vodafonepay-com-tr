@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { getLegalPage, getPageMeta, richTextToLines } from "@/lib/cms";
+import { getLegalPage, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,17 +29,26 @@ export async function generateMetadata(): Promise<Metadata> {
  * than reveal a masked failure. Remove it in the same change that seeds the
  * collection; see the round report's "kalan fallback'ler" table.
  */
-const fallbackDocuments = [
-  "Tüketici Hakları Bilgi Formu için tıklayınız",
-  "18.08.2026 tarihine kadar geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.",
-  "18.08.2026 tarihi itibarı ile geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.",
-  "Ticari Koşullar için tıklayınız.",
+const fallbackGroups = [
+  {
+    label: "Belgeler",
+    documents: [
+      { label: "Tüketici Hakları Bilgi Formu için tıklayınız", href: null as string | null },
+      { label: "18.08.2026 tarihine kadar geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.", href: null },
+      { label: "18.08.2026 tarihi itibarı ile geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.", href: null },
+      { label: "Ticari Koşullar için tıklayınız.", href: null },
+    ],
+  },
 ];
 
 export default async function SozlesmelerVeFormlar() {
   const cmsPage = await getLegalPage("sozlesmeler-ve-formlar");
-  const documents = cmsPage ? richTextToLines(cmsPage.intro) : fallbackDocuments;
-  const downloads = cmsPage?.documents ?? [];
+  const groups = cmsPage
+    ? cmsPage.groups.map((g) => ({
+        label: g.label,
+        documents: g.documents.filter((d) => d.enabled).map((d) => ({ label: d.label, href: d.file.url })),
+      }))
+    : fallbackGroups;
   const pageMeta = await getPageMeta("/sozlesmeler-ve-formlar");
 
   return (
@@ -49,28 +59,41 @@ export default async function SozlesmelerVeFormlar() {
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "Sözleşmeler ve Formlar"} />
 
       <section className="mx-auto w-full max-w-3xl px-4 pb-20">
+        {cmsPage?.heroImage ? (
+          <Image
+            src={cmsPage.heroImage.url}
+            alt={cmsPage.heroImage.alt || "Sözleşmeler ve Formlar"}
+            width={840}
+            height={420}
+            className="mb-8 h-auto w-full rounded-md object-cover"
+          />
+        ) : null}
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Sözleşmeler ve Formlar</h1>
 
-        <ul className="mt-10 flex flex-col gap-y-3">
-          {documents.map((doc, i) => {
-            const download = downloads[i];
-            const itemClassName =
-              "flex w-full items-center justify-between rounded bg-white px-5 py-4 text-left text-sm font-bold text-vf-red shadow-[0px_2px_8px_0px_#00000029] transition-colors hover:text-red-700";
-            return (
-              <li key={doc}>
-                {download ? (
-                  <a href={download.file.url} target="_blank" rel="noopener noreferrer" download className={itemClassName}>
-                    {doc}
-                  </a>
-                ) : (
-                  <button type="button" className={itemClassName}>
-                    {doc}
-                  </button>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+        {groups.map((group) => (
+          <div key={group.label} className="mt-10">
+            <h2 className="text-lg font-bold text-black">{group.label}</h2>
+            <ul className="mt-4 flex flex-col gap-y-3">
+              {group.documents.map((doc) => {
+                const itemClassName =
+                  "flex w-full items-center justify-between rounded bg-white px-5 py-4 text-left text-sm font-bold text-vf-red shadow-[0px_2px_8px_0px_#00000029] transition-colors hover:text-red-700";
+                return (
+                  <li key={doc.label}>
+                    {doc.href ? (
+                      <a href={doc.href} target="_blank" rel="noopener noreferrer" download className={itemClassName}>
+                        {doc.label}
+                      </a>
+                    ) : (
+                      <button type="button" className={itemClassName}>
+                        {doc.label}
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
       </section>
 
       <Footer />

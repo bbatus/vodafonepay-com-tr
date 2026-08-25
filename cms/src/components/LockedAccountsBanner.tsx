@@ -10,8 +10,12 @@ import { ROLES } from "@/access/roles";
 /**
  * RFP feedback 5.6: the Users list gets a `lockUntil` column, but a column
  * only helps if you already scrolled to the right row. This banner surfaces
- * "N accounts are locked right now" at the top of the list and links to the
- * screen that can clear them. Rendered only for the role that can act on it.
+ * "N accounts are locked right now" at the top of the list and links to it
+ * pre-sorted by lock status. Follow-up 25.08: used to link out to a separate
+ * /admin/locked-accounts screen — that screen is gone now that unlocking
+ * happens right on each user's own edit page (UnlockAccountField.tsx), so
+ * this just sorts the SAME list the banner already sits on top of. Rendered
+ * only for the role that can act on it.
  */
 export default function LockedAccountsBanner() {
   const locale = useAdminLocale();
@@ -38,7 +42,7 @@ export default function LockedAccountsBanner() {
   return (
     <div className="locked-accounts-banner">
       <span>{t("lockedAccounts.bannerCount").replace("{n}", String(count))}</span>
-      <Link href="/admin/locked-accounts">{t("lockedAccounts.bannerCta")}</Link>
+      <Link href="/admin/collections/users?sort=-lockUntil">{t("lockedAccounts.bannerCta")}</Link>
     </div>
   );
 }

@@ -607,6 +607,12 @@ export type LegalPageSlug =
 const legalDocumentSchema = z.object({
   label: z.string(),
   file: z.object({ url: z.string() }),
+  enabled: z.boolean().nullable().optional().transform((v) => v ?? true),
+});
+
+const legalDocumentGroupSchema = z.object({
+  label: z.string(),
+  documents: z.array(legalDocumentSchema).nullable().optional().transform((v) => v ?? []),
 });
 
 const legalPageSchema = z.object({
@@ -614,7 +620,12 @@ const legalPageSchema = z.object({
   slug: z.custom<LegalPageSlug>((v) => typeof v === "string"),
   title: z.string(),
   intro: z.unknown().nullable().optional(),
-  documents: z.array(legalDocumentSchema).nullable().optional().transform((v) => v ?? []),
+  heroImage: z
+    .object({ url: z.string(), alt: z.string().nullable().optional() })
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
+  groups: z.array(legalDocumentGroupSchema).nullable().optional().transform((v) => v ?? []),
 });
 export type CmsLegalPage = z.infer<typeof legalPageSchema>;
 

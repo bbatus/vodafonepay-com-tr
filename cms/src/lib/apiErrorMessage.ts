@@ -1,7 +1,7 @@
 /**
  * Single place that turns a failed API call into a message an editor can act
  * on. Before this, every custom component (AccountForm, CsvExportButton,
- * LockedAccountsApp, ContentManagementApp, MediaUsageField…) caught its own
+ * UnlockAccountField, ContentManagementApp, MediaUsageField…) caught its own
  * fetch failures and threw away the real reason — a blocked delete, a locked
  * account, a network drop, and a genuine server crash all rendered the same
  * generic "bir şeyler ters gitti" toast. That's the opposite of what a

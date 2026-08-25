@@ -7,7 +7,7 @@ import FeesAndLimitsApp from "./FeesAndLimitsApp";
 /**
  * RFP follow-up: "ücret ve limit tabloları sidebarda ve sayfa yapısı olarak
  * 2 ayrı collection değil, tek sayfada tabli geçişle yönetilebilmeli."
- * Same top-level-view pattern as ContentManagementView/LockedAccountsView —
+ * Same top-level-view pattern as ContentManagementView/AccessMatrixView —
  * DefaultTemplate is applied explicitly because Payload does NOT auto-wrap
  * a brand-new custom view key in the nav/topbar template.
  *

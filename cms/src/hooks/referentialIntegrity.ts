@@ -74,9 +74,10 @@ export const REFERENCE_MAP: Record<string, ReferenceSource[]> = {
     { collection: "pages", path: "layout.logos.logo", titleField: "title", blocking: true },
     { collection: "representatives", path: "qrCode", titleField: "businessName", blocking: true },
     { collection: "users", path: "avatar", titleField: "email", blocking: true },
+    { collection: "legal-pages", path: "heroImage", titleField: "title", blocking: true },
   ],
 
-  documents: [{ collection: "legal-pages", path: "documents.file", titleField: "title", blocking: true }],
+  documents: [{ collection: "legal-pages", path: "groups.documents.file", titleField: "title", blocking: true }],
 
   users: [
     { collection: "campaigns", path: "createdBy", titleField: "title", blocking: false },

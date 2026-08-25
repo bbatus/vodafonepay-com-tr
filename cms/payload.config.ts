@@ -212,7 +212,6 @@ export default buildConfig({
       afterNavLinks: [
         "/components/ContentManagementNavLink#default",
         "/components/FeesAndLimitsNavLink#default",
-        "/components/LockedAccountsNavLink#default",
         "/components/AccessMatrixNavLink#default",
       ],
       views: {
@@ -233,17 +232,6 @@ export default buildConfig({
         // summary — see CustomDashboardView.tsx's doc comment.
         dashboard: {
           Component: "/components/CustomDashboardView#default",
-        },
-        // RFP feedback 5.6: New Vertical Maker's account-unlock screen. A
-        // separate top-level view rather than a tab above the Users list —
-        // adding a tab means overriding Payload's whole collection list view
-        // (and its role-aware column/filter machinery) for one button, while
-        // this reuses the same extension point the Content Management screen
-        // already uses. Sidebar link is hidden for every other role
-        // (LockedAccountsNavLink), and the view itself re-checks the role.
-        lockedAccounts: {
-          Component: "/components/LockedAccountsView#default",
-          path: "/locked-accounts",
         },
         // RFP §7 "userID comparison tables" — see AccessMatrixApp.tsx's doc
         // comment for the interpretation (a role × collection access matrix).
