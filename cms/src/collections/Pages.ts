@@ -50,9 +50,25 @@ import { seoKeywordsField } from "@/lib/seoFields";
  * (`?` button, top of the list/create view — see helpContent.ts's `pages`
  * entry) as one single, comprehensive, actually-readable walkthrough,
  * rather than fragments scattered across 10 truncated card labels.
+ *
+ * Follow-up 25.08: "vodafone görseli olsa... başlıklarda da atıyorum
+ * Vodafone'lu Ol! gibi örnekler olsa". The first pass's thumbnails were
+ * abstract wireframes (grey boxes/bars) — accurate as a LAYOUT diagram, but
+ * an editor can't tell "Hero" and "İkonlu Kartlar" apart at a glance from two
+ * grey-box pictures, and neither one looks like Vodafone Pay. Every "this is
+ * where an image goes" area now renders the same red→dark-red gradient the
+ * real site's own hero/login panels use (see custom.css's `.vf-login-panel`
+ * for the source gradient), and every heading/CTA renders REAL example copy
+ * as actual SVG text instead of a grey bar standing in for text — Payload's
+ * picker shows these at real pixel size, so the copy is legible, not
+ * decorative filler.
  */
-function blockThumb(inner: string): { thumbnail: { url: string; alt: string } } {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320"><rect width="480" height="320" fill="#ffffff"/>${inner}</svg>`;
+function vfImageFill(id: string): string {
+  return `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e60000"/><stop offset="1" stop-color="#7a0000"/></linearGradient>`;
+}
+
+function blockThumb(inner: string, defs = ""): { thumbnail: { url: string; alt: string } } {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320">${defs ? `<defs>${defs}</defs>` : ""}<rect width="480" height="320" fill="#ffffff"/>${inner}</svg>`;
   return { thumbnail: { url: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`, alt: "" } };
 }
 
@@ -64,7 +80,8 @@ const HeroBlock: Block = {
   },
   admin: {
     images: blockThumb(
-      `<rect x="20" y="20" width="440" height="180" rx="8" fill="#e5e7eb"/><path d="M20 170 L140 110 L220 160 L320 90 L460 170 Z" fill="#d1d5db"/><circle cx="120" cy="80" r="20" fill="#f3f4f6"/><rect x="20" y="216" width="440" height="84" rx="4" fill="#f3f4f6"/><rect x="150" y="236" width="180" height="14" rx="3" fill="#111827"/><rect x="190" y="258" width="100" height="8" rx="2" fill="#9ca3af"/><rect x="200" y="276" width="80" height="18" rx="4" fill="#e60000"/>`
+      `<rect x="20" y="20" width="440" height="150" rx="10" fill="url(#heroGrad)"/><circle cx="380" cy="55" r="26" fill="#ffffff" opacity="0.14"/><rect x="46" y="150" width="180" height="26" rx="4" fill="#ffffff" opacity="0.95"/><text x="52" y="169" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#e60000">Pay</text><text x="240" y="105" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#ffffff">Vodafone'lu Ol!</text><text x="240" y="132" font-family="Arial, sans-serif" font-size="14" fill="#ffe5e5">Ödemenin akıllı haliyle tanış</text><text x="46" y="216" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">Ödemenin Akıllı Hali</text><text x="46" y="240" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">Hemen Vodafone Pay'e geç, alışverişini tek dokunuşla tamamla.</text><rect x="46" y="256" width="130" height="30" rx="6" fill="#e60000"/><text x="60" y="276" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Hemen Başla</text>`,
+      vfImageFill("heroGrad")
     ),
   },
   fields: [
@@ -84,7 +101,7 @@ const RichTextBlock: Block = {
   },
   admin: {
     images: blockThumb(
-      `<rect x="40" y="40" width="200" height="18" rx="3" fill="#111827"/><rect x="40" y="80" width="400" height="10" rx="2" fill="#9ca3af"/><rect x="40" y="100" width="400" height="10" rx="2" fill="#9ca3af"/><rect x="40" y="120" width="320" height="10" rx="2" fill="#9ca3af"/><rect x="40" y="150" width="400" height="10" rx="2" fill="#9ca3af"/><rect x="40" y="170" width="400" height="10" rx="2" fill="#9ca3af"/><rect x="40" y="190" width="260" height="10" rx="2" fill="#9ca3af"/>`
+      `<text x="40" y="60" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#111827">Vodafone Pay Nedir?</text><rect x="40" y="4" width="36" height="4" rx="2" fill="#e60000"/><text x="40" y="98" font-family="Arial, sans-serif" font-size="13" fill="#4b5563">Vodafone Pay, faturana yansıtma, sanal kart ve anında</text><rect x="40" y="118" width="400" height="10" rx="2" fill="#d1d5db"/><rect x="40" y="140" width="380" height="10" rx="2" fill="#d1d5db"/><rect x="40" y="162" width="400" height="10" rx="2" fill="#d1d5db"/><rect x="40" y="184" width="320" height="10" rx="2" fill="#d1d5db"/><rect x="40" y="212" width="400" height="10" rx="2" fill="#d1d5db"/><rect x="40" y="234" width="260" height="10" rx="2" fill="#d1d5db"/>`
     ),
   },
   fields: [
@@ -101,7 +118,7 @@ const FaqListBlock: Block = {
   },
   admin: {
     images: blockThumb(
-      `<rect x="40" y="40" width="400" height="60" rx="6" fill="#f3f4f6"/><rect x="60" y="64" width="240" height="12" rx="3" fill="#111827"/><path d="M410 64 l10 10 l10 -10" stroke="#e60000" stroke-width="4" fill="none"/><rect x="40" y="130" width="400" height="60" rx="6" fill="#f3f4f6"/><rect x="60" y="154" width="240" height="12" rx="3" fill="#111827"/><path d="M410 154 l10 10 l10 -10" stroke="#e60000" stroke-width="4" fill="none"/><rect x="40" y="220" width="400" height="60" rx="6" fill="#f3f4f6"/><rect x="60" y="244" width="240" height="12" rx="3" fill="#111827"/><path d="M410 244 l10 10 l10 -10" stroke="#e60000" stroke-width="4" fill="none"/>`
+      `<text x="40" y="34" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Sıkça Sorulan Sorular</text><rect x="40" y="48" width="400" height="56" rx="6" fill="#f9fafb" stroke="#e5e7eb"/><text x="60" y="82" font-family="Arial, sans-serif" font-size="14" fill="#111827">Vodafone Pay nedir?</text><path d="M410 78 l10 10 l10 -10" stroke="#e60000" stroke-width="4" fill="none"/><rect x="40" y="118" width="400" height="56" rx="6" fill="#f9fafb" stroke="#e5e7eb"/><text x="60" y="152" font-family="Arial, sans-serif" font-size="14" fill="#111827">Nasıl kart alırım?</text><path d="M410 148 l10 10 l10 -10" stroke="#e60000" stroke-width="4" fill="none"/><rect x="40" y="188" width="400" height="56" rx="6" fill="#f9fafb" stroke="#e5e7eb"/><text x="60" y="222" font-family="Arial, sans-serif" font-size="14" fill="#111827">Limitimi nasıl artırırım?</text><path d="M410 218 l10 10 l10 -10" stroke="#e60000" stroke-width="4" fill="none"/>`
     ),
   },
   fields: [
@@ -125,7 +142,8 @@ const CampaignGridBlock: Block = {
   },
   admin: {
     images: blockThumb(
-      `<rect x="40" y="40" width="130" height="90" rx="6" fill="#e5e7eb"/><rect x="40" y="140" width="130" height="10" rx="2" fill="#111827"/><rect x="40" y="156" width="90" height="8" rx="2" fill="#9ca3af"/><rect x="190" y="40" width="130" height="90" rx="6" fill="#e5e7eb"/><rect x="190" y="140" width="130" height="10" rx="2" fill="#111827"/><rect x="190" y="156" width="90" height="8" rx="2" fill="#9ca3af"/><rect x="340" y="40" width="130" height="90" rx="6" fill="#e5e7eb"/><rect x="340" y="140" width="130" height="10" rx="2" fill="#111827"/><rect x="340" y="156" width="90" height="8" rx="2" fill="#9ca3af"/>`
+      `<text x="40" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Bu Ayın Kampanyaları</text><rect x="40" y="44" width="130" height="80" rx="8" fill="url(#cgGrad)"/><text x="52" y="90" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Yaz</text><text x="52" y="108" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Kampanyası</text><rect x="40" y="132" width="100" height="9" rx="2" fill="#111827"/><rect x="190" y="44" width="130" height="80" rx="8" fill="url(#cgGrad)"/><text x="202" y="90" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Öğrenci</text><text x="202" y="108" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Fırsatı</text><rect x="190" y="132" width="100" height="9" rx="2" fill="#111827"/><rect x="340" y="44" width="130" height="80" rx="8" fill="url(#cgGrad)"/><text x="352" y="90" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Fatura</text><text x="352" y="108" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Kampanyası</text><rect x="340" y="132" width="100" height="9" rx="2" fill="#111827"/>`,
+      vfImageFill("cgGrad")
     ),
   },
   fields: [
@@ -149,7 +167,8 @@ const VideoBlock: Block = {
   },
   admin: {
     images: blockThumb(
-      `<rect x="60" y="40" width="360" height="220" rx="8" fill="#111827"/><circle cx="240" cy="150" r="36" fill="#ffffff" opacity="0.9"/><path d="M228 130 L228 170 L262 150 Z" fill="#e60000"/>`
+      `<text x="60" y="28" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Vodafone Pay Nasıl Kullanılır?</text><rect x="60" y="40" width="360" height="210" rx="8" fill="url(#vidGrad)"/><circle cx="240" cy="145" r="34" fill="#ffffff" opacity="0.92"/><path d="M228 126 L228 164 L260 145 Z" fill="#e60000"/><text x="240" y="220" font-family="Arial, sans-serif" font-size="12" fill="#ffe5e5" text-anchor="middle">60 saniyede özet</text>`,
+      vfImageFill("vidGrad")
     ),
   },
   fields: [
@@ -174,7 +193,7 @@ const LogoGridBlock: Block = {
   },
   admin: {
     images: blockThumb(
-      `<rect x="40" y="130" width="64" height="60" rx="4" fill="#f3f4f6" stroke="#9ca3af"/><rect x="124" y="130" width="64" height="60" rx="4" fill="#f3f4f6" stroke="#9ca3af"/><rect x="208" y="130" width="64" height="60" rx="4" fill="#f3f4f6" stroke="#9ca3af"/><rect x="292" y="130" width="64" height="60" rx="4" fill="#f3f4f6" stroke="#9ca3af"/><rect x="376" y="130" width="64" height="60" rx="4" fill="#f3f4f6" stroke="#9ca3af"/>`
+      `<text x="40" y="60" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Anlaşmalı Bankalar</text><rect x="40" y="130" width="64" height="60" rx="4" fill="#f9fafb" stroke="#e5e7eb"/><text x="72" y="164" font-family="Arial, sans-serif" font-size="9" fill="#9ca3af" text-anchor="middle">LOGO</text><rect x="124" y="130" width="64" height="60" rx="4" fill="#f9fafb" stroke="#e5e7eb"/><text x="156" y="164" font-family="Arial, sans-serif" font-size="9" fill="#9ca3af" text-anchor="middle">LOGO</text><rect x="208" y="130" width="64" height="60" rx="4" fill="#f9fafb" stroke="#e5e7eb"/><text x="240" y="164" font-family="Arial, sans-serif" font-size="9" fill="#9ca3af" text-anchor="middle">LOGO</text><rect x="292" y="130" width="64" height="60" rx="4" fill="#f9fafb" stroke="#e5e7eb"/><text x="324" y="164" font-family="Arial, sans-serif" font-size="9" fill="#9ca3af" text-anchor="middle">LOGO</text><rect x="376" y="130" width="64" height="60" rx="4" fill="#f9fafb" stroke="#e5e7eb"/><text x="408" y="164" font-family="Arial, sans-serif" font-size="9" fill="#9ca3af" text-anchor="middle">LOGO</text>`
     ),
   },
   fields: [
@@ -214,7 +233,7 @@ const IconCardsBlock: Block = {
   },
   admin: {
     images: blockThumb(
-      `<rect x="40" y="40" width="130" height="150" rx="8" fill="#f9fafb" stroke="#e5e7eb"/><circle cx="105" cy="80" r="18" fill="#e60000" opacity="0.85"/><rect x="55" y="115" width="100" height="10" rx="2" fill="#111827"/><rect x="55" y="135" width="100" height="8" rx="2" fill="#9ca3af"/><rect x="55" y="150" width="70" height="8" rx="2" fill="#9ca3af"/><rect x="190" y="40" width="130" height="150" rx="8" fill="#f9fafb" stroke="#e5e7eb"/><circle cx="255" cy="80" r="18" fill="#e60000" opacity="0.85"/><rect x="205" y="115" width="100" height="10" rx="2" fill="#111827"/><rect x="205" y="135" width="100" height="8" rx="2" fill="#9ca3af"/><rect x="205" y="150" width="70" height="8" rx="2" fill="#9ca3af"/><rect x="340" y="40" width="130" height="150" rx="8" fill="#f9fafb" stroke="#e5e7eb"/><circle cx="405" cy="80" r="18" fill="#e60000" opacity="0.85"/><rect x="355" y="115" width="100" height="10" rx="2" fill="#111827"/><rect x="355" y="135" width="100" height="8" rx="2" fill="#9ca3af"/><rect x="355" y="150" width="70" height="8" rx="2" fill="#9ca3af"/>`
+      `<text x="40" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Vodafone Pay Ayrıcalıkları</text><rect x="40" y="44" width="130" height="150" rx="8" fill="#f9fafb" stroke="#e5e7eb"/><circle cx="105" cy="84" r="18" fill="#e60000"/><text x="105" y="90" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle">₺</text><text x="55" y="128" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">Anında Bakiye</text><rect x="55" y="140" width="100" height="8" rx="2" fill="#d1d5db"/><rect x="55" y="155" width="70" height="8" rx="2" fill="#d1d5db"/><rect x="190" y="44" width="130" height="150" rx="8" fill="#f9fafb" stroke="#e5e7eb"/><circle cx="255" cy="84" r="18" fill="#e60000"/><text x="255" y="90" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle">%</text><text x="205" y="128" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">Faturana Yansıt</text><rect x="205" y="140" width="100" height="8" rx="2" fill="#d1d5db"/><rect x="205" y="155" width="70" height="8" rx="2" fill="#d1d5db"/><rect x="340" y="44" width="130" height="150" rx="8" fill="#f9fafb" stroke="#e5e7eb"/><circle cx="405" cy="84" r="18" fill="#e60000"/><text x="405" y="90" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle">))</text><text x="355" y="128" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">Temassız Öde</text><rect x="355" y="140" width="100" height="8" rx="2" fill="#d1d5db"/><rect x="355" y="155" width="70" height="8" rx="2" fill="#d1d5db"/>`
     ),
   },
   fields: [
@@ -241,7 +260,8 @@ const StepsBlock: Block = {
   },
   admin: {
     images: blockThumb(
-      `<circle cx="70" cy="55" r="18" fill="#e60000"/><text x="70" y="60" font-size="14" fill="#ffffff" text-anchor="middle" font-family="sans-serif">01</text><rect x="115" y="35" width="60" height="40" rx="4" fill="#e5e7eb"/><rect x="190" y="45" width="260" height="10" rx="2" fill="#9ca3af"/><rect x="190" y="61" width="200" height="10" rx="2" fill="#9ca3af"/><circle cx="70" cy="140" r="18" fill="#e60000"/><text x="70" y="145" font-size="14" fill="#ffffff" text-anchor="middle" font-family="sans-serif">02</text><rect x="115" y="120" width="60" height="40" rx="4" fill="#e5e7eb"/><rect x="190" y="130" width="260" height="10" rx="2" fill="#9ca3af"/><rect x="190" y="146" width="200" height="10" rx="2" fill="#9ca3af"/><circle cx="70" cy="225" r="18" fill="#e60000"/><text x="70" y="230" font-size="14" fill="#ffffff" text-anchor="middle" font-family="sans-serif">03</text><rect x="115" y="205" width="60" height="40" rx="4" fill="#e5e7eb"/><rect x="190" y="215" width="260" height="10" rx="2" fill="#9ca3af"/><rect x="190" y="231" width="200" height="10" rx="2" fill="#9ca3af"/>`
+      `<text x="40" y="28" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">3 Adımda Vodafone Pay</text><circle cx="70" cy="72" r="18" fill="#e60000"/><text x="70" y="77" font-size="14" fill="#ffffff" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700">01</text><rect x="115" y="52" width="60" height="40" rx="4" fill="url(#stepGrad)"/><text x="190" y="68" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#111827">Uygulamayı indir</text><rect x="190" y="78" width="200" height="8" rx="2" fill="#d1d5db"/><circle cx="70" cy="157" r="18" fill="#e60000"/><text x="70" y="162" font-size="14" fill="#ffffff" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700">02</text><rect x="115" y="137" width="60" height="40" rx="4" fill="url(#stepGrad)"/><text x="190" y="153" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#111827">Kart başvurusu yap</text><rect x="190" y="163" width="200" height="8" rx="2" fill="#d1d5db"/><circle cx="70" cy="242" r="18" fill="#e60000"/><text x="70" y="247" font-size="14" fill="#ffffff" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700">03</text><rect x="115" y="222" width="60" height="40" rx="4" fill="url(#stepGrad)"/><text x="190" y="238" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#111827">Hemen ödemeye başla</text><rect x="190" y="248" width="200" height="8" rx="2" fill="#d1d5db"/>`,
+      vfImageFill("stepGrad")
     ),
   },
   fields: [
@@ -268,7 +288,8 @@ const ImageTextSlidesBlock: Block = {
   },
   admin: {
     images: blockThumb(
-      `<rect x="30" y="60" width="130" height="90" rx="6" fill="#e5e7eb"/><rect x="30" y="158" width="130" height="8" rx="2" fill="#9ca3af"/><rect x="30" y="172" width="90" height="8" rx="2" fill="#9ca3af"/><rect x="180" y="60" width="130" height="90" rx="6" fill="#e5e7eb"/><rect x="180" y="158" width="130" height="8" rx="2" fill="#9ca3af"/><rect x="180" y="172" width="90" height="8" rx="2" fill="#9ca3af"/><rect x="330" y="60" width="130" height="90" rx="6" fill="#e5e7eb"/><rect x="330" y="158" width="130" height="8" rx="2" fill="#9ca3af"/><rect x="330" y="172" width="90" height="8" rx="2" fill="#9ca3af"/><rect x="466" y="60" width="14" height="90" rx="3" fill="#e5e7eb" opacity="0.6"/><path d="M400 240 h50 M436 228 l16 12 l-16 12" stroke="#e60000" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`
+      `<text x="30" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Neler Kazanırsın?</text><rect x="30" y="44" width="130" height="90" rx="6" fill="url(#slideGrad)"/><text x="42" y="76" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">%5</text><text x="30" y="152" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Puan Kazan</text><rect x="30" y="160" width="90" height="8" rx="2" fill="#d1d5db"/><rect x="180" y="44" width="130" height="90" rx="6" fill="url(#slideGrad)"/><text x="192" y="76" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">₺0</text><text x="180" y="152" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Yıllık Ücret</text><rect x="180" y="160" width="90" height="8" rx="2" fill="#d1d5db"/><rect x="330" y="44" width="130" height="90" rx="6" fill="url(#slideGrad)"/><text x="342" y="76" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">7/24</text><text x="330" y="152" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Anında Bakiye</text><rect x="330" y="160" width="90" height="8" rx="2" fill="#d1d5db"/><path d="M400 240 h50 M436 228 l16 12 l-16 12" stroke="#e60000" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+      vfImageFill("slideGrad")
     ),
   },
   fields: [
@@ -294,7 +315,8 @@ const VideoListBlock: Block = {
   },
   admin: {
     images: blockThumb(
-      `<rect x="40" y="40" width="120" height="30" rx="4" fill="#e60000"/><rect x="170" y="40" width="120" height="30" rx="4" fill="#f3f4f6"/><rect x="300" y="40" width="120" height="30" rx="4" fill="#f3f4f6"/><rect x="40" y="90" width="400" height="170" rx="8" fill="#111827"/><circle cx="240" cy="175" r="30" fill="#ffffff" opacity="0.9"/><path d="M230 158 L230 192 L260 175 Z" fill="#e60000"/>`
+      `<rect x="40" y="40" width="130" height="30" rx="4" fill="#e60000"/><text x="105" y="60" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Nasıl Kullanılır</text><rect x="178" y="40" width="120" height="30" rx="4" fill="#f3f4f6"/><text x="238" y="60" font-family="Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle">Kart Başvurusu</text><rect x="306" y="40" width="90" height="30" rx="4" fill="#f3f4f6"/><text x="351" y="60" font-family="Arial, sans-serif" font-size="11" fill="#6b7280" text-anchor="middle">SSS</text><rect x="40" y="90" width="400" height="170" rx="8" fill="url(#vlGrad)"/><circle cx="240" cy="175" r="30" fill="#ffffff" opacity="0.92"/><path d="M228 158 L228 192 L260 175 Z" fill="#e60000"/>`,
+      vfImageFill("vlGrad")
     ),
   },
   fields: [
