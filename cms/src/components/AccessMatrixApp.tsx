@@ -16,7 +16,7 @@ const FLAG_LABEL: Record<keyof PermissionFlags, { tr: string; en: string }> = {
   delete: { tr: "Sil", en: "Delete" },
 };
 
-/** One-letter badge per permission — full name is in the title/legend. */
+/** Single-letter sub-column header under each role — full name is the header's own title tooltip. */
 const FLAG_SHORT: Record<keyof PermissionFlags, { tr: string; en: string }> = {
   view: { tr: "G", en: "V" },
   create: { tr: "O", en: "C" },
@@ -35,11 +35,13 @@ const FLAG_SHORT: Record<keyof PermissionFlags, { tr: string; en: string }> = {
  * this role do here?" but not the question the screen exists for: "how do
  * these four roles DIFFER on this collection?", which needs them side by side.
  *
- * Now genuinely two-dimensional: one row per collection, one column per role,
- * each cell a compact row of permission badges. A reader compares four cells
- * on one line instead of scrolling four rows apart. Plus a filter box (21
- * collections is more than fits on a screen) and a sticky header (the role
- * you're looking at has to stay visible while you scroll).
+ * Follow-up 25.08 (second pass): "eski görüntü... tik ve çarpılarla daha
+ * okunurdu ... sadece onu tik çarpı ile değiştir". Combines both rounds of
+ * feedback: the matrix layout (roles as column GROUPS, one row per
+ * collection) from the first pass, plus the plain ✓/✗-per-permission
+ * legibility of the very first version — a two-row header (role, then its 5
+ * permissions) keeps every icon under a labeled column instead of relying on
+ * position/tooltip alone to say which permission it is.
  */
 export default function AccessMatrixApp() {
   const locale = useAdminLocale();
@@ -109,26 +111,35 @@ export default function AccessMatrixApp() {
       <ul className="access-matrix__legend">
         {FLAG_ORDER.map((f) => (
           <li key={f} className="access-matrix__legend-item">
-            <span className="access-matrix__badge access-matrix__badge--on">{FLAG_SHORT[f][locale]}</span>
-            {FLAG_LABEL[f][locale]}
+            <span className="access-matrix__col-flag" title={FLAG_LABEL[f][locale]}>
+              {FLAG_SHORT[f][locale]}
+            </span>
+            = {FLAG_LABEL[f][locale]}
           </li>
         ))}
-        <li className="access-matrix__legend-item access-matrix__legend-item--muted">
-          <span className="access-matrix__badge">{FLAG_SHORT.view[locale]}</span>
-          {t("accessMatrix.legendOff")}
-        </li>
       </ul>
 
       <div className="table-wrap">
         <table className="access-matrix__table">
           <thead>
             <tr>
-              <th className="access-matrix__col-collection">{t("accessMatrix.column.collection")}</th>
+              <th rowSpan={2} className="access-matrix__col-collection">
+                {t("accessMatrix.column.collection")}
+              </th>
               {roles.map(([role, label]) => (
-                <th key={role} className="access-matrix__col-role">
+                <th key={role} colSpan={FLAG_ORDER.length} className="access-matrix__col-role">
                   {label}
                 </th>
               ))}
+            </tr>
+            <tr>
+              {roles.map(([role]) =>
+                FLAG_ORDER.map((f) => (
+                  <th key={`${role}-${f}`} className="access-matrix__col-flag" title={FLAG_LABEL[f][locale]}>
+                    {FLAG_SHORT[f][locale]}
+                  </th>
+                ))
+              )}
             </tr>
           </thead>
           <tbody>
@@ -140,33 +151,22 @@ export default function AccessMatrixApp() {
                 </th>
                 {roles.map(([role]) => {
                   const flags = flagsFor(slug, role);
-                  if (!flags) return <td key={role} />;
-                  const none = FLAG_ORDER.every((f) => !flags[f]);
-                  return (
-                    <td key={role} className="access-matrix__cell">
-                      {none ? (
-                        <span className="access-matrix__none">{t("accessMatrix.noAccess")}</span>
-                      ) : (
-                        <span className="access-matrix__badges">
-                          {FLAG_ORDER.map((f) => (
-                            <span
-                              key={f}
-                              title={`${FLAG_LABEL[f][locale]}: ${flags[f] ? "✓" : "—"}`}
-                              className={`access-matrix__badge${flags[f] ? " access-matrix__badge--on" : ""}`}
-                            >
-                              {FLAG_SHORT[f][locale]}
-                            </span>
-                          ))}
+                  return FLAG_ORDER.map((f) => {
+                    const on = flags ? flags[f] : false;
+                    return (
+                      <td key={`${role}-${f}`} className="access-matrix__cell" title={FLAG_LABEL[f][locale]}>
+                        <span className={`access-matrix__icon${on ? " access-matrix__icon--on" : " access-matrix__icon--off"}`}>
+                          {on ? "✓" : "✗"}
                         </span>
-                      )}
-                    </td>
-                  );
+                      </td>
+                    );
+                  });
                 })}
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={roles.length + 1} className="access-matrix__empty">
+                <td colSpan={roles.length * FLAG_ORDER.length + 1} className="access-matrix__empty">
                   {t("accessMatrix.noMatch")}
                 </td>
               </tr>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { toast } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
@@ -9,8 +9,11 @@ import { describeApiError } from "@/lib/apiErrorMessage";
 /**
  * Follow-up 25.08: the "Geri Bildirim Gönder" form. Posts to the one endpoint
  * that can write to the `feedback` collection (see Feedback.ts) — this
- * component never reads anything back, because nothing in the admin is
- * allowed to read that table.
+ * component never reads any FEEDBACK CONTENT back, because nothing in the
+ * admin is allowed to read that table. The one exception is the plain count
+ * below (`/api/feedback/count`) — a number can't identify who said what, so
+ * showing "kaç tane feedback var" doesn't reopen the "kimse görmesin" rule,
+ * and it's requested to be visible to every role ("herkes görebilir").
  */
 export default function FeedbackApp() {
   const locale = useAdminLocale();
@@ -20,6 +23,20 @@ export default function FeedbackApp() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [count, setCount] = useState<number | null>(null);
+
+  const loadCount = () => {
+    fetch("/api/feedback/count", { credentials: "same-origin" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { count?: number } | null) => {
+        if (data) startTransition(() => setCount(data.count ?? 0));
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    loadCount();
+  }, []);
 
   const submit = async () => {
     if (!message.trim()) return;
@@ -46,6 +63,7 @@ export default function FeedbackApp() {
       setMessage("");
       setArea("");
       toast.success(t("feedback.thanks"));
+      loadCount();
     } catch (err) {
       setError(err instanceof Error && err.message ? err.message : t("feedback.error"));
     } finally {
@@ -55,6 +73,12 @@ export default function FeedbackApp() {
 
   return (
     <div className="feedback-form">
+      {count !== null && (
+        <p className="feedback-form__count">
+          <span className="feedback-form__count-badge">{count}</span>
+          {t("feedback.countLabel")}
+        </p>
+      )}
       <p className="feedback-form__intro">{t("feedback.intro")}</p>
 
       <label className="feedback-form__field">

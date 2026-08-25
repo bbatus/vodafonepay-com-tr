@@ -101,6 +101,7 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
 
   "feedback.navLabel": { tr: "Geri Bildirim Gönder", en: "Send Feedback" },
   "feedback.title": { tr: "Geri Bildirim Gönder", en: "Send Feedback" },
+  "feedback.countLabel": { tr: "geri bildirim gönderildi", en: "feedback submissions so far" },
   "feedback.intro": {
     tr: "Bu paneli birlikte daha iyi hale getirelim. Kafanızı karıştıran, fazladan tıklama gerektiren ya da eksik bulduğunuz her şeyi buradan yazabilirsiniz — küçük bir detay bile olsa yazın, hepsini okuyoruz.",
     en: "Let's make this panel better together. Anything confusing, anything that takes too many clicks, anything missing — write it here. Even a small detail is worth sending; we read all of it.",

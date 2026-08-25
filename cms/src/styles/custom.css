@@ -1586,7 +1586,7 @@ a {
 
 .access-matrix__table {
   width: 100%;
-  min-width: 52rem;
+  min-width: 56rem;
   border-collapse: collapse;
   font-size: 0.875rem;
 }
@@ -1594,7 +1594,7 @@ a {
 .access-matrix__table th,
 .access-matrix__table td {
   text-align: left;
-  padding: 0.55rem 0.75rem;
+  padding: 0.5rem 0.6rem;
   border-bottom: 1px solid var(--theme-elevation-100);
   white-space: nowrap;
 }
@@ -1602,7 +1602,6 @@ a {
 /* The role you're comparing has to stay visible while scrolling a 20-row table. */
 .access-matrix__table thead th {
   position: sticky;
-  top: 0;
   z-index: 1;
   color: var(--theme-elevation-600);
   font-weight: 600;
@@ -1610,8 +1609,28 @@ a {
   border-bottom: 1px solid var(--theme-elevation-150);
 }
 
+.access-matrix__table thead tr:first-child th {
+  top: 0;
+}
+
+.access-matrix__table thead tr:last-child th {
+  top: 2.1rem;
+}
+
 .access-matrix__col-role {
-  width: 12rem;
+  text-align: center;
+  border-left: 2px solid var(--theme-elevation-150);
+}
+
+/* Sub-header letter (Görüntüle/Oluştur/Düzenle/Yayınla/Sil) AND the matching
+   legend badge share this class — same look, same meaning, in two places. */
+.access-matrix__col-flag {
+  width: 2.1rem;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--theme-elevation-450);
+  cursor: default;
 }
 
 .access-matrix__collection-cell {
@@ -1633,34 +1652,33 @@ a {
   background: var(--theme-elevation-50);
 }
 
-.access-matrix__badges {
-  display: inline-flex;
-  gap: 0.25rem;
+.access-matrix__cell {
+  text-align: center;
 }
 
-.access-matrix__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  font-size: 0.6875rem;
+/* Every 5th data column starts a new role's group of permissions — a
+   slightly heavier left border marks where one role ends and the next
+   begins, so a reader can tell the columns apart without re-reading the
+   sticky header every time. */
+.access-matrix__cell:nth-child(5n + 2) {
+  border-left: 2px solid var(--theme-elevation-150);
+}
+
+/* Follow-up 25.08: "tik ve çarpılarla daha okunurdu... kırmızı tik gri
+   çarpı olabilir veya siyah" — plain glyphs, no badge background, matching
+   the earlier (pre-matrix) version's legibility. */
+.access-matrix__icon {
+  font-size: 0.9375rem;
   font-weight: 700;
-  border-radius: var(--style-radius-s);
-  color: var(--theme-elevation-350);
-  background: var(--theme-elevation-100);
-  border: 1px solid transparent;
 }
 
-.access-matrix__badge--on {
-  color: #fff;
-  background: var(--theme-success-600);
+.access-matrix__icon--on {
+  color: var(--vf-red);
 }
 
-.access-matrix__none {
-  font-size: 0.75rem;
+.access-matrix__icon--off {
   color: var(--theme-elevation-350);
-  font-style: italic;
+  font-weight: 400;
 }
 
 .access-matrix__empty {
@@ -1727,6 +1745,29 @@ a {
 
 .feedback-form {
   max-width: 40rem;
+}
+
+.feedback-form__count {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
+  color: var(--theme-elevation-500);
+}
+
+.feedback-form__count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  padding: 0 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--vf-red);
+  border-radius: 999px;
 }
 
 .feedback-form__intro {

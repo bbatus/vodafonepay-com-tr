@@ -71,13 +71,34 @@ const submitFeedbackEndpoint: Endpoint = {
   },
 };
 
+/**
+ * Follow-up 25.08: "bu alana ... sadece aktif feedbacklerin sayısını tutan
+ * bi şey ekleyelim ... herkes görebilir." A COUNT is not the content — it
+ * can't identify who said what or reveal a single word of any message — so
+ * exposing just the number doesn't compromise the "kimse görmesin" rule the
+ * collection itself still enforces (`access.read: () => false` below is
+ * untouched; this is a separate, narrow endpoint that only ever returns an
+ * integer). Open to every authenticated role, matching "herkes görebilir".
+ */
+const feedbackCountEndpoint: Endpoint = {
+  path: "/count",
+  method: "get",
+  handler: async (req) => {
+    if (!req.user?.id) {
+      return Response.json({ errors: [{ message: "Giriş yapmalısınız." }] }, { status: 401 });
+    }
+    const { totalDocs } = await req.payload.count({ collection: "feedback", overrideAccess: true });
+    return Response.json({ count: totalDocs });
+  },
+};
+
 export const Feedback: CollectionConfig = {
   slug: "feedback",
   labels: {
     singular: dbLabel("collectionLabel.feedback.singular", { tr: "Geri Bildirim", en: "Feedback" }),
     plural: dbLabel("collectionLabel.feedback.plural", { tr: "Geri Bildirimler", en: "Feedback" }),
   },
-  endpoints: [submitFeedbackEndpoint],
+  endpoints: [submitFeedbackEndpoint, feedbackCountEndpoint],
   admin: {
     hideAPIURL: true,
     useAsTitle: "message",
