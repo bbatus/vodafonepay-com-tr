@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getRepresentativeById } from "@/lib/cms";
@@ -29,7 +28,6 @@ export default async function TemsilciDetay({ params }: { params: Promise<{ id: 
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={rep.businessName} />
 
       <section className="mx-auto w-full max-w-[560px] px-4 pb-20">

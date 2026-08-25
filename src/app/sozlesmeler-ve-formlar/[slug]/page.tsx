@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { RichText } from "@/components/RichText";
@@ -63,7 +62,6 @@ export default async function SozlesmeDetay({ params }: { params: Promise<{ slug
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={found.doc.label} />
 
       <section className="mx-auto w-full max-w-3xl px-4 pb-20">

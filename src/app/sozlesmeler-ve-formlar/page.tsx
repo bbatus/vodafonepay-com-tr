@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getLegalPage, getPageMeta } from "@/lib/cms";
@@ -74,7 +73,6 @@ export default async function SozlesmelerVeFormlar() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "Sözleşmeler ve Formlar"} />
 
       <section className="mx-auto w-full max-w-3xl px-4 pb-20">

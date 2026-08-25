@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getBlogPostBySlug, getBlogPosts, richTextToPlainText } from "@/lib/cms";
@@ -38,7 +37,6 @@ export default async function BlogYazisi({ params }: { params: Promise<{ slug: s
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={post.title} />
 
       <section className="mx-auto w-full max-w-[840px] px-4 pb-20">

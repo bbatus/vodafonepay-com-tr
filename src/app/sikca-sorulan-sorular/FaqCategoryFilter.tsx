@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Faq } from "@/components/Faq";
 import { ALL_FILTER, FilterTabs, matchesFilter, type FilterTabCategory } from "@/components/FilterTabs";
@@ -38,7 +37,6 @@ export function FaqCategoryFilter({
 
   return (
     <>
-      <StickyQr />
       <Breadcrumb current="Sıkça Sorulan Sorular" />
 
       <section className="mx-auto w-full max-w-[1030px] px-4 pb-10 pt-6">

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ProductHero } from "@/components/ProductHero";
 import { EarnWithCard } from "@/components/EarnWithCard";
@@ -44,7 +43,6 @@ export default async function VodafonePayKart() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "Vodafone Pay Kart"} />
       <ProductHero
         image={cmsHero?.image.url ?? "/images/kart-hero.jpg"}

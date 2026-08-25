@@ -4,7 +4,6 @@ import { draftMode } from "next/headers";
 import Image from "next/image";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { PreviewBanner } from "@/components/PreviewBanner";
@@ -44,7 +43,6 @@ export default async function KampanyaDetay({ params }: { params: Promise<{ slug
       {isPreview && <PreviewBanner path={`/kampanyalar/${slug}`} />}
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={campaign.title} />
 
       <section className="mx-auto w-full max-w-[840px] px-4 pb-20">

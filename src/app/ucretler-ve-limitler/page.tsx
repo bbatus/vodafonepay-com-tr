@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ContentUnavailable } from "@/components/ContentUnavailable";
 import { PricesAndLimits } from "@/components/PricesAndLimits";
@@ -48,7 +47,6 @@ export default async function UcretlerVeLimitler() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "Ücretler ve Limitler"} />
       <h1 className="mx-auto max-w-[1030px] px-4 pt-2 text-center text-[40px] font-light leading-[48px] text-black">
         Ücretler ve Limitler

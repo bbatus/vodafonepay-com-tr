@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getContactInfo, getPageMeta } from "@/lib/cms";
@@ -124,7 +123,6 @@ export default async function KurumsalYonetim() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "Kurumsal Yönetim"} />
 
       <section className="mx-auto w-full max-w-[1030px] px-4 pb-20">

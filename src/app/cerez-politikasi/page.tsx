@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { cookieRows as fallbackCookieRows } from "./cookieRows";
@@ -46,7 +45,6 @@ export default async function CerezPolitikasi() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "Çerez Politikası"} />
 
       <section className="mx-auto w-full max-w-4xl px-4 pb-20">

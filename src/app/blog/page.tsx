@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import type { CardListItem } from "@/components/CardListGrid";
 import { ContentUnavailable } from "@/components/ContentUnavailable";
 import { Footer } from "@/components/Footer";
@@ -57,7 +56,6 @@ export default async function Blog() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
 
       <section className="mx-auto w-full max-w-[1280px] px-4 pb-20">
         <div className="flex flex-col items-center justify-center lg:pt-8">

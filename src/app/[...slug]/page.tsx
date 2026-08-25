@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
@@ -226,7 +225,6 @@ export default async function EditorPage({ params }: { params: Promise<{ slug: s
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={page.title} trail={page.parent ? [{ label: page.parent.title, href: `/${page.parent.slug}` }] : undefined} />
 
       {page.layout.map((block) => (

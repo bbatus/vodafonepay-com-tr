@@ -2,13 +2,17 @@ import Image from "next/image";
 
 /**
  * Follow-up 25.08: "bu görsel orada hardcoded olmadan sanki seçilmiş gibi
- * dursun ... bunu product yükleyecek zaten ilgili görseli." The same QR/app-
- * download artwork was duplicated as a raw `<Image src="/images/sticky-qr.png">`
- * call in two places (StickyQr.tsx's floating widget, Footer.tsx's own
- * bottom-row copy) — one real asset, pasted twice. Pulling it into its own
- * component is what makes it a single, swappable "slot" instead of two
- * hardcoded copies that would each need editing separately once product
- * hands over a CMS-managed image for it.
+ * dursun ... bunu product yükleyecek zaten ilgili görseli." Pulled out of
+ * Footer.tsx's own bottom-row markup into its own component so it's a
+ * single, swappable "slot" rather than an inline `<Image>` call, ready for
+ * product to hand over a CMS-managed image later without touching Footer
+ * itself.
+ *
+ * Follow-up 25.08 (5): used to also back a floating StickyQr widget shown
+ * on every page — removed, since the real vodafonepay.com.tr has no such
+ * floating widget anywhere (checked live) and having both it and this
+ * footer badge on screen read as a duplicate, not a feature. This is the
+ * only place the QR artwork renders now.
  */
 export function QrDownloadBadge({ className }: { className?: string }) {
   return (

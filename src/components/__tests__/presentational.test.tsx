@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { StickyQr } from "@/components/StickyQr";
+import { QrDownloadBadge } from "@/components/QrDownloadBadge";
 import { WhereCanIBuy } from "@/components/WhereCanIBuy";
 import { Hero } from "@/components/Hero";
 import { LeadFormCta } from "@/components/LeadFormCta";
@@ -20,9 +20,9 @@ describe("Breadcrumb", () => {
   });
 });
 
-describe("StickyQr", () => {
+describe("QrDownloadBadge", () => {
   it("renders the QR image", () => {
-    render(<StickyQr />);
+    render(<QrDownloadBadge />);
     expect(screen.getByAltText("Vodafone Pay QR Kodu")).toBeInTheDocument();
   });
 });

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Footer } from "@/components/Footer";
 
 export default function NotFound() {
@@ -9,7 +8,6 @@ export default function NotFound() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
 
       <section className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center px-4 py-24 text-center">
         <span className="text-vf-red text-6xl font-bold">404</span>

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { DuyurularAccordion, type Announcement } from "./DuyurularAccordion";
@@ -43,7 +42,6 @@ export default async function Duyurular() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "Duyurular"} />
 
       <section className="mx-auto w-full max-w-3xl px-4 pb-20">

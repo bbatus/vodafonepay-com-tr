@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getContactInfo, getPageMeta } from "@/lib/cms";
@@ -105,7 +104,6 @@ export default async function Iletisim() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "İletişim"} />
 
       <section className="w-full bg-gradient-to-r from-vf-navy to-vf-red px-4 py-16 lg:px-16">

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ProductHero } from "@/components/ProductHero";
 import { CardsWithIcons } from "@/components/CardsWithIcons";
@@ -83,7 +82,6 @@ export default async function AnindaBakiye() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "Anında Bakiye"} />
       <ProductHero
         image={cmsHero?.image.url ?? "/images/ab-hero.jpg"}

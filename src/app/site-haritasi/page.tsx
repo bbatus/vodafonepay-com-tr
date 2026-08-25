@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { buildMetadata } from "@/lib/metadata";
@@ -103,7 +102,6 @@ export default async function SiteHaritasi() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "Site Haritası"} />
 
       <section className="mx-auto w-full max-w-[1030px] px-4 pb-20">

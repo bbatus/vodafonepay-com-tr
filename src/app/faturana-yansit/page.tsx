@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ProductHero } from "@/components/ProductHero";
 import { CardsWithIcons } from "@/components/CardsWithIcons";
@@ -169,7 +168,6 @@ export default async function FaturanaYansit() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "Faturana Yansıt"} />
       <ProductHero
         image={cmsHero?.image.url ?? "/images/fy-hero.jpg"}

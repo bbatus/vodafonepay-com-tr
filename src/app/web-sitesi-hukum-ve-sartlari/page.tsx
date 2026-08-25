@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getLegalPage, getPageMeta, richTextToLines } from "@/lib/cms";
@@ -40,7 +39,6 @@ export default async function WebSitesiHukumVeSartlari() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "Web Sitesi Kullanımı Hüküm ve Şartları"} />
 
       <section className="mx-auto w-full max-w-3xl px-4 pb-20">

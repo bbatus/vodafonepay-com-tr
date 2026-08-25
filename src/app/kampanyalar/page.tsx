@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
-import { StickyQr } from "@/components/StickyQr";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ContentUnavailable } from "@/components/ContentUnavailable";
 import { Faq } from "@/components/Faq";
@@ -70,7 +69,6 @@ export default async function Kampanyalar() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
-      <StickyQr />
       <Breadcrumb current={pageMeta?.breadcrumbLabel || "Kampanyalar"} />
 
       <section className="mx-auto w-full max-w-[1280px] px-4 pb-20">
