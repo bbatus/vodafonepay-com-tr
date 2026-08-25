@@ -8,6 +8,7 @@ import { sitePreviewUrl } from "@/lib/preview";
 import { dbLabel } from "@/lib/collectionLabels";
 import { CATEGORY_SCOPES } from "@/collections/Categories";
 import { assignFooterOrder, FOOTER_ORDER_FIELD_DESCRIPTION, FOOTER_ORDER_MAX } from "@/hooks/ordering";
+import { autoSlug } from "@/hooks/autoSlug";
 import { seoKeywordsField } from "@/lib/seoFields";
 
 /**
@@ -93,17 +94,56 @@ const EDITABLE_WHILE_PUBLISHED = new Set([
   "updatedAt",
   "createdAt",
   "id",
+  "forceLiveEdit",
 ]);
 
 /** Roles that may take a campaign off the air themselves; everyone else has to request it. */
 const CAN_UNPUBLISH = new Set<string>([ROLES.NEW_VERTICAL_MAKER, ROLES.NEW_VERTICAL_CHECKER, ROLES.GROWTH_CHECKER]);
 
-export const guardPublishedEdit: CollectionBeforeChangeHook = ({ data, operation, originalDoc, req }) => {
+export const guardPublishedEdit: CollectionBeforeChangeHook = async ({ data, operation, originalDoc, req }) => {
   if (operation !== "update" || originalDoc?._status !== "published") return data;
 
   const role = (req.user as { role?: string } | undefined)?.role;
   const isEnglish = req.i18n?.language === "en";
   const goingToDraft = data?._status === "draft";
+
+  /**
+   * Follow-up 25.08: "çok acil bi düzeltme olabilir … 2. bir onay metnini
+   * onaylarsa canlıya alabilmeli." The unpublish-first path below stays the
+   * DEFAULT and the recommended route; this is the deliberate escape hatch
+   * for a typo that has to come off the live site right now.
+   *
+   * Restricted to the roles that could take the campaign off the air by
+   * themselves anyway (CAN_UNPUBLISH). Letting a Growth Maker force a live
+   * edit would quietly hand it the publish right that denyMakerPublish exists
+   * to withhold — the segregation of duties has to survive the shortcut, so a
+   * Maker in a hurry still has to ask a Checker.
+   *
+   * Always audited as its own action: skipping review is exactly the kind of
+   * thing an auditor needs to be able to find later.
+   */
+  if (data?.forceLiveEdit === true) {
+    if (!role || !CAN_UNPUBLISH.has(role)) {
+      throw new APIError(
+        isEnglish
+          ? "You can't apply an emergency edit to a live campaign — ask a Checker."
+          : "Yayındaki bir kampanyaya acil düzeltme uygulayamazsınız — bir Checker'dan onay isteyin.",
+        403,
+        undefined,
+        true
+      );
+    }
+    await writeAuditLog(req, {
+      action: "update",
+      collectionSlug: "campaigns",
+      documentId: String(originalDoc?.id ?? ""),
+      summary: `campaigns: "${originalDoc?.title ?? originalDoc?.id}" ACİL DÜZELTME ile inceleme adımı atlanarak doğrudan canlıda güncellendi`,
+    });
+    // Transient flag — reset so it can't silently persist and re-authorize a
+    // later, unrelated save.
+    data.forceLiveEdit = false;
+    return data;
+  }
 
   if (goingToDraft) {
     if (!role || !CAN_UNPUBLISH.has(role)) {
@@ -171,7 +211,7 @@ export const Campaigns: CollectionConfig = {
     hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "category", "featured", "startDate", "endDate", "_status"],
-    group: { tr: "İçerik", en: "Content" },
+    group: { tr: "İçerik Yönetimi", en: "Content Management" },
     // "Yerel hafızaya kopyala" is Payload's copy-to-locale tool (copies field
     // values between locales) — it did nothing useful here even before
     // content localization was switched off entirely (RFP feedback 5.7). Kept
@@ -216,6 +256,16 @@ export const Campaigns: CollectionConfig = {
       name: "createdBy",
       type: "relationship",
       relationTo: "users",
+      admin: { hidden: true },
+    },
+    {
+      // Follow-up 25.08: the "acil düzeltme" opt-in — see guardPublishedEdit.
+      // Transient: the hook resets it to false on every use, so it never
+      // stays true on a stored document. Hidden because it's set by
+      // RoleAwarePublishButton's confirmation modal, never by hand.
+      name: "forceLiveEdit",
+      type: "checkbox",
+      defaultValue: false,
       admin: { hidden: true },
     },
     {
@@ -311,16 +361,30 @@ export const Campaigns: CollectionConfig = {
     },
     { name: "title", type: "text", required: true },
     {
+      // Follow-up 25.08: was a required, hand-typed field — an editor who
+      // skipped it got a bare 400 on save AND an unusable publish preview
+      // ("kaydedilmiş bir 'slug' değeri gerekiyor"), because the preview URL is
+      // built from it. Now derived from `title`: see hooks/autoSlug.ts for the
+      // server half and AutoSlugField.tsx for the sidebar half (which is what
+      // keeps CLIENT-side required-validation satisfied).
       name: "slug",
       type: "text",
       required: true,
       unique: true,
       label: "URL Adı (slug)",
       admin: {
-        description:
-          "Kampanyanın site adresini belirler: /kampanyalar/{slug}. Sadece küçük harf, rakam ve tire (-) kullanın — boşluk ve Türkçe karakter (ç,ğ,ı,ö,ş,ü) OLMAZ. Örnek: yaz-kampanyasi-2026",
+        position: "sidebar",
+        readOnly: true,
+        components: {
+          Field: {
+            path: "/components/AutoSlugField#default",
+            clientProps: { sourceField: "title", urlPrefix: "/kampanyalar/" },
+          },
+        },
       },
       validate: (value: unknown) => {
+        // Kept as a backstop for direct API writes — the admin can no longer
+        // produce an invalid value, but the REST/GraphQL API still can.
         if (typeof value !== "string" || value.length === 0) return "Zorunlu alan";
         if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(value)) {
           return "Sadece küçük harf, rakam ve tire (-) kullanabilirsiniz — boşluk, büyük harf veya Türkçe karakter olmaz. Örnek: yaz-kampanyasi-2026";
@@ -459,6 +523,7 @@ export const Campaigns: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeValidate: [autoSlug("campaigns", "title")],
     beforeChange: [setCreatedBy, manageReviewCycle, guardPublishedEdit, denyMakerPublish, assignFooterOrder("campaigns")],
     afterChange: [revalidateCampaignPaths, auditAfterChange("campaigns"), auditRejection],
     afterDelete: [revalidateCampaignPathsOnDelete, auditAfterDelete("campaigns")],

@@ -606,7 +606,23 @@ export type LegalPageSlug =
 
 const legalDocumentSchema = z.object({
   label: z.string(),
-  file: z.object({ url: z.string() }),
+  // Follow-up 25.08: a document row is now EITHER an uploaded PDF
+  // (`source: "pdf"`, has `file`) or a page written in the CMS
+  // (`source: "page"`, has `slug` + `body`, rendered at
+  // /sozlesmeler-ve-formlar/{slug}). Both shapes are optional here so a row of
+  // one kind doesn't fail parsing because it lacks the other kind's fields.
+  source: z
+    .enum(["pdf", "page"])
+    .nullable()
+    .optional()
+    .transform((v) => v ?? "pdf"),
+  file: z
+    .object({ url: z.string() })
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
+  slug: nullableString(),
+  body: z.unknown().nullable().optional(),
   enabled: z.boolean().nullable().optional().transform((v) => v ?? true),
 });
 

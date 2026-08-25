@@ -19,7 +19,7 @@ export const Announcements: CollectionConfig = {
     hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "order", "_status"],
-    group: { tr: "İçerik", en: "Content" },
+    group: { tr: "İçerik Yönetimi", en: "Content Management" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "announcements" } },

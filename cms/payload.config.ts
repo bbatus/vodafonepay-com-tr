@@ -50,6 +50,7 @@ import { AuditLogs } from "./src/collections/AuditLogs";
 import { PageMeta } from "./src/collections/PageMeta";
 import { Pages } from "./src/collections/Pages";
 import { Translations } from "./src/collections/Translations";
+import { Feedback } from "./src/collections/Feedback";
 import { ContactInfo } from "./src/globals/ContactInfo";
 import { ROLES } from "./src/access/roles";
 import { env } from "./src/env";
@@ -205,14 +206,38 @@ export default buildConfig({
       // same DashboardWidgets component alongside new KPI/recent-items
       // panels — see that file's doc comment.
       beforeNav: ["/components/SidebarLogo#default", "/components/LocalePreferenceSync#default"],
-      // Order here is the render order in the sidebar's bottom link block —
-      // FeesAndLimitsNavLink sits right after ContentManagementNavLink (not
-      // after LockedAccountsNavLink) per feedback: "ücretler ve limitler...
-      // içeriğin altına ekle".
+      // Follow-up 25.08: these custom top-level views used to render as three
+      // stray blocks below every group ("en altta iki tane atıl duran…").
+      // GroupedNavLink portals each one into the group it logically belongs
+      // to — see that component for why a portal is needed at all (Payload
+      // builds groups from collection `admin.group`; a custom view can't join
+      // one through config). `groupNames` lists both language spellings since
+      // the match is on the group header's rendered text.
+      //
+      // Feedback deliberately stays ungrouped at the very bottom — the
+      // request was specifically "sidebarın en altında feedback ver gibi bir
+      // alanda".
       afterNavLinks: [
-        "/components/ContentManagementNavLink#default",
-        "/components/FeesAndLimitsNavLink#default",
-        "/components/AccessMatrixNavLink#default",
+        {
+          path: "/components/GroupedNavLink#default",
+          clientProps: { href: "/admin/content-management", labelKey: "contentManagement.navLabel", groupNames: ["Sistem", "System"] },
+        },
+        {
+          path: "/components/GroupedNavLink#default",
+          clientProps: { href: "/admin/access-matrix", labelKey: "accessMatrix.navLabel", groupNames: ["Sistem", "System"], nvMakerOnly: true },
+        },
+        {
+          path: "/components/GroupedNavLink#default",
+          clientProps: {
+            href: "/admin/fees-and-limits",
+            labelKey: "feesAndLimits.navLabel",
+            groupNames: ["İçerik Yönetimi", "Content Management"],
+          },
+        },
+        {
+          path: "/components/GroupedNavLink#default",
+          clientProps: { href: "/admin/feedback", labelKey: "feedback.navLabel", groupNames: [], spaced: true },
+        },
       ],
       views: {
         contentManagement: {
@@ -238,6 +263,12 @@ export default buildConfig({
         accessMatrix: {
           Component: "/components/AccessMatrixView#default",
           path: "/access-matrix",
+        },
+        // Follow-up 25.08: one-way "tell us what's awkward" form — see
+        // collections/Feedback.ts for why nothing can read it back.
+        feedback: {
+          Component: "/components/FeedbackView#default",
+          path: "/feedback",
         },
         // RFP feedback 3.4: disable self-service password reset (LDAP will
         // own identity later) — overriding the built-in view keys blocks
@@ -325,29 +356,42 @@ export default buildConfig({
       );
     }
   },
+  // Follow-up 25.08: Payload renders each sidebar group's links in THIS
+  // array's order, so the requested ordering ("altında ilk kategoriler olmalı.
+  // ikinci kampanyalar sonra sayfalar sık sorulanlar blog yazıları temsilciler
+  // içerik blokları") is expressed here, not in a separate config. Grouped by
+  // sidebar section for readability — the group each one lands in is its own
+  // `admin.group`.
   collections: [
+    // — Sistem —
     Users,
     Media,
     Documents,
-    Campaigns,
+    AuditLogs,
+    Translations,
+    // — İçerik Yönetimi —
     Categories,
+    Campaigns,
+    Pages,
     FaqItems,
     BlogPosts,
+    Representatives,
+    ContentBlocks,
+    Announcements,
     FeeRows,
     LimitTables,
+    // — Site Yapısı —
     NavLinks,
+    LegalPages,
+    CookieRows,
+    PageMeta,
+    // — Ürün Sayfaları —
     ProductHeroes,
     FeatureCards,
     StepCards,
-    Announcements,
-    LegalPages,
-    ContentBlocks,
-    Representatives,
-    CookieRows,
-    AuditLogs,
-    PageMeta,
-    Pages,
-    Translations,
+    // Hidden from every sidebar group (admin.hidden) — reachable only through
+    // the "Geri Bildirim Gönder" screen's submit endpoint.
+    Feedback,
   ],
   globals: [ContactInfo],
   // RFP §7.2 follow-up: audits collection can't hook a plain read (see

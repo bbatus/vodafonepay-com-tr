@@ -1539,9 +1539,54 @@ a {
   font-size: 0.875rem;
 }
 
+.access-matrix__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.access-matrix__search {
+  flex: 1 1 16rem;
+  min-width: 0;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.875rem;
+  color: var(--theme-elevation-800);
+  background: var(--theme-input-bg, var(--theme-elevation-0));
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-s);
+}
+
+.access-matrix__search:focus {
+  outline: none;
+  border-color: var(--vf-red);
+}
+
+.access-matrix__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  color: var(--theme-elevation-500);
+}
+
+.access-matrix__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.access-matrix__legend-item--muted {
+  color: var(--theme-elevation-400);
+}
+
 .access-matrix__table {
   width: 100%;
-  min-width: 40rem;
+  min-width: 52rem;
   border-collapse: collapse;
   font-size: 0.875rem;
 }
@@ -1549,29 +1594,221 @@ a {
 .access-matrix__table th,
 .access-matrix__table td {
   text-align: left;
-  padding: 0.5rem 0.75rem;
+  padding: 0.55rem 0.75rem;
   border-bottom: 1px solid var(--theme-elevation-100);
   white-space: nowrap;
 }
 
-.access-matrix__table th {
-  color: var(--theme-elevation-450);
-  font-weight: 500;
+/* The role you're comparing has to stay visible while scrolling a 20-row table. */
+.access-matrix__table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: var(--theme-elevation-600);
+  font-weight: 600;
+  background: var(--theme-elevation-50);
+  border-bottom: 1px solid var(--theme-elevation-150);
+}
+
+.access-matrix__col-role {
+  width: 12rem;
 }
 
 .access-matrix__collection-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
   font-weight: 600;
-  vertical-align: top;
+  text-align: left;
   border-right: 1px solid var(--theme-elevation-100);
 }
 
-.access-matrix__flag {
-  color: var(--theme-elevation-350);
+.access-matrix__slug {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--theme-elevation-400);
 }
 
-.access-matrix__flag--on {
-  color: var(--theme-success-600);
+.access-matrix__table tbody tr:hover {
+  background: var(--theme-elevation-50);
+}
+
+.access-matrix__badges {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.access-matrix__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.6875rem;
   font-weight: 700;
+  border-radius: var(--style-radius-s);
+  color: var(--theme-elevation-350);
+  background: var(--theme-elevation-100);
+  border: 1px solid transparent;
+}
+
+.access-matrix__badge--on {
+  color: #fff;
+  background: var(--theme-success-600);
+}
+
+.access-matrix__none {
+  font-size: 0.75rem;
+  color: var(--theme-elevation-350);
+  font-style: italic;
+}
+
+.access-matrix__empty {
+  padding: 1.5rem 0.75rem;
+  color: var(--theme-elevation-450);
+}
+
+/* ---------------------------------------------------------------------
+   Auto-slug sidebar field (AutoSlugField.tsx)
+--------------------------------------------------------------------- */
+
+.auto-slug__value {
+  display: block;
+  margin: 0.25rem 0 0.35rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8125rem;
+  color: var(--theme-elevation-700);
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-s);
+  overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------------
+   Category scope peek (CategoryScopePeek.tsx)
+--------------------------------------------------------------------- */
+
+.category-peek {
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: var(--style-radius-m);
+  background: var(--theme-elevation-50);
+}
+
+.category-peek__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.category-peek__item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.8125rem;
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 999px;
+}
+
+.category-peek__slug {
+  font-size: 0.6875rem;
+  color: var(--theme-elevation-400);
+}
+
+/* ---------------------------------------------------------------------
+   Feedback form (FeedbackApp.tsx)
+--------------------------------------------------------------------- */
+
+.feedback-form {
+  max-width: 40rem;
+}
+
+.feedback-form__intro {
+  margin: 0 0 1.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--theme-elevation-600);
+}
+
+.feedback-form__field {
+  display: block;
+  margin: 0 0 1.25rem;
+}
+
+.feedback-form__input,
+.feedback-form__textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.55rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--theme-elevation-800);
+  background: var(--theme-input-bg, var(--theme-elevation-0));
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-s);
+}
+
+.feedback-form__input:focus,
+.feedback-form__textarea:focus {
+  outline: none;
+  border-color: var(--vf-red);
+}
+
+.feedback-form__textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.feedback-form__error {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: var(--theme-error-500);
+}
+
+.feedback-form__sent {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: var(--theme-success-600);
+}
+
+.feedback-form__privacy {
+  margin-top: 1rem;
+}
+
+/* ---------------------------------------------------------------------
+   Emergency live-edit (RoleAwarePublishButton.tsx)
+--------------------------------------------------------------------- */
+
+.vf-live-actions--urgent {
+  flex-wrap: wrap;
+}
+
+.rapb-ack {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--theme-elevation-700);
+}
+
+.rapb-ack input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.rapb-submit-error {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--theme-error-500);
 }
 
 /* ---------------------------------------------------------------------

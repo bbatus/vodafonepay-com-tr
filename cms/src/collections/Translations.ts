@@ -1,5 +1,5 @@
 import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
-import { isNewVerticalMaker, ROLES } from "@/access/roles";
+import { isNewVerticalMaker } from "@/access/roles";
 import { dbLabel, refreshLabelCache } from "@/lib/collectionLabels";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 
@@ -48,15 +48,17 @@ export const Translations: CollectionConfig = {
     group: { tr: "Sistem", en: "System" },
     description:
       "Admin panelindeki özel bileşenlerin (sidebar, butonlar, login ekranı vb.) metinleri. 'key' değerini değiştirmeyin — kod bu değere göre metni bulur.",
-    // Follow-up 25.08: "business/product bu key'i nereden bilecek ki, bunu
-    // arkaplanda tutalım" — fair point, a raw `loginBrandPanel.headline`-style
-    // key means nothing without reading the code. Hidden from the sidebar
-    // (and the collection list/document routes) for every role except New
-    // Vertical Maker, who's the one actually wiring these keys into new
-    // components. Read access below STAYS public (see its own comment) —
-    // this only hides the collection as a place non-maker roles browse to,
-    // it doesn't block the fetches every role's own UI depends on.
-    hidden: ({ user }) => (user as { role?: string } | undefined)?.role !== ROLES.NEW_VERTICAL_MAKER,
+    // Follow-up 25.08 (second pass): "bosver. görmesin kimse." Initially this
+    // was hidden from every role EXCEPT New Vertical Maker; the correction is
+    // that these keys are developer-owned infrastructure (they're seeded from
+    // src/lib/translationDefaults.ts and referenced by string from component
+    // code), so no CMS user — maker included — has a reason to browse them.
+    // Now hidden outright.
+    //
+    // Read access below STAYS public (see its own comment): every role's admin
+    // UI renders its own button/label text by fetching this collection, so
+    // hiding it from the sidebar is the right lever, not locking read.
+    hidden: true,
   },
   access: {
     // Every role's admin UI — not just New Vertical Maker's — renders its

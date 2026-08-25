@@ -41,7 +41,7 @@ export const BlogPosts: CollectionConfig = {
     hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "category", "publishedDate", "_status"],
-    group: { tr: "İçerik", en: "Content" },
+    group: { tr: "İçerik Yönetimi", en: "Content Management" },
     preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/blog/${doc.slug}`) : null),
     components: {
       beforeList: [

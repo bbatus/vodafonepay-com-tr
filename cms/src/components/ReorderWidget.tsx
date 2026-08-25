@@ -107,6 +107,7 @@ function DraggableGroup({
   collection,
   groupField,
   groupKey,
+  groupValue,
   groupLabel,
   initialDocs,
   onSaved,
@@ -133,6 +134,19 @@ function DraggableGroup({
    */
   groupField?: string;
   groupKey: string;
+  /**
+   * The group's value in its ORIGINAL type, for the PATCH body. `groupKey` is
+   * always stringified (it doubles as a React key and a Map key), and sending
+   * that string straight back for a *relationship* group field is a real bug
+   * found live: FaqItems' `category` points at Categories, whose Postgres ids
+   * are integers, and Payload rejects `"18"` where it expects `18` with
+   * `Lütfen geçersiz alanı düzeltin: Category` — a 400 on every single PATCH,
+   * which surfaced to the editor as the generic "Bazı öğeler kaydedilemedi"
+   * notice with no hint about the cause. `select`-valued group fields
+   * (NavLinks' `section`, Categories' `scope`) really are strings, so this
+   * carries whichever type the server actually gave us instead of forcing one.
+   */
+  groupValue?: string | number;
   groupLabel: string;
   initialDocs: ReorderableDoc[];
   onSaved: () => void;
@@ -209,7 +223,9 @@ function DraggableGroup({
           // check (assignNextOrder/rejectIfOrderTaken, hooks/ordering.ts)
           // actually scopes to this group instead of the whole collection
           // — see the prop comment above for the bug this fixes.
-          body: JSON.stringify(groupField && groupKey !== "__all__" ? { order, [groupField]: groupKey } : { order }),
+          body: JSON.stringify(
+            groupField && groupKey !== "__all__" ? { order, [groupField]: groupValue ?? groupKey } : { order }
+          ),
         }).then((res) => res.ok);
 
       // Bug found live testing this exact fix: two items simply SWAPPING
@@ -611,6 +627,9 @@ function ServerGroupedReorder({
             collection={collection}
             groupField={groupField}
             groupKey={String(selectedId)}
+            // Raw id (a number for every Postgres-backed relationship here) —
+            // see DraggableGroup's `groupValue` comment for the 400 this fixes.
+            groupValue={selectedId ?? undefined}
             groupLabel={selectedOption.label}
             initialDocs={items}
             onSaved={onSaved}

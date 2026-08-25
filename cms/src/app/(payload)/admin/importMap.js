@@ -36,7 +36,6 @@ import default_10 from "../../../components/ForgotPasswordDisabled";
 import default_11 from "../../../components/LoginHistoryField";
 import default_12 from "../../../components/LocalePreferenceSync";
 import default_13 from "../../../components/ContentManagementView";
-import default_14 from "../../../components/ContentManagementNavLink";
 import default_15 from "../../../components/SaveOrSubmitButton";
 import default_16 from "../../../components/UserAvatarIcon";
 import default_17 from "../../../components/CustomAccountView";
@@ -52,12 +51,14 @@ import default_28 from "../../../components/CategoriesExportButton";
 import default_29 from "../../../components/BlogPostsExportButton";
 import default_30 from "../../../components/FooterOrderField";
 import default_31 from "../../../components/FeesAndLimitsView";
-import default_32 from "../../../components/FeesAndLimitsNavLink";
 import default_33 from "../../../components/CustomDashboardView";
 import default_34 from "../../../components/AuditLogsCefExportButton";
 import default_35 from "../../../components/AccessMatrixView";
-import default_36 from "../../../components/AccessMatrixNavLink";
 import default_37 from "../../../components/UnlockAccountField";
+import default_38 from "../../../components/GroupedNavLink";
+import default_39 from "../../../components/FeedbackView";
+import default_40 from "../../../components/AutoSlugField";
+import default_41 from "../../../components/CategoryScopePeek";
 import { S3ClientUploadHandler as S3ClientUploadHandler_2 } from "@payloadcms/storage-s3/client";
 import { CollectionCards as CollectionCards_1 } from "@payloadcms/next/rsc";
 import { RscEntryLexicalField, RscEntryLexicalCell, LexicalDiffComponent } from "@payloadcms/richtext-lexical/rsc";
@@ -101,7 +102,6 @@ export const importMap = {
   "/components/LoginHistoryField#default": default_11,
   "/components/LocalePreferenceSync#default": default_12,
   "/components/ContentManagementView#default": default_13,
-  "/components/ContentManagementNavLink#default": default_14,
   "/components/SaveOrSubmitButton#default": default_15,
   "/components/UserAvatarIcon#default": default_16,
   "/components/CustomAccountView#default": default_17,
@@ -117,12 +117,14 @@ export const importMap = {
   "/components/BlogPostsExportButton#default": default_29,
   "/components/FooterOrderField#default": default_30,
   "/components/FeesAndLimitsView#default": default_31,
-  "/components/FeesAndLimitsNavLink#default": default_32,
   "/components/CustomDashboardView#default": default_33,
   "/components/AuditLogsCefExportButton#default": default_34,
   "/components/AccessMatrixView#default": default_35,
-  "/components/AccessMatrixNavLink#default": default_36,
   "/components/UnlockAccountField#default": default_37,
+  "/components/GroupedNavLink#default": default_38,
+  "/components/FeedbackView#default": default_39,
+  "/components/AutoSlugField#default": default_40,
+  "/components/CategoryScopePeek#default": default_41,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_2,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_1,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField,

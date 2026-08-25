@@ -56,7 +56,7 @@ export const FaqItems: CollectionConfig = {
     hideAPIURL: true,
     useAsTitle: "question",
     defaultColumns: ["question", "category", "showOnHomepage", "order", "createdAt", "_status"],
-    group: { tr: "İçerik", en: "Content" },
+    group: { tr: "İçerik Yönetimi", en: "Content Management" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "faq-items" } },

@@ -56,6 +56,14 @@ export default function RoleAwarePublishButton() {
     unpublishRequested: tt("roleAwarePublishButton.unpublishRequested"),
     previewDesktop: tt("roleAwarePublishButton.previewDesktop"),
     previewMobile: tt("roleAwarePublishButton.previewMobile"),
+    forceEdit: tt("roleAwarePublishButton.forceEdit"),
+    forceEditing: tt("roleAwarePublishButton.forceEditing"),
+    forceHeading: tt("roleAwarePublishButton.forceHeading"),
+    forceBody: tt("roleAwarePublishButton.forceBody"),
+    forceAck: tt("roleAwarePublishButton.forceAck"),
+    forceConfirm: tt("roleAwarePublishButton.forceConfirm"),
+    forceRecommended: tt("roleAwarePublishButton.forceRecommended"),
+    submitFailed: tt("roleAwarePublishButton.submitFailed"),
   };
   const role = (user as { role?: string } | undefined)?.role;
   const userId = (user as { id?: string | number } | undefined)?.id;
@@ -109,6 +117,14 @@ export default function RoleAwarePublishButton() {
   const [rejecting, setRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
+  // Follow-up 25.08: a failed submit used to just close the modal with no
+  // explanation ("ekstra feedback verdim o da gitmiyor galiba") — Payload's
+  // own toast fires for some failures but not for a validation 400 raised
+  // from inside our own hooks. Keep the modal open and say what happened.
+  const [rejectError, setRejectError] = useState<string | null>(null);
+  const [showForceConfirm, setShowForceConfirm] = useState(false);
+  const [forceAck, setForceAck] = useState(false);
+  const [forcing, setForcing] = useState(false);
 
   // RFP feedback: the confirm-before-publish modal's iframe was stuck at its
   // 420px minHeight (a flex:1 child can't grow inside a column whose own
@@ -119,7 +135,7 @@ export default function RoleAwarePublishButton() {
   // background scroll while a modal was open. Fixing both: give the modal a
   // real height so the iframe actually fills it, and lock body scroll while
   // either modal is open.
-  const modalOpen = confirming || showRejectForm;
+  const modalOpen = confirming || showRejectForm || showForceConfirm;
   useEffect(() => {
     if (!modalOpen) return;
     const previous = document.body.style.overflow;
@@ -162,9 +178,33 @@ export default function RoleAwarePublishButton() {
     submit,
   ]);
 
+  /**
+   * Follow-up 25.08 — the "acil düzeltme" path. The unpublish-first flow is
+   * still what LiveActions offers first; this is the second, explicitly
+   * acknowledged confirmation the request asked for. `forceLiveEdit` is what
+   * Campaigns.ts's guardPublishedEdit checks (and audits) server-side — the
+   * checkbox in the modal only decides whether we send it.
+   */
+  const doForceLiveEdit = useCallback(async () => {
+    setForcing(true);
+    try {
+      const params = new URLSearchParams({ depth: "0", locale: localeCode || "" }).toString();
+      const idSegment = id ? `/${id}` : "";
+      const path = `/${collectionSlug}${idSegment}`;
+      const action = formatAdminURL({ apiRoute: config.routes.api, path: `${path}?${params}` as `/${string}` });
+      const result = await submit({ action, overrides: { forceLiveEdit: true, _status: "published" } });
+      if (result && typeof window !== "undefined") window.location.reload();
+    } finally {
+      setForcing(false);
+      setShowForceConfirm(false);
+      setForceAck(false);
+    }
+  }, [collectionSlug, config.routes.api, id, localeCode, submit]);
+
   const doReject = useCallback(async () => {
     if (!rejectReason.trim()) return;
     setRejecting(true);
+    setRejectError(null);
     try {
       const params = new URLSearchParams({ depth: "0", locale: localeCode || "" }).toString();
       const idSegment = id ? `/${id}` : "";
@@ -181,13 +221,15 @@ export default function RoleAwarePublishButton() {
       });
       if (result && typeof window !== "undefined") {
         window.location.reload();
+        return;
       }
+      // Submit came back falsy — the save was rejected (validation/permission).
+      // Keep the modal and the typed reason so the editor doesn't lose it.
+      setRejectError(t.submitFailed);
     } finally {
       setRejecting(false);
-      setShowRejectForm(false);
-      setRejectReason("");
     }
-  }, [collectionSlug, config.routes.api, id, localeCode, rejectReason, submit, user]);
+  }, [collectionSlug, config.routes.api, id, localeCode, rejectReason, submit, t.submitFailed, user]);
 
   /**
    * RFP feedback 5.4: a live campaign can't be edited in place — the server
@@ -250,6 +292,54 @@ export default function RoleAwarePublishButton() {
     );
   }
 
+  // Follow-up 25.08: a LIVE campaign that's been edited in the form. The
+  // server will reject a plain publish here (guardPublishedEdit), so offering
+  // the normal Publish button would just produce a 409 the editor can't act
+  // on. Show both real routes instead: the recommended unpublish-first flow,
+  // and the acknowledged emergency one.
+  if (hasPublishedDoc && modified) {
+    return (
+      <>
+        <div className="vf-live-actions vf-live-actions--urgent">
+          <span className="vf-live-actions__notice">{t.forceRecommended}</span>
+          <button
+            type="button"
+            className={`btn btn--style-secondary btn--size-medium${unpublishing ? " btn--disabled" : ""}`}
+            disabled={unpublishing}
+            onClick={() => void doUnpublish(false)}
+          >
+            <span className="btn__content">
+              <span className="btn__label">{unpublishing ? t.unpublishing : t.unpublish}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            className="btn btn--style-primary btn--size-medium"
+            onClick={() => setShowForceConfirm(true)}
+          >
+            <span className="btn__content">
+              <span className="btn__label">{t.forceEdit}</span>
+            </span>
+          </button>
+        </div>
+
+        {showForceConfirm && (
+          <ForceLiveEditModal
+            t={t}
+            ack={forceAck}
+            setAck={setForceAck}
+            forcing={forcing}
+            onCancel={() => {
+              setShowForceConfirm(false);
+              setForceAck(false);
+            }}
+            onConfirm={doForceLiveEdit}
+          />
+        )}
+      </>
+    );
+  }
+
   return (
     <>
       <PublishActionsBar
@@ -266,9 +356,11 @@ export default function RoleAwarePublishButton() {
           rejectReason={rejectReason}
           setRejectReason={setRejectReason}
           rejecting={rejecting}
+          error={rejectError}
           onCancel={() => {
             setShowRejectForm(false);
             setRejectReason("");
+            setRejectError(null);
           }}
           onConfirm={doReject}
         />
@@ -312,7 +404,15 @@ type ButtonStrings = Record<
   | "requestUnpublish"
   | "unpublishRequested"
   | "previewDesktop"
-  | "previewMobile",
+  | "previewMobile"
+  | "forceEdit"
+  | "forceEditing"
+  | "forceHeading"
+  | "forceBody"
+  | "forceAck"
+  | "forceConfirm"
+  | "forceRecommended"
+  | "submitFailed",
   string
 >;
 
@@ -394,6 +494,7 @@ function RejectModal({
   rejectReason,
   setRejectReason,
   rejecting,
+  error,
   onCancel,
   onConfirm,
 }: {
@@ -401,6 +502,7 @@ function RejectModal({
   rejectReason: string;
   setRejectReason: (value: string) => void;
   rejecting: boolean;
+  error: string | null;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -422,6 +524,7 @@ function RejectModal({
           />
           {!rejectReason.trim() && <span className="rapb-field-error">{t.rejectReasonRequired}</span>}
         </label>
+        {error && <p className="rapb-submit-error">{error}</p>}
         <div className="rapb-modal-actions">
           <button type="button" className="btn btn--style-secondary btn--size-medium" disabled={rejecting} onClick={onCancel}>
             <span className="btn__content">
@@ -436,6 +539,60 @@ function RejectModal({
           >
             <span className="btn__content">
               <span className="btn__label">{rejecting ? t.rejecting : t.rejectConfirm}</span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Follow-up 25.08: the second confirmation for skipping review on a live
+ * campaign. Deliberately NOT a one-click button — the checkbox is what makes
+ * this a conscious decision rather than a faster default, which is the whole
+ * point of keeping the unpublish-first flow as the recommended route.
+ */
+function ForceLiveEditModal({
+  t,
+  ack,
+  setAck,
+  forcing,
+  onCancel,
+  onConfirm,
+}: {
+  t: ButtonStrings;
+  ack: boolean;
+  setAck: (value: boolean) => void;
+  forcing: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="rapb-modal-overlay">
+      <div className="rapb-modal">
+        <div>
+          <p className="rapb-modal-title">{t.forceHeading}</p>
+          <p className="rapb-modal-subtitle">{t.forceBody}</p>
+        </div>
+        <label className="rapb-ack">
+          <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} />
+          <span>{t.forceAck}</span>
+        </label>
+        <div className="rapb-modal-actions">
+          <button type="button" className="btn btn--style-secondary btn--size-medium" disabled={forcing} onClick={onCancel}>
+            <span className="btn__content">
+              <span className="btn__label">{t.cancel}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`btn btn--style-primary btn--size-medium${!ack || forcing ? " btn--disabled" : ""}`}
+            disabled={!ack || forcing}
+            onClick={onConfirm}
+          >
+            <span className="btn__content">
+              <span className="btn__label">{forcing ? t.forceEditing : t.forceConfirm}</span>
             </span>
           </button>
         </div>

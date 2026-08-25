@@ -77,6 +77,73 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "roleAwarePublishButton.previewDesktop": { tr: "Masaüstü", en: "Desktop" },
   "roleAwarePublishButton.previewMobile": { tr: "Mobil", en: "Mobile" },
 
+  // Follow-up 25.08 — the "acil düzeltme" escape hatch on a live campaign.
+  "roleAwarePublishButton.forceRecommended": {
+    tr: "Bu kampanya yayında ve üzerinde değişiklik yaptınız. Önerilen yol: önce yayından kaldırın, düzenleyin, tekrar onaya gönderin. Acil bir düzeltmeyse inceleme adımını atlayarak doğrudan canlıya uygulayabilirsiniz.",
+    en: "This campaign is live and you've changed it. Recommended: unpublish, edit, send back through review. If it's urgent, you can skip review and apply the change directly to the live site.",
+  },
+  "roleAwarePublishButton.forceEdit": { tr: "Acil: Doğrudan Canlıya Uygula", en: "Urgent: Apply Live Now" },
+  "roleAwarePublishButton.forceEditing": { tr: "Uygulanıyor…", en: "Applying…" },
+  "roleAwarePublishButton.forceHeading": { tr: "İnceleme adımını atlıyorsunuz", en: "You are skipping the review step" },
+  "roleAwarePublishButton.forceBody": {
+    tr: "Bu değişiklik hiçbir Checker onayından geçmeden, şu anda yayında olan kampanyaya doğrudan uygulanacak ve sitede anında görünecek. İşlem, kim tarafından ve ne zaman yapıldığıyla birlikte denetim kaydına yazılır.",
+    en: "This change will be applied straight to the live campaign with no Checker approval and will appear on the site immediately. The action is written to the audit log with who did it and when.",
+  },
+  "roleAwarePublishButton.forceAck": {
+    tr: "Bunun acil bir düzeltme olduğunu ve inceleme adımının bilerek atlandığını onaylıyorum.",
+    en: "I confirm this is an urgent fix and that the review step is being skipped deliberately.",
+  },
+  "roleAwarePublishButton.forceConfirm": { tr: "Onayla ve Canlıya Uygula", en: "Confirm & Apply Live" },
+  "roleAwarePublishButton.submitFailed": {
+    tr: "Kaydedilemedi — zorunlu bir alan eksik olabilir ya da bu işlem için yetkiniz olmayabilir. Formdaki hata mesajlarını kontrol edip tekrar deneyin.",
+    en: "Couldn't save — a required field may be missing, or you may not have permission. Check the form for errors and try again.",
+  },
+
+  "feedback.navLabel": { tr: "Geri Bildirim Gönder", en: "Send Feedback" },
+  "feedback.title": { tr: "Geri Bildirim Gönder", en: "Send Feedback" },
+  "feedback.intro": {
+    tr: "Bu paneli birlikte daha iyi hale getirelim. Kafanızı karıştıran, fazladan tıklama gerektiren ya da eksik bulduğunuz her şeyi buradan yazabilirsiniz — küçük bir detay bile olsa yazın, hepsini okuyoruz.",
+    en: "Let's make this panel better together. Anything confusing, anything that takes too many clicks, anything missing — write it here. Even a small detail is worth sending; we read all of it.",
+  },
+  "feedback.areaLabel": { tr: "İlgili Ekran / Bileşen", en: "Screen / Component" },
+  "feedback.areaPlaceholder": { tr: "Örn: Kampanyalar → Yeni Oluştur, sürükle-bırak sıralama", en: "E.g. Campaigns → Create New, drag-and-drop ordering" },
+  "feedback.areaHint": {
+    tr: "Opsiyonel — hangi ekrandan bahsettiğinizi yazarsanız çok daha hızlı buluruz.",
+    en: "Optional — telling us which screen you mean helps us find it much faster.",
+  },
+  "feedback.messageLabel": { tr: "Geri Bildiriminiz", en: "Your Feedback" },
+  "feedback.messagePlaceholder": {
+    tr: "Ne oldu, ne bekliyordunuz, sizce nasıl olmalıydı?",
+    en: "What happened, what did you expect, how do you think it should work?",
+  },
+  "feedback.send": { tr: "Gönder", en: "Send" },
+  "feedback.sending": { tr: "Gönderiliyor…", en: "Sending…" },
+  "feedback.thanks": { tr: "Teşekkürler — geri bildiriminiz bize ulaştı.", en: "Thank you — your feedback reached us." },
+  "feedback.error": { tr: "Geri bildirim gönderilemedi. Lütfen tekrar deneyin.", en: "Couldn't send your feedback. Please try again." },
+  "feedback.privacy": {
+    tr: "Gönderdiğinizde kullanıcı adınız, rolünüz ve geldiğiniz ekran da kaydedilir — geri bildirimi doğru yere bağlayabilmemiz için.",
+    en: "Your username, role and the screen you came from are recorded with your message, so we can connect it to the right place.",
+  },
+
+  "categoryPeek.title": { tr: "Bu akışta zaten olan kategoriler", en: "Categories already in this flow" },
+  "categoryPeek.loading": { tr: "Yükleniyor…", en: "Loading…" },
+  "categoryPeek.empty": { tr: "Bu akışta henüz başka kategori yok — ilkini siz oluşturuyorsunuz.", en: "No other categories in this flow yet — you're creating the first one." },
+  "categoryPeek.error": { tr: "Mevcut kategoriler yüklenemedi.", en: "Couldn't load existing categories." },
+  "categoryPeek.note": {
+    tr: "Sadece bilgi amaçlıdır — aynısını tekrar oluşturmamanız için gösteriliyor.",
+    en: "Informational only — shown so you don't create a duplicate.",
+  },
+
+  "autoSlug.label": { tr: "Sayfa Adresi (otomatik)", en: "Page URL (automatic)" },
+  "autoSlug.liveHint": {
+    tr: "Başlığı yazdıkça otomatik oluşur — elle doldurmanız gerekmez. Kayıt sonrasında sabitlenir.",
+    en: "Generated automatically as you type the title — you don't need to fill it in. It's locked once saved.",
+  },
+  "autoSlug.frozenHint": {
+    tr: "Bu adres sabitlendi. Başlığı değiştirseniz bile adres değişmez — böylece daha önce paylaşılmış linkler bozulmaz.",
+    en: "This address is locked. Changing the title won't change it, so links shared earlier keep working.",
+  },
+
   "roleAwarePublishButton.reject": { tr: "Reddet", en: "Reject" },
   "roleAwarePublishButton.rejecting": { tr: "Reddediliyor…", en: "Rejecting…" },
   "roleAwarePublishButton.rejectHeading": { tr: "Bu taslağı reddet", en: "Reject this draft" },
@@ -172,8 +239,13 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
     en: "This media can't be deleted while it's in use — remove it from the records above first.",
   },
 
-  "contentManagement.navLabel": { tr: "İçerik Yönetimi", en: "Content Management" },
-  "contentManagement.title": { tr: "İçerik Yönetimi", en: "Content Management" },
+  // Follow-up 25.08: renamed from "İçerik Yönetimi" — that's now the name of
+  // the sidebar GROUP this screen sits above, and two different things with
+  // the same name in the same sidebar is worse than either name alone. "Tüm
+  // İçerikler" also describes it more honestly: it's a cross-collection
+  // read-only inventory, not a second place to manage content.
+  "contentManagement.navLabel": { tr: "Tüm İçerikler", en: "All Content" },
+  "contentManagement.title": { tr: "Tüm İçerikler", en: "All Content" },
   // RFP feedback 5.9: the page is a report now — these say so, and the old
   // addNew/edit/delete/confirm keys are gone with the actions they labelled.
   "contentManagement.readOnlyNote": {
@@ -337,6 +409,10 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
     en: "What each role can do in each collection — view/create/update/publish/delete. Generated from the same permission logic in access/roles.ts, so the two can't drift apart.",
   },
   "accessMatrix.export": { tr: "Dışa Aktar (CSV)", en: "Export (CSV)" },
+  "accessMatrix.searchPlaceholder": { tr: "Koleksiyon ara…", en: "Search collections…" },
+  "accessMatrix.legendOff": { tr: "soluk = yetki yok", en: "faded = not granted" },
+  "accessMatrix.noAccess": { tr: "erişim yok", en: "no access" },
+  "accessMatrix.noMatch": { tr: "Aramanızla eşleşen koleksiyon yok.", en: "No collection matches your search." },
   "accessMatrix.column.collection": { tr: "Koleksiyon", en: "Collection" },
   "accessMatrix.column.role": { tr: "Rol", en: "Role" },
   "accessMatrix.forbidden": {

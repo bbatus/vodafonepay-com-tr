@@ -68,10 +68,10 @@ const HeroBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", required: true, admin: { description: "Büyük, kalın başlık. Örnek: 'Yaz Kampanyası 2026'" } },
-    { name: "subheading", type: "text", admin: { description: "Başlığın altında, daha küçük yazan destek cümlesi. Boş bırakılabilir." } },
-    { name: "image", type: "upload", relationTo: "media", required: true, admin: { description: "Sayfanın en üstünde tam genişlikte görünecek büyük görsel." } },
-    { name: "ctaLabel", type: "text", admin: { description: "Buton üzerinde yazacak metin, örn: 'Detayları Gör'. Boş bırakılırsa buton hiç gösterilmez." } },
+    { name: "heading", type: "text", required: true, admin: { description: "Sayfanın en üstündeki büyük, kalın başlık. Kısa ve iddialı olsun. Örnek: \"Vodafone'lu Ol, Ödemenin Akıllı Halini Keşfet!\" · \"Faturana Yansıt, Sonra Öde\"" } },
+    { name: "subheading", type: "text", admin: { description: "Başlığın altındaki destek cümlesi — başlıktaki vaadi somutlaştırır. Örnek: \"Hemen Vodafone Pay'e geç, alışverişini tek dokunuşla tamamla.\" Boş bırakılabilir." } },
+    { name: "image", type: "upload", relationTo: "media", required: true, admin: { description: "Sayfanın en üstünde tam genişlikte görünecek büyük görsel. Vodafone marka görseli kullanın (kırmızı zemin + Pay logosu, ya da uygulama ekran görüntüsü). Önerilen ölçü: 1440x600 piksel." } },
+    { name: "ctaLabel", type: "text", admin: { description: "Buton üzerinde yazacak metin. Örnek: \"Hemen Başla\" · \"Detayları Gör\" · \"Uygulamayı İndir\". Boş bırakılırsa buton hiç gösterilmez." } },
     { name: "ctaUrl", type: "text", admin: { description: "Butona tıklayınca gidilecek adres, örn: /kampanyalar veya https://... . ctaLabel doluysa bu da dolu olmalı." } },
   ],
 };
@@ -88,7 +88,7 @@ const RichTextBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "Bu metin bölümünün başlığı, örn: 'Vizyonumuz'. Boş bırakılırsa başlıksız sadece metin gösterilir." } },
+    { name: "heading", type: "text", admin: { description: "Bu metin bölümünün başlığı. Örnek: \"Vodafone Pay Nedir?\" · \"Neden Vodafone Pay?\". Boş bırakılırsa başlıksız sadece metin gösterilir." } },
     { name: "body", type: "richText", required: true },
   ],
 };
@@ -105,7 +105,7 @@ const FaqListBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "SSS bölümünün başlığı, örn: 'Sıkça Sorulan Sorular'. Boş bırakılabilir." } },
+    { name: "heading", type: "text", admin: { description: "SSS bölümünün başlığı. Örnek: \"Vodafone Pay Hakkında Merak Edilenler\". Boş bırakılabilir." } },
     {
       name: "category",
       type: "text",
@@ -129,7 +129,7 @@ const CampaignGridBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", required: true, admin: { description: "Vitrinin başlığı, örn: 'Size Özel Kampanyalar'." } },
+    { name: "heading", type: "text", required: true, admin: { description: "Vitrinin başlığı. Örnek: \"Vodafone'lulara Özel Kampanyalar\" · \"Bu Ayın Fırsatları\"." } },
     {
       name: "category",
       type: "text",
@@ -153,7 +153,7 @@ const VideoBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "Videonun üstünde gösterilecek başlık. Boş bırakılabilir." } },
+    { name: "heading", type: "text", admin: { description: "Videonun üstünde gösterilecek başlık. Örnek: \"Vodafone Pay Nasıl Kullanılır?\" · \"60 Saniyede Faturana Yansıt\". Boş bırakılabilir." } },
     {
       name: "youtubeId",
       type: "text",
@@ -178,7 +178,7 @@ const LogoGridBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "Vitrinin başlığı, örn: 'Anlaşmalı Kartlar'. Boş bırakılabilir." } },
+    { name: "heading", type: "text", admin: { description: "Vitrinin başlığı. Örnek: \"Anlaşmalı Bankalar\" · \"Vodafone Pay'i Kullanabileceğiniz Yerler\". Boş bırakılabilir." } },
     {
       name: "logos",
       type: "array",
@@ -218,16 +218,16 @@ const IconCardsBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "Bölümün başlığı, örn: 'Akıllı Ödeme Yöntemleri'. Boş bırakılabilir." } },
+    { name: "heading", type: "text", admin: { description: "Bölümün başlığı. Örnek: \"Vodafone Pay Ayrıcalıkları\" · \"Akıllı Ödeme Yöntemleri\". Boş bırakılabilir." } },
     {
       name: "cards",
       type: "array",
       minRows: 1,
       admin: { description: "Her satır bir kart (ikon + başlık + kısa açıklama). '+ Kart Ekle' ile yenisini ekleyin, sürükleyerek sırasını değiştirin. Genelde 3 kart kullanılır." },
       fields: [
-        { name: "icon", type: "upload", relationTo: "media", required: true, admin: { description: "Küçük ikon görseli." } },
-        { name: "title", type: "text", required: true, admin: { description: "Kartın başlığı, örn: 'Size Özel Limit'." } },
-        { name: "text", type: "textarea", required: true, admin: { description: "Kartın kısa açıklama metni, 1-2 cümle." } },
+        { name: "icon", type: "upload", relationTo: "media", required: true, admin: { description: "Küçük ikon görseli — Vodafone ikon setinden, tercihen tek renk (kırmızı ya da koyu gri), 64x64 piksel." } },
+        { name: "title", type: "text", required: true, admin: { description: "Kartın başlığı — 2-4 kelime. Örnek: \"Size Özel Limit\" · \"Anında Bakiye\" · \"Temassız Öde\"." } },
+        { name: "text", type: "textarea", required: true, admin: { description: "Kartın kısa açıklama metni, 1-2 cümle. Örnek: \"Faturana yansıt, ay sonunda tek seferde öde. Ekstra ücret yok.\"" } },
       ],
     },
   ],
@@ -245,7 +245,7 @@ const StepsBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: "Bölümün başlığı, örn: 'Nasıl Kullanırım?'. Boş bırakılabilir." } },
+    { name: "heading", type: "text", admin: { description: "Bölümün başlığı. Örnek: \"3 Adımda Vodafone Pay\" · \"Nasıl Kullanırım?\". Boş bırakılabilir." } },
     {
       name: "steps",
       type: "array",
@@ -394,7 +394,7 @@ export const Pages: CollectionConfig = {
     hideAPIURL: true,
     useAsTitle: "title",
     defaultColumns: ["title", "slug", "_status"],
-    group: { tr: "İçerik", en: "Content" },
+    group: { tr: "İçerik Yönetimi", en: "Content Management" },
     description:
       "Yeni sayfalar (kampanya landing, hub sayfası vb.) — geliştirici gerekmeden, blokları sürükleyip bırakarak oluşturulur. İlk defa mı yapıyorsunuz? Yukarıdaki '?' butonuna basın — adım adım anlatım orada.",
     preview: (doc) => (typeof doc.slug === "string" ? sitePreviewUrl(`/${doc.slug}`) : null),

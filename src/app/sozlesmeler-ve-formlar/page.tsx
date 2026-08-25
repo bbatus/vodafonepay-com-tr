@@ -7,6 +7,7 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getLegalPage, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
+import { SozlesmelerAccordion, type SozlesmeGroup } from "./SozlesmelerAccordion";
 
 export async function generateMetadata(): Promise<Metadata> {
   const pageMeta = await getPageMeta("/sozlesmeler-ve-formlar");
@@ -29,24 +30,33 @@ export async function generateMetadata(): Promise<Metadata> {
  * than reveal a masked failure. Remove it in the same change that seeds the
  * collection; see the round report's "kalan fallback'ler" table.
  */
-const fallbackGroups = [
+const fallbackGroups: SozlesmeGroup[] = [
   {
-    label: "Belgeler",
+    label: "Sözleşmeler ve Formlar",
     documents: [
-      { label: "Tüketici Hakları Bilgi Formu için tıklayınız", href: null as string | null },
-      { label: "18.08.2026 tarihine kadar geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.", href: null },
-      { label: "18.08.2026 tarihi itibarı ile geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.", href: null },
-      { label: "Ticari Koşullar için tıklayınız.", href: null },
+      { label: "Tüketici Hakları Bilgi Formu için tıklayınız", href: "#", external: false },
+      { label: "18.08.2026 tarihine kadar geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.", href: "#", external: false },
+      { label: "18.08.2026 tarihi itibarı ile geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için tıklayınız.", href: "#", external: false },
+      { label: "Ticari Koşullar için tıklayınız.", href: "#", external: false },
     ],
   },
 ];
 
 export default async function SozlesmelerVeFormlar() {
   const cmsPage = await getLegalPage("sozlesmeler-ve-formlar");
-  const groups = cmsPage
+  // Follow-up 25.08: each row resolves to one of the two flows the editor
+  // chose between — an uploaded PDF (served from MinIO, opens in a new tab) or
+  // a page written in the CMS (an internal route on our own domain).
+  const groups: SozlesmeGroup[] = cmsPage
     ? cmsPage.groups.map((g) => ({
         label: g.label,
-        documents: g.documents.filter((d) => d.enabled).map((d) => ({ label: d.label, href: d.file.url })),
+        documents: g.documents
+          .filter((d) => d.enabled)
+          .map((d) =>
+            d.source === "page" && d.slug
+              ? { label: d.label, href: `/sozlesmeler-ve-formlar/${d.slug}`, external: false }
+              : { label: d.label, href: d.file?.url ?? "#", external: Boolean(d.file?.url) }
+          ),
       }))
     : fallbackGroups;
   const pageMeta = await getPageMeta("/sozlesmeler-ve-formlar");
@@ -70,30 +80,7 @@ export default async function SozlesmelerVeFormlar() {
         ) : null}
         <h1 className="text-center text-[40px] font-light leading-[48px] text-black">Sözleşmeler ve Formlar</h1>
 
-        {groups.map((group) => (
-          <div key={group.label} className="mt-10">
-            <h2 className="text-lg font-bold text-black">{group.label}</h2>
-            <ul className="mt-4 flex flex-col gap-y-3">
-              {group.documents.map((doc) => {
-                const itemClassName =
-                  "flex w-full items-center justify-between rounded bg-white px-5 py-4 text-left text-sm font-bold text-vf-red shadow-[0px_2px_8px_0px_#00000029] transition-colors hover:text-red-700";
-                return (
-                  <li key={doc.label}>
-                    {doc.href ? (
-                      <a href={doc.href} target="_blank" rel="noopener noreferrer" download className={itemClassName}>
-                        {doc.label}
-                      </a>
-                    ) : (
-                      <button type="button" className={itemClassName}>
-                        {doc.label}
-                      </button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
+        <SozlesmelerAccordion groups={groups} />
       </section>
 
       <Footer />

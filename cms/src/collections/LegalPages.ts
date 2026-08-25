@@ -1,9 +1,55 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionBeforeValidateHook, CollectionConfig } from "payload";
+import { turkishSlugify } from "@/lib/slugify";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { dbLabel } from "@/lib/collectionLabels";
+
+type DocumentRow = { label?: string; source?: string; slug?: string };
+type GroupRow = { documents?: DocumentRow[] };
+
+/**
+ * Follow-up 25.08: the "kendin oluştur" documents each get their own page at
+ * `/sozlesmeler-ve-formlar/{slug}`, and the editor shouldn't have to invent
+ * that slug (same reasoning as Campaigns — see hooks/autoSlug.ts).
+ *
+ * Uniqueness only has to hold WITHIN this one document, since the site route
+ * looks the slug up inside this page's own groups — so this de-duplicates
+ * against the other rows in the same save rather than querying the database.
+ * An existing slug is never re-derived: the page may already be linked to.
+ */
+const fillDocumentSlugs: CollectionBeforeValidateHook = ({ data }) => {
+  const groups = (data?.groups as GroupRow[] | undefined) ?? [];
+  const taken = new Set<string>();
+
+  for (const group of groups) {
+    for (const doc of group?.documents ?? []) {
+      if (doc?.source !== "page") continue;
+      if (typeof doc.slug === "string" && doc.slug.trim()) {
+        taken.add(doc.slug);
+      }
+    }
+  }
+
+  for (const group of groups) {
+    for (const doc of group?.documents ?? []) {
+      if (doc?.source !== "page") continue;
+      if (typeof doc.slug === "string" && doc.slug.trim()) continue;
+      const base = turkishSlugify(doc.label ?? "");
+      if (!base) continue;
+      let candidate = base;
+      let suffix = 2;
+      while (taken.has(candidate)) {
+        candidate = `${base}-${suffix}`;
+        suffix += 1;
+      }
+      taken.add(candidate);
+      doc.slug = candidate;
+    }
+  }
+  return data;
+};
 
 export const LegalPages: CollectionConfig = {
   slug: "legal-pages",
@@ -92,11 +138,91 @@ export const LegalPages: CollectionConfig = {
           label: { tr: "Belgeler", en: "Documents" },
           fields: [
             { name: "label", type: "text", required: true, label: { tr: "Belge Adı", en: "Document Label" } },
-            // A PDF uploaded here creates a Documents record via a drawer
-            // (Documents.ts is `admin.hidden: true` now — this is the ONLY
-            // real entry point for adding one) rather than requiring a trip
-            // to a separate collection first.
-            { name: "file", type: "upload", relationTo: "documents", required: true },
+            {
+              /**
+               * Follow-up 25.08: "PDF yükle veya kendin olustur seklinde …
+               * 2 akış sunucaz."
+               *
+               * The live vodafonepay.com.tr sends every one of these links
+               * off to a raw PDF on a completely different host
+               * (cms.vodafone.com.tr/static/…). That's fine when a signed PDF
+               * really is the artifact, and wrong when the content is just
+               * text that would be better as a real, linkable, indexable page
+               * on our own domain. So the editor picks per document.
+               */
+              name: "source",
+              type: "radio",
+              required: true,
+              defaultValue: "pdf",
+              label: { tr: "Belge Kaynağı", en: "Document Source" },
+              options: [
+                { label: { tr: "PDF Yükle", en: "Upload a PDF" }, value: "pdf" },
+                { label: { tr: "Kendin Oluştur (sayfa)", en: "Write it here (page)" }, value: "page" },
+              ],
+              admin: {
+                layout: "horizontal",
+                description: {
+                  tr: "PDF Yükle: imzalı/resmî bir belgeyi olduğu gibi yükleyip indirilebilir link verir. Kendin Oluştur: metni buraya yazarsınız, kendi adresimizde (/sozlesmeler-ve-formlar/...) gerçek bir sayfa olarak yayınlanır.",
+                  en: "Upload a PDF: publish a signed/official file as-is with a download link. Write it here: type the text and it's published as a real page on our own domain (/sozlesmeler-ve-formlar/...).",
+                },
+              },
+            },
+            {
+              // A PDF uploaded here creates a Documents record via a drawer
+              // (Documents.ts is `admin.hidden: true` now — this is the ONLY
+              // real entry point for adding one) rather than requiring a trip
+              // to a separate collection first. Stored in MinIO like every
+              // other upload, so the link stays on infrastructure we control.
+              name: "file",
+              type: "upload",
+              relationTo: "documents",
+              label: { tr: "PDF Dosyası", en: "PDF File" },
+              admin: {
+                condition: (_data, siblingData) => siblingData?.source !== "page",
+                description: {
+                  tr: "Yüklenen PDF MinIO'da saklanır ve kendi adresimizden servis edilir.",
+                  en: "The uploaded PDF is stored in MinIO and served from our own address.",
+                },
+              },
+              // `required: true` can't be used with a `condition`: Payload
+              // still validates a hidden field, so switching to "page" would
+              // block the save on a PDF that isn't supposed to exist.
+              validate: (value: unknown, { siblingData }: { siblingData?: { source?: string } }) => {
+                if (siblingData?.source === "page") return true;
+                return value ? true : "PDF Yükle seçiliyken bir dosya seçmelisiniz.";
+              },
+            },
+            {
+              // Auto-derived from `label` (see fillDocumentSlugs below) — the
+              // editor never types it, same reasoning as Campaigns' slug.
+              name: "slug",
+              type: "text",
+              label: { tr: "Sayfa Adresi", en: "Page Address" },
+              admin: {
+                condition: (_data, siblingData) => siblingData?.source === "page",
+                readOnly: true,
+                description: {
+                  tr: "Belge adından otomatik oluşur. Sayfa şu adreste yayınlanır: /sozlesmeler-ve-formlar/{adres}",
+                  en: "Generated automatically from the document label. The page is published at /sozlesmeler-ve-formlar/{address}",
+                },
+              },
+            },
+            {
+              name: "body",
+              type: "richText",
+              label: { tr: "Sayfa İçeriği", en: "Page Content" },
+              admin: {
+                condition: (_data, siblingData) => siblingData?.source === "page",
+                description: {
+                  tr: "Sözleşme/form metnini buraya yazın. Başlık, liste, tablo ve bağlantı kullanabilirsiniz.",
+                  en: "Write the contract/form text here. Headings, lists, tables and links are available.",
+                },
+              },
+              validate: (value: unknown, { siblingData }: { siblingData?: { source?: string } }) => {
+                if (siblingData?.source !== "page") return true;
+                return value ? true : "Kendin Oluştur seçiliyken sayfa içeriği boş olamaz.";
+              },
+            },
             {
               // Follow-up 25.08: "disable edebilsin" — same
               // enabled/disabled pattern as Campaigns/Announcements, so a
@@ -130,6 +256,7 @@ export const LegalPages: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeValidate: [fillDocumentSlugs],
     afterChange: [revalidateTag("legal-pages"), auditAfterChange("legal-pages")],
     afterDelete: [revalidateTagOnDelete("legal-pages"), auditAfterDelete("legal-pages")],
   },

@@ -456,16 +456,39 @@ describe("cms.ts fetch-backed getters", () => {
       groups: [
         {
           label: "Belgeler",
-          documents: [{ label: "Form", file: { url: "/docs/form.pdf" }, enabled: true }],
+          documents: [
+            { label: "Form", source: "pdf", file: { url: "/docs/form.pdf" }, enabled: true },
+            // Follow-up 25.08: the second flow — a document written in the CMS
+            // and published at /sozlesmeler-ve-formlar/{slug} instead of being
+            // an uploaded PDF. It legitimately has no `file`.
+            { label: "Ticari Koşullar", source: "page", slug: "ticari-kosullar", body: { root: {} }, enabled: true },
+          ],
         },
       ],
     };
     vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [doc] }));
     const result = await getLegalPage("sozlesmeler-ve-formlar");
     expect(result?.heroImage).toEqual({ url: "/media/hero.png", alt: "Hero" });
-    expect(result?.groups).toEqual([
-      { label: "Belgeler", documents: [{ label: "Form", file: { url: "/docs/form.pdf" }, enabled: true }] },
-    ]);
+
+    const [pdfDoc, pageDoc] = result?.groups[0].documents ?? [];
+    expect(pdfDoc).toMatchObject({ label: "Form", source: "pdf", file: { url: "/docs/form.pdf" }, enabled: true });
+    expect(pageDoc).toMatchObject({ label: "Ticari Koşullar", source: "page", slug: "ticari-kosullar", enabled: true });
+    // A page-sourced row has no PDF at all — the schema must tolerate that
+    // rather than failing the whole page's parse.
+    expect(pageDoc?.file).toBeNull();
+  });
+
+  it("getLegalPage defaults a document with no explicit source to the PDF flow", async () => {
+    const doc = {
+      id: "lp2",
+      slug: "sozlesmeler-ve-formlar",
+      title: "T",
+      intro: "I",
+      groups: [{ label: "Eski", documents: [{ label: "Eski Form", file: { url: "/docs/old.pdf" } }] }],
+    };
+    vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [doc] }));
+    const result = await getLegalPage("sozlesmeler-ve-formlar");
+    expect(result?.groups[0].documents[0]).toMatchObject({ source: "pdf", enabled: true });
   });
 
   it("getContactInfo returns the global when companyName is present", async () => {

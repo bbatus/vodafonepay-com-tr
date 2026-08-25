@@ -90,7 +90,7 @@ export const Categories: CollectionConfig = {
     hideAPIURL: true,
     useAsTitle: "label",
     defaultColumns: ["label", "scope", "slug", "order"],
-    group: { tr: "İçerik", en: "Content" },
+    group: { tr: "İçerik Yönetimi", en: "Content Management" },
     components: {
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "categories" } },
@@ -142,6 +142,13 @@ export const Categories: CollectionConfig = {
           en: "Which flow can pick this category. Campaigns, Blog, and FAQ each have their own separate list.",
         },
       },
+    },
+    {
+      // Follow-up 25.08: informational list of what already exists in the
+      // flow the editor just picked — see CategoryScopePeek.tsx.
+      name: "scopePeek",
+      type: "ui",
+      admin: { components: { Field: "/components/CategoryScopePeek#default" } },
     },
     {
       name: "label",

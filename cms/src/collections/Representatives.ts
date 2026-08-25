@@ -14,7 +14,7 @@ export const Representatives: CollectionConfig = {
     hideAPIURL: true,
     useAsTitle: "businessName",
     defaultColumns: ["businessName", "province", "district", "phone"],
-    group: { tr: "İçerik", en: "Content" },
+    group: { tr: "İçerik Yönetimi", en: "Content Management" },
     description: "Temsilcilik/bayi kayıtları — /temsilciliklerimiz arama formu ve /temsilci/[id] detay sayfası bu veriyi kullanır.",
     components: {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "representatives" } }],

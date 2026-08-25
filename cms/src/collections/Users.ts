@@ -6,6 +6,17 @@ import { auditAfterChange, auditAfterDelete, auditRoleChange, writeAuditLog, ipO
 import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
 import { dbLabel } from "@/lib/collectionLabels";
 
+/**
+ * Follow-up 25.08. Accounts come from LDAP/AccessPoint, so the CMS creating
+ * its own is off by default — see `access.create` below for what this
+ * actually switches off (the REST/GraphQL create path AND the admin's "Yeni
+ * Oluştur" button, which Payload derives from create permission).
+ *
+ * Set to `true` only as a deliberate, temporary decision — e.g. to bootstrap
+ * an account before the real directory integration lands.
+ */
+const ALLOW_USER_CREATION = false;
+
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2MB
 const AVATAR_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
@@ -200,7 +211,14 @@ export const Users: CollectionConfig = {
     // just not create/edit/delete accounts. Read-only visibility of who
     // exists carries no real risk here; write access stays isNewVerticalMaker-only.
     read: authenticated,
-    create: isNewVerticalMaker,
+    // Follow-up 25.08: "zaten user eklemicez … şimdilik kapalı kalsın." Every
+    // account is provisioned by LDAP/AccessPoint, so hand-creating one in the
+    // CMS produces a local-only account the directory doesn't know about —
+    // exactly the drift the LDAP model exists to avoid. Returning false here
+    // (rather than deleting the code path) is what also removes the "Yeni
+    // Oluştur" button from the admin, since Payload derives that button from
+    // create permission. Flip ALLOW_USER_CREATION to re-open it in one line.
+    create: () => ALLOW_USER_CREATION,
     // RFP follow-up 25.08 (explicit correction): every account is LDAP-
     // managed — email, username and role are provisioned by LDAP/AccessPoint
     // and NEVER change through this CMS, by anyone, including a New Vertical
