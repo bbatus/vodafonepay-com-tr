@@ -31,6 +31,7 @@ export const COLLECTION_LABELS: Record<string, { tr: string; en: string }> = {
   "step-cards": { tr: "Adım Kartları", en: "Step Cards" },
   media: { tr: "Medya", en: "Media" },
   documents: { tr: "Dokümanlar", en: "Documents" },
+  "contact-info": { tr: "İletişim Bilgileri", en: "Contact Info" },
 };
 
 /** Collections with `versions.drafts: true` — these can be split published/taslak. Everything else is a flat total. */

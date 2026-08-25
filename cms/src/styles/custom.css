@@ -1471,6 +1471,57 @@ a {
   font-weight: 600;
 }
 
+.access-matrix__intro {
+  color: var(--theme-elevation-450);
+  font-size: 0.875rem;
+  max-width: 48rem;
+  margin: 0 0 1rem;
+}
+
+.access-matrix__export {
+  margin: 0 0 1rem;
+}
+
+.access-matrix__error {
+  color: var(--theme-error-500);
+  font-size: 0.875rem;
+}
+
+.access-matrix__table {
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.access-matrix__table th,
+.access-matrix__table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--theme-elevation-100);
+  white-space: nowrap;
+}
+
+.access-matrix__table th {
+  color: var(--theme-elevation-450);
+  font-weight: 500;
+}
+
+.access-matrix__collection-cell {
+  font-weight: 600;
+  vertical-align: top;
+  border-right: 1px solid var(--theme-elevation-100);
+}
+
+.access-matrix__flag {
+  color: var(--theme-elevation-350);
+}
+
+.access-matrix__flag--on {
+  color: var(--theme-success-600);
+  font-weight: 700;
+}
+
 /* ---------------------------------------------------------------------
    Top bar / step nav (breadcrumb)
 --------------------------------------------------------------------- */

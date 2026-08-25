@@ -57,6 +57,8 @@ import default_31 from "../../../components/FeesAndLimitsView";
 import default_32 from "../../../components/FeesAndLimitsNavLink";
 import default_33 from "../../../components/CustomDashboardView";
 import default_34 from "../../../components/AuditLogsCefExportButton";
+import default_35 from "../../../components/AccessMatrixView";
+import default_36 from "../../../components/AccessMatrixNavLink";
 import { S3ClientUploadHandler as S3ClientUploadHandler_2 } from "@payloadcms/storage-s3/client";
 import { CollectionCards as CollectionCards_1 } from "@payloadcms/next/rsc";
 import { RscEntryLexicalField, RscEntryLexicalCell, LexicalDiffComponent } from "@payloadcms/richtext-lexical/rsc";
@@ -121,6 +123,8 @@ export const importMap = {
   "/components/FeesAndLimitsNavLink#default": default_32,
   "/components/CustomDashboardView#default": default_33,
   "/components/AuditLogsCefExportButton#default": default_34,
+  "/components/AccessMatrixView#default": default_35,
+  "/components/AccessMatrixNavLink#default": default_36,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_2,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_1,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField,

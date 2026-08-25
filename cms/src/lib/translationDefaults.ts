@@ -343,6 +343,19 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "auditLogsCefExport.exporting": { tr: "Hazırlanıyor…", en: "Preparing…" },
   "auditLogsCefExport.done": { tr: "CEF dosyası indirildi.", en: "CEF file downloaded." },
   "auditLogsCefExport.error": { tr: "CEF dosyası indirilemedi.", en: "Couldn't download CEF file." },
+  "accessMatrix.navLabel": { tr: "Erişim Matrisi", en: "Access Matrix" },
+  "accessMatrix.title": { tr: "Kullanıcı Erişim Matrisi", en: "User Access Matrix" },
+  "accessMatrix.intro": {
+    tr: "Her rolün her koleksiyonda ne yapabildiğini gösteren tablo — görüntüle/oluştur/düzenle/yayınla/sil. access/roles.ts'teki gerçek yetki mantığından üretilir; ikisi ayrışamaz.",
+    en: "What each role can do in each collection — view/create/update/publish/delete. Generated from the same permission logic in access/roles.ts, so the two can't drift apart.",
+  },
+  "accessMatrix.export": { tr: "Dışa Aktar (CSV)", en: "Export (CSV)" },
+  "accessMatrix.column.collection": { tr: "Koleksiyon", en: "Collection" },
+  "accessMatrix.column.role": { tr: "Rol", en: "Role" },
+  "accessMatrix.forbidden": {
+    tr: "Bu sayfa sadece New Vertical Maker rolündeki kullanıcılar içindir.",
+    en: "This page is for New Vertical Maker users only.",
+  },
 };
 
 export function applyPlaceholder(template: string, n: number): string {

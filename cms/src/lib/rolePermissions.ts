@@ -1,5 +1,5 @@
 import { ROLES, type RoleValue } from "@/access/roles";
-import { DRAFT_ENABLED_COLLECTIONS } from "@/lib/collectionLabels";
+import { COLLECTION_LABELS, DRAFT_ENABLED_COLLECTIONS } from "@/lib/collectionLabels";
 
 /**
  * Mirrors the actual access-control wiring in `access/roles.ts` +
@@ -252,4 +252,40 @@ export function getRolePermissionSummary(
 
   const hasDrafts = DRAFT_ENABLED_COLLECTIONS.has(collectionSlug);
   return { roleLabel, lines: genericSummaryLines(flags, hasDrafts, locale) };
+}
+
+const ALL_ROLES: RoleValue[] = [NV_MAKER, NV_CHECKER, G_MAKER, G_CHECKER];
+
+export type AccessMatrixRow = {
+  collectionSlug: string;
+  collectionLabel: { tr: string; en: string };
+  role: RoleValue;
+  roleLabel: { tr: string; en: string };
+  flags: PermissionFlags;
+};
+
+/**
+ * RFP §7 "userID comparison tables" — the RFP text itself gives no further
+ * definition of this line item. Interpreted (per user direction, since even
+ * the RFP's own wording doesn't clarify it further) as a role × collection
+ * access matrix: for SOX/audit purposes, "who can do what" needs to be
+ * readable as a single table rather than reverse-engineered from the access
+ * functions in `access/roles.ts` and each collection's own config. Sourced
+ * from the exact same MATRIX/CATEGORY_BY_COLLECTION this file already uses
+ * for HelpButton's per-user copy, so the two surfaces can never drift apart.
+ */
+export function getAccessMatrixRows(): AccessMatrixRow[] {
+  const rows: AccessMatrixRow[] = [];
+  for (const [collectionSlug, category] of Object.entries(CATEGORY_BY_COLLECTION)) {
+    for (const role of ALL_ROLES) {
+      rows.push({
+        collectionSlug,
+        collectionLabel: COLLECTION_LABELS[collectionSlug] ?? { tr: collectionSlug, en: collectionSlug },
+        role,
+        roleLabel: ROLE_NAME[role],
+        flags: MATRIX[category][role],
+      });
+    }
+  }
+  return rows;
 }

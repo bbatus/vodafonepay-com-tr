@@ -213,6 +213,7 @@ export default buildConfig({
         "/components/ContentManagementNavLink#default",
         "/components/FeesAndLimitsNavLink#default",
         "/components/LockedAccountsNavLink#default",
+        "/components/AccessMatrixNavLink#default",
       ],
       views: {
         contentManagement: {
@@ -243,6 +244,12 @@ export default buildConfig({
         lockedAccounts: {
           Component: "/components/LockedAccountsView#default",
           path: "/locked-accounts",
+        },
+        // RFP §7 "userID comparison tables" — see AccessMatrixApp.tsx's doc
+        // comment for the interpretation (a role × collection access matrix).
+        accessMatrix: {
+          Component: "/components/AccessMatrixView#default",
+          path: "/access-matrix",
         },
         // RFP feedback 3.4: disable self-service password reset (LDAP will
         // own identity later) — overriding the built-in view keys blocks
