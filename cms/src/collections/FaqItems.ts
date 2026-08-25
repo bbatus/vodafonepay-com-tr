@@ -217,6 +217,12 @@ export const FaqItems: CollectionConfig = {
     {
       name: "footerOrder",
       type: "number",
+      // Follow-up 25.08 — same race guard as Campaigns.footerOrder, see its
+      // comment: a Postgres UNIQUE constraint as a last-resort backstop for
+      // assignFooterOrder's read-then-write gap-fill (reproduced live: 3
+      // records shared one slot). NULL (not shown in footer) never
+      // collides with another NULL.
+      unique: true,
       label: { tr: "Footer Sırası", en: "Footer Order" },
       min: 1,
       max: FOOTER_ORDER_MAX,

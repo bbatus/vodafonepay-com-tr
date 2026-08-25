@@ -356,6 +356,56 @@ kapatılabilir" listesinden 10 maddeyi aynı gün içinde kapattı:
   gelene kadar BOŞ içerikle donmuş kalıyor. Build-time log'unda `[cms] fetch failed for
   "..."` satırlarıyla doğrulandı.
 
+### 2.17 Cache/warm-up + 3 RFP maddesi kapatıldı (25.08.2026, ikinci tur)
+
+- **Statik build CMS'e ulaşamıyor / warm-up — §3'ün "Yeni — önemli" tek satırı kapandı.**
+  Kök sebep tam olarak §2.15'in son satırında not düşülen sorundu: sadece
+  `Campaigns` collection'ı `revalidateTag` yanında `revalidatePath` de gönderiyordu
+  (anında taze render), geri kalan HER collection sadece `revalidateTag`
+  gönderiyordu (stale-while-revalidate — bir sonraki isteğe kadar eski/boş içerik
+  servis ediliyordu). `cms/src/hooks/revalidate.ts`'teki her hook artık
+  `revalidatePath("/", "layout")` da gönderiyor — Next'in kendi "revalidate all
+  data" çağrısı, kök layout altındaki HER route'u tek seferde temizliyor (footer/
+  nav her sayfada olduğu için tek tek path saymak yanlış araçtı). Ayrıca yeni
+  `scripts/warm-cache.sh` (`npm run warm-cache`) — her `docker compose up -d
+  --build app`'tan hemen sonra çalıştırılmalı, build-anı boş sayfaları ilk
+  ziyaretçi beklemeden tazeler. Canlı doğrulandı: `x-nextjs-cache` header'ı
+  `STALE`'den `MISS`'e (anlık taze render) döndü.
+- **Footer sırası yarış durumu — DB-seviyesi unique constraint.**
+  `Campaigns.footerOrder`/`FaqItems.footerOrder` alanlarına `unique: true`
+  eklendi (NULL'lar çarpışmaz, sadece 1-6 arası gerçek değerler benzersiz kalır).
+  Elle SQL: `ALTER TABLE campaigns/faq_items ADD CONSTRAINT ..._footer_order_unique
+  UNIQUE (footer_order);` (R-10 — `push` prod build'de çalışmıyor). Canlı
+  doğrulandı: 7 taslak FAQ kaydına eşzamanlı `showInFooter:true` PATCH'i
+  gönderildi (6 slotu doldurmaya çalışan bilinçli bir yarış testi) — sadece 2'si
+  başarılı oldu, diğer 5'i constraint tarafından reddedildi (aynı uygulamanın her
+  yerde kullandığı standart "Lütfen geçersiz alanı düzeltin: X" hata kalıbıyla,
+  yeni bir çirkinlik yok). Önceden bu durum sessizce aynı `footerOrder`'ı iki
+  kayda yazabiliyordu.
+- **Rich text'te iç sayfa linki (RFP §3.2).** `LinkFeature({ enabledCollections:
+  [] })` → `["blog-posts", "campaigns", "pages"]` — bu üçü gerçek, sluglı, tek
+  bir sayfa route'una karşılık gelen collection'lar (LegalPages/Categories
+  bilinçli olarak dışarıda). Yeni `src/lib/internalLink.ts`
+  (`resolveInternalDocHref`) collection→URL-prefix eşlemesinin TEK kaynağı;
+  `src/components/RichText.tsx`'in `link` converter'ı artık `linkType ===
+  "internal"` dalını da işliyor. Canlı doğrulandı: admin'de "Bağlantıyı Düzenle"
+  drawer'ında gerçek doküman seçici çıktığı (Payload'ın kendi ücretsiz UI'ı),
+  API'nin `depth=1`'de internal link'in hedef dokümanını `slug` dahil populate
+  ettiği, ve sitede doğru `/kampanyalar/{slug}` gibi bir `href` render edildiği
+  — var olan serbest-URL linkler (regresyon kontrolü) hiç bozulmadan çalışmaya
+  devam ediyor.
+- **Masaüstü/mobil ayrı URL (§3.2.2).** `NavLinks`'e opsiyonel `mobileHref`
+  alanı — boşken (mevcut TÜM kayıtlar) site birebir eskisi gibi davranıyor,
+  doluysa sadece mobil çekmece (`HeaderClient.tsx`'in `lg:hidden` bloğu) onu
+  kullanıyor, masaüstü bar her zaman `href`'i kullanmaya devam ediyor. Elle SQL:
+  `nav_links.mobile_href` + `_nav_links_v.version_mobile_href`. Canlı
+  doğrulandı: masaüstü genişlikte eski `href`'e, mobil genişlikte
+  (`resize_window` ile) yeni `mobileHref`'e gittiği; mevcut gerçek bir link
+  (Kampanyalar) her iki görünümde de birebir aynı `href`'i kullandığı (regresyon
+  yok).
+- Her iki tarafta `tsc`/`eslint`/test (cms: 163, kök: 118) temiz, tüm test
+  verisi (throwaway kampanya/SSS/nav-link kayıtları) temizlendi.
+
 ### 2.16 SEO/LegalPages, sidebar ikon, audit-trail gerçek boşlukları kapatıldı (25.08.2026)
 
 - **Sidebar/topbar çift marka işareti düzeltildi ve canlı** — `AdminIcon.tsx` artık tema
@@ -414,16 +464,16 @@ _Bu tablo 24.08.2026 itibarıyla yeniden gözden geçirildi — §2.15'te kapat�
 
 | ID | Konu | Durum |
 |---|---|---|
-| **Yeni — önemli** | **Statik build CMS'e ulaşamıyor:** `next build`, CMS container henüz ayakta olmadığı bir Docker build aşamasında (izole build-network) çalışıyor. Kampanyalar/blog/SSS/nav-links dahil CMS'ten beslenen HER statik sayfa, container gerçekten çalışmaya başlayıp ilk on-demand revalidate gelene kadar **boş içerikle donmuş** kalıyor. Build log'unda `[cms] fetch failed for "..."` ile doğrulandı (24.08, `1d6f75c` commit mesajında not düşüldü, henüz düzeltilmedi). Kalıcı çözüm: build sırasında CMS'e erişim (build-stage'i aynı Docker network'e almak) ya da deploy sonrası otomatik bir "warm-up" revalidate adımı. | **Açık — henüz kimse bakmadı** |
+| ~~Yeni — önemli~~ | ~~Statik build CMS'e ulaşamıyor~~ — **25.08'de kapandı** (§2.17): her collection artık `revalidatePath("/", "layout")` da gönderiyor (tüm site tek seferde tazeleniyor, sadece Campaigns'in ayrıcalığı değil), + deploy-sonrası `scripts/warm-cache.sh` eklendi. | Kapandı |
 | ~~Yeni~~ | ~~Sidebar/topbar çift marka işareti~~ — **25.08'de düzeltildi ve canlı** (§2.16), `AdminIcon.tsx` artık tema-uyumlu yalın bir ikon. | Kapandı |
 | R-10 | `payload migrate:create`/`generate:importmap` çalışmıyor (`ERR_REQUIRE_ASYNC_MODULE`) — yeni collection/field/lexical özelliği eklemek elle `importMap.js` düzenlemesi gerektiriyor, unutulursa sessiz başarısızlık. **En kritik yapısal açık — bu ve önceki turlar boyunca defalarca elle düzeltildi, sonu gelmiyor.** | Açık |
 | R-26 | Postgres native enum'lar, migration olmadan `select` seçenek değişikliğinde manuel `ALTER TYPE` istiyor — R-10'un somut bir belirtisi. 24.08'de yine elle SQL uygulandı (delegation/audit/deeplink alanları için). | Açık |
 | Yeni | SonarQube taraması hâlâ çalıştırılamadı (token eksik/401) — bu turda da denenmedi. Bir sonraki oturumda token alınıp `scripts/sonar-scan.sh all` ile taranmalı. | Açık |
 | ~~Yeni~~ | ~~Audit trail'de RFP §7'nin karşılamadığı alt maddeler~~ — **25.08'de 3'ü kapandı** (before/after diff, SIEM/CEF export, userID karşılaştırma tabloları → erişim matrisi, §2.16). Yalnız "hangi dosya indirildi/okundu" logu açık kaldı — mimari olarak imkansız (aşağıdaki satır). | Büyük ölçüde kapandı |
 | Yeni | Dosya-indirme/okuma logu yok — Media/Documents `s3Storage()`'ın `generateFileURL`'i DOĞRUDAN MinIO/S3 URL'i döndürüyor, gerçek indirmeler hiçbir Payload hook'undan geçmiyor. Kapatmak bir proxy-endpoint yeniden tasarımı gerektirir; sahte bir "sayfa görüntülemesi" ile kapatılmadı (25.08, §2.16). | Açık — mimari yeniden tasarım gerektiriyor |
-| Yeni | Eşzamanlı editör yarışı: `LiveOrderField`'ın "önerilen sıra"sı ve `assignFooterOrder`'ın boş-slot bulma mantığı, iki editör aynı grupta/footer'da aynı anda kayıt oluşturursa ikisine de aynı sayıyı önerebilir — canlı test sırasında gerçekten tetiklendi (3 kayıt aynı slotu paylaştı). Gerçek çözüm bir DB unique constraint, henüz yapılmadı. | Bilinçli açık |
+| ~~Yeni~~ | ~~`assignFooterOrder`'ın boş-slot yarışı~~ — **25.08'de kapandı** (§2.17): `footerOrder` alanına `unique: true`, canlıda 7 eşzamanlı istekle yarış bilinçli tetiklendi, constraint doğru şekilde 5'ini reddetti. `LiveOrderField`'ın (genel `order`/`homepageOrder` alanları, sınırsız liste) kendi "önerilen sıra" yarışı AYRI ve hâlâ açık — o alanlar unique değil, aynı sayı iki kayıtta teknik olarak sorun yaratmaz (sadece ekranda geçici bir sıralama belirsizliği), footer'ın sabit-6-slotlu yapısındaki gibi bir veri bütünlüğü riski taşımıyor. | Footer'daki kısmı kapandı, genel `order` alanları bilinçli açık |
 | Yeni | `EXPERIMENTAL_TableFeature`/`TextStateFeature` — paketin kendisinin "deneysel" işaretlediği API'ler; gelecekteki bir `@payloadcms/richtext-lexical` yükseltmesinde davranış değişebilir. | İzlenmeli |
-| Yeni | Rich text editöründe dahili sayfa linki (internal doc link) kapalı — sitenin slug→URL çözücüsü yazılmadığı için sadece özel URL girilebiliyor. | Bilinçli açık |
+| ~~Yeni~~ | ~~Rich text editöründe dahili sayfa linki kapalı~~ — **25.08'de kapandı** (§2.17): `blog-posts`/`campaigns`/`pages` için Payload'ın kendi doküman-seçici UI'ı açıldı, `src/lib/internalLink.ts` render tarafındaki slug→URL çözücü. | Kapandı |
 | R-22 | 5 legal sayfa + 3 kurumsal sayfa gövdesi hâlâ hardcoded (bilinçli — hukuki doğruluk riski). | Bilinçli açık |
 | R-23 | `VideosWithTabs` CMS'e bağlanmadı (gerçek video yok, ürün kararı bekliyor). | Bilinçli açık |
 | R-15..R-21 | Yapısal/operasyonel P2'ler: şablon `package.json` kimliği, workspace ayrımı yok, Node/Next sürüm hizası, prod image domain'i, dev servisinin prod compose'da olması, `/api/health` yok, sitemap/robots/error sayfaları eksik. | Dokunulmadı |
@@ -434,7 +484,7 @@ _Bu tablo 24.08.2026 itibarıyla yeniden gözden geçirildi — §2.15'te kapat�
 | CI | `.github/workflows/ci.yml` `main`'i izliyor + `cms/`'i de kontrol ediyor (24.08 düzeltmesi). 25.08'de gerçek commit'lerle `main`'e push edildi (bkz. §2.16) ama bu ortamda `gh` CLI/GitHub API erişimi olmadığından pipeline'ın yeşil dönüp dönmediği hâlâ doğrulanamadı. | Push edildi, yeşil dönüşü kullanıcı tarafından Actions sekmesinden teyit edilmeli |
 | LDAP | Gerçek LDAP/AccessPoint bağlantısı kurulmadı (kullanıcı kararı). Plan hazır: `docs/RFP-OPEN-ITEMS.md` §6. | Kullanıcı kararıyla bekliyor |
 | Analytics/Sentry/çoklu kanal | RFP'nin gerçek 3. parti hesap/altyapı gerektiren maddeleri (§3.2.10, §3.2.11, §4 hata izleme, §3.5.2-3.5.5 rol-özel raporlama ekranları) — gerçek hesap bilgisi olmadan sahte entegrasyon eklemek anlamsız. | Kapsam dışı (bilgi bekliyor) |
-| Masaüstü/mobil ayrı URL (§3.2.2) | Hiç alan yok — niş bir istek, modern responsive tasarımla zaten karşılanıyor. | Açık, düşük öncelik |
+| ~~Masaüstü/mobil ayrı URL (§3.2.2)~~ | ~~Hiç alan yok~~ — **25.08'de kapandı** (§2.17): `NavLinks.mobileHref`, opsiyonel, sadece mobil çekmece kullanıyor. | Kapandı |
 | Bilinçli açık (değişmedi) | SSO/LDAP gerçek entegrasyonu, ayrı test ortamı+promosyon akışı, içerik-seviyesi çok dillilik, RFP'nin 5 rol taksonomisi yerine mevcut 4 rol, meta `keywords` alanı — hepsi kullanıcı kararıyla bilinçli olarak kapsam dışı, teknik eksiklik değil. Detay: `docs/RFP-GAP-ANALYSIS-2026-08-24.md` §9. | Kullanıcı kararıyla kapsam dışı |
 
 ---

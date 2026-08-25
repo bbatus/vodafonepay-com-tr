@@ -1,6 +1,8 @@
 export interface NavLink {
   label: string;
   href: string;
+  /** RFP §3.2.2 — optional per-link override, only consumed by the mobile nav drawer (HeaderClient.tsx). Undefined means mobile uses `href`, same as desktop. */
+  mobileHref?: string;
 }
 
 export interface StepProduct {

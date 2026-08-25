@@ -61,6 +61,22 @@ export const NavLinks: CollectionConfig = {
       },
     },
     {
+      // RFP §3.2.2: "editable desktop and mobile URLs" — optional per-link
+      // override, only reached by the mobile drawer (HeaderClient.tsx).
+      // Empty (the expected case for virtually every link, since the site
+      // is one responsive URL, not a separate mobile site) means desktop
+      // and mobile keep using the exact same `href` — nothing changes.
+      name: "mobileHref",
+      type: "text",
+      label: { tr: "Mobil URL (opsiyonel)", en: "Mobile URL (optional)" },
+      admin: {
+        description: {
+          tr: "Boş bırakılırsa mobilde de yukarıdaki adres (href) kullanılır. Sadece mobil cihazlarda FARKLI bir adrese göndermek istiyorsanız (örn. bir uygulama deeplink'i) doldurun.",
+          en: "If left empty, mobile uses the same address (href) as above. Fill this in only if mobile devices should go somewhere DIFFERENT (e.g. an app deeplink).",
+        },
+      },
+    },
+    {
       name: "section",
       type: "select",
       required: true,

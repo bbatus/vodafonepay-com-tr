@@ -429,11 +429,13 @@ export default buildConfig({
       StrikethroughFeature(),
       UnorderedListFeature(),
       OrderedListFeature(),
-      // Internal-doc linking disabled on purpose: the site's renderer
-      // (src/components/RichText.tsx) has no slug/collection → URL resolver
-      // wired up, so an internal link would silently render `href="#"`.
-      // Editors get "custom URL" only, which always renders correctly.
-      LinkFeature({ enabledCollections: [] }),
+      // Follow-up 25.08 — RFP §3.2 rich-text linking gap closed: only the
+      // three collections that resolve to a real, addressable site page get
+      // the internal-doc picker (see src/lib/internalLink.ts for the
+      // slug→URL map this feeds — LegalPages/Categories deliberately
+      // excluded, neither is a per-document page route). The renderer side
+      // is src/components/RichText.tsx's `link` converter.
+      LinkFeature({ enabledCollections: ["blog-posts", "campaigns", "pages"] }),
       BlockquoteFeature(),
       HorizontalRuleFeature(),
       // RFP follow-up: `width` is a per-instance field on the upload node

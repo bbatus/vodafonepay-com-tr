@@ -484,6 +484,10 @@ const navLinkSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   label: z.string(),
   href: z.string(),
+  // RFP §3.2.2: optional per-link override, only ever consumed by the
+  // mobile nav drawer (HeaderClient.tsx) — undefined/empty means mobile
+  // uses `href`, same as desktop.
+  mobileHref: nullableString(),
   section: z.custom<NavLinkSection>((v) => typeof v === "string"),
   order: z.number(),
 });

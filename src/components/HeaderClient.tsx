@@ -106,7 +106,7 @@ export function HeaderClient({
                   {productLinks.map((link) => (
                     <Link
                       key={link.href}
-                      href={link.href}
+                      href={link.mobileHref || link.href}
                       className="rounded px-4 py-2 text-base text-gray-700 hover:bg-gray-50"
                       onClick={() => setMenuOpen(false)}
                     >
@@ -118,7 +118,7 @@ export function HeaderClient({
               {navLinks.map((link) => (
                 <Link
                   key={link.label}
-                  href={link.href}
+                  href={link.mobileHref || link.href}
                   className="mb-2 flex w-full items-center justify-between border-b border-gray-200 px-4 py-3 text-left text-lg font-normal transition-colors hover:bg-gray-50"
                   onClick={() => setMenuOpen(false)}
                 >

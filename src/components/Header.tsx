@@ -30,7 +30,7 @@ const fallbackNavLinks: NavLink[] = [
 export async function Header() {
   const cmsLinks = await getNavLinks();
 
-  const toLink = (l: NonNullable<typeof cmsLinks>[number]): NavLink => ({ label: l.label, href: l.href });
+  const toLink = (l: NonNullable<typeof cmsLinks>[number]): NavLink => ({ label: l.label, href: l.href, mobileHref: l.mobileHref });
 
   const productLinks = cmsLinks?.length
     ? cmsLinks.filter((l) => l.section === "header-products").map(toLink)

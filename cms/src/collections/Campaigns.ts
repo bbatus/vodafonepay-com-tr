@@ -545,6 +545,16 @@ export const Campaigns: CollectionConfig = {
     {
       name: "footerOrder",
       type: "number",
+      // Follow-up 25.08: last-resort race guard. `assignFooterOrder`
+      // (hooks/ordering.ts) already rejects an explicit, already-taken
+      // value synchronously — but its own gap-fill (find empty slot, then
+      // write) is a read-then-write with no lock, so two near-simultaneous
+      // saves can both compute the same "empty" slot before either write
+      // lands (reproduced live: 3 records shared one slot). A plain
+      // Postgres UNIQUE constraint is the only thing that can't be raced —
+      // NULL (every campaign NOT in the footer) never collides with
+      // another NULL, so this only ever constrains the real 1-6 values.
+      unique: true,
       label: { tr: "Footer Sırası", en: "Footer Order" },
       min: 1,
       max: FOOTER_ORDER_MAX,
