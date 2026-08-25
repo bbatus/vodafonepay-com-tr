@@ -8,12 +8,18 @@ import Link from "next/link";
  *
  * Was a plain <img>, not a link — every other admin dashboard's sidebar
  * logo doubles as a "take me home" shortcut, and this one silently didn't.
- * Points at /admin, same destination as the topbar logo (AdminLogo.tsx).
+ * Points at /admin, same destination as the topbar home control
+ * (AdminIcon.tsx).
+ *
+ * RFP follow-up 25.08: the sidebar used to carry the full "Vodafone | Pay"
+ * wordmark; the horizontal Vodafone half moved to the topbar (paired with
+ * the home icon there) so the sidebar now shows only the square Pay mark —
+ * one brand element per surface instead of splitting one logo across two.
  */
 export default function SidebarLogo() {
   return (
     <Link href="/admin" className="sidebar-logo" aria-label="Vodafone Pay — Anasayfa" title="Anasayfa">
-      <img src="/admin-logo.svg" alt="Vodafone Pay" className="sidebar-logo__img" />
+      <img src="/pay-icon.svg" alt="Vodafone Pay" className="sidebar-logo__img" />
     </Link>
   );
 }

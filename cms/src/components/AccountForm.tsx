@@ -11,6 +11,7 @@ import { describeApiError } from "@/lib/apiErrorMessage";
 type AccountUser = {
   id: string | number;
   email?: string;
+  username?: string;
   role?: string;
   avatar?: { url?: string } | string | null;
   preferredLocale?: string;
@@ -130,6 +131,11 @@ export default function AccountForm({ user }: { user: AccountUser }) {
       <div className="field-type account-form__field">
         <span className="field-label">{t("accountForm.email")}</span>
         <div className="account-form__readonly-value">{user.email ?? "—"}</div>
+      </div>
+
+      <div className="field-type account-form__field">
+        <span className="field-label">{t("accountForm.username")}</span>
+        <div className="account-form__readonly-value">{user.username ?? "—"}</div>
       </div>
 
       <div className="field-type account-form__field">

@@ -238,10 +238,11 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "saveOrSubmit.submitForReview": { tr: "Onaya Gönder", en: "Submit for Review" },
 
   "accountForm.email": { tr: "E-posta", en: "Email" },
+  "accountForm.username": { tr: "Kullanıcı Adı (LDAP)", en: "Username (LDAP)" },
   "accountForm.role": { tr: "Rol", en: "Role" },
   "accountForm.roleDescription": {
-    tr: "vodafone.local LDAP / AccessPoint rolünüz. Rolünüzü siz değiştiremezsiniz — gerekiyorsa bir New Vertical Maker değiştirebilir.",
-    en: "Your vodafone.local LDAP / AccessPoint role. You cannot change your own role — a New Vertical Maker can if needed.",
+    tr: "vodafone.local LDAP / AccessPoint rolünüz. Rol AccessPoint üzerinden talep edilir ve LDAP grubuna göre atanır — bu panelde kimse (siz dahil) değiştiremez.",
+    en: "Your vodafone.local LDAP / AccessPoint role. Roles are requested through AccessPoint and assigned from your LDAP group — nobody, including you, can change it in this panel.",
   },
   "accountForm.avatar": { tr: "Profil Fotoğrafı", en: "Profile Photo" },
   "accountForm.avatarHint": { tr: "Değiştirmek için fotoğrafa tıklayın. En fazla 2MB.", en: "Click the photo to change it. Up to 2MB." },

@@ -710,18 +710,61 @@ a {
 }
 
 .sidebar-logo__img {
-  /* RFP follow-up 25.08: sidebar should be the ONE brand mark on screen —
-     made deliberately larger than before (was 28px) now that the topbar
-     icon (AdminIcon.tsx) is a plain, unbranded home glyph. */
-  height: 40px;
-  width: auto;
+  /* RFP follow-up 25.08: sidebar now shows only the square Pay mark (the
+     wordmark half moved to the topbar, see AdminIcon.tsx) — sized as a
+     fixed square, a bit larger than the old wordmark's height so it still
+     reads clearly as the sidebar's one brand element. */
+  height: 48px;
+  width: 48px;
 }
 
-/* AdminIcon.tsx — the StepNav home-icon override. Muted, not brand-red, so
-   it reads as a quiet breadcrumb utility icon rather than a second logo
-   next to the sidebar's own "Vodafone | Pay" wordmark. */
-.step-nav__home svg {
+/* Users collection: password is LDAP-owned and never changed through this
+   CMS — blockPasswordChange (collections/Users.ts) is the real server-side
+   enforcement; this just removes the now-nonfunctional "Change Password"
+   entry point from the UI. Payload has no field/component slot to gate just
+   this button through config (see blockPasswordChange's doc comment), so
+   it's an id selector on Payload's own compiled Auth panel markup. */
+#change-password {
+  display: none !important;
+}
+
+/* AdminIcon.tsx — the StepNav home control: now the Vodafone wordmark
+   paired with a small home glyph, both inside Payload's single built-in
+   `<Link href="/admin">` for that slot (see AdminIcon.tsx's doc comment).
+   Payload hardcodes `.step-nav__home` to an 18px (16px at mid-break) square
+   sized for a single icon; overridden here to fit the wordmark + icon pair
+   instead — !important because Payload's own mid-break override has higher
+   selector specificity than a same-level unscoped override would.
+   RFP follow-up 25.08: first pass sized the wordmark to match the old
+   18px icon box and it read as almost invisible next to the sidebar's much
+   bigger Pay mark — sized up so it's actually legible as a brand element,
+   not just a decoration. */
+.step-nav__home {
+  width: auto !important;
+  height: 26px !important;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.admin-topbar-home {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.admin-topbar-home__logo {
+  height: 26px;
+  width: auto;
+  display: block;
+  margin-right: 0.15rem;
+}
+
+.admin-topbar-home__icon {
+  width: 20px;
+  height: 20px;
   color: var(--theme-elevation-400);
+  flex-shrink: 0;
 }
 
 .user-avatar {

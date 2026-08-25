@@ -1,4 +1,4 @@
-import type { CollectionBeforeChangeHook, CollectionConfig, Endpoint } from "payload";
+import type { CollectionBeforeChangeHook, CollectionBeforeOperationHook, CollectionConfig, Endpoint } from "payload";
 import { AuthenticationError, LockedAuth } from "payload";
 import { isNewVerticalMaker, ROLE_OPTIONS, ROLES } from "@/access/roles";
 import { authenticated } from "@/access/authenticated";
@@ -95,6 +95,44 @@ const enforceAvatarSizeLimit: CollectionBeforeChangeHook = async ({ data, req, o
   return data;
 };
 
+/**
+ * RFP follow-up 25.08 (explicit correction): password is entirely LDAP-owned
+ * once real LDAP is wired up (docs/RFP-OPEN-ITEMS.md §6); until then,
+ * self-service password CHANGE has no place in this CMS at all — not by the
+ * account owner, not by a New Vertical Maker. "password" isn't a real,
+ * access-controlled field in Payload's model (it's a synthetic value only
+ * the admin UI's Auth panel materializes on submit — declaring a field named
+ * "password" in `fields` isn't even a valid config, confirmed against
+ * Payload's own Field type), so there is no field-level `access.update` to
+ * lean on here.
+ *
+ * MUST be a `beforeOperation` hook, not `beforeChange`: confirmed live (a
+ * raw PATCH with a new password actually took effect against a
+ * `beforeChange` version of this hook) that
+ * `payload/dist/collections/operations/utilities/update.js`'s
+ * `updateDocument` captures `data?.password` into a local `password`
+ * variable and later hashes+saves it from THAT captured reference —
+ * completely bypassing whatever a `beforeChange` hook does to the `data`
+ * object, since that capture happens before beforeChange ever runs.
+ * `beforeOperation` is the one hook that runs earlier still (in
+ * `updateByID.js`, via `buildBeforeOperation`) and — critically — replaces
+ * `args` (and therefore `data`) for everything downstream when it returns a
+ * new object, so stripping `password` here actually prevents the capture
+ * from ever seeing it. `create` is untouched — account creation (still New
+ * Vertical Maker-only) still needs to set an initial password until real
+ * LDAP auth replaces local passwords entirely.
+ */
+const blockPasswordChange: CollectionBeforeOperationHook = ({ args, operation }) => {
+  if (operation !== "update") return args;
+  const data = (args as { data?: Record<string, unknown> }).data;
+  if (data && "password" in data) {
+    const rest = { ...data };
+    delete rest.password;
+    return { ...args, data: rest };
+  }
+  return args;
+};
+
 export const Users: CollectionConfig = {
   slug: "users",
   labels: {
@@ -163,7 +201,16 @@ export const Users: CollectionConfig = {
     // exists carries no real risk here; write access stays isNewVerticalMaker-only.
     read: authenticated,
     create: isNewVerticalMaker,
-    update: ({ req, id }) => isNewVerticalMaker({ req }) || req.user?.id === id,
+    // RFP follow-up 25.08 (explicit correction): every account is LDAP-
+    // managed — email, username and role are provisioned by LDAP/AccessPoint
+    // and NEVER change through this CMS, by anyone, including a New Vertical
+    // Maker (see the field-level access: () => false overrides below, which
+    // do the actual enforcement; this collection-level rule only covers the
+    // handful of fields that stay genuinely writable — avatar, preferredLocale,
+    // delegateTo/delegationExpiresAt — and those are self-service only).
+    // A New Vertical Maker's one remaining write power on ANOTHER account is
+    // the separate `unlock` operation below — nothing else.
+    update: ({ req, id }) => req.user?.id === id,
     delete: isNewVerticalMaker,
     // RFP feedback 5.6: "sadece bu role sahip kullanıcılar yapabilsin".
     // This is the SERVER-side gate — the Locked Accounts screen hiding its
@@ -173,56 +220,61 @@ export const Users: CollectionConfig = {
   },
   fields: [
     {
-      // RFP feedback 4c: nobody edits their OWN email — Payload auto-injects
-      // this field for any auth-enabled collection, but redefining it here
-      // (same name) lets mergeBaseFields (payload/dist/fields/mergeBaseFields.js)
-      // deep-merge our access rule on top of Payload's base field instead of
-      // replacing it, so email/username login machinery is untouched. Same
-      // self-vs-other split as the role field below — New Vertical Maker can
-      // still fix another user's email; nobody can edit their own via the UI.
+      // RFP follow-up 25.08 (explicit correction): every account is LDAP-
+      // provisioned with a fixed email that NEVER changes through this CMS —
+      // not by the user themselves, not by a New Vertical Maker, nobody.
+      // `update: () => false` (not the earlier self-vs-other split) is the
+      // real enforcement; `admin.readOnly` just makes the UI match — a plain
+      // disabled input instead of something that visually invites editing.
+      // Redefining this by name lets mergeBaseFields
+      // (payload/dist/fields/mergeBaseFields.js) deep-merge our overrides
+      // onto Payload's base field instead of replacing it, so email/username
+      // login machinery is untouched.
       name: "email",
       type: "email",
+      admin: { readOnly: true },
       access: {
-        update: ({ req, id }) => req.user?.id !== id,
+        update: () => false,
       },
     },
     {
-      // Login is still email-only — LDAP isn't wired up yet (see the `role`
-      // field comment below and docs/RFP-OPEN-ITEMS.md §6). Once it is,
-      // vodafone.local accounts sign in with THIS value, not their email, and
-      // the header/account UI needs to already be showing it so "which user
-      // am I" doesn't silently become "an email nobody types in anymore".
-      // Nullable on purpose: every existing account predates LDAP and has no
-      // username yet — the header falls back to email until one is set.
+      // Every LDAP account already has a fixed vodafone.local username —
+      // this is a real login credential, not a placeholder waiting for LDAP
+      // to be wired up, and it never changes through this CMS either.
       name: "username",
       type: "text",
       label: { tr: "Kullanıcı Adı (LDAP)", en: "Username (LDAP)" },
       admin: {
+        readOnly: true,
         description: {
-          tr: "vodafone.local LDAP kullanıcı adı. Gerçek LDAP bağlandığında giriş bununla yapılacak — o zamana kadar boş kalabilir.",
-          en: "vodafone.local LDAP username. Once real LDAP is wired up, login will use this — can stay empty until then.",
+          tr: "vodafone.local LDAP kullanıcı adı. LDAP tarafından atanır, burada değiştirilemez.",
+          en: "vodafone.local LDAP username. Assigned by LDAP — not editable here.",
         },
       },
       access: {
-        update: ({ req, id }) => req.user?.id !== id,
+        update: () => false,
       },
     },
     {
+      // RFP follow-up 25.08 (explicit correction): role is requested and
+      // granted through AccessPoint, LDAP's access-request system — never
+      // hand-picked in this CMS by the user themselves OR by a New Vertical
+      // Maker. `required`/`defaultValue` stay because `create` (still
+      // New Vertical Maker-only, unchanged) is the one place a value has to
+      // be set at all — `access.update: () => false` is what actually blocks
+      // every attempt to change it afterwards, for every role.
       name: "role",
       type: "select",
       required: true,
       defaultValue: ROLES.GROWTH_MAKER,
       options: ROLE_OPTIONS,
       admin: {
+        readOnly: true,
         description:
-          "Bugün bu 4 yetki şeklinden biri elle seçiliyor. LDAP bağlandığında bu alan LDAP grubundan otomatik atanacak — hangi AD grubunun hangi role eşleneceği access/roleMapping.ts içinde tanımlanır ve yeni bir departman için tek satır eklemek yeterlidir.",
+          "Rol AccessPoint üzerinden talep edilir ve LDAP grubuna göre atanır — burada değiştirilemez. Sadece LDAP'a bağlı ve bu 4 rolden birine sahip kullanıcılar giriş yapabilir. Hangi AD grubunun hangi role eşleneceği access/roleMapping.ts içinde tanımlanır.",
       },
-      // RFP feedback 3.5: nobody edits their OWN role — a self-service role
-      // change would be a privilege-escalation path. New Vertical Maker can
-      // still change ANOTHER user's role (kept until the LDAP plan in
-      // docs/RFP-OPEN-ITEMS.md §6 replaces this entirely).
       access: {
-        update: ({ req, id }) => req.user?.id !== id,
+        update: () => false,
       },
     },
     {
@@ -346,6 +398,7 @@ export const Users: CollectionConfig = {
     },
   ],
   hooks: {
+    beforeOperation: [blockPasswordChange],
     // RFP §7.2: login/logout must be audited. Failed-login attempts aren't
     // logged here — Payload doesn't expose a hook for them, only its own
     // internal lockout counters (see auth.maxLoginAttempts, not configured).

@@ -19,7 +19,14 @@ export default async function CustomAccountView(props: {
   initPageResult?: { req?: PayloadRequest };
 }) {
   const user = (props.user ?? props.initPageResult?.req?.user) as
-    | { id: string | number; email?: string; role?: string; avatar?: { url?: string } | string | null; preferredLocale?: string }
+    | {
+        id: string | number;
+        email?: string;
+        username?: string;
+        role?: string;
+        avatar?: { url?: string } | string | null;
+        preferredLocale?: string;
+      }
     | undefined;
 
   if (!user) return null;
