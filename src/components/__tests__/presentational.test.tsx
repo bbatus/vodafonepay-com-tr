@@ -23,7 +23,7 @@ describe("Breadcrumb", () => {
 describe("StickyQr", () => {
   it("renders the QR image", () => {
     render(<StickyQr />);
-    expect(screen.getByAltText("QR Code")).toBeInTheDocument();
+    expect(screen.getByAltText("Vodafone Pay QR Kodu")).toBeInTheDocument();
   });
 });
 

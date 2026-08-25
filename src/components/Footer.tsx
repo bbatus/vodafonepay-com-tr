@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { campaignToCard, getFooterCampaigns, getFooterFaqItems, getNavLinks, type NavLinkSection } from "@/lib/cms";
+import { QrDownloadBadge } from "@/components/QrDownloadBadge";
 
 interface FooterLink {
   label: string;
@@ -121,7 +122,7 @@ export async function Footer() {
         <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
           <Image src="/images/linkedin-light.svg" alt="LinkedIn" width={24} height={24} />
         </a>
-        <Image src="/images/sticky-qr.png" alt="Vodafone Pay QR Kodu" width={100} height={130} className="rounded-lg" />
+        <QrDownloadBadge className="h-auto w-[100px] rounded-lg" />
         <p className="text-xs text-gray-500">&copy; {new Date().getFullYear()} Vodafone Pay. Tüm hakları saklıdır.</p>
       </div>
     </footer>
