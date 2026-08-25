@@ -7,9 +7,9 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { getLegalPage, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
-import { buildDocumentViewerHref } from "@/lib/documentViewer";
+import { resolveDocumentFileUrl } from "@/lib/documentViewer";
 import { RichText } from "@/components/RichText";
-import { SozlesmelerAccordion, type SozlesmeGroup } from "./SozlesmelerAccordion";
+import { SozlesmelerAccordion, type SozlesmeDoc, type SozlesmeGroup } from "./SozlesmelerAccordion";
 
 export async function generateMetadata(): Promise<Metadata> {
   const pageMeta = await getPageMeta("/sozlesmeler-ve-formlar");
@@ -36,36 +36,36 @@ const fallbackGroups: SozlesmeGroup[] = [
   {
     label: "Sözleşmeler ve Formlar",
     documents: [
-      { prefix: "Tüketici Hakları Bilgi Formu için ", label: "tıklayınız", href: "#" },
-      { prefix: "18.08.2026 tarihine kadar geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için ", label: "tıklayınız", href: "#" },
-      { prefix: "18.08.2026 tarihi itibarı ile geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için ", label: "tıklayınız", href: "#" },
-      { prefix: "Ticari Koşullar için ", label: "tıklayınız", href: "#" },
+      { prefix: "Tüketici Hakları Bilgi Formu için ", label: "tıklayınız", href: "#", external: false },
+      { prefix: "18.08.2026 tarihine kadar geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için ", label: "tıklayınız", href: "#", external: false },
+      { prefix: "18.08.2026 tarihi itibarı ile geçerli Ödeme Hizmetleri Çerçeve Kullanıcı Sözleşmesi için ", label: "tıklayınız", href: "#", external: false },
+      { prefix: "Ticari Koşullar için ", label: "tıklayınız", href: "#", external: false },
     ],
   },
 ];
 
 export default async function SozlesmelerVeFormlar() {
   const cmsPage = await getLegalPage("sozlesmeler-ve-formlar");
-  // Follow-up 25.08: each row resolves to one of the two flows the editor
-  // chose between — an uploaded PDF/audio file (never linked to its raw
-  // MinIO URL — see buildDocumentViewerHref's doc comment for why it routes
-  // through our own /sozlesmeler-ve-formlar/belge viewer instead) or a page
-  // written in the CMS (an internal route on our own domain). Both are
-  // ordinary internal routes now.
+  // Follow-up 25.08 (3): each row resolves to one of the two flows the editor
+  // chose between — an uploaded PDF/audio file, which links straight at the
+  // file's own host so the click LEAVES this site (see
+  // resolveDocumentFileUrl's doc comment), or a page written in the CMS,
+  // which stays an ordinary internal route on our own domain.
   const groups: SozlesmeGroup[] = cmsPage
     ? cmsPage.groups.map((g) => ({
         label: g.label,
         documents: g.documents
           .filter((d) => d.enabled)
-          .map((d) =>
-            d.source === "page" && d.slug
-              ? { prefix: d.prefix, label: d.label, href: `/sozlesmeler-ve-formlar/${d.slug}` }
-              : {
-                  prefix: d.prefix,
-                  label: d.label,
-                  href: d.file?.url ? buildDocumentViewerHref({ url: d.file.url, label: d.label, mimeType: d.file.mimeType }) : "#",
-                }
-          ),
+          .flatMap((d): SozlesmeDoc[] => {
+            if (d.source === "page" && d.slug) {
+              return [{ prefix: d.prefix, label: d.label, href: `/sozlesmeler-ve-formlar/${d.slug}`, external: false }];
+            }
+            const fileUrl = resolveDocumentFileUrl(d.file);
+            // No usable upload yet (editor picked the PDF flow but hasn't
+            // attached a file): skip the row instead of rendering a dead
+            // "#" link that looks clickable and does nothing.
+            return fileUrl ? [{ prefix: d.prefix, label: d.label, href: fileUrl, external: true }] : [];
+          }),
       }))
     : fallbackGroups;
   const pageMeta = await getPageMeta("/sozlesmeler-ve-formlar");
