@@ -1,6 +1,6 @@
 # Genel Durum — Tek Takip Dosyası
 
-_Son güncelleme: 24.08.2026, branch `main` (her adımda doğrudan `main`'e push edildi). Bu güncelleme, projedeki **tüm** `docs/*.md` dosyaları (ham prompt kayıtları hariç) tek tek okunup, `main`'in güncel commit geçmişiyle (bu dosyanın son güncellenişinden bu yana 20+ yeni commit) çapraz kontrol edilerek yazıldı — amaç: hiçbir açık maddenin raporlar arasında kaybolmamasını garanti etmek._
+_Son güncelleme: 25.08.2026, branch `main` (her adımda doğrudan `main`'e push edildi). Bu güncelleme, projedeki **tüm** `docs/*.md` dosyaları (ham prompt kayıtları hariç) tek tek okunup, `main`'in güncel commit geçmişiyle (bu dosyanın son güncellenişinden bu yana 20+ yeni commit) çapraz kontrol edilerek yazıldı — amaç: hiçbir açık maddenin raporlar arasında kaybolmamasını garanti etmek._
 
 Bu dosya projenin **tek genel durum özeti**dir — "ne yapıldı, ne kaldı" sorusunun
 cevabı için önce buraya bakın. Diğer `docs/*.md` dosyaları hâlâ duruyor (tarihsel detay,
@@ -356,6 +356,55 @@ kapatılabilir" listesinden 10 maddeyi aynı gün içinde kapattı:
   gelene kadar BOŞ içerikle donmuş kalıyor. Build-time log'unda `[cms] fetch failed for
   "..."` satırlarıyla doğrulandı.
 
+### 2.16 SEO/LegalPages, sidebar ikon, audit-trail gerçek boşlukları kapatıldı (25.08.2026)
+
+- **Sidebar/topbar çift marka işareti düzeltildi ve canlı** — `AdminIcon.tsx` artık tema
+  rengini takip eden yalın bir ev-ikonu SVG'si (marka kırmızısı değil), sidebar'ın kendi tam
+  logosunun yanında ikinci bir "marka" görünmüyor. Commit `6835fc8`.
+- **`docs/varnish-cache.md` repoya commit'lendi** (kullanıcı kararı: "Repoya commit'le") —
+  sahibi/amacı hâlâ tam netleşmedi ama artık untracked değil. Commit `4fee8fa`.
+- **LegalPages'in `intro` alanı gerçek rich text oldu** (§3.2 SEO maddesi) — önceden düz
+  `textarea`'ydı, şimdi Lexical richText. 2 farklı kullanım şekli ayrı ayrı korundu: akan
+  metin sayfaları (`cerez-politikasi`, `gizlilik-ve-guvenlik-politikasi`) `<RichText>` ile,
+  satır-bazlı liste sayfaları (`sozlesmeler-ve-formlar`, `web-sitesi-hukum-ve-sartlari`,
+  `bilgi-guvenligi`) yeni `richTextToLines()` yardımcısıyla render ediliyor. Süreçte gerçek
+  bir üretim bulgusu ortaya çıktı: **5 `legal_pages` kaydının TAMAMI `draft` durumundaydı** —
+  site aslında hardcoded fallback metniyle çalışıyordu, CMS içeriği hiç yayında değildi
+  (metinler kelimesi kelimesine aynı olduğu için fark edilmemiş). Hepsi yayınlandı. Commit
+  `73dde0c`.
+- **Meta keywords alanı eklendi** (kullanıcı kararı: "ölü SEO pratiği ama yine de ekleyelim")
+  — `seoKeywordsField` (`lib/seoFields.ts`, 4 koleksiyonda paylaşılan tek alan tanımı),
+  `buildMetadata()` ve 22 sayfa/route'ta `<meta name="keywords">` üretimine bağlandı. Commit
+  `5c8b795`.
+- **Audit trail'in RFP §7'de hâlâ açık olan 3 maddesi kapatıldı:**
+  - **Before/after diff** — `diffFields()` her gerçek güncellemede üst-seviye alan bazlı bir
+    önce/sonra listesi üretiyor (uzun/iç içe alanlar kısaltılıyor), `audit-logs`'un yeni
+    `changes` array alanında görünüyor. Backing tablo (`audit_logs_changes`) elle oluşturuldu
+    (R-10 nedeniyle `payload migrate:create` çalışmıyor).
+  - **SIEM/CEF export** — `lib/cef.ts`, spec-doğru CEF satırları üreten indirilebilir `.cef`
+    dosyası (gerçek bir ArcSight/SIEM hedefi bu ortamda yok, CSV export'un "indir, gönderme"
+    şeklinin aynısı). `AuditLogsCefExportButton` audit-logs listesine eklendi.
+  - **userID karşılaştırma tabloları** — RFP metninin kendisi bile bu maddeyi açıklamıyor;
+    kullanıcı kararıyla bir **rol × koleksiyon erişim matrisi** olarak yorumlandı. Yeni
+    `/admin/access-matrix` görünümü (`AccessMatrixView`/`AccessMatrixApp`), `HelpButton`'ın
+    zaten kullandığı `MATRIX`'ten üretiliyor (tek doğruluk kaynağı), CSV export'lu.
+  - **Kapsam dışı bırakılan tek madde: dosya-indirme logu.** Media/Documents,
+    `s3Storage()`'ın kendi `generateFileURL`'i ile DOĞRUDAN MinIO/S3 URL'i döndürüyor —
+    gerçek dosya indirmeleri hiçbir Payload hook'undan geçmiyor. Bunu "loglamak" için ya bir
+    proxy-endpoint yeniden tasarımı gerekir ya da admin sayfa-görüntülemesini indirme gibi
+    göstermek gerekir (yanıltıcı olur) — bilinçli olarak yapılmadı, sahte bir çözümle
+    kapatılmadı.
+  - Docker'da canlı doğrulandı (before/after diff'in admin UI'da doğru göründüğü, CEF/CSV
+    export'ların hatasız network akışı, matrix tablosunun doğru V/C/U/P/D bayrakları
+    gösterdiği). `cms`: lint/typecheck/test(160)/build hepsi temiz. Commit'ler `4c458bf`,
+    `3827c7a`.
+- **CI:** gerçek bir push ile tetiklendi (yukarıdaki commit'ler `main`'e gitti) ama bu
+  ortamda `gh` CLI/GitHub API erişimi yok — yeşil dönüp dönmediği bu oturumda doğrulanamadı.
+  Kullanıcının Actions sekmesinden kontrol etmesi gerekiyor.
+- **Dev container host izin hatası** — kullanıcı bu turda araştırmayı erteledi ("şimdilik
+  atlayalım, sadece not düşelim"); bkz. §3'teki mevcut satır, hâlâ host-seviyesi/Docker
+  Desktop dosya-paylaşımı sorunu, kod tarafında dokunulmadı.
+
 ---
 
 ## 3. Açık Kalan Riskler / Yapılacaklar
@@ -366,11 +415,12 @@ _Bu tablo 24.08.2026 itibarıyla yeniden gözden geçirildi — §2.15'te kapat�
 | ID | Konu | Durum |
 |---|---|---|
 | **Yeni — önemli** | **Statik build CMS'e ulaşamıyor:** `next build`, CMS container henüz ayakta olmadığı bir Docker build aşamasında (izole build-network) çalışıyor. Kampanyalar/blog/SSS/nav-links dahil CMS'ten beslenen HER statik sayfa, container gerçekten çalışmaya başlayıp ilk on-demand revalidate gelene kadar **boş içerikle donmuş** kalıyor. Build log'unda `[cms] fetch failed for "..."` ile doğrulandı (24.08, `1d6f75c` commit mesajında not düşüldü, henüz düzeltilmedi). Kalıcı çözüm: build sırasında CMS'e erişim (build-stage'i aynı Docker network'e almak) ya da deploy sonrası otomatik bir "warm-up" revalidate adımı. | **Açık — henüz kimse bakmadı** |
-| **Yeni** | Sidebar/topbar çift marka işareti (§2.14) — düzeltme önerisi hazır (`AdminIcon.tsx`'i sadeleştirmek, tek dosya), kullanıcı onayı bekleniyor. | Öneri hazır, onay bekliyor |
+| ~~Yeni~~ | ~~Sidebar/topbar çift marka işareti~~ — **25.08'de düzeltildi ve canlı** (§2.16), `AdminIcon.tsx` artık tema-uyumlu yalın bir ikon. | Kapandı |
 | R-10 | `payload migrate:create`/`generate:importmap` çalışmıyor (`ERR_REQUIRE_ASYNC_MODULE`) — yeni collection/field/lexical özelliği eklemek elle `importMap.js` düzenlemesi gerektiriyor, unutulursa sessiz başarısızlık. **En kritik yapısal açık — bu ve önceki turlar boyunca defalarca elle düzeltildi, sonu gelmiyor.** | Açık |
 | R-26 | Postgres native enum'lar, migration olmadan `select` seçenek değişikliğinde manuel `ALTER TYPE` istiyor — R-10'un somut bir belirtisi. 24.08'de yine elle SQL uygulandı (delegation/audit/deeplink alanları için). | Açık |
 | Yeni | SonarQube taraması hâlâ çalıştırılamadı (token eksik/401) — bu turda da denenmedi. Bir sonraki oturumda token alınıp `scripts/sonar-scan.sh all` ile taranmalı. | Açık |
-| Yeni | Audit trail'de RFP §7'nin hâlâ karşılamadığı ~4 alt madde: değişen verinin before/after diff'i audit-logs'ta tutulmuyor (Payload'ın kendi version history'si dolaylı sağlıyor); "hangi dosya indirildi/okundu" loglanmıyor (sadece yazmalar); SIEM/CEF formatında export (ArcSight) yok, sadece CSV; userID karşılaştırma tabloları yok. Detay: `docs/RFP-GAP-ANALYSIS-2026-08-24.md` §5. | Açık — bir kısmı gerçek altyapı gerektiriyor |
+| ~~Yeni~~ | ~~Audit trail'de RFP §7'nin karşılamadığı alt maddeler~~ — **25.08'de 3'ü kapandı** (before/after diff, SIEM/CEF export, userID karşılaştırma tabloları → erişim matrisi, §2.16). Yalnız "hangi dosya indirildi/okundu" logu açık kaldı — mimari olarak imkansız (aşağıdaki satır). | Büyük ölçüde kapandı |
+| Yeni | Dosya-indirme/okuma logu yok — Media/Documents `s3Storage()`'ın `generateFileURL`'i DOĞRUDAN MinIO/S3 URL'i döndürüyor, gerçek indirmeler hiçbir Payload hook'undan geçmiyor. Kapatmak bir proxy-endpoint yeniden tasarımı gerektirir; sahte bir "sayfa görüntülemesi" ile kapatılmadı (25.08, §2.16). | Açık — mimari yeniden tasarım gerektiriyor |
 | Yeni | Eşzamanlı editör yarışı: `LiveOrderField`'ın "önerilen sıra"sı ve `assignFooterOrder`'ın boş-slot bulma mantığı, iki editör aynı grupta/footer'da aynı anda kayıt oluşturursa ikisine de aynı sayıyı önerebilir — canlı test sırasında gerçekten tetiklendi (3 kayıt aynı slotu paylaştı). Gerçek çözüm bir DB unique constraint, henüz yapılmadı. | Bilinçli açık |
 | Yeni | `EXPERIMENTAL_TableFeature`/`TextStateFeature` — paketin kendisinin "deneysel" işaretlediği API'ler; gelecekteki bir `@payloadcms/richtext-lexical` yükseltmesinde davranış değişebilir. | İzlenmeli |
 | Yeni | Rich text editöründe dahili sayfa linki (internal doc link) kapalı — sitenin slug→URL çözücüsü yazılmadığı için sadece özel URL girilebiliyor. | Bilinçli açık |
@@ -380,8 +430,8 @@ _Bu tablo 24.08.2026 itibarıyla yeniden gözden geçirildi — §2.15'te kapat�
 | Yeni | 5 elle-yazılmış ürün sayfasından yalnız 1'i (`vodafone-pay-uygulama`) `Pages` koleksiyonuna göçürüldü (pilot, §2.10) — kalan 4 (aninda-bakiye, faturana-yansit, vodafone-pay-kart, qr-ile-faturana-yansit) kullanıcı onayı bekliyor. | Kullanıcı onayı bekliyor |
 | Yeni | `docs/CMS_INTEGRATION_PLAN.md` Strapi öneriyor, proje Payload ile inşa edildi — bu sapmanın gerekçesi hiçbir yerde yazılı değil (dokümantasyon boşluğu, fonksiyonel değil). | Küçük, dokümantasyon-only |
 | Yeni | `docker compose up`'taki `dev` servisi (port 3001, hot-reload) host tarafında bir Docker Desktop dosya-paylaşımı izin hatasıyla başlamıyor (`operation not permitted`) — kod/config sorunu değil, host ayarı (Docker Desktop → Settings → Resources → File Sharing). Ana CMS/site stack'i (postgres/minio/app/cms) etkilenmiyor. | Açık, host-seviyesi |
-| Yeni | `docs/varnish-cache.md` (1023 satır, "Butterfly CMS - Customer Segment & Varnish Deployment Analizi") repo'da untracked duruyor — bu projeyle ilgisi belirsiz, kimin bıraktığı/neden burada olduğu netleşmedi. | Belirsiz, kullanıcıya sorulmalı |
-| CI | ~~`.github/workflows/ci.yml` `master`'ı izliyordu~~ — **24.08'de düzeltildi** (§2.15), artık `main`'i izliyor + `cms/`'i de kontrol ediyor. Henüz gerçek bir push/PR ile tetiklenip yeşil döndüğü doğrulanmadı (yalnız dosya doğru okundu). | Düzeltildi, ilk gerçek çalıştırma doğrulanmalı |
+| ~~Yeni~~ | ~~`docs/varnish-cache.md` untracked duruyordu~~ — **25.08'de kullanıcı kararıyla commit'lendi** (§2.16, `4fee8fa`). Sahibi/amacı hâlâ tam belgelenmedi ama artık repo'nun bir parçası. | Kapandı (untracked sorunu) |
+| CI | `.github/workflows/ci.yml` `main`'i izliyor + `cms/`'i de kontrol ediyor (24.08 düzeltmesi). 25.08'de gerçek commit'lerle `main`'e push edildi (bkz. §2.16) ama bu ortamda `gh` CLI/GitHub API erişimi olmadığından pipeline'ın yeşil dönüp dönmediği hâlâ doğrulanamadı. | Push edildi, yeşil dönüşü kullanıcı tarafından Actions sekmesinden teyit edilmeli |
 | LDAP | Gerçek LDAP/AccessPoint bağlantısı kurulmadı (kullanıcı kararı). Plan hazır: `docs/RFP-OPEN-ITEMS.md` §6. | Kullanıcı kararıyla bekliyor |
 | Analytics/Sentry/çoklu kanal | RFP'nin gerçek 3. parti hesap/altyapı gerektiren maddeleri (§3.2.10, §3.2.11, §4 hata izleme, §3.5.2-3.5.5 rol-özel raporlama ekranları) — gerçek hesap bilgisi olmadan sahte entegrasyon eklemek anlamsız. | Kapsam dışı (bilgi bekliyor) |
 | Masaüstü/mobil ayrı URL (§3.2.2) | Hiç alan yok — niş bir istek, modern responsive tasarımla zaten karşılanıyor. | Açık, düşük öncelik |
