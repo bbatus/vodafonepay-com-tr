@@ -350,21 +350,30 @@ Documents.ts, Representatives.ts, PageMeta.ts, CookieRows.ts.
 - [ ] tsc/eslint temiz, tüm testler geçsin, Sonar 0 açık bulgu
 - [ ] Gerçek coverage sayılarını (Sonar API) bu maddeye kaydet
 
-## 21. Kalan 4 ürün sayfasının Pages'e göçü
+## 21. Kalan ürün sayfalarının Pages'e göçü
 
-Madde 10'un devamı — pilot (`vodafone-pay-uygulama`) tamamlanmıştı, kullanıcı
-onayı bekleyen 4 sayfa artık onaylandı:
+Madde 10'un devamı — pilot (`vodafone-pay-uygulama`) tamamlanmıştı. 26.08'de
+kullanıcıyla netleştirildi: 4 sayfadan 2'si pilotla aynı şekilde temiz göçer
+(Hero + CardsWithIcons + PhoneStepsCarousel + Faq — `SimpleProductPage.tsx`
+zaten bu ortak şekli paylaşıyor, blok karşılıkları pilot turunda eklenmişti);
+diğer 2'si Pages'in blok sistemine hiç girmeyen bölümler içeriyor
+(`faturana-yansit`: VideosWithTabs+LeadFormCta, `vodafone-pay-kart`:
+WhereCanIBuy) — kullanıcı kararıyla **şimdilik atlandı**, elle yazılmış rota
+olarak kalacak.
 
-- [ ] `aninda-bakiye`
-- [ ] `faturana-yansit`
-- [ ] `vodafone-pay-kart`
-- [ ] `qr-ile-faturana-yansit`
+- [ ] `aninda-bakiye` — göçür
+- [ ] `qr-ile-faturana-yansit` — göçür
+- [x] `faturana-yansit` — **atlandı (kullanıcı kararı)**, VideosWithTabs/
+      LeadFormCta blok olamıyor
+- [x] `vodafone-pay-kart` — **atlandı (kullanıcı kararı)**, WhereCanIBuy
+      blok olamıyor
 
 Pilot sayfanın göç deseni tekrar kullanılacak (elle yazılmış `page.tsx` →
-Pages koleksiyonu kaydı + layout blokları). Her sayfa için: içerik birebir
-korunmalı, eski route canlıda 200 dönmeli, CMS'ten düzenlenebilir olmalı.
-Göç tamamlandıktan sonra `docs/STATUS.md` §2.10 ve §3'teki ilgili satırı
-güncelle.
+Pages koleksiyonu kaydı + layout blokları, `docs/RFP-OPEN-ITEMS.md` §10'da
+adım adım belgeli). Her sayfa için: içerik birebir korunmalı, eski route
+canlıda 200 dönmeli, CMS'ten düzenlenebilir olmalı, artık kullanılmayan
+component/content-blocks kaydı temizlenmeli. Göç tamamlandıktan sonra
+`docs/STATUS.md` §2.10 ve §3'teki ilgili satırı güncelle.
 
 ## 22. Trivy bulguları — Alpine openssl CVE'leri + site'ın dompurify sürümü
 
