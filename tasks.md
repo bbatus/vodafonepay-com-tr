@@ -210,10 +210,47 @@ brand-logos) taslağını yayınladım. Fark edilir edilmez `_status: draft`'a g
 alındı; DB ve canlı site teyit edildi (logo sitede yok). İçerik değişmedi,
 sadece durum geçici olarak taslak→yayında→taslak oldu.
 
-## 18. Klasör yapısı (vodafonepaycomtr-project/)
+## 18. Klasör yapısı — TAMAMLANDI
 
-**İstek:** Ana klasör `vodafonepaycomtr-project/` → altında `vodafonepaycomtr/` (site)
-ve `cms/` kardeş klasörler. Workspace ile BAĞLANMASIN, tamamen ayrı kalsınlar.
+**İstek:** `vodafonepaycomtr/` (site) ve `cms/` kardeş klasörler olsun, workspace
+ile BAĞLANMASIN, tamamen ayrı kalsınlar.
 
-- [ ] Etki analizi (git kökü, docker-compose build context'leri, script yolları)
-- [ ] Uygulama
+**Karar (kullanıcıyla netleştirildi):** Git kökü ve oturum çalışma dizini
+DEĞİŞMEDİ (`/Users/.../vodafonepaycomtr` aynı kaldı, dış klasör yeniden
+adlandırılmadı — bu, açık editörleri/terminalleri kırardı). Mevcut git kökü
+"proje" klasörü rolünü üstlendi; içine yeni bir `vodafonepaycomtr/` alt
+klasörü açıldı (site dosyaları oraya taşındı), `cms/` zaten kardeş konumdaydı.
+Ortak/orkestrasyon dosyaları (docker-compose.yml, scripts/, docs/, tasks.md,
+README.md, AGENTS.md) kökte kaldı.
+
+- [x] Etki analizi: tsconfig.json/eslint.config.mjs zaten `cms/`'i dışlıyordu
+      (site zaten kavramsal olarak ayrıydı) — docker-compose.yml, scripts/
+      (sonar-scan.sh, trivy-scan.sh, download-assets.mjs), .github/workflows/ci.yml,
+      package.json (warm-cache script), AGENTS.md, README.md tespit edildi
+- [x] `git mv` ile taşındı (git history korundu): src/, public/, package.json,
+      package-lock.json, next.config.ts, tsconfig.json, eslint.config.mjs,
+      postcss.config.mjs, components.json, vitest.config.ts, vitest.setup.ts,
+      Dockerfile, Dockerfile.dev, .dockerignore
+- [x] Düz taşındı (izlenmeyen): node_modules/, next-env.d.ts, .vercel/
+- [x] Silindi (atılabilir build cache, eski konumda anlamsız): .next/,
+      coverage/, tsconfig.tsbuildinfo
+- [x] docker-compose.yml: `context: .` → `./vodafonepaycomtr` (app+dev),
+      bind mount `.:/app` → `./vodafonepaycomtr:/app`; cms zaten doğruydu
+- [x] scripts/sonar-scan.sh, trivy-scan.sh: site yolları `vodafonepaycomtr/`
+      önekini ald
+- [x] scripts/download-assets.mjs: `process.cwd()` yerine script'in kendi
+      konumundan çözümleme (gizli bir "her yerden çalışmıyor" hatasını da düzeltti)
+- [x] .github/workflows/ci.yml: `quality` job'ına cms-quality ile aynı
+      `working-directory`/`cache-dependency-path` deseni eklendi
+- [x] AGENTS.md, README.md güncellendi; `scripts/sync-agent-rules.sh` ile
+      türetilmiş dosyalar (.clinerules, .continue, .amazonq, copilot) yenilendi
+- [x] **Uçtan uca canlı doğrulama** (sadece config incelemesi değil):
+      `docker compose config` geçti; sıfırdan `--build app cms` ile ikisi de
+      `healthy`; rebuild edilen `app` gerçek CMS verisini render ediyor
+      (anasayfada gerçek kampanya var, "CMS'e ulaşılamıyor" değil);
+      `cms:3010/api/campaigns` gerçek veri döndürüyor (totalDocs: 20) —
+      Docker ağ bağlantısı taşımadan etkilenmedi; 21 gerçek route 200;
+      yeni `vodafonepaycomtr/` konumundan (Docker dışında, doğrudan)
+      355 test geçti, tsc/eslint temiz, `npm run build` başarılı (20 canlı
+      kampanya slug'ı dahil tüm route'lar prerender edildi); cms'in kendi
+      179 testi de hâlâ geçiyor (dokunulmadığı teyit edildi)
