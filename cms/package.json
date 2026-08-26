@@ -2,6 +2,7 @@
   "name": "vodafonepaycomtr-cms",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Headless CMS for vodafonepaycomtr — Payload CMS, Postgres, S3-compatible (MinIO) storage",
   "engines": {
     "node": ">=20"
@@ -13,6 +14,9 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "generate:types": "payload generate:types",
+    "generate:importmap": "payload generate:importmap",
+    "migrate:create": "payload migrate:create",
+    "migrate": "payload migrate",
     "seed": "node scripts/seed-via-api.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

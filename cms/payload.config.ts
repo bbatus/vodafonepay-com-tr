@@ -181,6 +181,19 @@ export default buildConfig({
   admin: {
     user: Users.slug,
     theme: "light",
+    // `admin.components.*` values below use Payload's "/components/Foo"
+    // shorthand, which `generate:importmap` resolves relative to
+    // `admin.importMap.baseDir` (defaulting to `process.cwd()`, i.e. this
+    // file's directory, `cms/`). Our components actually live under
+    // `cms/src/components/`, so without this the generated importMap.js
+    // gets a path one level too shallow (`../../../../components/Foo`
+    // instead of `../../../../src/components/Foo`), which resolves outside
+    // the project and breaks every custom admin component. Confirmed by
+    // running `payload generate:importmap` and diffing its output against
+    // the hand-maintained importMap.js — see docs/STATUS.md R-10.
+    importMap: {
+      baseDir: path.resolve(dirname, "src"),
+    },
     ...(autoLoginEnabled
       ? {
           autoLogin: {

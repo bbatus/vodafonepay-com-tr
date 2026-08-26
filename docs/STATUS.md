@@ -455,6 +455,29 @@ kapatılabilir" listesinden 10 maddeyi aynı gün içinde kapattı:
   atlayalım, sadece not düşelim"); bkz. §3'teki mevcut satır, hâlâ host-seviyesi/Docker
   Desktop dosya-paylaşımı sorunu, kod tarafında dokunulmadı.
 
+### 2.19 R-10 kapatıldı — `payload migrate:create`/`generate:importmap` artık çalışıyor (26.08.2026)
+- Kök neden: `cms/package.json`'da `"type": "module"` tanımlı değildi. tsx, bir `.ts`
+  dosyasını CJS mi ESM mi olarak transpile edeceğine en yakın `package.json`'ın `"type"`
+  alanına bakarak karar veriyor, tanım yoksa CJS'e düşüyor — bu yüzden `payload.config.ts`
+  CJS'e transpile edildi ve `@payloadcms/richtext-lexical` import'u `require()`'a döndü;
+  o paket saf ESM + top-level await kullandığı için senkron yüklenemiyor
+  (`ERR_REQUIRE_ASYNC_MODULE`). Payload'ın kendi CLI'ı config'i `await import(...)` ile
+  doğru yüklüyordu — bug tamamen tsx'in dosya formatını yanlış yorumlamasındaydı.
+- Fix: `cms/package.json`'a `"type": "module"` eklendi. Bu, ikinci gizli bir bug'ı açığa
+  çıkardı — `generate:importmap` `/components/Foo` kısayolunu `admin.importMap.baseDir`'e
+  göre çözüyor (varsayılan `process.cwd()` = `cms/`), ama component'ler
+  `cms/src/components/`'te; `cms/payload.config.ts`'e
+  `admin.importMap.baseDir: path.resolve(dirname, "src")` eklenerek düzeltildi.
+- `generate:importmap`, `migrate:create`, `migrate` npm script'leri eklendi.
+  `importMap.js` artık CLI ile gerçekten üretiliyor (elle bakımlı uyarı yorumu yerine) —
+  eski dosyayla key-by-key karşılaştırıldı, tek fark eski dosyadaki 8 kullanılmayan
+  fazlalık kayıttı (üretici bunları doğru şekilde attı).
+- `npx payload migrate:create` gerçek, 1809 satırlık bir CREATE TYPE/TABLE migration
+  üretti (doğrulama sonrası silindi — proje hâlâ bilinçli olarak push-tabanlı şema
+  senkronunu kullanıyor, migration'a geçiş ayrı bir karar, bkz. §5).
+- `npx tsc --noEmit`, `npx eslint .`, `npm test` (336 test) ve `npm run build` hepsi
+  temiz.
+
 ---
 
 ## 3. Açık Kalan Riskler / Yapılacaklar
@@ -466,8 +489,8 @@ _Bu tablo 24.08.2026 itibarıyla yeniden gözden geçirildi — §2.15'te kapat�
 |---|---|---|
 | ~~Yeni — önemli~~ | ~~Statik build CMS'e ulaşamıyor~~ — **25.08'de kapandı** (§2.17): her collection artık `revalidatePath("/", "layout")` da gönderiyor (tüm site tek seferde tazeleniyor, sadece Campaigns'in ayrıcalığı değil), + deploy-sonrası `scripts/warm-cache.sh` eklendi. | Kapandı |
 | ~~Yeni~~ | ~~Sidebar/topbar çift marka işareti~~ — **25.08'de düzeltildi ve canlı** (§2.16), `AdminIcon.tsx` artık tema-uyumlu yalın bir ikon. | Kapandı |
-| R-10 | `payload migrate:create`/`generate:importmap` çalışmıyor (`ERR_REQUIRE_ASYNC_MODULE`) — yeni collection/field/lexical özelliği eklemek elle `importMap.js` düzenlemesi gerektiriyor, unutulursa sessiz başarısızlık. **En kritik yapısal açık — bu ve önceki turlar boyunca defalarca elle düzeltildi, sonu gelmiyor.** | Açık |
-| R-26 | Postgres native enum'lar, migration olmadan `select` seçenek değişikliğinde manuel `ALTER TYPE` istiyor — R-10'un somut bir belirtisi. 24.08'de yine elle SQL uygulandı (delegation/audit/deeplink alanları için). | Açık |
+| ~~R-10~~ | ~~`payload migrate:create`/`generate:importmap` çalışmıyor (`ERR_REQUIRE_ASYNC_MODULE`)~~ — **26.08'de kapandı** (§2.19): kök neden `cms/package.json`'da `"type": "module"` eksikliğiydi, tsx dosyayı CJS olarak transpile edip ESM-only `richtext-lexical`'ı `require()` ile çağırıyordu. | Kapandı |
+| R-26 | Postgres native enum'lar, migration olmadan `select` seçenek değişikliğinde manuel `ALTER TYPE` istiyordu — R-10'un somut bir belirtisiydi. R-10 kapandığına göre gelecekteki enum değişiklikleri artık `payload migrate:create` ile üretilen gerçek migration'lar üzerinden yapılabilir (26.08'de doğrulandı, bkz. §2.19); yine de proje şu an bilinçli olarak push-tabanlı şema senkronunu kullanıyor — migration'a geçiş ayrı bir karar, henüz alınmadı. | Kısmen kapandı (yol açıldı, geçiş kararı bekliyor) |
 | Yeni | SonarQube taraması hâlâ çalıştırılamadı (token eksik/401) — bu turda da denenmedi. Bir sonraki oturumda token alınıp `scripts/sonar-scan.sh all` ile taranmalı. | Açık |
 | ~~Yeni~~ | ~~Audit trail'de RFP §7'nin karşılamadığı alt maddeler~~ — **25.08'de 3'ü kapandı** (before/after diff, SIEM/CEF export, userID karşılaştırma tabloları → erişim matrisi, §2.16). "Hangi dosya indirildi/okundu" logu **26.08'de non-issue olarak kapandı** (aşağıdaki satır). | Kapandı |
 | ~~Yeni~~ | ~~Dosya-indirme/okuma logu yok~~ — **26.08'de kullanıcı kararıyla "gerçek eksiklik değil" olarak kapandı.** Media ve Documents'ın ikisi de `access.read: () => true` — kasıtlı olarak herkese açık: Media genel sitede render olan kampanya/blog görselleri, Documents RFP'nin "Sözleşmeler ve Formlar" maddesi gereği ziyaretçinin indirmesi gereken PDF'ler. Bu dosyalar için "kim indirdi" logu anonim ziyaretçi trafiğini loglamak olurdu; RFP §7'nin kastettiği "CMS içinde kim ne yaptı" audit'i zaten `audit-logs` koleksiyonunda var (login/create/update/delete/export, hepsi kimliği doğrulanmış kullanıcılar için). Proxy-download-logging mimarisi kasıtlı olarak kurulmadı. | Kapandı (non-issue) |
@@ -497,13 +520,17 @@ _Bu tablo 24.08.2026 itibarıyla yeniden gözden geçirildi — §2.15'te kapat�
 4. `SONAR_TOKEN=<token> scripts/sonar-scan.sh all` (veya `web`/`cms`) — açık bulgu kalmamalı.
 5. Dockerfile/dependency değiştiyse `scripts/trivy-scan.sh all`.
 6. Commit → `main`'e push.
-7. Yeni bir custom admin component/lexical özelliği eklendiyse (R-10) → `cms/src/app/(payload)/admin/importMap.js`'e elle eklenmediyse sessizce render olmaz — mutlaka kontrol et.
+7. Yeni bir custom admin component/lexical özelliği eklendiyse → artık `npm run generate:importmap`
+   (cms içinde) ile otomatik üretilebiliyor (R-10 kapandı, §2.19) — elle düzenlemeye gerek yok,
+   ama commit'lemeyi unutma.
 
 ---
 
 ## 5. Ortam Notları
 
-- **DB şeması elle yönetiliyor** (R-10 yüzünden): yeni kolon/enum değeri gerekiyorsa
+- **DB şeması hâlâ push-tabanlı senkronla yönetiliyor** (R-10 kapandığı için artık `npm run
+  migrate:create`/`migrate` de çalışıyor, ama migration'a geçiş ayrı bir karar, henüz
+  alınmadı — bkz. §2.19). Yeni bir kolon/enum değeri gerekiyorsa hâlâ
   `docker exec vodafonepaycms-postgres psql -U payload -d vodafonepaycms` ile elle SQL
   uygulanıyor. Her round raporunun kendi "Copy-paste SQL" bölümü var (bkz. §6).
   Örnek: `ALTER TYPE enum_categories_scope ADD VALUE IF NOT EXISTS 'blog';`

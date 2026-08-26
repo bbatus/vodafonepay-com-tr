@@ -309,28 +309,18 @@ README.md, AGENTS.md) kökte kaldı.
       kampanya slug'ı dahil tüm route'lar prerender edildi); cms'in kendi
       179 testi de hâlâ geçiyor (dokunulmadığı teyit edildi)
 
-## 19. R-10 — payload migrate:create / generate:importmap kırık (ERR_REQUIRE_ASYNC_MODULE)
+## 19. R-10 — payload migrate:create / generate:importmap kırık (ERR_REQUIRE_ASYNC_MODULE) — Kapandı (26.08.2026)
 
-**Durum:** En kritik yapısal açık. Yeni bir custom admin component ya da
-lexical özelliği eklendiğinde `cms/src/app/(payload)/admin/importMap.js`'e
-elle eklenmezse sessizce render olmuyor; DB tarafında da native enum
-değişiklikleri migration yerine elle `ALTER TYPE` gerektiriyor (R-26, aynı
-kökün belirtisi). Bu turlar boyunca defalarca elle düzeltildi, kalıcı çözüm
-yok.
+Kök neden: `cms/package.json`'da `"type": "module"` eksikti, tsx dosyayı CJS
+olarak transpile edip ESM-only `richtext-lexical`'ı `require()` ile
+çağırıyordu. Detay: `docs/STATUS.md` §2.19.
 
-- [ ] Kök nedeni netleştir: `ERR_REQUIRE_ASYNC_MODULE` hangi bağımlılıktan
-      geliyor (Payload'ın kendi CLI'ı mı, Next 16 uyumluluğu mu, bir ESM/CJS
-      karışıklığı mı) — `payload generate:importmap`/`payload migrate:create`
-      komutlarını doğrudan çalıştırıp tam stack trace'i yakala.
-- [ ] Bilinen çözüm var mı diye Payload'ın GitHub issue'larını/CHANGELOG'unu
-      kontrol et (versiyon uyumsuzluğu ise upgrade/downgrade bir seçenek
-      olabilir).
-- [ ] Kalıcı çözüm yoksa en azından: (a) importMap.js'i CI'da otomatik
-      doğrulayan bir script (yeni bir admin component eklenip importMap'e
-      girmemişse build'i kırsın), (b) migration'lar için elle SQL yazma
-      sürecini `docs/RUNBOOK.md`'de adım adım belgelemek.
-- [ ] Çözüldüyse ya da kalıcı workaround kurulduysa `docs/STATUS.md` §3'teki
-      R-10/R-26 satırlarını güncelle.
+- [x] Kök neden netleştirildi ve doğrulandı (tam stack trace ile).
+- [x] `cms/package.json`'a `"type": "module"` eklendi;
+      `admin.importMap.baseDir` düzeltmesiyle ikinci gizli bug da giderildi.
+- [x] `generate:importmap`/`migrate:create`/`migrate` script'leri eklendi,
+      gerçek bir migration üretilerek doğrulandı.
+- [x] `docs/STATUS.md` §3'teki R-10/R-26 satırları güncellendi.
 
 ## 20. CMS test coverage — kalan bileşenler ve collection'lar
 
