@@ -154,7 +154,19 @@ dosyaları, Payload dokümanı değil, hiçbir API sorgusu onları göremez.
 
 ## 16. Test coverage yükseltilsin
 
-**site: %36.8 → %65 (hedef %60'tı, aşıldı) — TAMAMLANDI**
+**site: %36.8 → %65 → %82.9 (hedef %60'tı, sonra %80 istendi, ikisi de aşıldı) — TAMAMLANDI**
+- [x] İkinci tur: `vitest.config.ts`'nin coverage kapsamı `page.tsx` dosyalarını
+      da içerecek şekilde genişletildi (sadece `layout.tsx` hariç — next/font/local
+      araç kısıtı, kasıtlı karar değil). 21 gerçek route + 6 dinamik route için
+      37 yeni/genişletilmiş test dosyası: `notFound()` dalları, `ContentUnavailable`
+      üçlü ayrımı, `draftMode()` ile `PreviewBanner`, CMS-vs-fallback dalları
+- [x] `[...slug]/page.tsx`'in `BlockRenderer`'ı dışa aktarıldı (davranış değişmedi)
+      ve 10 blok tipinin tamamı doğrudan test edildi
+- [x] 355 test geçiyor, tsc/eslint temiz, Sonar: 0 açık bulgu
+- [x] Canlı doğrulama: image rebuild, 21 gerçek route 200, 2 kasıtlı yanlış
+      slug 404 (notFound() gerçekten prod'da çalışıyor), konsol hatası yok
+- [x] Gerçek sayılar (Sonar): coverage %65 → %82.9, line coverage %88.8,
+      duplication %1.5
 - [x] Güvenlik-kritik: `previewSecret.ts` (timingSafeEqual), `/api/preview`
       + `/api/preview/disable` (açık yönlendirme koruması), `documentViewer.ts`
       (dosya host allowlist)
