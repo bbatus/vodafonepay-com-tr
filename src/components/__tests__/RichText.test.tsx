@@ -119,4 +119,95 @@ describe("RichText", () => {
       expect(container.querySelector("iframe")).toBeNull();
     });
   });
+
+  describe("link converter", () => {
+    function linkNode(fields: Record<string, unknown>, text = "Bağlantı") {
+      return { type: "link", fields, children: [textNode(text)], direction: null, format: "", indent: 0, version: 1 };
+    }
+
+    it("renders a plain external URL link with target=_blank when newTab is set", () => {
+      render(<RichText data={lexicalDoc([paragraph([linkNode({ url: "https://example.com", newTab: true })])])} />);
+      const link = screen.getByText("Bağlantı").closest("a");
+      expect(link).toHaveAttribute("href", "https://example.com");
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    });
+
+    it("has no target/rel when newTab is unset", () => {
+      render(<RichText data={lexicalDoc([paragraph([linkNode({ url: "https://example.com" })])])} />);
+      const link = screen.getByText("Bağlantı").closest("a");
+      expect(link).not.toHaveAttribute("target");
+      expect(link).not.toHaveAttribute("rel");
+    });
+
+    it("resolves an internal document link to the collection's real site URL", () => {
+      const internal = linkNode({
+        linkType: "internal",
+        doc: { relationTo: "campaigns", value: { slug: "yaz-kampanyasi" } },
+      });
+      render(<RichText data={lexicalDoc([paragraph([internal])])} />);
+      const link = screen.getByText("Bağlantı").closest("a");
+      expect(link).toHaveAttribute("href", "/kampanyalar/yaz-kampanyasi");
+    });
+
+    it("renders plain unstyled text (not a broken link) when the internal doc didn't populate", () => {
+      const internal = linkNode({ linkType: "internal", doc: { relationTo: "campaigns", value: null } });
+      render(<RichText data={lexicalDoc([paragraph([internal])])} />);
+      const text = screen.getByText("Bağlantı");
+      expect(text.closest("a")).toBeNull();
+    });
+  });
+
+  it("renders a list with list items", () => {
+    const list = {
+      type: "list",
+      tag: "ul",
+      listType: "bullet",
+      start: 1,
+      children: [{ type: "listitem", value: 1, children: [textNode("Madde 1")], direction: null, format: "", indent: 0, version: 1 }],
+      direction: null,
+      format: "",
+      indent: 0,
+      version: 1,
+    };
+    render(<RichText data={lexicalDoc([list])} />);
+    const item = screen.getByText("Madde 1");
+    expect(item.closest("li")).not.toBeNull();
+    expect(item.closest("ul")).not.toBeNull();
+  });
+
+  it("renders a numbered list with the list-decimal class", () => {
+    const list = {
+      type: "list",
+      tag: "ol",
+      listType: "number",
+      start: 1,
+      children: [{ type: "listitem", value: 1, children: [textNode("Madde 1")], direction: null, format: "", indent: 0, version: 1 }],
+      direction: null,
+      format: "",
+      indent: 0,
+      version: 1,
+    };
+    const { container } = render(<RichText data={lexicalDoc([list])} />);
+    expect(container.querySelector("ol.list-decimal")).not.toBeNull();
+  });
+
+  it("renders a quote as a blockquote", () => {
+    const quote = { type: "quote", children: [textNode("Bir alıntı")], direction: null, format: "", indent: 0, version: 1 };
+    render(<RichText data={lexicalDoc([quote])} />);
+    expect(screen.getByText("Bir alıntı").closest("blockquote")).not.toBeNull();
+  });
+
+  it("renders a horizontal rule", () => {
+    const hr = { type: "horizontalrule", version: 1 };
+    const { container } = render(<RichText data={lexicalDoc([hr])} />);
+    expect(container.querySelector("hr")).not.toBeNull();
+  });
+
+  it("renders an empty paragraph node without crashing", () => {
+    // Lexical's own renderer skips a childless paragraph before reaching our
+    // converter, so there's no <p> to assert on — this only guards against
+    // the empty-children branch throwing.
+    expect(() => render(<RichText data={lexicalDoc([paragraph([])])} />)).not.toThrow();
+  });
 });
