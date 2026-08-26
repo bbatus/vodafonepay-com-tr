@@ -67,6 +67,7 @@
     "vitest": "^4.1.10"
   },
   "overrides": {
+    "dompurify": "^3.4.13",
     "undici": "^7.29.0"
   }
 }

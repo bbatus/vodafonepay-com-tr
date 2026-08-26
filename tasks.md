@@ -375,21 +375,17 @@ canlıda 200 dönmeli, CMS'ten düzenlenebilir olmalı, artık kullanılmayan
 component/content-blocks kaydı temizlenmeli. Göç tamamlandıktan sonra
 `docs/STATUS.md` §2.10 ve §3'teki ilgili satırı güncelle.
 
-## 22. Trivy bulguları — Alpine openssl CVE'leri + site'ın dompurify sürümü
+## 22. Trivy bulguları — Alpine openssl CVE'leri + site'ın dompurify sürümü — Kapandı (26.08.2026)
 
 25.08 turunda kasıtlı ayrı bırakılmıştı (cms'in kendi devDependency
-değişikliğiyle ilgisizdi), şimdi ele alınıyor:
+değişikliğiyle ilgisizdi), bu turda kapatıldı. Detay: `docs/STATUS.md` §2.18.
 
-- [ ] `vodafonepaycomtr/package.json`: `dompurify` 3.4.8 → 3.4.13+ (4 CVE
-      düzeltiliyor: CVE-2026-65898, GHSA-55q2-fjhq-7xh7, CVE-2026-65899,
-      GHSA-c2j3-45gr-mqc4). `npm install`, ardından site'ın kendi
-      test/typecheck/lint/build döngüsünü çalıştır (dompurify'ı kullanan
-      kod — muhtemelen RichText/sanitizasyon — regresyon var mı doğrula).
-- [ ] cms + app Dockerfile'larındaki `node:24-alpine` base image'i güncel
-      bir alpine etiketine (openssl'in libcrypto3/libssl3 CVE'lerini
-      (CVE-2026-14456, CVE-2026-18798, CVE-2026-63072, CVE-2026-63076)
-      içermeyen bir sürüme) taşımayı dene; mevcut değilse `apk upgrade
-      openssl` gibi bir Dockerfile katmanı ekle.
-- [ ] `docker compose -p vodafonepaycomtr up -d --build app cms` ile
-      rebuild + healthy doğrula, `scripts/trivy-scan.sh all` çalıştırıp
-      0 bulguya indiğini teyit et.
+- [x] `vodafonepaycomtr/package.json`: `overrides.dompurify` `^3.4.13`
+      eklendi (4 CVE kapandı: CVE-2026-65898, GHSA-55q2-fjhq-7xh7,
+      CVE-2026-65899, GHSA-c2j3-45gr-mqc4). Site test/typecheck/lint/build
+      temiz.
+- [x] cms + app Dockerfile'larının runner stage'ine `apk update && apk
+      upgrade --no-cache libcrypto3 libssl3` eklendi (4 CVE kapandı:
+      CVE-2026-14456, CVE-2026-18798, CVE-2026-63072, CVE-2026-63076).
+- [x] Rebuild + healthy doğrulandı, `scripts/trivy-scan.sh all` 0 bulgu
+      raporladı.
