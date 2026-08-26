@@ -3,11 +3,13 @@
 _Son güncelleme: 25.08.2026, branch `main` (her adımda doğrudan `main`'e push edildi). Bu güncelleme, projedeki **tüm** `docs/*.md` dosyaları (ham prompt kayıtları hariç) tek tek okunup, `main`'in güncel commit geçmişiyle (bu dosyanın son güncellenişinden bu yana 20+ yeni commit) çapraz kontrol edilerek yazıldı — amaç: hiçbir açık maddenin raporlar arasında kaybolmamasını garanti etmek._
 
 Bu dosya projenin **tek genel durum özeti**dir — "ne yapıldı, ne kaldı" sorusunun
-cevabı için önce buraya bakın. Diğer `docs/*.md` dosyaları hâlâ duruyor (tarihsel detay,
-madde madde RFP eşleşmesi, kullanıcı test kayıtları, ham prompt kayıtları için) ama günlük
-takip için hepsini tek tek açmaya gerek yok — her birinin ne işe yaradığı en altta
-[§6](#6-diğer-dokümanlar-ne-zaman-bakılır) içinde listeleniyor. Bu dosya veri kaybetmeden
-hepsinin özetidir; hiçbiri silinmedi.
+cevabı için önce buraya bakın. **Mimariyi, koleksiyonları ve "neden böyle yapıldı"yı
+anlamak için önce `docs/PROJECT-OVERVIEW.md`'ye bakın** — bu dosya durumu, o dosya
+sistemi anlatır, ikisi birbirini tamamlar. Diğer `docs/*.md` dosyaları hâlâ duruyor
+(tarihsel detay, madde madde RFP eşleşmesi, kullanıcı test kayıtları, ham prompt
+kayıtları için) ama günlük takip için hepsini tek tek açmaya gerek yok — her birinin
+ne işe yaradığı en altta [§6](#6-diğer-dokümanlar-ne-zaman-bakılır) içinde listeleniyor.
+Bu dosya veri kaybetmeden hepsinin özetidir; hiçbiri silinmedi.
 
 ---
 
@@ -666,6 +668,7 @@ tarihsel/madde-madde detay taşıyorlar — silinmediler, sadece günlük takip 
 ### Rehber/referans dosyaları
 | Dosya | Ne için |
 |---|---|
+| `docs/PROJECT-OVERVIEW.md` | **Baştan-sona proje rehberi** — mimari, her CMS koleksiyonunun ne işe yaradığı, rol modeli, route yapısı, "neden böyle yapıldı" kararları. Projeye ilk kez bakan biri (veya yeni bir oturum) buradan başlamalı. |
 | `docs/RUNBOOK.md` | Uçtan uca RBAC/collection test senaryoları — yeni bir rol/collection eklendiğinde nasıl test edileceği. |
 | `docs/SSS-BLOG-REHBER.md` | Editörler için: SSS/Blog kategorisi nasıl oluşturulur, scope ne işe yarar. |
 | `docs/TEST-USERS.MD` | 4 test kullanıcısının e-posta/şifresi — asla commit edilmemeli. |
