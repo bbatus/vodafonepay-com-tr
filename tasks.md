@@ -152,14 +152,26 @@ dosyaları, Payload dokümanı değil, hiçbir API sorgusu onları göremez.
       (blog 5, kampanya 20, temsilci 0, sözleşme/form 0 — sonuncusu doğru,
       tek doküman `source='pdf'` ve slug'sız, sayfa URL'i üretmiyor)
 
-## 16. Test coverage %70-80'e çıkarılsın
+## 16. Test coverage yükseltilsin
 
-**Ölçülen gerçek durum (Sonar'a lcov bağlandıktan sonra, 26.08):**
-site %36.8 · cms %24.2 (daha önce tahmin edilen "%57/%56" yanlıştı)
+**site: %36.8 → %65 (hedef %60'tı, aşıldı) — TAMAMLANDI**
+- [x] Güvenlik-kritik: `previewSecret.ts` (timingSafeEqual), `/api/preview`
+      + `/api/preview/disable` (açık yönlendirme koruması), `documentViewer.ts`
+      (dosya host allowlist)
+- [x] Etkileşimli bileşenler: `HeaderClient` (mobil çekmece/dropdown/
+      mobileHref), `PhoneStepsCarousel`, `VideosWithTabs`, `ScrollReveal`
+      (IntersectionObserver), `AppDownloadBanner`
+- [x] Async server component'ler: `Footer`, `Header` (cms.ts mock'lanarak,
+      `render(await Component())` deseniyle)
+- [x] `RichText.tsx` link converter (dış/iç/çözülemeyen link), liste/alıntı/hr
+- [x] `metadata.ts` — CMS-önce-varsayılan alan bazlı fallback
+- [x] `vitest.setup.ts`'e global `IntersectionObserver` stub'ı eklendi
+- [x] 208 test geçiyor, tsc/eslint temiz, Sonar: 0 açık bulgu
+- [x] Canlı doğrulama: image rebuild, `/`, `/kampanyalar`, `/ucretler-ve-limitler` 200
 
-- [ ] Kapsam planı (hangi modüller önce)
-- [ ] site: %36.8 → hedef
-- [ ] cms: %22.9 → hedef
+**cms: %22.9 (henüz başlanmadı — bu turda kapsam dışı, sadece site istendi)**
+- [ ] Kapsam planı
+- [ ] cms: %24.2 → hedef
 
 ## 17. CMS Sonar bulguları
 
