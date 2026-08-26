@@ -4,6 +4,7 @@ import type { I18nClient } from "@payloadcms/translations";
 import { loadDbStrings } from "@/lib/loadDbStrings";
 import { COLLECTION_LABELS } from "@/lib/collectionLabels";
 import DashboardWidgets from "./DashboardWidgets";
+import { countSiteUrls, loadSitePages, type SitePageEntry } from "@/lib/sitePages";
 import { IconContent, IconPage, IconUsers, IconFaq, IconCampaign, IconBlog, IconClock, IconPlus } from "./DashboardIcons";
 
 /**
@@ -104,6 +105,61 @@ function RecentPanel({
   );
 }
 
+function SitePagesPanel({
+  entries,
+  locale,
+  siteBase,
+}: {
+  entries: SitePageEntry[];
+  locale: "tr" | "en";
+  siteBase: string;
+}) {
+  const sourceLabels: Record<SitePageEntry["source"], string> =
+    locale === "tr"
+      ? { static: "Sabit", cms: "CMS", dynamic: "Dinamik" }
+      : { static: "Static", cms: "CMS", dynamic: "Dynamic" };
+
+  return (
+    <div className="table-wrap card cm-card">
+      <table className="cm-table">
+        <thead>
+          <tr>
+            <th>{locale === "tr" ? "Sayfa" : "Page"}</th>
+            <th>{locale === "tr" ? "Adres" : "Path"}</th>
+            <th>{locale === "tr" ? "Kaynak" : "Source"}</th>
+            <th>{locale === "tr" ? "URL sayısı" : "URLs"}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map((e) => (
+            <tr key={e.path}>
+              <td>
+                {e.editHref ? <Link href={e.editHref}>{e.title}</Link> : e.title}
+              </td>
+              <td>
+                {e.source === "dynamic" ? (
+                  <code>{e.path}</code>
+                ) : (
+                  <a href={`${siteBase}${e.path}`} target="_blank" rel="noopener noreferrer">
+                    <code>{e.path}</code>
+                  </a>
+                )}
+              </td>
+              <td>
+                <span className={`cm-badge${e.source === "cms" && !e.isDraft ? " cm-badge--published" : ""}`}>
+                  {sourceLabels[e.source]}
+                </span>
+                {e.isDraft && <span className="cm-badge">{locale === "tr" ? "Taslak" : "Draft"}</span>}
+              </td>
+              <td>{e.urlCount}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default async function CustomDashboardView(props: {
   payload: Payload;
   i18n: I18nClient;
@@ -122,9 +178,9 @@ export default async function CustomDashboardView(props: {
   const t = await loadDbStrings(payload, locale);
 
   const kpiSlugs = ["campaigns", "blog-posts", "faq-items", "announcements", "representatives", "pages"] as const;
-  const [kpiCounts, pageCount, userCount, faqCount, recentCampaigns, recentBlogPosts, recentPages] = await Promise.all([
+  const [kpiCounts, sitePages, userCount, faqCount, recentCampaigns, recentBlogPosts, recentPages] = await Promise.all([
     Promise.all(kpiSlugs.map((slug) => payload.count({ collection: slug as never, overrideAccess: true }).then((r) => r.totalDocs))),
-    payload.count({ collection: "pages", overrideAccess: true }).then((r) => r.totalDocs),
+    loadSitePages(payload, locale),
     payload.count({ collection: "users", overrideAccess: true }).then((r) => r.totalDocs),
     payload.count({ collection: "faq-items", overrideAccess: true }).then((r) => r.totalDocs),
     loadRecent(payload, "campaigns", "title"),
@@ -132,13 +188,15 @@ export default async function CustomDashboardView(props: {
     loadRecent(payload, "pages", "title"),
   ]);
   const totalContent = kpiCounts.reduce((sum, n) => sum + n, 0);
+  const siteUrlCount = countSiteUrls(sitePages);
 
+  const siteBase = process.env.SITE_URL || "http://localhost:3000";
   const statusLabels = { published: t("contentManagement.published"), draft: t("contentManagement.draft") };
   const addLabel = locale === "tr" ? "Yeni" : "New";
 
   const kpiCards = [
     { label: t("dashboardKpi.totalContent"), value: totalContent, icon: <IconContent /> },
-    { label: COLLECTION_LABELS["pages"]?.[locale] ?? "Sayfalar", value: pageCount, icon: <IconPage /> },
+    { label: locale === "tr" ? "Sayfalar" : "Pages", value: siteUrlCount, icon: <IconPage /> },
     { label: COLLECTION_LABELS["users"]?.[locale] ?? "Kullanıcılar", value: userCount, icon: <IconUsers /> },
     { label: COLLECTION_LABELS["faq-items"]?.[locale] ?? "SSS", value: faqCount, icon: <IconFaq /> },
   ];
@@ -194,6 +252,17 @@ export default async function CustomDashboardView(props: {
           addLabel={addLabel}
         />
       </div>
+
+      <h2 className="cm-section-title cm-section-title--icon">
+        <IconPage />
+        {locale === "tr" ? "Site Sayfaları" : "Site Pages"}
+      </h2>
+      <p className="cm-hint">
+        {locale === "tr"
+          ? "Sitenin yayınladığı tüm adresler. \"Sabit\" satırlar geliştirici tarafından yazılmış sayfalardır (CMS'ten düzenlenemez), \"CMS\" satırları Sayfalar koleksiyonundan düzenlenebilir, \"Dinamik\" satırlar ise her kayıt için ayrı bir adres üretir."
+          : "Every address the site publishes. \"Static\" rows are developer-built pages (not editable in the CMS), \"CMS\" rows are editable from the Pages collection, and \"Dynamic\" rows produce one address per record."}
+      </p>
+      <SitePagesPanel entries={sitePages} locale={locale} siteBase={siteBase} />
     </div>
   );
 }

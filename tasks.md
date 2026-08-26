@@ -121,3 +121,57 @@ MinIO'dan servis edilen bir PDF URL'i. Gerçek sitedeki akordeon yapısı da kor
 
 - [x] Rol sütunları yan yana (rol × koleksiyon gerçek matris), satır başına 1
       koleksiyon; yetki rozetleri renkli, yapışkan başlık satırı, arama kutusu
+
+---
+
+# Görev Listesi — 26.08.2026 turu
+
+Kullanıcının 26.08.2026'da ilettiği paket. Sıra, kullanıcının belirlediği sıradır.
+
+## 15. Dashboard "Sayfalar" sayacı gerçek site URL'lerini saysın
+
+**İstek:** "sayfa bileşeni şu an localhost:3000 sayfası bile bizim için bir sayfa
+olarak tutulmalı, tüm farklı url'leri sayfa olarak saymalı ve listeleyebilmeliyiz."
+
+**Kök neden:** `CustomDashboardView.tsx` "Sayfalar" KPI'ını `payload.count({collection:"pages"})`
+ile hesaplıyor — bu sadece editörün oluşturduğu Pages dokümanlarını (1 adet) sayıyor.
+Sitenin gerçek 20 statik route'u (`/`, `/blog`, `/iletisim`, ...) `src/app/*/page.tsx`
+dosyaları, Payload dokümanı değil, hiçbir API sorgusu onları göremez.
+
+- [x] Ortak `cms/src/lib/sitePages.ts` — 3 kaynak: `static` (HAND_BUILT_ROUTES),
+      `cms` (Pages koleksiyonu), `dynamic` (`[slug]`/`[id]` route'ları)
+- [x] KPI "Sayfalar" `payload.count({pages})` yerine `countSiteUrls()` — **1 → 46**
+- [x] "Site Sayfaları" tablosu: başlık, adres (canlı siteye link), kaynak rozeti, URL sayısı
+- [x] Dinamik satırların sayısı sitenin kendi `generateStaticParams` filtresiyle
+      birebir aynı (taslak blog yazısı / slug'sız kampanya sayıya girmiyor)
+- [x] Taslak CMS sayfası listede görünür ama URL sayısına eklenmez (`urlCount: 0`)
+- [x] tr/en (dosyanın mevcut `locale === "tr" ? ... : ...` deseni — yeni DB çeviri satırı gerekmedi)
+- [x] 8 birim testi (`src/lib/__tests__/sitePages.test.ts`)
+- [x] Canlı doğrulama: KPI 46 = tablo toplamı 46; `/` satırı gerçekten
+      `http://localhost:3000/`'e gidiyor; 4 dinamik sayı SQL ile teyit edildi
+      (blog 5, kampanya 20, temsilci 0, sözleşme/form 0 — sonuncusu doğru,
+      tek doküman `source='pdf'` ve slug'sız, sayfa URL'i üretmiyor)
+
+## 16. Test coverage %70-80'e çıkarılsın
+
+**Ölçülen gerçek durum (Sonar'a lcov bağlandıktan sonra, 26.08):**
+site %36.8 · cms %22.9 (daha önce tahmin edilen "%57/%56" yanlıştı)
+
+- [ ] Kapsam planı (hangi modüller önce)
+- [ ] site: %36.8 → hedef
+- [ ] cms: %22.9 → hedef
+
+## 17. CMS Sonar bulguları
+
+- [ ] 5 BLOCKER: `denyRolePublish.test.ts` + `roles.test.ts` — assertion'sız test case'ler
+- [ ] 3 CRITICAL: cognitive complexity (Feedback.ts, LegalPages.ts, Users.ts, ordering.ts, RoleAwarePublishButton.tsx)
+- [ ] MAJOR/MINOR: nested ternary, nested template literal, S6551, erişilebilirlik
+- [ ] CMS duplication %9.3 → %3 altına
+
+## 18. Klasör yapısı (vodafonepaycomtr-project/)
+
+**İstek:** Ana klasör `vodafonepaycomtr-project/` → altında `vodafonepaycomtr/` (site)
+ve `cms/` kardeş klasörler. Workspace ile BAĞLANMASIN, tamamen ayrı kalsınlar.
+
+- [ ] Etki analizi (git kökü, docker-compose build context'leri, script yolları)
+- [ ] Uygulama
