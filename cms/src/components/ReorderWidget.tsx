@@ -541,10 +541,11 @@ function ServerGroupedReorder({
       ? `&${Object.entries(groupsFrom.where)
           .map(([field, cond]) => {
             const [op, val] = Object.entries(cond as Record<string, unknown>)[0];
-            // Only ever a primitive in practice; guarded so a stray object
-            // becomes an empty filter rather than the literal "[object Object]".
-            const encoded = typeof val === "object" && val !== null ? "" : encodeURIComponent(String(val));
-            return `where[${field}][${op}]=${encoded}`;
+            // Only ever a primitive in practice; narrowed explicitly so a
+            // stray object becomes an empty filter rather than the literal
+            // "[object Object]" landing in the query string.
+            const primitive = typeof val === "string" || typeof val === "number" || typeof val === "boolean" ? val : "";
+            return `where[${field}][${op}]=${encodeURIComponent(String(primitive))}`;
           })
           .join("&")}`
       : "";

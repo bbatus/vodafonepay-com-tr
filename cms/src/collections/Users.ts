@@ -20,6 +20,54 @@ const ALLOW_USER_CREATION = false;
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2MB
 const AVATAR_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
+type AvatarMessages = {
+  notLoggedIn: string;
+  badBody: string;
+  noFile: string;
+  tooLarge: (maxMb: number) => string;
+  badType: string;
+  unknown: string;
+  altText: (email: string) => string;
+  fallbackEmail: string;
+};
+
+/** Same `STRINGS = { tr, en }` shape the admin components use — see AGENTS.md. */
+const AVATAR_MESSAGES: Record<"tr" | "en", AvatarMessages> = {
+  tr: {
+    notLoggedIn: "Giriş yapmalısınız.",
+    badBody: "Geçersiz istek gövdesi.",
+    noFile: "Dosya bulunamadı.",
+    tooLarge: (maxMb: number) => `Profil fotoğrafı ${maxMb}MB'den küçük olmalı.`,
+    badType: "Sadece JPEG, PNG, WebP veya GIF yükleyebilirsiniz.",
+    unknown: "Bilinmeyen hata.",
+    altText: (email: string) => `${email} — profil fotoğrafı`,
+    fallbackEmail: "kullanıcı",
+  },
+  en: {
+    notLoggedIn: "You must be logged in.",
+    badBody: "Invalid request body.",
+    noFile: "No file found.",
+    tooLarge: (maxMb: number) => `Profile photo must be under ${maxMb}MB.`,
+    badType: "Only JPEG, PNG, WebP, or GIF can be uploaded.",
+    unknown: "Unknown error.",
+    altText: (email: string) => `${email} — profil fotoğrafı`,
+    fallbackEmail: "user",
+  },
+};
+
+/** Every rejection from the avatar endpoint has this one shape. */
+function avatarError(message: string, status: number): Response {
+  return Response.json({ errors: [{ message }] }, { status });
+}
+
+/** The reason this upload is not acceptable, or null if it is. */
+function rejectAvatar(file: FormDataEntryValue | null, m: AvatarMessages): string | null {
+  if (!(file instanceof File)) return m.noFile;
+  if (file.size > AVATAR_MAX_BYTES) return m.tooLarge(AVATAR_MAX_BYTES / (1024 * 1024));
+  if (!AVATAR_MIME_TYPES.has(file.type)) return m.badType;
+  return null;
+}
+
 /**
  * RFP feedback: `mediaCreate` (access/roles.ts) is Maker-only — a Checker
  * hitting the normal `POST /api/media` for their own avatar gets a 403.
@@ -41,49 +89,30 @@ const avatarUploadEndpoint: Endpoint = {
   path: "/me/avatar",
   method: "post",
   handler: async (req) => {
-    const isEnglish = req.i18n?.language === "en";
-    if (!req.user?.id) {
-      return Response.json({ errors: [{ message: isEnglish ? "You must be logged in." : "Giriş yapmalısınız." }] }, { status: 401 });
-    }
+    const m = AVATAR_MESSAGES[req.i18n?.language === "en" ? "en" : "tr"];
+    if (!req.user?.id) return avatarError(m.notLoggedIn, 401);
 
     let formData: FormData;
     try {
       if (!req.formData) throw new Error("formData unsupported");
       formData = await req.formData();
     } catch {
-      return Response.json({ errors: [{ message: isEnglish ? "Invalid request body." : "Geçersiz istek gövdesi." }] }, { status: 400 });
+      return avatarError(m.badBody, 400);
     }
 
     const file = formData.get("file");
-    if (!(file instanceof File)) {
-      return Response.json({ errors: [{ message: isEnglish ? "No file found." : "Dosya bulunamadı." }] }, { status: 400 });
-    }
-    if (file.size > AVATAR_MAX_BYTES) {
-      const maxMb = AVATAR_MAX_BYTES / (1024 * 1024);
-      return Response.json(
-        {
-          errors: [
-            { message: isEnglish ? `Profile photo must be under ${maxMb}MB.` : `Profil fotoğrafı ${maxMb}MB'den küçük olmalı.` },
-          ],
-        },
-        { status: 400 }
-      );
-    }
-    if (!AVATAR_MIME_TYPES.has(file.type)) {
-      return Response.json(
-        { errors: [{ message: isEnglish ? "Only JPEG, PNG, WebP, or GIF can be uploaded." : "Sadece JPEG, PNG, WebP veya GIF yükleyebilirsiniz." }] },
-        { status: 400 }
-      );
-    }
+    const rejection = rejectAvatar(file, m);
+    if (rejection) return avatarError(rejection, 400);
 
     try {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const email = (req.user as { email?: string }).email ?? (isEnglish ? "user" : "kullanıcı");
+      const upload = file as File;
+      const buffer = Buffer.from(await upload.arrayBuffer());
+      const email = (req.user as { email?: string }).email ?? m.fallbackEmail;
       const media = await req.payload.create({
         collection: "media",
         overrideAccess: true,
-        data: { alt: `${email} — profil fotoğrafı` },
-        file: { data: buffer, mimetype: file.type, name: file.name, size: file.size },
+        data: { alt: m.altText(email) },
+        file: { data: buffer, mimetype: upload.type, name: upload.name, size: upload.size },
       });
       const updated = await req.payload.update({
         collection: "users",
@@ -96,10 +125,8 @@ const avatarUploadEndpoint: Endpoint = {
       });
       return Response.json({ doc: updated });
     } catch (err) {
-      const unknownMessage = isEnglish ? "Unknown error." : "Bilinmeyen hata.";
-      const message = err instanceof Error ? err.message : unknownMessage;
       console.error("[users] avatar upload failed:", err);
-      return Response.json({ errors: [{ message }] }, { status: 500 });
+      return avatarError(err instanceof Error ? err.message : m.unknown, 500);
     }
   },
 };

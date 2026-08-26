@@ -26,6 +26,54 @@ import { ROLES } from "@/access/roles";
  * than re-deriving anything secret client-side) — only clicking "Onayla ve
  * Yayınla" inside that modal actually submits the publish.
  */
+/**
+ * Answers the same question `hasActiveCheckerDelegate` answers server-side
+ * (access/roles.ts), via a plain REST query `users.read` is already open to —
+ * this is a client component, so useAuth() only knows the session's own role.
+ */
+function useIsActiveCheckerDelegate(role: string | undefined, userId: string | number | undefined): boolean {
+  const [isActiveDelegate, setIsActiveDelegate] = useState(false);
+
+  useEffect(() => {
+    if (role !== ROLES.GROWTH_MAKER || !userId) return;
+    const params = new URLSearchParams({
+      limit: "1",
+      depth: "0",
+      "where[and][0][delegateTo][equals]": String(userId),
+      "where[and][1][role][in][0]": ROLES.NEW_VERTICAL_CHECKER,
+      "where[and][1][role][in][1]": ROLES.GROWTH_CHECKER,
+      "where[and][2][or][0][delegationExpiresAt][exists]": "false",
+      "where[and][2][or][1][delegationExpiresAt][greater_than]": new Date().toISOString(),
+    });
+    let cancelled = false;
+    fetch(`/api/users?${params.toString()}`, { credentials: "same-origin" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled) setIsActiveDelegate((data?.totalDocs ?? 0) > 0);
+      })
+      .catch(() => {
+        if (!cancelled) setIsActiveDelegate(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [role, userId]);
+
+  return isActiveDelegate;
+}
+
+/** Stops the admin page behind an open modal from scrolling under the pointer. */
+function useLockBodyScroll(locked: boolean): void {
+  useEffect(() => {
+    if (!locked) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [locked]);
+}
+
 export default function RoleAwarePublishButton() {
   const { user } = useAuth();
   const locale = useAdminLocale();
@@ -80,31 +128,7 @@ export default function RoleAwarePublishButton() {
   // asks the same question hasActiveCheckerDelegate answers server-side, via
   // a plain REST query users.read is already open to (`read: authenticated`
   // in Users.ts) — no dedicated endpoint needed.
-  const [isActiveDelegate, setIsActiveDelegate] = useState(false);
-  useEffect(() => {
-    if (role !== ROLES.GROWTH_MAKER || !userId) return;
-    const params = new URLSearchParams({
-      limit: "1",
-      depth: "0",
-      "where[and][0][delegateTo][equals]": String(userId),
-      "where[and][1][role][in][0]": ROLES.NEW_VERTICAL_CHECKER,
-      "where[and][1][role][in][1]": ROLES.GROWTH_CHECKER,
-      "where[and][2][or][0][delegationExpiresAt][exists]": "false",
-      "where[and][2][or][1][delegationExpiresAt][greater_than]": new Date().toISOString(),
-    });
-    let cancelled = false;
-    fetch(`/api/users?${params.toString()}`, { credentials: "same-origin" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!cancelled) setIsActiveDelegate((data?.totalDocs ?? 0) > 0);
-      })
-      .catch(() => {
-        if (!cancelled) setIsActiveDelegate(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [role, userId]);
+  const isActiveDelegate = useIsActiveCheckerDelegate(role, userId);
 
   const { id, collectionSlug, globalSlug, hasPublishedDoc, setHasPublishedDoc, setMostRecentVersionIsAutosaved, setUnpublishedVersionCount, unpublishedVersionCount } =
     useDocumentInfo();
@@ -138,14 +162,7 @@ export default function RoleAwarePublishButton() {
   // real height so the iframe actually fills it, and lock body scroll while
   // either modal is open.
   const modalOpen = confirming || showRejectForm || showForceConfirm;
-  useEffect(() => {
-    if (!modalOpen) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [modalOpen]);
+  useLockBodyScroll(modalOpen);
 
   // Mirrors Payload's own PublishButton canPublish check (minus upload-status
   // and scheduled-publish edge cases this collection doesn't use).
@@ -294,51 +311,20 @@ export default function RoleAwarePublishButton() {
     );
   }
 
-  // Follow-up 25.08: a LIVE campaign that's been edited in the form. The
-  // server will reject a plain publish here (guardPublishedEdit), so offering
-  // the normal Publish button would just produce a 409 the editor can't act
-  // on. Show both real routes instead: the recommended unpublish-first flow,
-  // and the acknowledged emergency one.
+  // Follow-up 25.08 — see LiveEditedActions for why this branch exists.
   if (hasPublishedDoc && modified) {
     return (
-      <>
-        <div className="vf-live-actions vf-live-actions--urgent">
-          <span className="vf-live-actions__notice">{t.forceRecommended}</span>
-          <button
-            type="button"
-            className={`btn btn--style-secondary btn--size-medium${unpublishing ? " btn--disabled" : ""}`}
-            disabled={unpublishing}
-            onClick={() => void doUnpublish(false)}
-          >
-            <span className="btn__content">
-              <span className="btn__label">{unpublishing ? t.unpublishing : t.unpublish}</span>
-            </span>
-          </button>
-          <button
-            type="button"
-            className="btn btn--style-primary btn--size-medium"
-            onClick={() => setShowForceConfirm(true)}
-          >
-            <span className="btn__content">
-              <span className="btn__label">{t.forceEdit}</span>
-            </span>
-          </button>
-        </div>
-
-        {showForceConfirm && (
-          <ForceLiveEditModal
-            t={t}
-            ack={forceAck}
-            setAck={setForceAck}
-            forcing={forcing}
-            onCancel={() => {
-              setShowForceConfirm(false);
-              setForceAck(false);
-            }}
-            onConfirm={doForceLiveEdit}
-          />
-        )}
-      </>
+      <LiveEditedActions
+        t={t}
+        unpublishing={unpublishing}
+        onUnpublish={() => void doUnpublish(false)}
+        showForceConfirm={showForceConfirm}
+        setShowForceConfirm={setShowForceConfirm}
+        forceAck={forceAck}
+        setForceAck={setForceAck}
+        forcing={forcing}
+        onForceConfirm={doForceLiveEdit}
+      />
     );
   }
 
@@ -482,6 +468,71 @@ function LiveActions({
         </span>
       </button>
     </div>
+  );
+}
+
+/**
+ * A LIVE document that's been edited in the form. The server rejects a plain
+ * publish here (guardPublishedEdit), so both real routes are offered instead
+ * of a Publish button that could only ever 409: the recommended
+ * unpublish-first flow, and the acknowledged emergency one.
+ */
+function LiveEditedActions({
+  t,
+  unpublishing,
+  onUnpublish,
+  showForceConfirm,
+  setShowForceConfirm,
+  forceAck,
+  setForceAck,
+  forcing,
+  onForceConfirm,
+}: {
+  t: ButtonStrings;
+  unpublishing: boolean;
+  onUnpublish: () => void;
+  showForceConfirm: boolean;
+  setShowForceConfirm: (value: boolean) => void;
+  forceAck: boolean;
+  setForceAck: (value: boolean) => void;
+  forcing: boolean;
+  onForceConfirm: () => void;
+}) {
+  return (
+    <>
+      <div className="vf-live-actions vf-live-actions--urgent">
+        <span className="vf-live-actions__notice">{t.forceRecommended}</span>
+        <button
+          type="button"
+          className={`btn btn--style-secondary btn--size-medium${unpublishing ? " btn--disabled" : ""}`}
+          disabled={unpublishing}
+          onClick={onUnpublish}
+        >
+          <span className="btn__content">
+            <span className="btn__label">{unpublishing ? t.unpublishing : t.unpublish}</span>
+          </span>
+        </button>
+        <button type="button" className="btn btn--style-primary btn--size-medium" onClick={() => setShowForceConfirm(true)}>
+          <span className="btn__content">
+            <span className="btn__label">{t.forceEdit}</span>
+          </span>
+        </button>
+      </div>
+
+      {showForceConfirm && (
+        <ForceLiveEditModal
+          t={t}
+          ack={forceAck}
+          setAck={setForceAck}
+          forcing={forcing}
+          onCancel={() => {
+            setShowForceConfirm(false);
+            setForceAck(false);
+          }}
+          onConfirm={onForceConfirm}
+        />
+      )}
+    </>
   );
 }
 

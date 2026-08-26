@@ -19,37 +19,40 @@ type GroupRow = { documents?: DocumentRow[] };
  * against the other rows in the same save rather than querying the database.
  * An existing slug is never re-derived: the page may already be linked to.
  */
-const fillDocumentSlugs: CollectionBeforeValidateHook = ({ data }) => {
-  const groups = (data?.groups as GroupRow[] | undefined) ?? [];
-  const taken = new Set<string>();
+/** Only `source: "page"` rows become their own route, so only those get a slug. */
+function pageDocumentsOf(groups: GroupRow[]): DocumentRow[] {
+  return groups.flatMap((group) => (group?.documents ?? []).filter((doc) => doc?.source === "page"));
+}
 
-  for (const group of groups) {
-    for (const doc of group?.documents ?? []) {
-      if (doc?.source !== "page") continue;
-      if (typeof doc.slug === "string" && doc.slug.trim()) {
-        taken.add(doc.slug);
-      }
-    }
+function hasSlug(doc: DocumentRow): boolean {
+  return typeof doc.slug === "string" && doc.slug.trim().length > 0;
+}
+
+/** "-2", "-3", … until the slug is free within this document. */
+function uniquifySlug(base: string, taken: Set<string>): string {
+  let candidate = base;
+  let suffix = 2;
+  while (taken.has(candidate)) {
+    candidate = `${base}-${suffix}`;
+    suffix += 1;
   }
+  return candidate;
+}
 
-  for (const group of groups) {
-    for (const doc of group?.documents ?? []) {
-      if (doc?.source !== "page") continue;
-      if (typeof doc.slug === "string" && doc.slug.trim()) continue;
-      // Prefer the descriptive prefix for the slug ("tıketici-haklari-..."
-      // reads far better than "tiklayiniz" repeated on every row) — fall
-      // back to the label alone when there's no prefix to work with.
-      const base = turkishSlugify(`${doc.prefix ?? ""} ${doc.label ?? ""}`.trim() || doc.label || "");
-      if (!base) continue;
-      let candidate = base;
-      let suffix = 2;
-      while (taken.has(candidate)) {
-        candidate = `${base}-${suffix}`;
-        suffix += 1;
-      }
-      taken.add(candidate);
-      doc.slug = candidate;
-    }
+const fillDocumentSlugs: CollectionBeforeValidateHook = ({ data }) => {
+  const documents = pageDocumentsOf((data?.groups as GroupRow[] | undefined) ?? []);
+  const taken = new Set<string>(documents.filter(hasSlug).map((doc) => doc.slug as string));
+
+  for (const doc of documents) {
+    if (hasSlug(doc)) continue;
+    // Prefer the descriptive prefix for the slug ("tıketici-haklari-..."
+    // reads far better than "tiklayiniz" repeated on every row) — fall
+    // back to the label alone when there's no prefix to work with.
+    const base = turkishSlugify(`${doc.prefix ?? ""} ${doc.label ?? ""}`.trim() || doc.label || "");
+    if (!base) continue;
+    const candidate = uniquifySlug(base, taken);
+    taken.add(candidate);
+    doc.slug = candidate;
   }
   return data;
 };

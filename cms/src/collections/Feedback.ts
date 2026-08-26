@@ -23,6 +23,32 @@ import { ipOf, userAgentOf } from "@/hooks/audit";
  *   docker exec vodafonepaycms-postgres psql -U payload -d vodafonepaycms \
  *     -c "select created_at, user_email, area, message from feedback order by created_at desc;"
  */
+/** Same `STRINGS = { tr, en }` shape the admin components use — see AGENTS.md. */
+const FEEDBACK_MESSAGES: Record<"tr" | "en", Record<"notLoggedIn" | "badBody" | "empty" | "saveFailed", string>> = {
+  tr: {
+    notLoggedIn: "Giriş yapmalısınız.",
+    badBody: "Geçersiz istek gövdesi.",
+    empty: "Lütfen geri bildiriminizi yazın.",
+    saveFailed: "Geri bildirim kaydedilemedi.",
+  },
+  en: {
+    notLoggedIn: "You must be logged in.",
+    badBody: "Invalid request body.",
+    empty: "Please write your feedback.",
+    saveFailed: "Couldn't save feedback.",
+  },
+};
+
+/** Every rejection from this endpoint has the same shape. */
+function feedbackError(message: string, status: number): Response {
+  return Response.json({ errors: [{ message }] }, { status });
+}
+
+/** Trimmed value, or undefined when the field is absent/blank. */
+function optionalText(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
 const submitFeedbackEndpoint: Endpoint = {
   // A COLLECTION endpoint is mounted under its own slug, so this resolves to
   // `/api/feedback/submit` — not `/api/feedback/feedback/submit`. (Root-level
@@ -31,25 +57,18 @@ const submitFeedbackEndpoint: Endpoint = {
   path: "/submit",
   method: "post",
   handler: async (req) => {
-    const isEnglish = req.i18n?.language === "en";
-    if (!req.user?.id) {
-      return Response.json({ errors: [{ message: isEnglish ? "You must be logged in." : "Giriş yapmalısınız." }] }, { status: 401 });
-    }
+    const m = FEEDBACK_MESSAGES[req.i18n?.language === "en" ? "en" : "tr"];
+    if (!req.user?.id) return feedbackError(m.notLoggedIn, 401);
 
     let body: { message?: string; area?: string; pagePath?: string } = {};
     try {
       if (req.json) body = await req.json();
     } catch {
-      return Response.json({ errors: [{ message: isEnglish ? "Invalid request body." : "Geçersiz istek gövdesi." }] }, { status: 400 });
+      return feedbackError(m.badBody, 400);
     }
 
-    const message = typeof body.message === "string" ? body.message.trim() : "";
-    if (!message) {
-      return Response.json(
-        { errors: [{ message: isEnglish ? "Please write your feedback." : "Lütfen geri bildiriminizi yazın." }] },
-        { status: 400 }
-      );
-    }
+    const message = optionalText(body.message);
+    if (!message) return feedbackError(m.empty, 400);
 
     const user = req.user as { email?: string; role?: string };
     try {
@@ -58,7 +77,7 @@ const submitFeedbackEndpoint: Endpoint = {
         overrideAccess: true,
         data: {
           message,
-          area: typeof body.area === "string" && body.area.trim() ? body.area.trim() : undefined,
+          area: optionalText(body.area),
           pagePath: typeof body.pagePath === "string" ? body.pagePath : undefined,
           userEmail: user.email ?? "unknown",
           userRole: user.role,
@@ -68,7 +87,7 @@ const submitFeedbackEndpoint: Endpoint = {
       });
     } catch (err) {
       console.error("[feedback] failed to store submission:", err);
-      return Response.json({ errors: [{ message: isEnglish ? "Couldn't save feedback." : "Geri bildirim kaydedilemedi." }] }, { status: 500 });
+      return feedbackError(m.saveFailed, 500);
     }
 
     return Response.json({ ok: true });

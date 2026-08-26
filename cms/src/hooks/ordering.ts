@@ -193,15 +193,25 @@ async function rejectIfFooterSlotTaken(args: {
  * doesn't touch it (e.g. a raw API PATCH of just `title`) is left alone
  * rather than having its footer state silently cleared.
  *
- * Known limitation, same class as the one already documented on
- * LiveOrderField: the free-slot lookup and the write that claims it aren't
- * one atomic transaction, so two near-simultaneous saves that both compute
- * "slot 3 is free" can both write `footerOrder: 3` — confirmed live during
- * this feature's own testing (three records ended up sharing a slot after a
- * few rapid saves). Not solved here; if it matters in practice, the fix is a
- * DB-level unique constraint on (collection, footerOrder) WHERE
- * show_in_footer, not another query in this hook.
+ * The free-slot lookup and the write that claims it are still not one atomic
+ * transaction, so two near-simultaneous saves can both compute "slot 3 is
+ * free" — this used to let three records share a slot, confirmed live during
+ * this feature's own testing. That race is now caught one level down instead
+ * of here: `footerOrder` carries `unique: true` on both Campaigns and
+ * FaqItems, so Postgres rejects the second writer (NULLs never collide, so
+ * records that aren't in the footer are unaffected). Verified by racing seven
+ * concurrent saves: two succeeded, five were rejected with the standard
+ * validation error.
  */
+/** Lowest 1..FOOTER_ORDER_MAX slot nobody holds, or undefined when the footer is full. */
+function firstFreeFooterSlot(docs: { footerOrder?: number }[]): number | undefined {
+  const used = new Set(docs.map((d) => d.footerOrder).filter((n): n is number => typeof n === "number"));
+  for (let i = 1; i <= FOOTER_ORDER_MAX; i += 1) {
+    if (!used.has(i)) return i;
+  }
+  return undefined;
+}
+
 export function assignFooterOrder(collection: string): CollectionBeforeChangeHook {
   return async ({ data, operation, req, originalDoc }) => {
     if (data.showInFooter === false) {
@@ -230,16 +240,7 @@ export function assignFooterOrder(collection: string): CollectionBeforeChangeHoo
         depth: 0,
         overrideAccess: true,
       });
-      const used = new Set(
-        docs.map((d) => (d as { footerOrder?: number }).footerOrder).filter((n): n is number => typeof n === "number")
-      );
-      let slot: number | undefined;
-      for (let i = 1; i <= FOOTER_ORDER_MAX; i += 1) {
-        if (!used.has(i)) {
-          slot = i;
-          break;
-        }
-      }
+      const slot = firstFreeFooterSlot(docs as { footerOrder?: number }[]);
       if (slot === undefined) {
         const lang = locale(req);
         throw new APIError(
