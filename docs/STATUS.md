@@ -495,6 +495,47 @@ kapatılabilir" listesinden 10 maddeyi aynı gün içinde kapattı:
 - `npx tsc --noEmit`, `npx eslint .`, `npm test` (336 test) ve `npm run build` hepsi
   temiz.
 
+### 2.20 CMS test coverage — madde 20 tamamlandı, 4 alan bileşeni + 6 export-button (26.08.2026)
+
+Madde 16/20'nin devamı. Önceki turlarda (`43f8112`, `7c0fc62`, `323f921`) zaten eklenmiş
+olanlar (`AccessMatrixApp`, `AccountForm`, `FeedbackApp`, `AutoSlugField`, `LiveOrderField`,
+`CategoryScopePeek`, `LocalePreferenceSync`, `LockedAccountsBanner`, `MediaFilterTabs`, ve
+BlogPosts/FaqItems/Campaigns/Translations/Documents/Representatives/PageMeta/CookieRows
+collection testleri) doğrulandı, tekrar yazılmadı. Gerçekten eksik olan 10 dosya bu turda
+eklendi:
+
+- **4 alan bileşeni** (`cms/src/components/__tests__/`): `FooterOrderField.test.tsx`
+  (auto-fill ilk boş slot, dolu-footer mesajı, mevcut değeri ezmeme, uncheck sonrası reset),
+  `MediaUsageField.test.tsx` (id yokken render etmeme, yükleniyor/boş/hata durumları,
+  birden fazla collection'dan gelen kullanım listesi + dedup), `LoginHistoryField.test.tsx`
+  (email yokken audit-logs'a fetch atmama, boş/dolu tablo, eksik ip/user-agent için em-dash),
+  `UnlockAccountField.test.tsx` (kilit yokken buton yok, yetkisiz rol için buton yok, New
+  Vertical Maker kilidi kaldırabiliyor, hata mesajı `describeApiError`'dan geliyor).
+- **6 export-button sarmalayıcısı**: `UsersExportButton`, `CampaignsExportButton`,
+  `BlogPostsExportButton`, `CategoriesExportButton`, `AuditLogsExportButton`,
+  `AuditLogsCefExportButton`. Bunlar `CsvExportButton`/`CefExportButton`'ı sarıp yalnızca
+  kendi `buildTable`/`buildEvents` mantığını (rol etiketi, kilit durumu + tarih, richtext
+  düzleştirme, ilişki etiketi çözümleme, CEF alan eşlemesi) taşıyor — `buildTable` export
+  edilmediği ve mevcut `CsvExportButton.test.tsx`/`CefExportButton.test.tsx` testlerinde de
+  bir precedent olmadığı için, yeni bir test deseni kuruldu: sarmalayıcı gerçekten render
+  edilip tıklanıyor, `URL.createObjectURL` mock'lanarak ona geçen gerçek `Blob` yakalanıyor,
+  sonra `blob.text()` ile CSV/CEF metni okunup üretilen sütun değerleri doğrudan
+  assert ediliyor (BOM'lu CSV için `﻿` strip edilip `"alan";"alan"` tırnaklı-noktalı virgül
+  formatı, CEF için `CEF:0|VodafonePay|CMS|1.0|action|Name|severity|ext...` formatı).
+- 29 yeni test (10 yeni dosya), toplam 443 test / 67 dosya (öncekinde 414/57'ydi).
+- `npx tsc --noEmit` 0 hata, `npx eslint .` 0 hata (yalnızca önceden bilinen 4
+  `no-img-element` uyarısı), `npm run build` başarılı.
+- Sonar bu ortamda da çalıştırılamadı (token/bağlantı yok — `docs/STATUS.md` §3'te
+  önceden bilinen kısıt, bu turda tekrar denenmedi). Onun yerine `npm run test:coverage`
+  (Vitest v8 coverage) çalıştırıldı: **statements 82.73% (1917/2317), branches 66.91%
+  (1183/1768), functions 76.06% (448/589), lines 84.04% (1723/2050)**. Kalan büyük
+  0%'lar bilinçli olarak dokunulmadı: `*View.tsx` dosyaları (AccessMatrixView,
+  ContentManagementView, FeedbackView, FeesAndLimitsView, DiscountAccountView) Payload'ın
+  admin route'una server-side mount olan ince sarmalayıcılar, `AvatarIcon`/`AdminIcon`/
+  `AdminLogo`/`LoginBrandPanel`/`SidebarLogo` salt-SVG/img render'ları, `SaveOrSubmitButton`
+  ve `ForgotPasswordDisabled` de benzer şekilde çok ince — hiçbiri dallanma mantığı
+  taşımıyor, bu görevin kapsamındaki listede de yoktu.
+
 ---
 
 ## 3. Açık Kalan Riskler / Yapılacaklar
