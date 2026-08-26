@@ -43,19 +43,23 @@ describe("denyRolePublish", () => {
   });
 
   it("leaves draft saves alone", async () => {
-    await run({ _status: "draft" }, ROLES.GROWTH_MAKER, { originalDoc: { _status: "draft" } });
+    await expect(
+      run({ _status: "draft" }, ROLES.GROWTH_MAKER, { originalDoc: { _status: "draft" } })
+    ).resolves.not.toThrow();
   });
 
   it("does not apply to other roles", async () => {
     for (const role of [ROLES.NEW_VERTICAL_MAKER, ROLES.NEW_VERTICAL_CHECKER, ROLES.GROWTH_CHECKER]) {
-      await run({ _status: "published" }, role, { originalDoc: { _status: "draft" } });
+      await expect(run({ _status: "published" }, role, { originalDoc: { _status: "draft" } })).resolves.not.toThrow();
     }
   });
 
   it("allows a publication-neutral save on an ALREADY published document", async () => {
-    await run({ _status: "published", unpublishRequest: "pending" }, ROLES.GROWTH_MAKER, {
-      originalDoc: { _status: "published" },
-    });
+    await expect(
+      run({ _status: "published", unpublishRequest: "pending" }, ROLES.GROWTH_MAKER, {
+        originalDoc: { _status: "published" },
+      })
+    ).resolves.not.toThrow();
   });
 
   it("still refuses to let that relaxation republish something that had gone back to draft", async () => {

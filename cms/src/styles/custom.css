@@ -1135,7 +1135,15 @@ a {
   margin: 0;
 }
 
+/* A <fieldset> rather than a <div role="group">, so the grouping is native
+   rather than bolted on with ARIA. The first four properties undo the
+   browser's default fieldset chrome — without min-inline-size the default
+   `min-content` sizing also breaks the surrounding flex row. */
 .rapb-preview-toggle {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
   display: flex;
   gap: 0.25rem;
   margin-left: auto;

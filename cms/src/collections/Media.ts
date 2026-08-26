@@ -50,10 +50,12 @@ const enforceFileSizeLimit: CollectionBeforeChangeHook = ({ data, req }) => {
 
   const maxMb = max / (1024 * 1024);
   const isEnglish = req.i18n?.language === "en";
+  const kindEn = isVideo ? "videos" : "images";
+  const kindTr = isVideo ? "videolar" : "görseller";
   throw new APIError(
     isEnglish
-      ? `File is too large — ${isVideo ? "videos" : "images"} are usually under ${maxMb}MB. Check "Upload anyway, over the size limit" in the sidebar and save again if you really want to upload it.`
-      : `Dosya büyük — ${isVideo ? "videolar" : "görseller"} genelde ${maxMb}MB'den küçük olur. Yine de yüklemek istiyorsanız kenar çubuğundaki "Boyut sınırını aşan dosyayı yine de yükle" kutusunu işaretleyip tekrar kaydedin.`,
+      ? `File is too large — ${kindEn} are usually under ${maxMb}MB. Check "Upload anyway, over the size limit" in the sidebar and save again if you really want to upload it.`
+      : `Dosya büyük — ${kindTr} genelde ${maxMb}MB'den küçük olur. Yine de yüklemek istiyorsanız kenar çubuğundaki "Boyut sınırını aşan dosyayı yine de yükle" kutusunu işaretleyip tekrar kaydedin.`,
     400,
     undefined,
     true

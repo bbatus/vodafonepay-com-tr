@@ -84,6 +84,48 @@ function CreateButton({ collectionSlug, label, onSaved }: { collectionSlug: "fee
   );
 }
 
+/**
+ * The loading / empty / table triple was written out once per tab, which is
+ * both a nested ternary and the same markup twice. One component instead:
+ * `rows === null` means still fetching, `[]` means genuinely empty.
+ */
+function TablePanel<T extends { id: string | number }>({
+  rows,
+  headers,
+  renderRow,
+  loadingLabel,
+  emptyLabel,
+}: {
+  rows: T[] | null;
+  headers: string[];
+  renderRow: (row: T) => React.ReactNode;
+  loadingLabel: string;
+  emptyLabel: string;
+}) {
+  let body: React.ReactNode;
+  if (rows === null) {
+    body = <p className="cm-hint">{loadingLabel}</p>;
+  } else if (rows.length === 0) {
+    body = <p className="cm-hint">{emptyLabel}</p>;
+  } else {
+    body = (
+      <div className="table-wrap">
+        <table className="cm-table">
+          <thead>
+            <tr>
+              {headers.map((h) => (
+                <th key={h}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>{rows.map(renderRow)}</tbody>
+        </table>
+      </div>
+    );
+  }
+  return <div className="card cm-card">{body}</div>;
+}
+
 export default function FeesAndLimitsApp() {
   const locale = useAdminLocale();
   const t = useDbStrings(locale);
@@ -146,31 +188,18 @@ export default function FeesAndLimitsApp() {
       {tab === "fee-rows" && (
         <>
           <CreateButton collectionSlug="fee-rows" label={t("feesAndLimits.createFeeRow")} onSaved={refetch} />
-          <div className="card cm-card">
-            {feeRows === null ? (
-              <p className="cm-hint">{t("contentManagement.loading")}</p>
-            ) : feeRows.length === 0 ? (
-              <p className="cm-hint">{t("contentManagement.empty")}</p>
-            ) : (
-              <div className="table-wrap">
-                <table className="cm-table">
-                  <thead>
-                    <tr>
-                      <th>{t("feesAndLimits.colLabel")}</th>
-                      <th>{t("feesAndLimits.colValue")}</th>
-                      <th>{t("feesAndLimits.colStatus")}</th>
-                      <th>{t("feesAndLimits.colOrder")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {feeRows.map((row) => (
-                      <FeeRowRow key={row.id} row={row} onSaved={refetch} />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+          <TablePanel
+            rows={feeRows}
+            headers={[
+              t("feesAndLimits.colLabel"),
+              t("feesAndLimits.colValue"),
+              t("feesAndLimits.colStatus"),
+              t("feesAndLimits.colOrder"),
+            ]}
+            renderRow={(row) => <FeeRowRow key={row.id} row={row} onSaved={refetch} />}
+            loadingLabel={t("contentManagement.loading")}
+            emptyLabel={t("contentManagement.empty")}
+          />
           <h2 className="cm-section-title">{t("feesAndLimits.reorderTitle")}</h2>
           <ReorderWidget collection="fee-rows" onSaved={refetch} />
         </>
@@ -179,31 +208,18 @@ export default function FeesAndLimitsApp() {
       {tab === "limit-tables" && (
         <>
           <CreateButton collectionSlug="limit-tables" label={t("feesAndLimits.createLimitTable")} onSaved={refetch} />
-          <div className="card cm-card">
-            {limitTables === null ? (
-              <p className="cm-hint">{t("contentManagement.loading")}</p>
-            ) : limitTables.length === 0 ? (
-              <p className="cm-hint">{t("contentManagement.empty")}</p>
-            ) : (
-              <div className="table-wrap">
-                <table className="cm-table">
-                  <thead>
-                    <tr>
-                      <th>{t("feesAndLimits.colTitleCol")}</th>
-                      <th>{t("feesAndLimits.colRowCount")}</th>
-                      <th>{t("feesAndLimits.colStatus")}</th>
-                      <th>{t("feesAndLimits.colOrder")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {limitTables.map((lt) => (
-                      <LimitTableRow key={lt.id} lt={lt} onSaved={refetch} />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+          <TablePanel
+            rows={limitTables}
+            headers={[
+              t("feesAndLimits.colTitleCol"),
+              t("feesAndLimits.colRowCount"),
+              t("feesAndLimits.colStatus"),
+              t("feesAndLimits.colOrder"),
+            ]}
+            renderRow={(lt) => <LimitTableRow key={lt.id} lt={lt} onSaved={refetch} />}
+            loadingLabel={t("contentManagement.loading")}
+            emptyLabel={t("contentManagement.empty")}
+          />
           <h2 className="cm-section-title">{t("feesAndLimits.reorderTitle")}</h2>
           <ReorderWidget collection="limit-tables" onSaved={refetch} />
         </>

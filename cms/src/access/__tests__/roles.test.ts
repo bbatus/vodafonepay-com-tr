@@ -90,12 +90,12 @@ describe("denyMakerPublish", () => {
   });
 
   it("allows GROWTH_MAKER to save a draft", async () => {
-    await call(ROLES.GROWTH_MAKER, "draft");
+    await expect(call(ROLES.GROWTH_MAKER, "draft")).resolves.not.toThrow();
   });
 
   it("allows other roles to publish", async () => {
-    await call(ROLES.NEW_VERTICAL_MAKER, "published");
-    await call(ROLES.GROWTH_CHECKER, "published");
+    await expect(call(ROLES.NEW_VERTICAL_MAKER, "published")).resolves.not.toThrow();
+    await expect(call(ROLES.GROWTH_CHECKER, "published")).resolves.not.toThrow();
   });
 
   it("returns the data unchanged when it does not throw", async () => {

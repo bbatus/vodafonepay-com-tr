@@ -16,14 +16,33 @@ const DEVICE_VENDOR = "VodafonePay";
 const DEVICE_PRODUCT = "CMS";
 const DEVICE_VERSION = "1.0";
 
+/**
+ * Escape sequences spelled with String.raw so the backslashes read literally.
+ * ESCAPED_BACKSLASH is two characters, and ESCAPED_NEWLINE is the two-character
+ * sequence `\n` — NOT an actual newline, which is what CEF wants a line break
+ * replaced WITH.
+ *
+ * BACKSLASH deliberately stays a normal escaped string: a template literal
+ * cannot END in a backslash (it would escape the closing backtick), so
+ * String.raw is a syntax error for this one value.
+ */
+const BACKSLASH = "\\";
+const ESCAPED_BACKSLASH = String.raw`\\`;
+const ESCAPED_PIPE = String.raw`\|`;
+const ESCAPED_EQUALS = String.raw`\=`;
+const ESCAPED_NEWLINE = String.raw`\n`;
+
 /** CEF header fields: pipe and backslash are the two characters that break the format if unescaped. */
 function escapeHeader(value: string): string {
-  return value.replaceAll("\\", "\\\\").replaceAll("|", "\\|");
+  return value.replaceAll(BACKSLASH, ESCAPED_BACKSLASH).replaceAll("|", ESCAPED_PIPE);
 }
 
 /** CEF extension values: backslash, equals, and newlines are the ones that break `key=value key2=value2` parsing. */
 function escapeExtension(value: string): string {
-  return value.replaceAll("\\", "\\\\").replaceAll("=", "\\=").replaceAll("\n", "\\n");
+  return value
+    .replaceAll(BACKSLASH, ESCAPED_BACKSLASH)
+    .replaceAll("=", ESCAPED_EQUALS)
+    .replaceAll("\n", ESCAPED_NEWLINE);
 }
 
 const ACTION_NAMES: Record<string, string> = {

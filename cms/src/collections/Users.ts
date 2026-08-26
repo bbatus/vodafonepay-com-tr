@@ -96,7 +96,8 @@ const avatarUploadEndpoint: Endpoint = {
       });
       return Response.json({ doc: updated });
     } catch (err) {
-      const message = err instanceof Error ? err.message : isEnglish ? "Unknown error." : "Bilinmeyen hata.";
+      const unknownMessage = isEnglish ? "Unknown error." : "Bilinmeyen hata.";
+      const message = err instanceof Error ? err.message : unknownMessage;
       console.error("[users] avatar upload failed:", err);
       return Response.json({ errors: [{ message }] }, { status: 500 });
     }

@@ -5,6 +5,22 @@ function locale(req: PayloadRequest): "tr" | "en" {
   return req.i18n?.language === "en" ? "en" : "tr";
 }
 
+/**
+ * Names the clashing document inside an editor-facing error message. The
+ * candidates are tried in order and only a string/number is accepted: several
+ * collections here carry bilingual object-shaped values, and blindly
+ * `String()`-ing one would put a literal "[object Object]" in front of the
+ * editor instead of a document name.
+ */
+function describeClash(doc: Record<string, unknown> | undefined, fields: string[]): string {
+  for (const field of [...fields, "id"]) {
+    const value = doc?.[field];
+    if (typeof value === "string" && value.trim()) return value;
+    if (typeof value === "number") return String(value);
+  }
+  return "?";
+}
+
 function scopeConstraints(data: Record<string, unknown>, scopeFields: string[]): Where[] {
   return scopeFields
     .filter((field) => data[field] !== undefined && data[field] !== null)
@@ -43,12 +59,12 @@ async function rejectIfOrderTaken(args: {
   });
   if (totalDocs === 0) return;
 
-  const clashTitle = (docs[0] as Record<string, unknown> | undefined)?.title ?? (docs[0] as Record<string, unknown> | undefined)?.label;
+  const clashTitle = describeClash(docs[0] as Record<string, unknown> | undefined, ["title", "label"]);
   const lang = locale(req);
   const message =
     lang === "en"
-      ? `Position ${order} is already used by "${String(clashTitle ?? docs[0]?.id)}" in this group. Pick a different number, or leave it empty to append to the end.`
-      : `${order}. sıra bu grupta zaten "${String(clashTitle ?? docs[0]?.id)}" tarafından kullanılıyor. Farklı bir sayı seçin, ya da sona eklemek için boş bırakın.`;
+      ? `Position ${order} is already used by "${clashTitle}" in this group. Pick a different number, or leave it empty to append to the end.`
+      : `${order}. sıra bu grupta zaten "${clashTitle}" tarafından kullanılıyor. Farklı bir sayı seçin, ya da sona eklemek için boş bırakın.`;
   throw new APIError(message, 400, undefined, true);
 }
 
@@ -161,13 +177,12 @@ async function rejectIfFooterSlotTaken(args: {
   });
   if (totalDocs === 0) return;
 
-  const clash = docs[0] as Record<string, unknown> | undefined;
-  const clashTitle = clash?.title ?? clash?.question ?? clash?.id;
+  const clashTitle = describeClash(docs[0] as Record<string, unknown> | undefined, ["title", "question"]);
   const lang = locale(req);
   const message =
     lang === "en"
-      ? `Footer position ${footerOrder} is already used by "${String(clashTitle)}". Pick a different number (1-${FOOTER_ORDER_MAX}), or leave it empty.`
-      : `Footer sırası ${footerOrder} zaten "${String(clashTitle)}" tarafından kullanılıyor. Farklı bir sayı (1-${FOOTER_ORDER_MAX}) seçin, ya da boş bırakın.`;
+      ? `Footer position ${footerOrder} is already used by "${clashTitle}". Pick a different number (1-${FOOTER_ORDER_MAX}), or leave it empty.`
+      : `Footer sırası ${footerOrder} zaten "${clashTitle}" tarafından kullanılıyor. Farklı bir sayı (1-${FOOTER_ORDER_MAX}) seçin, ya da boş bırakın.`;
   throw new APIError(message, 400, undefined, true);
 }
 

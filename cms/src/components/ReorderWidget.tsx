@@ -541,7 +541,10 @@ function ServerGroupedReorder({
       ? `&${Object.entries(groupsFrom.where)
           .map(([field, cond]) => {
             const [op, val] = Object.entries(cond as Record<string, unknown>)[0];
-            return `where[${field}][${op}]=${encodeURIComponent(String(val))}`;
+            // Only ever a primitive in practice; guarded so a stray object
+            // becomes an empty filter rather than the literal "[object Object]".
+            const encoded = typeof val === "object" && val !== null ? "" : encodeURIComponent(String(val));
+            return `where[${field}][${op}]=${encoded}`;
           })
           .join("&")}`
       : "";

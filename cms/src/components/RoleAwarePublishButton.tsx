@@ -634,7 +634,7 @@ function ConfirmPublishModal({
           <p className="rapb-confirm-heading">{t.heading}</p>
           <p className="rapb-confirm-body">{t.body}</p>
           {previewHref && (
-            <div className="rapb-preview-toggle" role="group" aria-label={t.previewWidthGroup}>
+            <fieldset className="rapb-preview-toggle" aria-label={t.previewWidthGroup}>
               <button
                 type="button"
                 className={`rapb-preview-toggle__btn${previewWidth === "desktop" ? " rapb-preview-toggle__btn--active" : ""}`}
@@ -651,7 +651,7 @@ function ConfirmPublishModal({
               >
                 {t.previewMobile}
               </button>
-            </div>
+            </fieldset>
           )}
         </div>
 

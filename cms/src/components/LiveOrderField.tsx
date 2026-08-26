@@ -48,7 +48,11 @@ export default function LiveOrderField(props: LiveOrderFieldProps) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const groupValue = mode === "boolean" ? (watchedValue ? "true" : null) : (watchedValue as string | number | null | undefined);
+    // A boolean group field ("is this in the footer?") collapses to a single
+    // group key when checked, and to "no group" when not.
+    const booleanGroupValue = watchedValue ? "true" : null;
+    const groupValue =
+      mode === "boolean" ? booleanGroupValue : (watchedValue as string | number | null | undefined);
     if (!groupValue) {
       startTransition(() => setInfo(null));
       return;

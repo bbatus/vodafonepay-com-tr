@@ -68,7 +68,8 @@ function vfImageFill(id: string): string {
 }
 
 function blockThumb(inner: string, defs = ""): { thumbnail: { url: string; alt: string } } {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320">${defs ? `<defs>${defs}</defs>` : ""}<rect width="480" height="320" fill="#ffffff"/>${inner}</svg>`;
+  const defsBlock = defs ? `<defs>${defs}</defs>` : "";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320">${defsBlock}<rect width="480" height="320" fill="#ffffff"/>${inner}</svg>`;
   return { thumbnail: { url: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`, alt: "" } };
 }
 

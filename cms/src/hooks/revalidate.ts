@@ -26,7 +26,8 @@ async function pingRevalidate(tag: string, paths?: string[], pathType?: "page" |
       headers: { "content-type": "application/json", "x-revalidate-secret": secret },
       body: JSON.stringify({ tag, paths, pathType }),
     });
-    const pathsSuffix = paths?.length ? ` + paths [${paths.join(", ")}]${pathType ? ` (${pathType})` : ""}` : "";
+    const pathTypeSuffix = pathType ? ` (${pathType})` : "";
+    const pathsSuffix = paths?.length ? ` + paths [${paths.join(", ")}]${pathTypeSuffix}` : "";
     console.log(`[revalidate] tag "${tag}"${pathsSuffix} -> ${res.status}`);
   } catch (err) {
     // Best-effort: the site's own ISR interval is the fallback if this fails.

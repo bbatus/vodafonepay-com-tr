@@ -101,14 +101,13 @@ export function IconCheckCircle(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-export function IconDraft(props: SVGProps<SVGSVGElement>) {
-  return (
-    <Icon {...props}>
-      <path d="M4 19.5V17l10.5-10.5a1.5 1.5 0 0 1 2.12 0l.88.88a1.5 1.5 0 0 1 0 2.12L7 20H4.5a.5.5 0 0 1-.5-.5Z" />
-      <path d="M13 6l3 3" />
-    </Icon>
-  );
-}
+/**
+ * Same pencil as IconBlog, on purpose — "a draft" and "a blog post" are both
+ * "something being written". Kept as an alias rather than a second copy of the
+ * same paths so the two can never drift apart silently; give it its own glyph
+ * here if the two ever need to look different.
+ */
+export const IconDraft = IconBlog;
 
 export function IconPlus(props: SVGProps<SVGSVGElement>) {
   return (
