@@ -1,6 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import type { PayloadRequest } from "payload";
-import { auditAfterChange, auditAfterDelete, auditGlobalAfterChange, writeAuditLog } from "@/hooks/audit";
+import { Forbidden } from "payload";
+import {
+  auditAfterChange,
+  auditAfterDelete,
+  auditExportEndpoint,
+  auditForbiddenAttempt,
+  auditGlobalAfterChange,
+  writeAuditLog,
+} from "@/hooks/audit";
 
 function fakeReq(overrides: { user?: { email?: string; role?: string }; headers?: Record<string, string> } = {}) {
   const create = vi.fn().mockResolvedValue({});
@@ -107,5 +115,75 @@ describe("auditGlobalAfterChange", () => {
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ action: "update", collectionSlug: "contact-info" }) })
     );
+  });
+});
+
+describe("auditExportEndpoint", () => {
+  it("401s an unauthenticated request without writing a log entry", async () => {
+    const { req, create } = fakeReq();
+    const reqWithJson = { ...req, json: vi.fn() } as unknown as PayloadRequest;
+    const res = await auditExportEndpoint.handler!(reqWithJson);
+    expect(res.status).toBe(401);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("logs an 'export' entry naming the collection and record count from the request body", async () => {
+    const { req, create } = fakeReq({ user: { email: "a@b.com" } });
+    const reqWithJson = { ...req, user: { id: "1", email: "a@b.com" }, json: vi.fn().mockResolvedValue({ collection: "campaigns", count: 42 }) } as unknown as PayloadRequest;
+    const res = await auditExportEndpoint.handler!(reqWithJson);
+    expect(res.status).toBe(200);
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ action: "export", collectionSlug: "campaigns", summary: expect.stringContaining("42") }),
+      })
+    );
+  });
+
+  it("degrades to 'unknown' collection and '?' count on a malformed/empty body, without failing the request", async () => {
+    const { req, create } = fakeReq({ user: { email: "a@b.com" } });
+    const reqWithJson = { ...req, user: { id: "1", email: "a@b.com" }, json: vi.fn().mockRejectedValue(new Error("bad json")) } as unknown as PayloadRequest;
+    const res = await auditExportEndpoint.handler!(reqWithJson);
+    expect(res.status).toBe(200);
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ collectionSlug: "unknown", summary: expect.stringContaining("?") }),
+      })
+    );
+  });
+});
+
+describe("auditForbiddenAttempt", () => {
+  it("logs a 'denied' entry for a Forbidden error from an authenticated user", async () => {
+    const { req, create } = fakeReq({ user: { email: "a@b.com" } });
+    await auditForbiddenAttempt({
+      error: new Forbidden(),
+      req,
+      collection: { slug: "campaigns" },
+    } as never);
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ action: "denied", collectionSlug: "campaigns" }) })
+    );
+  });
+
+  it("ignores an anonymous Forbidden — no user to name means nothing worth logging", async () => {
+    const { req, create } = fakeReq();
+    await auditForbiddenAttempt({ error: new Forbidden(), req, collection: { slug: "campaigns" } } as never);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("ignores any error that isn't a Forbidden — a 400/404 is an honest mistake, not an access attempt", async () => {
+    const { req, create } = fakeReq({ user: { email: "a@b.com" } });
+    await auditForbiddenAttempt({ error: new Error("some other error"), req, collection: { slug: "campaigns" } } as never);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("picks the right Turkish verb per HTTP method", async () => {
+    const { req, create } = fakeReq({ user: { email: "a@b.com" } });
+    await auditForbiddenAttempt({
+      error: new Forbidden(),
+      req: { ...req, method: "DELETE" },
+      collection: { slug: "campaigns" },
+    } as never);
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ summary: expect.stringContaining("silme") }) }));
   });
 });

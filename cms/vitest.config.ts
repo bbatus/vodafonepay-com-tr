@@ -8,7 +8,15 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
-      include: ["src/access/**/*.ts", "src/hooks/**/*.ts", "src/collections/**/*.ts", "src/globals/**/*.ts", "src/env.ts"],
+      include: [
+        "src/access/**/*.ts",
+        "src/hooks/**/*.ts",
+        "src/collections/**/*.ts",
+        "src/globals/**/*.ts",
+        "src/lib/**/*.ts",
+        "src/components/**/*.{ts,tsx}",
+        "src/env.ts",
+      ],
     },
   },
   resolve: {

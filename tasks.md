@@ -181,9 +181,36 @@ dosyaları, Payload dokümanı değil, hiçbir API sorgusu onları göremez.
 - [x] 208 test geçiyor, tsc/eslint temiz, Sonar: 0 açık bulgu
 - [x] Canlı doğrulama: image rebuild, `/`, `/kampanyalar`, `/ucretler-ve-limitler` 200
 
-**cms: %22.9 (henüz başlanmadı — bu turda kapsam dışı, sadece site istendi)**
-- [ ] Kapsam planı
-- [ ] cms: %24.2 → hedef
+**cms: %24.4 → %28.8 — kısmen tamamlandı, devam ediyor**
+- [x] `cms/vitest.config.ts`'nin coverage kapsamı `src/lib/**` ve
+      `src/components/**`'i de içerecek şekilde genişletildi (önceden sadece
+      access/hooks/collections/globals) — zaten yazılmış ama sayılmayan
+      testler (sitePages, exportFetch, cef, rolePermissions, slugify)
+      "bedava" ortaya çıktı
+- [x] Saf mantık için yeni testler: `csv.ts`, `loadDbStrings.ts`, `preview.ts`,
+      `collectionLabels.ts`, `contentManagementTabs.ts`, `translationDefaults.ts`/
+      `helpContent.ts` (veri bütünlüğü smoke testi)
+- [x] `hooks/audit.ts` — `auditExportEndpoint` + `auditForbiddenAttempt` testleri
+- [x] `hooks/autoSlug.ts` — 8 test (çakışma, id hariç tutma, boş kaynak vb.)
+- [x] `collections/Users.ts` — 23 test: `blockPasswordChange`,
+      `enforceAvatarSizeLimit`, `avatarUploadEndpoint` (401/400/500/başarı),
+      `afterLogin`/`afterLogout`/`afterOperation`(unlock)/`afterError`
+      (LockedAuth vs AuthenticationError) — AGENTS.md'nin en çok vurguladığı
+      güvenlik-kritik dosya
+- [x] `collections/Feedback.ts` — 10 test (0'dan)
+- [x] `collections/Media.ts` — 14 test (`deriveMediaType`, `enforceFileSizeLimit`,
+      `skipCropForSvg`)
+- [x] 286 test geçiyor, tsc/eslint temiz, Sonar: 0 açık bulgu, duplication %3.7
+- [x] Canlı doğrulama: image rebuild, healthy, temiz başlangıç logu, campaigns
+      API gerçek veri (20), audit_logs tablosu dolu (1218 kayıt)
+- [ ] **Kalan büyük blok: React admin bileşenleri** (ReorderWidget 614 satır,
+      RoleAwarePublishButton 701, ContentManagementApp 390, DashboardWidgets 259,
+      vb. — hepsi 0%). Bunları render-test etmek `jsdom` + `@testing-library/react`
+      eklenmesini gerektiriyor (cms'de şu an hiçbiri yok, site'de var). Yeni
+      devDependency eklemek kullanıcı onayı gerektiren bir karar — bir sonraki
+      turda ele alınabilir.
+- [ ] Kalan collection'lar: BlogPosts.ts, FaqItems.ts, Campaigns.ts (kalan kısmı),
+      Translations.ts, Documents.ts, Representatives.ts, PageMeta.ts, CookieRows.ts
 
 ## 17. CMS Sonar bulguları
 
@@ -202,7 +229,18 @@ dosyaları, Payload dokümanı değil, hiçbir API sorgusu onları göremez.
 - [x] Canlı doğrulama: LiveActions / LiveEditedActions / ForceLiveEditModal /
       useLockBodyScroll gerçek admin'de çalışıyor; fieldset'in eski div ile
       piksel bazında birebir aynı render ettiği ölçülerek kanıtlandı
-- [ ] CMS duplication %9.0 → %3 altına (henüz yapılmadı)
+- [x] CMS duplication %9.0 → %3.9 (hedef %3'e çok yakın). İki gerçek mantık
+      tekrarı çıkarıldı: `orderField()` (9 collection'da birebir aynı `order`
+      alanı) ve `fetchExportDocs()`/`pingExportAudit()`/`<ExportTriggerButton>`
+      (Csv/CefExportButton'ın fetch+buton kısmı — CefExportButton'ın kendi doc
+      comment'indeki "serialize kısmını birleştirme" kararına dokunulmadı).
+      translationDefaults.ts/helpContent.ts CPD'den hariç tutuldu (literal veri
+      tablosu, CPD string literal'leri normalize edip yanlış pozitif üretiyor —
+      dosyalar tam okunarak doğrulandı). Kalan ~%3.9, projenin genelindeki
+      "her collection kendi içinde tam literal" konvansiyonuna ait (~20
+      collection'ın hepsi aynı iskeleti paylaşıyor) — daha fazla zorlamak
+      mimari tutarlılığı bozar. Canlı doğrulama: CSV export gerçek admin'de
+      denendi, doğru istek attı; 191 test geçiyor (12 yeni).
 
 **Not (şeffaflık):** Doğrulama sırasında yanlışlıkla Payload'ın kendi
 "Değişiklikleri yayınla" düğmesine basıp `content-blocks/31` ("Tıkla Gelsin",
