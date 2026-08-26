@@ -155,7 +155,7 @@ dosyaları, Payload dokümanı değil, hiçbir API sorgusu onları göremez.
 ## 16. Test coverage %70-80'e çıkarılsın
 
 **Ölçülen gerçek durum (Sonar'a lcov bağlandıktan sonra, 26.08):**
-site %36.8 · cms %22.9 (daha önce tahmin edilen "%57/%56" yanlıştı)
+site %36.8 · cms %24.2 (daha önce tahmin edilen "%57/%56" yanlıştı)
 
 - [ ] Kapsam planı (hangi modüller önce)
 - [ ] site: %36.8 → hedef
@@ -163,10 +163,28 @@ site %36.8 · cms %22.9 (daha önce tahmin edilen "%57/%56" yanlıştı)
 
 ## 17. CMS Sonar bulguları
 
-- [ ] 5 BLOCKER: `denyRolePublish.test.ts` + `roles.test.ts` — assertion'sız test case'ler
-- [ ] 3 CRITICAL: cognitive complexity (Feedback.ts, LegalPages.ts, Users.ts, ordering.ts, RoleAwarePublishButton.tsx)
-- [ ] MAJOR/MINOR: nested ternary, nested template literal, S6551, erişilebilirlik
-- [ ] CMS duplication %9.3 → %3 altına
+- [x] 5 BLOCKER: `.resolves.not.toThrow()` ile niyet açık hale getirildi.
+      İddianın boş olmadığı ayrıca kanıtlandı (reddedilen promise testi kırıyor).
+- [x] 5 CRITICAL cognitive complexity: Feedback.ts, LegalPages.ts, Users.ts,
+      ordering.ts, RoleAwarePublishButton.tsx — hepsi eşiğin altına indi
+- [x] S6551 (3): `[object Object]` riski — `describeClash()` + açık daraltma
+- [x] S3358 (6) / S4624 (2): iç içe ternary + template literal ayrıştırıldı;
+      FeesAndLimitsApp'ın iki kopyası tek `<TablePanel>` oldu
+- [x] S7780 (3): cef.ts `String.raw` sabitleri (BACKSLASH hariç — template
+      literal ters bölüyle bitemez, sözdizimi hatası veriyor)
+- [x] S4144: IconDraft artık IconBlog'un açık alias'ı
+- [x] S6819: önizleme genişliği geçişi `<div role="group">` → `<fieldset>`
+- [x] **CMS açık bulgu: 27 → 0**
+- [x] Canlı doğrulama: LiveActions / LiveEditedActions / ForceLiveEditModal /
+      useLockBodyScroll gerçek admin'de çalışıyor; fieldset'in eski div ile
+      piksel bazında birebir aynı render ettiği ölçülerek kanıtlandı
+- [ ] CMS duplication %9.0 → %3 altına (henüz yapılmadı)
+
+**Not (şeffaflık):** Doğrulama sırasında yanlışlıkla Payload'ın kendi
+"Değişiklikleri yayınla" düğmesine basıp `content-blocks/31` ("Tıkla Gelsin",
+brand-logos) taslağını yayınladım. Fark edilir edilmez `_status: draft`'a geri
+alındı; DB ve canlı site teyit edildi (logo sitede yok). İçerik değişmedi,
+sadece durum geçici olarak taslak→yayında→taslak oldu.
 
 ## 18. Klasör yapısı (vodafonepaycomtr-project/)
 
