@@ -54,7 +54,7 @@ describe("richTextToPlainText", () => {
     const long = "Toplu taşıma kartları, büyük şehirlerde günlük hayatın vazgeçilmez bir parçasıdır.";
     const result = richTextToPlainText(doc([paragraph(long)]), 20);
     expect(result).toBe("Toplu taşıma kartlar...");
-    expect(result.length).toBe(23);
+    expect(result).toHaveLength(23);
   });
 });
 

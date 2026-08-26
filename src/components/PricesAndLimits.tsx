@@ -64,8 +64,12 @@ export function PricesAndLimits({
                 bar — matched exactly, not guessed. */}
             <thead>
               <tr className="bg-[#f2f2f2]">
-                <th className="py-5 pl-4 pr-6" aria-hidden="true"></th>
-                <th className="py-5 pr-4" aria-hidden="true"></th>
+                {/* Empty header cells already carry no content for a screen
+                    reader to announce, so aria-hidden here was redundant —
+                    and Sonar (correctly) flags it as unsafe on any element a
+                    browser could still make focusable. */}
+                <th className="py-5 pl-4 pr-6"></th>
+                <th className="py-5 pr-4"></th>
               </tr>
             </thead>
             <tbody>

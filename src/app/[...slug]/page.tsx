@@ -179,8 +179,8 @@ async function BlockRenderer({ block }: { block: CmsPageBlock }) {
         <section className="mx-auto max-w-[1030px] px-4 py-10">
           {block.heading && <h2 className="text-center text-2xl font-bold text-black lg:text-3xl">{block.heading}</h2>}
           <div className="mt-8 flex gap-6 overflow-x-auto pb-2">
-            {block.slides.map((s, i) => (
-              <div key={i} className="w-64 shrink-0 rounded-lg bg-white shadow-[0px_2px_12px_0px_#00000014]">
+            {block.slides.map((s) => (
+              <div key={s.image.url} className="w-64 shrink-0 rounded-lg bg-white shadow-[0px_2px_12px_0px_#00000014]">
                 <Image src={s.image.url} alt={s.image.alt || s.text} width={256} height={160} className="h-40 w-full rounded-t-lg object-cover" />
                 <p className="p-4 text-sm text-gray-700">{s.text}</p>
               </div>

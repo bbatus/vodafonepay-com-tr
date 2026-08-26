@@ -36,8 +36,10 @@ const UPLOAD_WIDTH_CLASSES: Record<string, string> = {
  * all (a typo'd URL still renders as a link-less empty embed otherwise,
  * which is worse than showing nothing).
  */
+const YOUTUBE_ID_PATTERN = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/;
+
 function extractYouTubeId(url: string): string | null {
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+  const match = YOUTUBE_ID_PATTERN.exec(url);
   return match?.[1] ?? null;
 }
 
