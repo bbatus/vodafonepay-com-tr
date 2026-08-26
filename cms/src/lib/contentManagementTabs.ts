@@ -291,9 +291,7 @@ export type SiteRoute = {
 export const HAND_BUILT_ROUTES: SiteRoute[] = [
   { path: "/", title: "Anasayfa", linkedFrom: { tr: "Logo", en: "Logo" } },
   { path: "/vodafone-pay-kart", title: "Vodafone Pay Kart", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
-  { path: "/qr-ile-faturana-yansit", title: "QR ile Faturana Yansıt", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
   { path: "/faturana-yansit", title: "Faturana Yansıt", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
-  { path: "/aninda-bakiye", title: "Anında Bakiye", linkedFrom: { tr: "Header → Ürünler", en: "Header → Products" } },
   { path: "/kampanyalar", title: "Kampanyalar", linkedFrom: { tr: "Header → Ana Menü", en: "Header → Main menu" } },
   { path: "/blog", title: "Blog", linkedFrom: { tr: "Header → Ana Menü", en: "Header → Main menu" } },
   { path: "/ucretler-ve-limitler", title: "Ücretler ve Limitler", linkedFrom: { tr: "Header → Ana Menü", en: "Header → Main menu" } },

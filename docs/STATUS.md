@@ -224,6 +224,47 @@ kilitliydi, hiç görünmüyordu; göç bu içeriği ilk kez yayına aldı. Kala
 faturana-yansit, vodafone-pay-kart, qr-ile-faturana-yansit) için kullanıcı onayı bekleniyor —
 detay `docs/RFP-OPEN-ITEMS.md` §10.
 
+**Devamı — 2/4 daha göçürüldü, 2/4 kullanıcı kararıyla kapsam dışı (26.08.2026, madde 21).**
+Kullanıcıyla netleşti: `aninda-bakiye`/`qr-ile-faturana-yansit` pilotla birebir aynı şekli
+paylaşıyor (Hero + CardsWithIcons + PhoneStepsCarousel + Faq — ikisi zaten ortak
+`SimpleProductPage.tsx`'i kullanıyordu), `faturana-yansit`/`vodafone-pay-kart` ise Pages'in
+blok sistemine hiç girmeyen bölümler içeriyor (VideosWithTabs+LeadFormCta,
+WhereCanIBuy) — bu ikisi şimdilik elle yazılmış rota olarak bırakıldı, göçe dahil edilmedi.
+
+Pilotun deseni birebir tekrarlandı: her sayfanın `page.tsx`'indeki hardcoded fallback içerik
+(hero görseli/başlığı, 3'er ikonlu kart, 6'şar adım) CMS'e taşındı — `hero` + `richText`
+(kart bölümünün başlık+açıklaması — `iconCards` bloğunun kendi alan seti sadece kart başlığı
+taşıyor, ayrı başlık/açıklama alanı yok, bu yüzden pilotta olmayan bir ek blok gerekti) +
+`iconCards` + `steps` + `faqList` (kategori slug'ı sayfa slug'ıyla aynı, `getFaqItems`'ın
+zaten filtrelediği slug — mevcut davranışla birebir aynı). SEO title/description alanları da
+eski `generateMetadata`'daki sabit metinlerle birebir aynı yazıldı. Her iki sayfa da aynı
+slug'ta (`aninda-bakiye`, `qr-ile-faturana-yansit`) yayınlandı, eski route hiç taşınmadı.
+Artık kullanılmayan `src/app/aninda-bakiye/`, `src/app/qr-ile-faturana-yansit/` rotaları ve
+onları besleyen `SimpleProductPage.tsx` + `PhoneStepsCarousel.tsx` (göç sonrası hiçbir yerden
+çağrılmıyor — `faturana-yansit`/`vodafone-pay-kart` `ProductHero`/`CardsWithIcons`'ı hâlâ
+kullanıyor, onlar kalıyor) ve testleri silindi.
+
+Doğrulama: yerel Docker stack'i (`docker compose -p vodafonepaycomtr up -d --build`,
+`CMS_AUTO_LOGIN=true`) tamamen sıfırdan (boş Postgres volume) ayağa kaldırılıp iki sayfa
+gerçek CMS REST API'sinden (`POST /api/users/login` ile alınan JWT — `CMS_AUTO_LOGIN` sadece
+admin UI'ın giriş ekranını atlıyor, çıplak REST çağrılarını doğrulamıyor; bu ayrım koddaki
+yorumla çelişiyordu, canlı test edilerek netleştirildi) oluşturuldu; site container'ı ayağa
+kalkınca her iki route da `curl` ile `200` döndü ve içerik (başlıklar, kart/adım metinleri,
+görseller) eski `page.tsx`'teki sabit metinlerle birebir eşleşti (satır satır karşılaştırıldı).
+Admin panelde ekran görüntüsüyle doğrulandı: her iki sayfa `Sayfalar` listesinde görünüyor,
+"Yayınlandı" durumunda, tüm alanlar (Title/Slug/layout blokları) düzenlenebilir. `[...slug]`
+catch-all'ın `getPages()`'i (generateStaticParams için `depth=0` kullanıyor) medya alanlarını
+populate etmediği için build sırasında zod şema uyarısı basıyor (fail-loud log, throw etmiyor)
+— bu, medya içeren HERHANGİ bir Pages dokümanı için (pilot dahil) zaten var olan, bu turda
+DOKUNULMAYAN bir davranış; `getPageBySlug` (`depth=2`) çalışma zamanında doğru popüle ediyor,
+gerçek 200 yanıtıyla doğrulandı. Site: tsc/eslint temiz, 345/345 test, build yeşil. CMS:
+tsc/eslint temiz, 414/414 test.
+
+Sonuç: 5 elle-yazılmış ürün sayfasından 3'ü (`vodafone-pay-uygulama`, `aninda-bakiye`,
+`qr-ile-faturana-yansit`) artık `Pages` koleksiyonundan geliyor; kalan 2'si
+(`faturana-yansit`, `vodafone-pay-kart`) kullanıcı kararıyla bilinçli olarak elle yazılmış
+rota olarak kalıyor — bekleyen bir onay yok.
+
 ### 2.11 Footer'daki Kampanyalar/Sık Sorulanlar — kaydın kendisinden yönetim (19.08.2026)
 Kullanıcı isteği: footer'da en fazla 6'şar kampanya/soru, hangisinin gösterileceği doğrudan o
 kampanyanın/sorunun kendi kaydından ("Footer'da Göster" kutusu) seçilsin, 1-6 arası sıra elle
@@ -517,7 +558,7 @@ _Bu tablo 24.08.2026 itibarıyla yeniden gözden geçirildi — §2.15'te kapat�
 | R-22 | 5 legal sayfa + 3 kurumsal sayfa gövdesi hâlâ hardcoded (bilinçli — hukuki doğruluk riski). | Bilinçli açık |
 | R-23 | `VideosWithTabs` CMS'e bağlanmadı (gerçek video yok, ürün kararı bekliyor). | Bilinçli açık |
 | R-15..R-21 | Yapısal/operasyonel P2'ler: şablon `package.json` kimliği, workspace ayrımı yok, Node/Next sürüm hizası, prod image domain'i, dev servisinin prod compose'da olması, `/api/health` yok, sitemap/robots/error sayfaları eksik. | Dokunulmadı |
-| Yeni | 5 elle-yazılmış ürün sayfasından yalnız 1'i (`vodafone-pay-uygulama`) `Pages` koleksiyonuna göçürüldü (pilot, §2.10) — kalan 4 (aninda-bakiye, faturana-yansit, vodafone-pay-kart, qr-ile-faturana-yansit) kullanıcı onayı bekliyor. | Kullanıcı onayı bekliyor |
+| Yeni | 5 elle-yazılmış ürün sayfasından 3'ü (`vodafone-pay-uygulama`, `aninda-bakiye`, `qr-ile-faturana-yansit`) `Pages` koleksiyonuna göçürüldü (pilot + madde 21, §2.10) — kalan 2'si (`faturana-yansit`, `vodafone-pay-kart`) kullanıcı kararıyla bilinçli olarak elle yazılmış rota olarak bırakıldı (Pages'in blok sistemine girmeyen VideosWithTabs/LeadFormCta/WhereCanIBuy içeriyorlar). | Kapandı (26.08.2026) — bekleyen onay yok |
 | Yeni | `docs/CMS_INTEGRATION_PLAN.md` Strapi öneriyor, proje Payload ile inşa edildi — bu sapmanın gerekçesi hiçbir yerde yazılı değil (dokümantasyon boşluğu, fonksiyonel değil). | Küçük, dokümantasyon-only |
 | Yeni | `docker compose up`'taki `dev` servisi (port 3001, hot-reload) host tarafında bir Docker Desktop dosya-paylaşımı izin hatasıyla başlamıyor (`operation not permitted`) — kod/config sorunu değil, host ayarı (Docker Desktop → Settings → Resources → File Sharing). Ana CMS/site stack'i (postgres/minio/app/cms) etkilenmiyor. | Açık, host-seviyesi |
 | ~~Yeni~~ | ~~`docs/varnish-cache.md` untracked duruyordu~~ — **25.08'de kullanıcı kararıyla commit'lendi** (§2.16, `4fee8fa`). Sahibi/amacı hâlâ tam belgelenmedi ama artık repo'nun bir parçası. | Kapandı (untracked sorunu) |

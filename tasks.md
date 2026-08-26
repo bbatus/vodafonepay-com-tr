@@ -340,7 +340,7 @@ Documents.ts, Representatives.ts, PageMeta.ts, CookieRows.ts.
 - [ ] tsc/eslint temiz, tüm testler geçsin, Sonar 0 açık bulgu
 - [ ] Gerçek coverage sayılarını (Sonar API) bu maddeye kaydet
 
-## 21. Kalan ürün sayfalarının Pages'e göçü
+## 21. Kalan ürün sayfalarının Pages'e göçü — Kapandı (26.08.2026)
 
 Madde 10'un devamı — pilot (`vodafone-pay-uygulama`) tamamlanmıştı. 26.08'de
 kullanıcıyla netleştirildi: 4 sayfadan 2'si pilotla aynı şekilde temiz göçer
@@ -351,19 +351,18 @@ diğer 2'si Pages'in blok sistemine hiç girmeyen bölümler içeriyor
 WhereCanIBuy) — kullanıcı kararıyla **şimdilik atlandı**, elle yazılmış rota
 olarak kalacak.
 
-- [ ] `aninda-bakiye` — göçür
-- [ ] `qr-ile-faturana-yansit` — göçür
+- [x] `aninda-bakiye` — göçürüldü
+- [x] `qr-ile-faturana-yansit` — göçürüldü
 - [x] `faturana-yansit` — **atlandı (kullanıcı kararı)**, VideosWithTabs/
       LeadFormCta blok olamıyor
 - [x] `vodafone-pay-kart` — **atlandı (kullanıcı kararı)**, WhereCanIBuy
       blok olamıyor
 
-Pilot sayfanın göç deseni tekrar kullanılacak (elle yazılmış `page.tsx` →
+Pilot sayfanın göç deseni tekrar kullanıldı (elle yazılmış `page.tsx` →
 Pages koleksiyonu kaydı + layout blokları, `docs/RFP-OPEN-ITEMS.md` §10'da
-adım adım belgeli). Her sayfa için: içerik birebir korunmalı, eski route
-canlıda 200 dönmeli, CMS'ten düzenlenebilir olmalı, artık kullanılmayan
-component/content-blocks kaydı temizlenmeli. Göç tamamlandıktan sonra
-`docs/STATUS.md` §2.10 ve §3'teki ilgili satırı güncelle.
+adım adım belgeli). Her sayfa için: içerik birebir korundu, eski route
+canlıda 200 dönüyor, CMS'ten düzenlenebilir, artık kullanılmayan
+component/content-blocks kaydı temizlendi. Detay `docs/STATUS.md` §2.10'da.
 
 ## 22. Trivy bulguları — Alpine openssl CVE'leri + site'ın dompurify sürümü — Kapandı (26.08.2026)
 
