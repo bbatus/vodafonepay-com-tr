@@ -218,15 +218,17 @@ dosyaları, Payload dokümanı değil, hiçbir API sorgusu onları göremez.
       `dompurify` sürümü) bu turun kapsamı dışında kullanıcı onayıyla ayrı
       bırakıldı — ikisi de bu oturumdaki değişiklikle ilgisiz, önceden var olan
       borç
-- [ ] Kalan büyük 0% bileşenler: `AccessMatrixApp` (156), `AccountForm` (196),
+- [x] Kalan büyük 0% bileşenler: `AccessMatrixApp` (156), `AccountForm` (196),
       `FeedbackApp` (117), export-button koleksiyon sarmalayıcıları
       (UsersExportButton, CampaignsExportButton, BlogPostsExportButton,
       CategoriesExportButton, AuditLogsExportButton, AuditLogsCefExportButton),
       `AutoSlugField`, `LiveOrderField`/`FooterOrderField`, `MediaUsageField`,
       `LoginHistoryField`, `UnlockAccountField`, `CategoryScopePeek`,
-      `MediaFilterTabs`, `LockedAccountsBanner`, `LocalePreferenceSync`
-- [ ] Kalan collection'lar: BlogPosts.ts, FaqItems.ts, Campaigns.ts (kalan kısmı),
-      Translations.ts, Documents.ts, Representatives.ts, PageMeta.ts, CookieRows.ts
+      `MediaFilterTabs`, `LockedAccountsBanner`, `LocalePreferenceSync` —
+      **kapandı, madde 20**
+- [x] Kalan collection'lar: BlogPosts.ts, FaqItems.ts, Campaigns.ts (kalan kısmı),
+      Translations.ts, Documents.ts, Representatives.ts, PageMeta.ts, CookieRows.ts —
+      **kapandı, madde 20**
 
 ## 17. CMS Sonar bulguları
 
