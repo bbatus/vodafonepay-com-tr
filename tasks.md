@@ -181,7 +181,7 @@ dosyaları, Payload dokümanı değil, hiçbir API sorgusu onları göremez.
 - [x] 208 test geçiyor, tsc/eslint temiz, Sonar: 0 açık bulgu
 - [x] Canlı doğrulama: image rebuild, `/`, `/kampanyalar`, `/ucretler-ve-limitler` 200
 
-**cms: %24.4 → %28.8 — kısmen tamamlandı, devam ediyor**
+**cms: %24.4 → %28.8 → %53.5 (Sonar `coverage`), line coverage %58.2 — kısmen tamamlandı, devam ediyor**
 - [x] `cms/vitest.config.ts`'nin coverage kapsamı `src/lib/**` ve
       `src/components/**`'i de içerecek şekilde genişletildi (önceden sadece
       access/hooks/collections/globals) — zaten yazılmış ama sayılmayan
@@ -200,15 +200,31 @@ dosyaları, Payload dokümanı değil, hiçbir API sorgusu onları göremez.
 - [x] `collections/Feedback.ts` — 10 test (0'dan)
 - [x] `collections/Media.ts` — 14 test (`deriveMediaType`, `enforceFileSizeLimit`,
       `skipCropForSvg`)
-- [x] 286 test geçiyor, tsc/eslint temiz, Sonar: 0 açık bulgu, duplication %3.7
-- [x] Canlı doğrulama: image rebuild, healthy, temiz başlangıç logu, campaigns
-      API gerçek veri (20), audit_logs tablosu dolu (1218 kayıt)
-- [ ] **Kalan büyük blok: React admin bileşenleri** (ReorderWidget 614 satır,
-      RoleAwarePublishButton 701, ContentManagementApp 390, DashboardWidgets 259,
-      vb. — hepsi 0%). Bunları render-test etmek `jsdom` + `@testing-library/react`
-      eklenmesini gerektiriyor (cms'de şu an hiçbiri yok, site'de var). Yeni
-      devDependency eklemek kullanıcı onayı gerektiren bir karar — bir sonraki
-      turda ele alınabilir.
+- [x] **React admin bileşenleri** (kullanıcı onayıyla `jsdom` + `@testing-library/
+      react` + `@testing-library/jest-dom` + `@testing-library/user-event` eklendi,
+      site'daki sürümlerle birebir aynı; `vitest.setup.ts` + `vitest.config.ts`
+      `setupFiles` eklendi): `HelpButton`, `RememberEmailCheckbox`,
+      `DashboardWidgets` (async server component, rol dallanması), `ReorderWidget`
+      (614 satır — sürükle-bırak, iki fazlı PATCH, gruplu/gruupsuz reorder),
+      `RoleAwarePublishButton` (701 satır — rol bazlı publish/reject/unpublish/
+      force-edit akışları), `FeesAndLimitsApp`, `ContentManagementApp` (390 satır
+      — özet tablo, detay sekmeleri, site-routes statik tablo, arama/sayfalama),
+      `GroupedNavLink`, `CsvExportButton`/`CefExportButton`/`ExportTriggerButton`
+- [x] 336 test geçiyor, tsc/eslint temiz, Sonar: 0 açık bulgu, duplication %3.5
+- [x] Canlı doğrulama: image rebuild (`docker compose up -d --build app cms`),
+      her iki container healthy; `trivy-scan.sh all` çalıştırıldı — cms'in kendi
+      `package-lock.json` taraması **0 bulgu** (yeni devDependency'ler temiz).
+      Trivy'nin bulduğu 2 bulgu (Alpine base'in openssl CVE'leri, site'ın
+      `dompurify` sürümü) bu turun kapsamı dışında kullanıcı onayıyla ayrı
+      bırakıldı — ikisi de bu oturumdaki değişiklikle ilgisiz, önceden var olan
+      borç
+- [ ] Kalan büyük 0% bileşenler: `AccessMatrixApp` (156), `AccountForm` (196),
+      `FeedbackApp` (117), export-button koleksiyon sarmalayıcıları
+      (UsersExportButton, CampaignsExportButton, BlogPostsExportButton,
+      CategoriesExportButton, AuditLogsExportButton, AuditLogsCefExportButton),
+      `AutoSlugField`, `LiveOrderField`/`FooterOrderField`, `MediaUsageField`,
+      `LoginHistoryField`, `UnlockAccountField`, `CategoryScopePeek`,
+      `MediaFilterTabs`, `LockedAccountsBanner`, `LocalePreferenceSync`
 - [ ] Kalan collection'lar: BlogPosts.ts, FaqItems.ts, Campaigns.ts (kalan kısmı),
       Translations.ts, Documents.ts, Representatives.ts, PageMeta.ts, CookieRows.ts
 
