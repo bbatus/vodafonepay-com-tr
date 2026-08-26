@@ -308,3 +308,79 @@ README.md, AGENTS.md) kökte kaldı.
       355 test geçti, tsc/eslint temiz, `npm run build` başarılı (20 canlı
       kampanya slug'ı dahil tüm route'lar prerender edildi); cms'in kendi
       179 testi de hâlâ geçiyor (dokunulmadığı teyit edildi)
+
+## 19. R-10 — payload migrate:create / generate:importmap kırık (ERR_REQUIRE_ASYNC_MODULE)
+
+**Durum:** En kritik yapısal açık. Yeni bir custom admin component ya da
+lexical özelliği eklendiğinde `cms/src/app/(payload)/admin/importMap.js`'e
+elle eklenmezse sessizce render olmuyor; DB tarafında da native enum
+değişiklikleri migration yerine elle `ALTER TYPE` gerektiriyor (R-26, aynı
+kökün belirtisi). Bu turlar boyunca defalarca elle düzeltildi, kalıcı çözüm
+yok.
+
+- [ ] Kök nedeni netleştir: `ERR_REQUIRE_ASYNC_MODULE` hangi bağımlılıktan
+      geliyor (Payload'ın kendi CLI'ı mı, Next 16 uyumluluğu mu, bir ESM/CJS
+      karışıklığı mı) — `payload generate:importmap`/`payload migrate:create`
+      komutlarını doğrudan çalıştırıp tam stack trace'i yakala.
+- [ ] Bilinen çözüm var mı diye Payload'ın GitHub issue'larını/CHANGELOG'unu
+      kontrol et (versiyon uyumsuzluğu ise upgrade/downgrade bir seçenek
+      olabilir).
+- [ ] Kalıcı çözüm yoksa en azından: (a) importMap.js'i CI'da otomatik
+      doğrulayan bir script (yeni bir admin component eklenip importMap'e
+      girmemişse build'i kırsın), (b) migration'lar için elle SQL yazma
+      sürecini `docs/RUNBOOK.md`'de adım adım belgelemek.
+- [ ] Çözüldüyse ya da kalıcı workaround kurulduysa `docs/STATUS.md` §3'teki
+      R-10/R-26 satırlarını güncelle.
+
+## 20. CMS test coverage — kalan bileşenler ve collection'lar
+
+Madde 16'nın devamı. Kalan büyük 0% bileşenler: `AccessMatrixApp` (156),
+`AccountForm` (196), `FeedbackApp` (117), export-button koleksiyon
+sarmalayıcıları (UsersExportButton, CampaignsExportButton,
+BlogPostsExportButton, CategoriesExportButton, AuditLogsExportButton,
+AuditLogsCefExportButton), `AutoSlugField`, `LiveOrderField`/
+`FooterOrderField`, `MediaUsageField`, `LoginHistoryField`,
+`UnlockAccountField`, `CategoryScopePeek`, `MediaFilterTabs`,
+`LockedAccountsBanner`, `LocalePreferenceSync`. Kalan collection'lar:
+BlogPosts.ts, FaqItems.ts, Campaigns.ts (kalan kısmı), Translations.ts,
+Documents.ts, Representatives.ts, PageMeta.ts, CookieRows.ts.
+
+- [ ] Yukarıdaki bileşenler için jsdom/RTL render testleri
+- [ ] Yukarıdaki collection'lar için pure-logic hook/access testleri
+- [ ] tsc/eslint temiz, tüm testler geçsin, Sonar 0 açık bulgu
+- [ ] Gerçek coverage sayılarını (Sonar API) bu maddeye kaydet
+
+## 21. Kalan 4 ürün sayfasının Pages'e göçü
+
+Madde 10'un devamı — pilot (`vodafone-pay-uygulama`) tamamlanmıştı, kullanıcı
+onayı bekleyen 4 sayfa artık onaylandı:
+
+- [ ] `aninda-bakiye`
+- [ ] `faturana-yansit`
+- [ ] `vodafone-pay-kart`
+- [ ] `qr-ile-faturana-yansit`
+
+Pilot sayfanın göç deseni tekrar kullanılacak (elle yazılmış `page.tsx` →
+Pages koleksiyonu kaydı + layout blokları). Her sayfa için: içerik birebir
+korunmalı, eski route canlıda 200 dönmeli, CMS'ten düzenlenebilir olmalı.
+Göç tamamlandıktan sonra `docs/STATUS.md` §2.10 ve §3'teki ilgili satırı
+güncelle.
+
+## 22. Trivy bulguları — Alpine openssl CVE'leri + site'ın dompurify sürümü
+
+25.08 turunda kasıtlı ayrı bırakılmıştı (cms'in kendi devDependency
+değişikliğiyle ilgisizdi), şimdi ele alınıyor:
+
+- [ ] `vodafonepaycomtr/package.json`: `dompurify` 3.4.8 → 3.4.13+ (4 CVE
+      düzeltiliyor: CVE-2026-65898, GHSA-55q2-fjhq-7xh7, CVE-2026-65899,
+      GHSA-c2j3-45gr-mqc4). `npm install`, ardından site'ın kendi
+      test/typecheck/lint/build döngüsünü çalıştır (dompurify'ı kullanan
+      kod — muhtemelen RichText/sanitizasyon — regresyon var mı doğrula).
+- [ ] cms + app Dockerfile'larındaki `node:24-alpine` base image'i güncel
+      bir alpine etiketine (openssl'in libcrypto3/libssl3 CVE'lerini
+      (CVE-2026-14456, CVE-2026-18798, CVE-2026-63072, CVE-2026-63076)
+      içermeyen bir sürüme) taşımayı dene; mevcut değilse `apk upgrade
+      openssl` gibi bir Dockerfile katmanı ekle.
+- [ ] `docker compose -p vodafonepaycomtr up -d --build app cms` ile
+      rebuild + healthy doğrula, `scripts/trivy-scan.sh all` çalıştırıp
+      0 bulguya indiğini teyit et.
