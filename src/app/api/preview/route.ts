@@ -1,7 +1,7 @@
-import { timingSafeEqual } from "node:crypto";
 import { draftMode } from "next/headers";
 import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
+import { isValidPreviewSecret } from "@/lib/previewSecret";
 
 /**
  * RFP feedback 1.7: the CMS's "Önizle" button opens this URL instead of
@@ -11,21 +11,12 @@ import type { NextRequest } from "next/server";
  * page, which then fetches the CMS with `draft=true` (see
  * getCampaignBySlug in lib/cms.ts) instead of the cached published fetch.
  */
-function isValidSecret(provided: string | null): boolean {
-  const expected = process.env.PREVIEW_SECRET;
-  if (!provided || !expected) return false;
-  const providedBuf = Buffer.from(provided);
-  const expectedBuf = Buffer.from(expected);
-  if (providedBuf.length !== expectedBuf.length) return false;
-  return timingSafeEqual(providedBuf, expectedBuf);
-}
-
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const secret = searchParams.get("secret");
   const path = searchParams.get("path");
 
-  if (!isValidSecret(secret)) {
+  if (!isValidPreviewSecret(secret)) {
     return new Response("Invalid preview secret", { status: 401 });
   }
   // Must be a same-site relative path — an absolute/external `path` here
