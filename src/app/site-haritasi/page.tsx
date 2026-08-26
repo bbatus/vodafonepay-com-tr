@@ -4,17 +4,13 @@ import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { buildMetadata } from "@/lib/metadata";
+import { buildPageMetadata } from "@/lib/metadata";
 import { getNavLinks, getPageMeta, type NavLinkSection } from "@/lib/cms";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const pageMeta = await getPageMeta("/site-haritasi");
-  return buildMetadata({
-    title: pageMeta?.seoTitle || "Site Haritası | Vodafone Pay",
-    description: pageMeta?.seoDescription || "Vodafone Pay web sitesindeki tüm sayfalara bu site haritasından ulaşabilirsiniz.",
-    keywords: pageMeta?.seoKeywords || undefined,
-    path: "/site-haritasi",
-    image: pageMeta?.ogImage?.url,
+  return buildPageMetadata("/site-haritasi", {
+    title: "Site Haritası | Vodafone Pay",
+    description: "Vodafone Pay web sitesindeki tüm sayfalara bu site haritasından ulaşabilirsiniz.",
   });
 }
 
@@ -29,16 +25,12 @@ const SECTION_TO_GROUP_TITLE: Record<string, string> = {
   "footer-yasal": "Yasal",
 };
 
-/**
- * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
- *
- * Checked against the live DB: the CMS collection behind this section has ZERO
- * rows, so unlike the FAQ/announcement/campaign fallbacks removed in this
- * round, this array is not dead code that only fires on an outage — it IS what
- * the site currently renders. Deleting it would blank a working section rather
- * than reveal a masked failure. Remove it in the same change that seeds the
- * collection; see the round report's "kalan fallback'ler" table.
- */
+// Fallback masking audit (KEPT DELIBERATELY) — CMS collection behind this
+// section has ZERO rows, this IS what the site currently renders, not dead
+// code. NOT the same lists Footer.tsx falls back to (that one also links
+// "Bilgi Toplum Hizmetleri"/"Site Haritası", which don't belong in this
+// page's own listing of itself) — kept as this page's own literal content
+// rather than force-sharing data that isn't actually identical.
 const fallbackGroups: Group[] = [
   {
     title: "Ürünler",

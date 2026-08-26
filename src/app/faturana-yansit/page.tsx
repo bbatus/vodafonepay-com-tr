@@ -12,29 +12,18 @@ import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
 import { getContentBlocks, getFaqItems, getFeatureCards, getPageMeta, getProductHero } from "@/lib/cms";
 import type { FaqItem } from "@/types/homepage";
-import { buildMetadata } from "@/lib/metadata";
+import { buildPageMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const pageMeta = await getPageMeta("/faturana-yansit");
-  return buildMetadata({
-    title: pageMeta?.seoTitle || "Faturana Yansıt | Mobil Ödeme | Vodafone Pay",
-    description: pageMeta?.seoDescription || "Yalnızca cep telefonu numaranızı kullanarak indirimli alışverişin keyfini çıkarın!",
-    keywords: pageMeta?.seoKeywords || undefined,
-    path: "/faturana-yansit",
-    image: pageMeta?.ogImage?.url,
+  return buildPageMetadata("/faturana-yansit", {
+    title: "Faturana Yansıt | Mobil Ödeme | Vodafone Pay",
+    description: "Yalnızca cep telefonu numaranızı kullanarak indirimli alışverişin keyfini çıkarın!",
   });
 }
 
-/**
- * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
- *
- * Checked against the live DB: the CMS collection behind this section has ZERO
- * rows, so unlike the FAQ/announcement/campaign fallbacks removed in this
- * round, this array is not dead code that only fires on an outage — it IS what
- * the site currently renders. Deleting it would blank a working section rather
- * than reveal a masked failure. Remove it in the same change that seeds the
- * collection; see the round report's "kalan fallback'ler" table.
- */
+// Fallback masking audit (KEPT DELIBERATELY) — CMS collection behind this
+// section has ZERO rows, this IS what the site currently renders, not dead
+// code.
 const fallbackCards = [
   {
     icon: "/images/icon-size-limit2.png",

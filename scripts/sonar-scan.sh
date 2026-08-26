@@ -32,6 +32,7 @@ run_scan() {
   local project_key="$1"
   local src_dir="$2"
   local extra_sources="${3:-}"
+  local project_root="$4"
 
   echo "== Scanning ${project_key} =="
   rm -rf "${SCAN_TMP:?}/${project_key}"
@@ -39,6 +40,20 @@ run_scan() {
   rsync -a --exclude node_modules --exclude .next --exclude .git "${src_dir}/" "${SCAN_TMP}/${project_key}/src/"
   if [ -n "$extra_sources" ]; then
     cp "${REPO_ROOT}/${extra_sources}" "${SCAN_TMP}/${project_key}/"
+  fi
+
+  # Coverage: run vitest fresh so the report always reflects the current
+  # tree (not a stale coverage/ dir from a previous, unrelated run), then
+  # hand the lcov report to Sonar's JS/TS sensor — lcov.info's SF: lines are
+  # already `src/...`-relative (vitest.config.ts's own coverage root),
+  # which is exactly the layout rsync just recreated under /usr/src.
+  echo "-- Running vitest coverage for ${project_key} --"
+  (cd "${project_root}" && npx vitest run --coverage >/dev/null 2>&1) || true
+  if [ -f "${project_root}/coverage/lcov.info" ]; then
+    mkdir -p "${SCAN_TMP}/${project_key}/coverage"
+    cp "${project_root}/coverage/lcov.info" "${SCAN_TMP}/${project_key}/coverage/lcov.info"
+  else
+    echo "WARNING: no coverage/lcov.info produced for ${project_key} — coverage will show as 0%." >&2
   fi
 
   docker run --rm --network sonar-net \
@@ -49,6 +64,8 @@ run_scan() {
     -Dsonar.token="${SONAR_TOKEN}" \
     -Dsonar.projectKey="${project_key}" \
     -Dsonar.sources="src$([ -n "$extra_sources" ] && echo ",$(basename "$extra_sources")")" \
+    -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+    -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
     -Dsonar.sourceEncoding=UTF-8
 
   # Give the compute engine a moment to process the report before querying issues.
@@ -69,10 +86,10 @@ sys.exit(1 if d['total'] > 0 else 0)
 
 FAILED=0
 if [ "$TARGET" = "web" ] || [ "$TARGET" = "all" ]; then
-  run_scan "vodafonepaycomtr" "${REPO_ROOT}/src" || FAILED=1
+  run_scan "vodafonepaycomtr" "${REPO_ROOT}/src" "" "${REPO_ROOT}" || FAILED=1
 fi
 if [ "$TARGET" = "cms" ] || [ "$TARGET" = "all" ]; then
-  run_scan "vodafonepaycomtr-cms" "${REPO_ROOT}/cms/src" "cms/payload.config.ts" || FAILED=1
+  run_scan "vodafonepaycomtr-cms" "${REPO_ROOT}/cms/src" "cms/payload.config.ts" "${REPO_ROOT}/cms" || FAILED=1
 fi
 
 rm -rf "$SCAN_TMP"

@@ -14,22 +14,14 @@ interface FooterColumn {
   links: FooterLink[];
 }
 
-/**
- * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY, for the
- * "Kurumsal"/"Yasal" columns only.
- *
- * Checked against the live DB: the CMS collection behind these two sections
- * has real, published rows now (seeded from this exact fallback — see
- * docs/RFP-OPEN-ITEMS.md §9), so this only ever fires if that data somehow
- * comes back empty, not on every normal render. Deleting it would blank a
- * working section rather than reveal a masked failure.
- *
- * "Sık Sorulanlar" and "Kampanyalar" are handled separately below — RFP
- * follow-up moved them off NavLinks entirely onto a per-record
- * `showInFooter` flag (Campaigns/FaqItems), so they get NO fallback: an
- * editor hasn't flagged anything yet means the column is empty, on purpose,
- * until they do.
- */
+// Fallback masking audit (KEPT DELIBERATELY) — "Kurumsal"/"Yasal" only. CMS
+// collection behind these two sections has real, published rows now
+// (seeded from this exact fallback — see docs/RFP-OPEN-ITEMS.md §9), so
+// this only ever fires if that data somehow comes back empty. "Sık
+// Sorulanlar"/"Kampanyalar" are handled separately below with NO fallback,
+// on purpose: RFP follow-up moved them onto a per-record `showInFooter`
+// flag (Campaigns/FaqItems), so an editor hasn't flagged anything yet
+// means the column stays empty until they do, not padded with hardcoded copy.
 const fallbackColumns: FooterColumn[] = [
   {
     title: "Kurumsal",

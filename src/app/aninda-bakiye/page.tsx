@@ -1,38 +1,18 @@
 import type { Metadata } from "next";
-import { AppDownloadBanner } from "@/components/AppDownloadBanner";
-import { Header } from "@/components/Header";
-import { Breadcrumb } from "@/components/Breadcrumb";
-import { ProductHero } from "@/components/ProductHero";
-import { CardsWithIcons } from "@/components/CardsWithIcons";
-import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
-import { Faq } from "@/components/Faq";
-import { Footer } from "@/components/Footer";
-import { getFaqItems, getFeatureCards, getPageMeta, getProductHero, getStepCards } from "@/lib/cms";
-import type { FaqItem } from "@/types/homepage";
-import { buildMetadata } from "@/lib/metadata";
+import { SimpleProductPage, type SimpleProductFallbackCard, type SimpleProductFallbackStep } from "@/components/SimpleProductPage";
+import { buildPageMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const pageMeta = await getPageMeta("/aninda-bakiye");
-  return buildMetadata({
-    title: pageMeta?.seoTitle || "Anında Bakiye ile Sana Özel Mobil Ödeme Limiti | Vodafone Pay",
-    description: pageMeta?.seoDescription || "Size özel limitinizle dilediğiniz yerde harcama yapabilirsiniz!",
-    keywords: pageMeta?.seoKeywords || undefined,
-    path: "/aninda-bakiye",
-    image: pageMeta?.ogImage?.url,
+  return buildPageMetadata("/aninda-bakiye", {
+    title: "Anında Bakiye ile Sana Özel Mobil Ödeme Limiti | Vodafone Pay",
+    description: "Size özel limitinizle dilediğiniz yerde harcama yapabilirsiniz!",
   });
 }
 
-/**
- * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
- *
- * Checked against the live DB: the CMS collection behind this section has ZERO
- * rows, so unlike the FAQ/announcement/campaign fallbacks removed in this
- * round, this array is not dead code that only fires on an outage — it IS what
- * the site currently renders. Deleting it would blank a working section rather
- * than reveal a masked failure. Remove it in the same change that seeds the
- * collection; see the round report's "kalan fallback'ler" table.
- */
-const fallbackCards = [
+// Fallback masking audit (KEPT DELIBERATELY) — CMS collection behind this
+// section has ZERO rows, this IS what the site currently renders, not dead
+// code. See SimpleProductPage.tsx's doc comment for the shared page shape.
+const fallbackCards: SimpleProductFallbackCard[] = [
   {
     icon: "/images/icon-size-limit3.png",
     title: "Size Özel Limit",
@@ -50,7 +30,7 @@ const fallbackCards = [
   },
 ];
 
-const fallbackSteps = [
+const fallbackSteps: SimpleProductFallbackStep[] = [
   { number: "01", text: "Vodafone Pay Uygulaması ana sayfasında bulunan \"Anında Bakiye, Hemen Al\" butonuna tıklayınız.", image: "/images/ab-step-1.jpg" },
   { number: "02", text: "Faturana Yansıt kapalı ise aktive edin.", image: "/images/ab-step-2.jpg" },
   { number: "03", text: "Sözleşmeleri onaylayarak aktivasyonunuzu tamamlayın.", image: "/images/ab-step-3.jpg" },
@@ -60,42 +40,17 @@ const fallbackSteps = [
 ];
 
 export default async function AnindaBakiye() {
-  const [cmsFaqItems, cmsHero, cmsCards, cmsSteps] = await Promise.all([
-    getFaqItems("aninda-bakiye"),
-    getProductHero("aninda-bakiye"),
-    getFeatureCards("aninda-bakiye"),
-    getStepCards("aninda-bakiye"),
-  ]);
-  // RFP feedback 5.0: no hardcoded FAQ fallback — an empty CMS result renders
-  // no FAQ section at all rather than copy nobody can edit.
-  const faqs: FaqItem[] = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer, deeplink: f.deeplink }));
-  const cards = cmsCards?.length
-    ? cmsCards.map((c) => ({ icon: c.icon.url, title: c.title, text: c.text }))
-    : fallbackCards;
-  const steps = cmsSteps?.length
-    ? cmsSteps.map((s) => ({ number: s.number, text: s.text, image: s.image.url }))
-    : fallbackSteps;
-
-  const pageMeta = await getPageMeta("/aninda-bakiye");
-
   return (
-    <main className="flex min-h-screen flex-col">
-      <AppDownloadBanner />
-      <Header />
-      <Breadcrumb current={pageMeta?.breadcrumbLabel || "Anında Bakiye"} />
-      <ProductHero
-        image={cmsHero?.image.url ?? "/images/ab-hero.jpg"}
-        imageAlt={cmsHero?.image.alt || "Anında Bakiye"}
-        heading={cmsHero?.heading ?? "Kart Limitiniz Bittiği Anda Anında Bakiye Yanınızda!"}
-      />
-      <CardsWithIcons
-        title="Neden Anında Bakiye?"
-        description="Kart limitiniz bittiği anda Anında Bakiye yanınızda!"
-        cards={cards}
-      />
-      <PhoneStepsCarousel heading="Nasıl kullanırım?" steps={steps} />
-      <Faq items={faqs} />
-      <Footer />
-    </main>
+    <SimpleProductPage
+      pageKey="aninda-bakiye"
+      breadcrumbLabel="Anında Bakiye"
+      heroImage="/images/ab-hero.jpg"
+      heroImageAlt="Anında Bakiye"
+      heroHeading="Kart Limitiniz Bittiği Anda Anında Bakiye Yanınızda!"
+      cardsTitle="Neden Anında Bakiye?"
+      cardsDescription="Kart limitiniz bittiği anda Anında Bakiye yanınızda!"
+      fallbackCards={fallbackCards}
+      fallbackSteps={fallbackSteps}
+    />
   );
 }

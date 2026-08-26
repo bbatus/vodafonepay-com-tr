@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getPageMeta } from "@/lib/cms";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:3000";
 const DEFAULT_OG_IMAGE = "/images/hero-spotlight.jpg";
@@ -56,4 +57,25 @@ export function buildMetadata({
       images: [image],
     },
   };
+}
+
+/**
+ * Follow-up 25.08 (SonarQube duplication audit): every page's own
+ * `generateMetadata` was the same 6 lines — fetch `getPageMeta(path)`,
+ * fall back to hardcoded copy per field, call `buildMetadata`. Pulled into
+ * one helper; each page still owns its own hardcoded defaults (the actual
+ * page-specific content), just not the fetch-then-fallback wiring around it.
+ */
+export async function buildPageMetadata(
+  path: string,
+  defaults: { title: string; description: string; keywords?: string }
+): Promise<Metadata> {
+  const pageMeta = await getPageMeta(path);
+  return buildMetadata({
+    title: pageMeta?.seoTitle || defaults.title,
+    description: pageMeta?.seoDescription || defaults.description,
+    keywords: pageMeta?.seoKeywords || defaults.keywords,
+    path,
+    image: pageMeta?.ogImage?.url,
+  });
 }
