@@ -455,6 +455,23 @@ kapatılabilir" listesinden 10 maddeyi aynı gün içinde kapattı:
   atlayalım, sadece not düşelim"); bkz. §3'teki mevcut satır, hâlâ host-seviyesi/Docker
   Desktop dosya-paylaşımı sorunu, kod tarafında dokunulmadı.
 
+### 2.18 Trivy bulguları kapatıldı — dompurify + Alpine openssl (26.08.2026)
+- `vodafonepaycomtr/package.json`: `overrides.dompurify` `^3.4.13` eklendi (transitive,
+  `@payloadcms/richtext-lexical` → `monaco-editor` üzerinden geliyor, `src/` içinde doğrudan
+  import edilmiyor) — 4 CVE kapandı (CVE-2026-65898, GHSA-55q2-fjhq-7xh7, CVE-2026-65899,
+  GHSA-c2j3-45gr-mqc4). `cms/package.json`'da zaten aynı override vardı, dokunulmadı.
+- Her iki Dockerfile'ın runner stage'ine `RUN apk update && apk upgrade --no-cache
+  libcrypto3 libssl3` eklendi — `node:24-alpine` etiketi float olduğu için yerel bir pull,
+  upstream'in yayınladığı yamalı apk'tan daha eski openssl paketiyle gelebiliyor (doğrulandı:
+  fresh pull hâlâ 3.5.7-r0 taşıyordu, `apk upgrade` 3.5.8-r0'a çekti) — 4 CVE kapandı
+  (CVE-2026-14456, CVE-2026-18798, CVE-2026-63072, CVE-2026-63076).
+- `docker compose -p vodafonepaycomtr up -d --build app cms` ile rebuild + healthy doğrulandı,
+  `docker exec` ile her iki container'da `libcrypto3-3.5.8-r0`/`libssl3-3.5.8-r0` teyit edildi.
+- `scripts/trivy-scan.sh all` (4 bölüm: app image, cms image, kök deps, cms deps) — **0
+  bulgu**, 8 hedef CVE'nin hiçbiri çıkmadı.
+- Kök: typecheck/lint/test(355)/build temiz. cms tarafı bu turda kod değişikliği görmedi
+  (sadece Dockerfile), o yüzden cms'in kendi test/lint/typecheck döngüsü ayrıca çalıştırılmadı.
+
 ---
 
 ## 3. Açık Kalan Riskler / Yapılacaklar

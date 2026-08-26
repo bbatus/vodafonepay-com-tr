@@ -88,6 +88,14 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+# The `node:24-alpine` tag floats, so a stale local pull can ship an
+# already-outdated Alpine openssl package (libcrypto3/libssl3) even though
+# upstream has since published a patched apk (confirmed via Trivy: HIGH/MEDIUM
+# CVEs against libcrypto3/libssl3 on this image). Force the latest patch
+# release here in the final stage so the shipped image always carries the
+# current fix, independent of when the base layer was last pulled.
+RUN apk update && apk upgrade --no-cache libcrypto3 libssl3
+
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the run time.

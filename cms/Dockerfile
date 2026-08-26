@@ -57,6 +57,14 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+# The `node:24-alpine` tag floats, so a stale local pull can ship an
+# already-outdated Alpine openssl package (libcrypto3/libssl3) even though
+# upstream has since published a patched apk (confirmed via Trivy: HIGH/MEDIUM
+# CVEs against libcrypto3/libssl3 on this image). Force the latest patch
+# release here in the final stage so the shipped image always carries the
+# current fix, independent of when the base layer was last pulled.
+RUN apk update && apk upgrade --no-cache libcrypto3 libssl3
+
 COPY --from=builder --chown=node:node /app/public ./public
 RUN mkdir .next && chown node:node .next
 COPY --from=builder --chown=node:node /app/.next/standalone ./
