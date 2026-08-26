@@ -2,11 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   campaignToCard,
   getAnnouncements,
+  getBlogPostBySlug,
   getBlogPosts,
+  getCampaignBySlug,
   getCampaigns,
   getCategories,
   getContactInfo,
   getContentBlocks,
+  getCookieRows,
   getFaqItems,
   getFeatureCards,
   getFeeRows,
@@ -20,6 +23,8 @@ import {
   getPageMeta,
   getPages,
   getProductHero,
+  getRepresentativeById,
+  getRepresentatives,
   getStepCards,
   getTranslation,
   richTextToLines,
@@ -513,5 +518,134 @@ describe("cms.ts fetch-backed getters", () => {
   it("getContentBlocks rejects an unknown blockType", async () => {
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [{ id: "cb1", page: "x", blockType: "not-real", order: 0 }] }));
     expect(await getContentBlocks("x")).toBeNull();
+  });
+
+  it("getCampaignBySlug filters by slug and returns the first match", async () => {
+    const doc = {
+      id: "1",
+      slug: "yaz-kampanyasi",
+      title: "T",
+      description: "D",
+      image: media,
+      category: { label: "Genel", slug: "genel" },
+      body: null,
+      terms: null,
+      seoTitle: null,
+      seoDescription: null,
+      seoKeywords: null,
+      startDate: null,
+      endDate: null,
+      ctaLabel: null,
+      ctaUrl: null,
+    };
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
+    const result = await getCampaignBySlug("yaz-kampanyasi");
+    expect(result?.slug).toBe("yaz-kampanyasi");
+    expect(vi.mocked(fetch).mock.calls[0][0]).toContain("where[slug][equals]=yaz-kampanyasi");
+  });
+
+  it("getCampaignBySlug appends draft=true when previewing", async () => {
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
+    await getCampaignBySlug("x", { preview: true });
+    expect(vi.mocked(fetch).mock.calls[0][0]).toContain("draft=true");
+  });
+
+  it("getCampaignBySlug returns null when nothing matches", async () => {
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
+    expect(await getCampaignBySlug("yok")).toBeNull();
+  });
+
+  it("getBlogPostBySlug filters by slug and returns the first match", async () => {
+    const doc = {
+      id: "1",
+      slug: "yeni-yazi",
+      title: "T",
+      coverImage: media,
+      body: null,
+      category: { label: "Genel", slug: "genel" },
+      publishedDate: null,
+      seoTitle: null,
+      seoDescription: null,
+      seoKeywords: null,
+      deeplink: null,
+    };
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
+    const result = await getBlogPostBySlug("yeni-yazi");
+    expect(result?.slug).toBe("yeni-yazi");
+    expect(vi.mocked(fetch).mock.calls[0][0]).toContain("where[slug][equals]=yeni-yazi");
+  });
+
+  it("getBlogPostBySlug returns null when nothing matches", async () => {
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
+    expect(await getBlogPostBySlug("yok")).toBeNull();
+  });
+
+  it("getRepresentatives returns docs on success", async () => {
+    const doc = {
+      id: "1",
+      businessName: "İşletme",
+      activityDescription: null,
+      phone: null,
+      mersisNo: null,
+      address: "Adres",
+      province: "İl",
+      district: "İlçe",
+      authorizedPerson: null,
+      qrCode: undefined,
+    };
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
+    const result = await getRepresentatives();
+    // nullableString() transforms an explicit `null` to `undefined` on the way out.
+    expect(result).toEqual([{ ...doc, activityDescription: undefined, phone: undefined, mersisNo: undefined, authorizedPerson: undefined }]);
+  });
+
+  it("getRepresentativeById fetches a single document by id, not a list", async () => {
+    const doc = {
+      id: "42",
+      businessName: "İşletme",
+      activityDescription: null,
+      phone: null,
+      mersisNo: null,
+      address: "Adres",
+      province: "İl",
+      district: "İlçe",
+      authorizedPerson: null,
+      qrCode: undefined,
+    };
+    vi.mocked(fetch).mockImplementation(() => okJson(doc));
+    const result = await getRepresentativeById("42");
+    expect(result?.id).toBe("42");
+    expect(vi.mocked(fetch).mock.calls[0][0]).toContain("/representatives/42");
+  });
+
+  it("getRepresentativeById returns null when the CMS response doesn't match the schema", async () => {
+    vi.mocked(fetch).mockImplementation(() => okJson({}));
+    expect(await getRepresentativeById("42")).toBeNull();
+  });
+
+  it("getCookieRows returns docs on success", async () => {
+    const doc = {
+      id: "1",
+      name: "_ga",
+      provider: "vodafonepay.com.tr",
+      party: "Birinci taraf",
+      category: "Performans",
+      description: "Açıklama",
+      duration: "2 Yıl",
+    };
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
+    expect(await getCookieRows()).toEqual([doc]);
+  });
+
+  it("getCookieRows returns null when the CMS is unreachable", async () => {
+    vi.mocked(fetch).mockImplementation(() => notOk());
+    expect(await getCookieRows()).toBeNull();
+  });
+});
+
+describe("richTextToLines nested children", () => {
+  it("joins a nested inline structure (e.g. bold text inside a paragraph) into one line", () => {
+    const nested = { root: { children: [{ children: [{ children: [{ text: "iç" }] }, { text: " metin" }] }] } };
+    expect(richTextToLines(nested)).toEqual(["iç metin"]);
   });
 });

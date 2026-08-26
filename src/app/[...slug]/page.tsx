@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   });
 }
 
-async function BlockRenderer({ block }: { block: CmsPageBlock }) {
+export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
   switch (block.blockType) {
     case "hero":
       return (

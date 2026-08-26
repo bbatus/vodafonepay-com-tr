@@ -13,10 +13,15 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
-      // Page/layout files are thin data-fetching + JSX wrappers, not worth
-      // unit-testing directly; API routes have real logic (see revalidate).
-      include: ["src/lib/**/*.ts", "src/components/**/*.{ts,tsx}", "src/data/**/*.ts", "src/app/api/**/*.ts"],
-      exclude: ["src/components/ui/**", "src/**/*.d.ts"],
+      // layout.tsx is excluded: it loads local font files via next/font/local,
+      // which needs build-time tooling this test environment doesn't have —
+      // not a "too thin to bother" judgment call like the old page.tsx
+      // exclusion, an actual tooling constraint. Every other src/app/ file
+      // (page.tsx included — each mocks its own CMS getters and asserts the
+      // CMS-vs-fallback branch, same pattern as SimpleProductPage/Header/
+      // Footer) is covered like any other source.
+      include: ["src/lib/**/*.ts", "src/components/**/*.{ts,tsx}", "src/data/**/*.ts", "src/app/**/*.{ts,tsx}"],
+      exclude: ["src/components/ui/**", "src/**/*.d.ts", "src/app/layout.tsx"],
     },
   },
   resolve: {
