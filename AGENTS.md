@@ -41,24 +41,29 @@ A reusable template for reverse-engineering any website into a clean, modern Nex
 - **Beauty-first** — every pixel matters
 
 ## Project Structure
+
+Two fully independent projects live side by side in this repo — `vodafonepaycomtr/` (this Next.js site) and `cms/` (Payload CMS). Neither is an npm workspace of the other; each has its own `package.json`/`node_modules`/lockfile, and every `npm run <script>` below must be run from inside `vodafonepaycomtr/`, not the repo root. `docker-compose.yml`, `scripts/`, and `docs/` stay at the repo root because they span both projects.
+
 ```
-src/
-  app/              # Next.js routes
-  components/       # React components
-    ui/             # shadcn/ui primitives
-    icons.tsx       # Extracted SVG icons as React components
-  lib/
-    utils.ts        # cn() utility (shadcn)
-  types/            # TypeScript interfaces
-  hooks/            # Custom React hooks
-public/
-  images/           # Downloaded images from target site
-  videos/           # Downloaded videos from target site
-  seo/              # Favicons, OG images, webmanifest
+vodafonepaycomtr/     # this Next.js site — run `npm run <script>` from here
+  src/
+    app/              # Next.js routes
+    components/       # React components
+      ui/             # shadcn/ui primitives
+      icons.tsx       # Extracted SVG icons as React components
+    lib/
+      utils.ts        # cn() utility (shadcn)
+    types/            # TypeScript interfaces
+    hooks/            # Custom React hooks
+  public/
+    images/           # Downloaded images from target site
+    videos/           # Downloaded videos from target site
+    seo/              # Favicons, OG images, webmanifest
+cms/                  # Payload CMS — separate project, own package.json
 docs/
-  research/         # Inspection output (design tokens, components, layout)
-  design-references/ # Screenshots and visual references
-scripts/            # Asset download scripts
+  research/           # Inspection output (design tokens, components, layout)
+  design-references/  # Screenshots and visual references
+scripts/              # Cross-project scripts (Sonar/Trivy scans, cache warm-up, asset download)
 ```
 
 ## MOST IMPORTANT NOTES
@@ -72,7 +77,7 @@ scripts/            # Asset download scripts
   - This is a local/dev-only stack, not part of `docker-compose.yml`'s prod services — never expose it, never bundle it into a deploy.
 - **After any change to a Dockerfile or a dependency** (package.json/package-lock.json), run `scripts/trivy-scan.sh all` (Trivy — covers both container image and dependency/SCA scanning) and fix everything it reports before commit/push. Requires the app/cms images to be built first (`docker compose -p vodafonepaycomtr up -d --build app cms`).
 - Both Dockerfiles use `node:24-alpine` (not `-slim`) specifically because Trivy found the Debian-slim base carried far more OS-level CVEs; the runner stages also strip `npm`/`npx`/`corepack` since they're never invoked at runtime and their bundled deps carry their own CVEs. Don't revert either of these without re-running `scripts/trivy-scan.sh images` to confirm the tradeoff.
-- `npm test` / `npm run test:coverage` exist in both the root project and `cms/` (Vitest). Keep coverage reasonably close to what's there now (~50% root, CMS access/hooks/collections near-100%) — write tests for new logic (access control, hooks, data transforms) rather than letting coverage silently regress.
+- `npm test` / `npm run test:coverage` exist in both `vodafonepaycomtr/` and `cms/` (Vitest) — run from inside whichever project you touched. Keep coverage reasonably close to what's there now (~83% site, CMS access/hooks/collections near-100%) — write tests for new logic (access control, hooks, data transforms) rather than letting coverage silently regress.
 - **Every custom Payload admin component** (anything under `cms/src/components/` wired via `admin.components.*`) must render its UI strings through `useAdminLocale()` (`cms/src/components/useAdminLocale.ts`), not hardcode Turkish or English — the admin panel supports tr/en (`cms/payload.config.ts` → `i18n`) and a component that ignores the current admin language breaks that for anyone using the EN switch. See `ReorderWidget.tsx` and `HelpButton.tsx` for the pattern (a `STRINGS = { tr: {...}, en: {...} }` map keyed by the hook's return value).
 - **CMS user accounts are entirely LDAP/AccessPoint-managed — never build a case where email, username, role, or password change through the CMS.** Every account is provisioned by LDAP with a fixed vodafone.local email and username that never change; role is requested and granted through AccessPoint (LDAP's access-request system) as one of exactly 4 roles (`cms/src/access/roles.ts` → `ROLES`), never hand-picked in the CMS after creation. Only an LDAP-active employee holding one of those 4 roles can log in at all. Practical consequence for `cms/src/collections/Users.ts`: email/username/role are `admin.readOnly: true` + `access.update: () => false` — view-only, for every role including New Vertical Maker; password changes are blocked unconditionally in a `beforeChange` hook (`blockPasswordChange` — Payload has no real, declarable "password" field to gate via field access, confirmed against its Field type) with the "Change Password" button also hidden via CSS; the only account-modifying power any role (New Vertical Maker) has over ANOTHER user's account is unlocking it after a lockout (`access.unlock`, separate from `access.update`) — nothing else. The only genuinely self-service fields on a user's own account are avatar, preferredLocale, and delegateTo/delegationExpiresAt (checker delegation, RFP §3.1). Do not reintroduce editable email/username/role or a password-change flow without the user explicitly overriding this.
 

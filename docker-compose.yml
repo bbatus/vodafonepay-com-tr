@@ -1,7 +1,7 @@
 services:
   app:
     build:
-      context: .
+      context: ./vodafonepaycomtr
       dockerfile: Dockerfile
       target: runner
     image: vodafonepaycomtr:latest
@@ -38,7 +38,7 @@ services:
 
   dev:
     build:
-      context: .
+      context: ./vodafonepaycomtr
       dockerfile: Dockerfile.dev
     image: vodafonepaycomtr:dev
     container_name: vodafonepaycomtr-dev
@@ -57,7 +57,7 @@ services:
       - path: .env
         required: false
     volumes:
-      - .:/app
+      - ./vodafonepaycomtr:/app
       - /app/node_modules
       - /app/.next
     healthcheck:

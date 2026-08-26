@@ -86,7 +86,7 @@ sys.exit(1 if d['total'] > 0 else 0)
 
 FAILED=0
 if [ "$TARGET" = "web" ] || [ "$TARGET" = "all" ]; then
-  run_scan "vodafonepaycomtr" "${REPO_ROOT}/src" "" "${REPO_ROOT}" || FAILED=1
+  run_scan "vodafonepaycomtr" "${REPO_ROOT}/vodafonepaycomtr/src" "" "${REPO_ROOT}/vodafonepaycomtr" || FAILED=1
 fi
 if [ "$TARGET" = "cms" ] || [ "$TARGET" = "all" ]; then
   run_scan "vodafonepaycomtr-cms" "${REPO_ROOT}/cms/src" "cms/payload.config.ts" "${REPO_ROOT}/cms" || FAILED=1

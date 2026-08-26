@@ -39,7 +39,7 @@ Point it at a URL, run `/clone-website`, and your AI agent will inspect the site
 
 3. **Install dependencies**
    ```bash
-   npm install
+   cd vodafonepaycomtr && npm install
    ```
 4. **Start your AI agent** — Claude Code recommended:
    ```bash
@@ -109,22 +109,26 @@ Each builder agent receives the full component specification inline — exact `g
 
 ## Project Structure
 
+The site and the CMS are two fully independent projects living side by side — neither is an npm workspace of the other.
+
 ```
-src/
-  app/              # Next.js routes
-  components/       # React components
-    ui/             # shadcn/ui primitives
-    icons.tsx       # Extracted SVG icons
-  lib/utils.ts      # cn() utility
-  types/            # TypeScript interfaces
-  hooks/            # Custom React hooks
-public/
-  images/           # Downloaded images from target
-  videos/           # Downloaded videos from target
-  seo/              # Favicons, OG images
+vodafonepaycomtr/     # this Next.js site — run `npm run <script>` from here
+  src/
+    app/              # Next.js routes
+    components/       # React components
+      ui/             # shadcn/ui primitives
+      icons.tsx       # Extracted SVG icons
+    lib/utils.ts      # cn() utility
+    types/            # TypeScript interfaces
+    hooks/            # Custom React hooks
+  public/
+    images/           # Downloaded images from target
+    videos/           # Downloaded videos from target
+    seo/              # Favicons, OG images
+cms/                  # Payload CMS — separate project, own package.json
 docs/
-  research/         # Extraction output & component specs
-  design-references/ # Screenshots
+  research/           # Extraction output & component specs
+  design-references/  # Screenshots
 scripts/
   sync-agent-rules.sh  # Regenerate agent instruction files
   sync-skills.mjs      # Regenerate /clone-website for all platforms
@@ -135,7 +139,10 @@ GEMINI.md           # Gemini CLI config (imports AGENTS.md)
 
 ## Commands
 
+Run from inside `vodafonepaycomtr/`:
+
 ```bash
+cd vodafonepaycomtr
 npm run dev    # Start dev server
 npm run build  # Production build
 npm run lint   # ESLint check

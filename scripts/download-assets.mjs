@@ -1,5 +1,11 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+// Resolved from this script's own location, not process.cwd() — the "public/"
+// paths below are site-relative, and the site now lives one level down from
+// the repo root (vodafonepaycomtr/), not at the repo root itself.
+const SITE_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "vodafonepaycomtr");
 
 const assets = [
   // fonts
@@ -31,7 +37,7 @@ const assets = [
 ];
 
 async function downloadOne(url, dest) {
-  const destPath = path.join(process.cwd(), dest);
+  const destPath = path.join(SITE_ROOT, dest);
   await mkdir(path.dirname(destPath), { recursive: true });
   const res = await fetch(url);
   if (!res.ok) {

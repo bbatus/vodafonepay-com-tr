@@ -33,7 +33,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "warm-cache": "bash scripts/warm-cache.sh",
+    "warm-cache": "bash ../scripts/warm-cache.sh",
     "check": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {

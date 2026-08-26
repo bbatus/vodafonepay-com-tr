@@ -50,7 +50,7 @@ if [ "$TARGET" = "images" ] || [ "$TARGET" = "all" ]; then
 fi
 
 if [ "$TARGET" = "deps" ] || [ "$TARGET" = "all" ]; then
-  scan_deps "root (site)" "${REPO_ROOT}/package-lock.json"
+  scan_deps "root (site)" "${REPO_ROOT}/vodafonepaycomtr/package-lock.json"
   scan_deps "cms" "${REPO_ROOT}/cms/package-lock.json"
 fi
 
