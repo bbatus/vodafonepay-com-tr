@@ -33,6 +33,7 @@ run_scan() {
   local src_dir="$2"
   local extra_sources="${3:-}"
   local project_root="$4"
+  local cpd_exclusions="${5:-}"
 
   echo "== Scanning ${project_key} =="
   rm -rf "${SCAN_TMP:?}/${project_key}"
@@ -66,7 +67,8 @@ run_scan() {
     -Dsonar.sources="src$([ -n "$extra_sources" ] && echo ",$(basename "$extra_sources")")" \
     -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
     -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
-    -Dsonar.sourceEncoding=UTF-8
+    -Dsonar.sourceEncoding=UTF-8 \
+    $([ -n "$cpd_exclusions" ] && echo "-Dsonar.cpd.exclusions=${cpd_exclusions}")
 
   # Give the compute engine a moment to process the report before querying issues.
   sleep 6
@@ -89,7 +91,17 @@ if [ "$TARGET" = "web" ] || [ "$TARGET" = "all" ]; then
   run_scan "vodafonepaycomtr" "${REPO_ROOT}/vodafonepaycomtr/src" "" "${REPO_ROOT}/vodafonepaycomtr" || FAILED=1
 fi
 if [ "$TARGET" = "cms" ] || [ "$TARGET" = "all" ]; then
-  run_scan "vodafonepaycomtr-cms" "${REPO_ROOT}/cms/src" "cms/payload.config.ts" "${REPO_ROOT}/cms" || FAILED=1
+  # translationDefaults.ts/helpContent.ts are pure literal seed-data tables —
+  # hundreds of `{ tr: "...", en: "..." }` / `{ title, steps: [...] }` entries
+  # whose STRUCTURE repeats even though every entry's actual copy differs.
+  # CPD normalizes string literals, so it flags this shape as ~80-97%
+  # self-duplicated even though there's no real duplicated logic to extract —
+  # confirmed by reading both files: no two entries share content, only
+  # shape. Excluded rather than "fixed", the same judgment already applied
+  # this session to Footer.tsx/site-haritasi's non-identical fallback lists
+  # and to cerez-politikasi's cookieRows.ts.
+  run_scan "vodafonepaycomtr-cms" "${REPO_ROOT}/cms/src" "cms/payload.config.ts" "${REPO_ROOT}/cms" \
+    "src/lib/translationDefaults.ts,src/lib/helpContent.ts" || FAILED=1
 fi
 
 rm -rf "$SCAN_TMP"

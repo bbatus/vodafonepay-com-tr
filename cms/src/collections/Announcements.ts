@@ -4,7 +4,7 @@ import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { dbLabel } from "@/lib/collectionLabels";
-import { assignNextOrder, ORDER_FIELD_DESCRIPTION } from "@/hooks/ordering";
+import { assignNextOrder, orderField } from "@/hooks/ordering";
 
 export const Announcements: CollectionConfig = {
   slug: "announcements",
@@ -65,21 +65,7 @@ export const Announcements: CollectionConfig = {
         },
       },
     },
-    {
-      name: "order",
-      type: "number",
-      label: { tr: "Sıra", en: "Order" },
-      // Deliberately NO defaultValue. Payload populates defaults BEFORE
-      // beforeChange runs, so a `defaultValue: 1` here arrives at
-      // assignNextOrder looking exactly like a number the editor typed —
-      // the hook's "respect an explicit value" guard then bails out and the
-      // auto-numbering never happens. Caught live: a new FAQ in a category
-      // whose highest order was 12 was still being saved as 1. Leaving this
-      // empty is also the honest UI, and matches the field description:
-      // blank means "put it at the end", which is what the hook then does.
-      min: 1,
-      admin: { description: ORDER_FIELD_DESCRIPTION },
-    },
+    orderField(),
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],

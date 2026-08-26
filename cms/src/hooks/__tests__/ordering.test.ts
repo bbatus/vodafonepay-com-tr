@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { PayloadRequest } from "payload";
-import { assignFooterOrder, assignNextOrder, FOOTER_ORDER_MAX } from "@/hooks/ordering";
+import { assignFooterOrder, assignNextOrder, FOOTER_ORDER_MAX, orderField } from "@/hooks/ordering";
 
 function fakeReq(highest?: number, reject = false) {
   // Same canned response for every find() call (the "highest order" lookup
@@ -204,5 +204,43 @@ describe("assignFooterOrder", () => {
     expect(find).toHaveBeenCalledWith(
       expect.objectContaining({ where: { and: expect.arrayContaining([{ id: { not_equals: "self-id" } }]) } })
     );
+  });
+});
+
+describe("orderField", () => {
+  /**
+   * The `order` field definition duplicated verbatim (comment included)
+   * across 9 collection files, per a SonarQube CPD scan — extracted here
+   * once. These tests lock the shape so a future edit to one caller doesn't
+   * silently diverge from the rest.
+   */
+  it("declares a bare number field with no defaultValue", () => {
+    const field = orderField();
+    expect(field).toMatchObject({ name: "order", type: "number", min: 1 });
+    expect(field).not.toHaveProperty("defaultValue");
+  });
+
+  it("omits the LiveOrderField widget when called with no arguments", () => {
+    const field = orderField() as { admin?: { components?: unknown } };
+    expect(field.admin?.components).toBeUndefined();
+  });
+
+  it("wires the LiveOrderField widget with the given collection/watchPath/mode", () => {
+    const field = orderField({ collection: "step-cards", watchPath: "page", mode: "relationship" }) as {
+      admin?: { components?: { Field?: { path?: string; clientProps?: Record<string, unknown> } } };
+    };
+    expect(field.admin?.components?.Field?.path).toBe("/components/LiveOrderField#default");
+    expect(field.admin?.components?.Field?.clientProps).toEqual({
+      collection: "step-cards",
+      watchPath: "page",
+      mode: "relationship",
+    });
+  });
+
+  it("defaults mode to 'relationship' when omitted", () => {
+    const field = orderField({ collection: "categories", watchPath: "scope" }) as {
+      admin?: { components?: { Field?: { clientProps?: Record<string, unknown> } } };
+    };
+    expect(field.admin?.components?.Field?.clientProps?.mode).toBe("relationship");
   });
 });

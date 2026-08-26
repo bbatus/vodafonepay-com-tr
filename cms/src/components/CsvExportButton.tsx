@@ -4,8 +4,10 @@ import { useState } from "react";
 import { toast } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
+import { ExportTriggerButton } from "./ExportTriggerButton";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import { describeApiError } from "@/lib/apiErrorMessage";
+import { fetchExportDocs, pingExportAudit } from "@/lib/exportFetch";
 
 export type CsvTable = { header: string[]; rows: string[][] };
 
@@ -47,34 +49,12 @@ export function CsvExportButton<T>({
   const handleExport = async () => {
     setExporting(true);
     try {
-      const currentParams = new URLSearchParams(window.location.search);
-      const params = new URLSearchParams();
-      const where = currentParams.get("where");
-      const search = currentParams.get("search");
-      if (where) params.set("where", where);
-      if (search) params.set("search", search);
-      params.set("sort", currentParams.get("sort") ?? defaultSort);
-      params.set("limit", "10000");
-      params.set("depth", String(depth));
-
-      const res = await fetch(`/api/${collection}?${params.toString()}`, { credentials: "same-origin" });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(describeApiError({ status: res.status, body, locale, context: "export" }));
-      }
-      const data = (await res.json()) as { docs?: T[] };
-      const { header, rows } = buildTable(data.docs ?? [], locale);
+      const docs = await fetchExportDocs<T>({ collection, defaultSort, depth, locale });
+      const { header, rows } = buildTable(docs, locale);
       downloadCsv(buildCsv(header, rows), `${filenamePrefix}-${new Date().toISOString().slice(0, 10)}.csv`);
       toast.success(t(`${translationPrefix}.done`));
       // RFP §7.2: "record every export of predefined reports/data entities"
-      // — best-effort, fire-and-forget so a logging hiccup never blocks a
-      // download the user already has in hand.
-      void fetch("/api/audit/export", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ collection, count: rows.length }),
-      }).catch(() => {});
+      pingExportAudit(collection, rows.length);
     } catch (err) {
       toast.error(err instanceof Error && err.message ? err.message : describeApiError({ err, locale, context: "export" }));
     } finally {
@@ -83,17 +63,10 @@ export function CsvExportButton<T>({
   };
 
   return (
-    <button
-      type="button"
-      className={`btn btn--style-secondary btn--size-medium${exporting ? " btn--disabled" : ""}`}
-      disabled={exporting}
+    <ExportTriggerButton
+      exporting={exporting}
+      label={exporting ? t(`${translationPrefix}.exporting`) : t(`${translationPrefix}.button`)}
       onClick={() => void handleExport()}
-    >
-      <span className="btn__content">
-        <span className="btn__label">
-          {exporting ? t(`${translationPrefix}.exporting`) : t(`${translationPrefix}.button`)}
-        </span>
-      </span>
-    </button>
+    />
   );
 }
