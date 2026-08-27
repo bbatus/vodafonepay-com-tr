@@ -505,3 +505,58 @@ farklı görünüyordu ve ikisi de canlıya uymuyordu.
       Site 364, CMS 449 test; tsc/lint/build temiz.
 - [ ] **Kullanıcı testi:** ürün sayfalarını ve `Layout Test Sayfasi`'nı
       masaüstü+mobilde canlıyla yan yana gözden geçir.
+
+## 25. Canlı site layout envanteri — blok kütüphanesi 10 → 16 (27.08.2026)
+
+**İstek:** "canlı sitenin tüm sayfalarında TAMAMEN AYNI STİL Mİ diye bakıp
+düzelt, HEM DE canlı sitede kullanılmış ama bizde olmayan layoutları bul ve
+ekle. Mesela görsel koymuşlar sağında da yazı var ama bizde bu layout yok."
+
+**Araştırma yöntemi:** Canlı site her bölümünü DOM'da `widget_*` sınıfıyla
+isimlendiriyor (`widget_VpayApp_NasilKazanirim`, `widget_CardsTitleSubtitle`,
+`widget_PhoneSteps` …). 14 canlı sayfa tarandı ve **tam bölüm kataloğu**
+çıkarıldı — tahmin değil, sitenin kendi isimlendirmesi. Katalog bizim 10
+bloğumuzla karşılaştırıldı.
+
+### Eklenen 6 yeni blok (hepsi canlıda kullanılıyor, bizde yoktu)
+
+- [x] `howToEarn` — `widget_VpayApp_NasilKazanirim` (2 canlı sayfa). Bir
+      tarafta ürün görseli, diğer tarafta ikonlu + bağlayıcı çizgili adım
+      listesi. **Kullanıcının örnek verdiği eksik layout buydu.**
+      `HowToEarn.tsx` zaten canlıya birebir uyuyordu, sadece blok olarak
+      açılmamıştı.
+- [x] `imageWithText` — `widget_WhereCanIBuy` + `widget_WhereCanIUse` (aynı
+      şekil, iki isim). Görsel bir tarafta, başlık+metin diğer tarafta;
+      `imageSide` ile taraf değiştirilebiliyor (canlı ikisini de kullanıyor).
+      `WhereCanIBuy.tsx` de artık aynı bileşenden render oluyor → elle
+      yazılmış sayfa ile editör sayfası birbirinden sapamaz.
+- [x] `pricesAndLimits` — `widget_PricesAndLimits`. İçerik alanı YOK (rakamlar
+      zaten Ücret/Limit koleksiyonlarında; kopyalamak editöre iki ayrı yer
+      bakımı yüklerdi). `faqList`/`campaignGrid` ile aynı desen. İki koleksiyon
+      da boşsa hiç render etmiyor.
+- [x] `blogGrid` — `widget_Blogs`. `campaignGrid`'in blog karşılığı.
+- [x] `featureHighlights` — `widget_Homepage_VpayAyricaliklarDunyasi`.
+      Bileşen vardı ama medyası hardcoded'dı; `media` opsiyonel upload oldu.
+- [x] `profileGrid` — `widget_BoardOfDirectors`. Fotoğraf + isim + unvan
+      grid'i; kurul dışı ekip listeleri için de kullanılabilsin diye genel
+      isimlendirildi.
+
+### Bilinçli olarak blok yapılmayanlar
+
+- [x] `widget_TextareaAndContent` → zaten `richText` bloğumuz.
+- [x] `widget_DownloadVpayApp` → zaten `AppDownloadBanner`, sayfa bloğu değil,
+      site genelinde render oluyor.
+- [!] `widget_VideosWithTabs` / `widget_LeadForm` → bileşenleri var ama
+      içerikleri hardcoded; R-23 gereği (gerçek video yok) bilinçli olarak
+      CMS'e bağlanmadı. Değişmedi.
+
+### Doğrulama
+
+- [x] Test sayfasına 16 bloğun tamamı eklendi. Masaüstü 1440: 16/16 bölüm
+      render oluyor, beklenmeyen genişlik 0, boş bölüm 0 (SSS'in 1425px tam
+      genişliği canlıyla AYNI). Mobil 375: 16/16, yatay taşma 0.
+- [x] importMap `npm run generate:importmap` ile üretildi (R-10 sayesinde
+      artık elle düzenlenmiyor).
+- [x] Site 372, CMS 449 test; tsc/lint temiz.
+- [ ] **Kullanıcı testi:** `Layout Test Sayfasi`'nı masaüstü+mobilde gözden
+      geçir; yeni 6 bloğu CMS'te kendi sayfanda dene.
