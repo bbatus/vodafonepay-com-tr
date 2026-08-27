@@ -481,6 +481,87 @@ const StepsBlock: Block = {
   ],
 };
 
+/**
+ * Live parity gap found by auditing vodafonepay.com.tr's own widget names:
+ * `widget_VpayApp_NasilKazanirim` runs on /vodafone-pay-uygulama and
+ * /faturana-yansit — a product shot on one side with an icon + connector-line
+ * list of steps on the other — and the CMS had no block that could produce it,
+ * so an editor could not rebuild those pages from the block library.
+ * `HowToEarn.tsx` already renders exactly that layout for the hand-written
+ * pages (same `lg:ml-[165px]` offset, same order swap, same 72px icons); this
+ * block is what finally exposes it to the page builder.
+ */
+const HowToEarnBlock: Block = {
+  slug: "howToEarn",
+  labels: {
+    singular: { tr: "Görsel + Adımlı Anlatım Bloğu", en: "Image + Step Story Block" },
+    plural: { tr: "Görsel + Adımlı Anlatım Blokları", en: "Image + Step Story Blocks" },
+  },
+  admin: {
+    images: blockThumb(
+      `<text x="30" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Vodafone Pay ile Nasıl Kazanırım?</text><circle cx="52" cy="80" r="20" fill="#e60000"/><text x="90" y="76" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#111827">Bakiye Yükle</text><rect x="90" y="86" width="150" height="7" rx="2" fill="#d1d5db"/><line x1="52" y1="100" x2="52" y2="140" stroke="#d1d5db" stroke-width="2"/><circle cx="52" cy="160" r="20" fill="#e60000"/><text x="90" y="156" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#111827">Harca</text><rect x="90" y="166" width="150" height="7" rx="2" fill="#d1d5db"/><line x1="52" y1="180" x2="52" y2="220" stroke="#d1d5db" stroke-width="2"/><circle cx="52" cy="240" r="20" fill="#e60000"/><text x="90" y="236" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#111827">Kazan</text><rect x="90" y="246" width="150" height="7" rx="2" fill="#d1d5db"/><rect x="320" y="60" width="140" height="200" rx="14" fill="url(#earnGrad)"/>`,
+      vfImageFill("earnGrad")
+    ),
+  },
+  fields: [
+    {
+      name: "heading",
+      type: "text",
+      required: true,
+      admin: {
+        description: {
+          tr: "Bölümün başlığı. Örnek: \"Vodafone Pay ile Nasıl Kazanırım?\".",
+          en: "The section's heading. E.g.: \"Vodafone Pay ile Nasıl Kazanırım?\".",
+        },
+      },
+    },
+    {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      required: true,
+      admin: {
+        description: {
+          tr: "Sağda (mobilde üstte) görünecek büyük ürün görseli — genelde bir telefon ekran görüntüsü. Önerilen genişlik: 350 piksel.",
+          en: "The large product image shown on the right (on top on mobile) — usually a phone screenshot. Recommended width: 350px.",
+        },
+      },
+    },
+    {
+      name: "steps",
+      type: "array",
+      minRows: 1,
+      admin: {
+        description: {
+          tr: "Görselin yanında alt alta sıralanan adımlar (ikon + başlık + açıklama), aralarında bağlayıcı çizgiyle. Genelde 3 adım kullanılır.",
+          en: "The steps listed beside the image (icon + title + description), joined by a connector line. Usually 3 steps.",
+        },
+      },
+      fields: [
+        {
+          name: "icon",
+          type: "upload",
+          relationTo: "media",
+          required: true,
+          admin: { description: { tr: "Adımın ikonu (72x72 piksel önerilir).", en: "The step's icon (72x72px recommended)." } },
+        },
+        {
+          name: "title",
+          type: "text",
+          required: true,
+          admin: { description: { tr: "Adımın başlığı, örn: 'Bakiye Yükle'.", en: "The step's title, e.g.: 'Bakiye Yükle'." } },
+        },
+        {
+          name: "description",
+          type: "textarea",
+          required: true,
+          admin: { description: { tr: "Adımın kısa açıklaması.", en: "A short description of the step." } },
+        },
+      ],
+    },
+  ],
+};
+
 const ImageTextSlidesBlock: Block = {
   slug: "imageTextSlides",
   labels: {
@@ -709,6 +790,7 @@ export const Pages: CollectionConfig = {
         LogoGridBlock,
         IconCardsBlock,
         StepsBlock,
+        HowToEarnBlock,
         ImageTextSlidesBlock,
         VideoListBlock,
       ],

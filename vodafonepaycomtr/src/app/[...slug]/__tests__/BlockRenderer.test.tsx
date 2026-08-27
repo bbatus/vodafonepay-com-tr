@@ -112,6 +112,25 @@ describe("BlockRenderer", () => {
     expect(screen.getAllByText("Adım metni").length).toBeGreaterThan(0);
   });
 
+  it("howToEarn: renders the heading, the product image and every step", async () => {
+    render(
+      await BlockRenderer({
+        block: {
+          blockType: "howToEarn",
+          heading: "Nasıl Kazanırım?",
+          image,
+          steps: [
+            { icon: image, title: "Bakiye Yükle", description: "Kartından yükle" },
+            { icon: image, title: "Kazan", description: "Nakit iade kazan" },
+          ],
+        },
+      })
+    );
+    expect(screen.getByText("Nasıl Kazanırım?")).toBeInTheDocument();
+    expect(screen.getByText("Bakiye Yükle")).toBeInTheDocument();
+    expect(screen.getByText("Nakit iade kazan")).toBeInTheDocument();
+  });
+
   it("imageTextSlides: renders each slide's text", async () => {
     render(
       await BlockRenderer({

@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
 import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { Faq } from "@/components/Faq";
+import { HowToEarn } from "@/components/HowToEarn";
 import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
 import { ProductHero } from "@/components/ProductHero";
 import { campaignToCard, getCampaigns, getFaqItems, getPageBySlug, getPages, type CmsPageBlock } from "@/lib/cms";
@@ -172,6 +173,22 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
         <PhoneStepsCarousel
           heading={block.heading ?? ""}
           steps={block.steps.map((s) => ({ number: s.number, text: s.text, image: s.image.url }))}
+        />
+      );
+
+    /**
+     * Live parity gap: `widget_VpayApp_NasilKazanirim` runs on two live
+     * product pages and had no block equivalent, so the block library could
+     * not rebuild those pages. HowToEarn already renders that exact layout
+     * for the hand-written pages, so the block just feeds it.
+     */
+    case "howToEarn":
+      return (
+        <HowToEarn
+          heading={block.heading}
+          image={block.image.url}
+          steps={block.steps.map((s) => ({ icon: s.icon.url, title: s.title, description: s.description }))}
+          invertIcons={false}
         />
       );
 

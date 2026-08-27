@@ -810,6 +810,14 @@ const stepsBlockSchema = z.object({
   heading: nullableString(),
   steps: z.array(z.object({ number: z.string(), text: z.string(), image: mediaSchema })),
 });
+/** Live parity: `widget_VpayApp_NasilKazanirim` — see Pages.ts's HowToEarnBlock. */
+const howToEarnBlockSchema = z.object({
+  blockType: z.literal("howToEarn"),
+  id: z.string().optional(),
+  heading: z.string(),
+  image: mediaSchema,
+  steps: z.array(z.object({ icon: mediaSchema, title: z.string(), description: z.string() })),
+});
 const imageTextSlidesBlockSchema = z.object({
   blockType: z.literal("imageTextSlides"),
   id: z.string().optional(),
@@ -832,6 +840,7 @@ const pageBlockSchema = z.discriminatedUnion("blockType", [
   logoGridBlockSchema,
   iconCardsBlockSchema,
   stepsBlockSchema,
+  howToEarnBlockSchema,
   imageTextSlidesBlockSchema,
   videoListBlockSchema,
 ]);
