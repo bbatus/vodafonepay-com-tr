@@ -62,11 +62,11 @@
 | # | RFP maddesi | Durum | Kanıt |
 |---|---|:--:|---|
 | 3.2.1 | SEO-friendly URL taxonomy | ✅ | `Pages`, `BlogPosts`, `Campaigns` hepsi `turkishSlugify`+`uniqueSlug` ile otomatik, tutarlı slug üretiyor; CMS'ten yönetiliyor (artık dosya sistemine gömülü değil — `Pages` collection'ı sayesinde). |
-| 3.2.2 | Ayrı editable masaüstü/mobil URL | ❌ | Hâlâ yok. Sitenin responsive tasarımı zaten tek URL kullanıyor — RFP'nin bu maddesi muhtemelen eski/masaüstü-mobil ayrı site mimarisi varsayan bir dönemden kalma; niş ve düşük öncelikli. |
+| 3.2.2 | Ayrı editable masaüstü/mobil URL | ✅ | **27.08 düzeltmesi — bu satır bayattı.** `NavLinks.mobileHref` 25.08'de eklendi (opsiyonel; boşsa mobil de `href`'i kullanır, sadece mobil çekmece okur). Eski değerlendirme aşağıdaki gerekçeyle ❌'ti ve gerekçe hâlâ geçerli ama alan artık var: Sitenin responsive tasarımı zaten tek URL kullanıyor — RFP'nin bu maddesi muhtemelen eski/masaüstü-mobil ayrı site mimarisi varsayan bir dönemden kalma; niş ve düşük öncelikli. |
 | 3.2.3 | Editable breadcrumb elemanları | ✅ | `PageMeta.breadcrumbLabel` + `getPageMeta()` — site genelinde 19 sayfa bunu kullanıyor (2026-08-11'de "sabit prop" denilen şey artık CMS'ten geliyor). `Pages.parent` da ayrıca breadcrumb hiyerarşisi sağlıyor. |
 | 3.2.4 | SEO metin alanları (anasayfa/kategori/ürün) | ✅ | `seoTitle`/`seoDescription` Campaigns, BlogPosts, Pages'te; `PageMeta` sabit route'lar için aynısını sağlıyor. |
 | 3.2.5 | Rich text desteği | 🟡 | `lexicalEditor()` kurulu; BlogPosts.body, Campaigns.body/terms, Pages'in RichTextBlock'unda kullanılıyor. `LegalPages.intro` hâlâ düz textarea (bilinçli — RFP-OPEN-ITEMS §2'de gerekçeli). |
-| 3.2.6 | Meta tags: title/description/**keywords** + önizleme | 🟡 | title+description her yerde var. **`keywords` alanı hiçbir collection'da yok** — bilinçli atlama (Google 2009'dan beri meta keywords'ü kullanmıyor, RFP-OPEN-ITEMS §2'de gerekçeli) ama RFP'nin literal isteği karşılanmıyor. |
+| 3.2.6 | Meta tags: title/description/**keywords** + önizleme | ✅ | **27.08 düzeltmesi — bu satır bayattı.** `seoKeywords` artık `cms/src/lib/seoFields.ts`'teki paylaşılan `seoKeywordsField` ile Campaigns/BlogPosts/PageMeta/Pages'in dördünde de var; `buildMetadata()` virgülle ayırıp Next'in `keywords` metadata'sına veriyor, boşsa etiketi hiç basmıyor. Eski değerlendirme: — bilinçli atlama (Google 2009'dan beri meta keywords'ü kullanmıyor, RFP-OPEN-ITEMS §2'de gerekçeli) ama RFP'nin literal isteği karşılanmıyor. |
 | 3.2.7 | Dinamik meta data alanları | ✅ | `seoTitle`/`seoDescription` boş bırakılırsa `title`/`description`'a düşüyor — sayfa içeriğine göre uyarlanan meta. |
 | 3.2.8 | Open Graph konfigürasyonu (kanal bazlı) | ✅ | `src/lib/metadata.ts`'teki paylaşılan `buildMetadata()` her sayfada `openGraph` (title/description/url/siteName/locale/type/image) + `twitter` (summary_large_image) üretiyor; `image` parametresi `PageMeta.ogImage`/`Pages.ogImage`'dan geliyor (`src/app/**/page.tsx`'te ~19 çağrı noktası doğrulandı). İlk aramada yalnız `.tsx` dosyaları tarandığı için bu madde ilk turda kaçırılmıştı — `metadata.ts` bir `.ts` dosyası. |
 | 3.2.9 | Content versioning / rollback | ✅ | Tüm içerik collection'larında `versions.drafts` — Payload'ın kendi versiyon geçmişi/diff/rollback arayüzü devrede. |
@@ -76,6 +76,19 @@
 | 3.2.13 | Drag-and-drop sayfa tasarımı | ✅ | `Pages.layout` (Payload Blocks) — 10 blok, sürükle-bırak, canlı test edildi. 2026-08-11'in "en kritik boşluk" dediği madde artık kapalı. |
 | 3.2.14 | Çok dilli içerik oluşturma (localization) | 🟡 | CMS admin arayüzü tam TR/EN (`i18n` bloğu). **İçeriğin kendisi (kampanya/sayfa metni) çok dilli değil** — `payload.config.ts`'te content-level `localization` bloğu yok; Pages'in tek `localized` alanı bilinçli olarak kaldırıldı (RFP feedback 5.7, kod yorumunda gerekçeli: içerik lokalizasyonu iş kararıyla kapsam dışı bırakıldı). RFP'nin literal isteği (çok dilli İÇERİK oluşturma) karşılanmıyor. |
 | 3.2.15 | Çoklu veritabanı yönetimi (Oracle/MongoDB/Couchbase) | ⬜ | Genel bir DB-yönetim aracı isteği gibi duruyor, CMS isterinden çok. Netleştirilmesi gereken bir madde. |
+
+
+### 27.08.2026 eki — RFP'de olmayan ama yapılmış SEO altyapısı
+
+RFP §3.2 yalnız CMS'in SEO ALANLARINI sayıyor; sitenin kendi teknik SEO'su ayrıca şunları içeriyor:
+
+| Ne | Durum | Kanıt |
+|---|:--:|---|
+| `sitemap.xml` | ✅ | `src/app/sitemap.ts` — statik rotalar + Campaigns + BlogPosts + Representatives + **Pages**. 27.08'de gerçek bir bug düzeltildi: `getPages()` `depth=0` isteyip nesne şeması doğruladığı için görsel içeren her sayfa listeyi `null`'a düşürüyordu, yani **editörün yaptığı hiçbir sayfa sitemap'e girmiyordu**. Ayrıca göç edilmiş 3 ürün sayfası `STATIC_ROUTES`'ta kalıp çift `<loc>` üretiyordu; ikisi de kapatıldı. |
+| `robots.txt` | ✅ | `src/app/robots.ts` — `/api/` kapalı, sitemap bildirimi var, ve canlı vodafonepay.com.tr'nin kendi politikasıyla aynı şekilde AI-eğitim botları (GPTBot/CCBot/Google-Extended/Applebot-Extended/meta-externalagent/ClaudeBot) tamamen engelli. |
+| Canonical URL | ✅ | `buildMetadata()` her sayfaya `alternates.canonical` basıyor. |
+| OG + Twitter card | ✅ | Aynı yerden; `summary_large_image`, `locale: tr_TR`. |
+| **Yapısal veri (JSON-LD / schema.org)** | ❌ | **Gerçek boşluk.** Sitede hiç `application/ld+json` yok. RFP açıkça istemiyor ama Organization / BreadcrumbList / FAQPage / Article şemaları bu içerik tipleriyle (SSS, blog, kampanya) doğrudan eşleşiyor ve arama sonucunda zengin sonuç kazandırırdı. Öneri: ayrı bir madde olarak ele alınmalı. |
 
 ---
 
