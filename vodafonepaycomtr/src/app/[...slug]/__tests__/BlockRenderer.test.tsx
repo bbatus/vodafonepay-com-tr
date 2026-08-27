@@ -17,9 +17,12 @@ describe("BlockRenderer", () => {
         block: { blockType: "hero", heading: "Başlık", subheading: "Alt başlık", image, ctaLabel: "Tıkla", ctaUrl: "/kampanyalar" },
       })
     );
-    expect(screen.getByText("Başlık")).toBeInTheDocument();
-    expect(screen.getByText("Alt başlık")).toBeInTheDocument();
-    expect(screen.getByText("Tıkla")).toHaveAttribute("href", "/kampanyalar");
+    // ProductHero renders the copy twice on purpose — a white overlay for lg+
+    // and a grey strip below the image for mobile, exactly as the live site's
+    // markup does — so both branches exist in jsdom at once.
+    expect(screen.getAllByText("Başlık").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Alt başlık").length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: "Tıkla" })[0]).toHaveAttribute("href", "/kampanyalar");
   });
 
   it("hero: omits subheading/CTA when unset", async () => {
@@ -104,8 +107,9 @@ describe("BlockRenderer", () => {
         block: { blockType: "steps", heading: "Adımlar", steps: [{ number: "01", text: "Adım metni", image }] },
       })
     );
-    expect(screen.getByText("01")).toBeInTheDocument();
-    expect(screen.getByText("Adım metni")).toBeInTheDocument();
+    // PhoneStepsCarousel also renders a desktop and a mobile branch.
+    expect(screen.getAllByText("01").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Adım metni").length).toBeGreaterThan(0);
   });
 
   it("imageTextSlides: renders each slide's text", async () => {

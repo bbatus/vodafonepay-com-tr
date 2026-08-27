@@ -26,7 +26,9 @@ describe("VodafonePayKart", () => {
 
     render(await VodafonePayKart());
 
-    expect(screen.getByText("Vodafone Pay Kart ile dilediğin yerde harca, kazan")).toBeInTheDocument();
+    // ProductHero deliberately renders the heading in both its desktop
+    // overlay and its mobile strip, mirroring the live site's own markup.
+    expect(screen.getAllByText("Vodafone Pay Kart ile dilediğin yerde harca, kazan").length).toBeGreaterThan(0);
   });
 
   it("uses the CMS hero heading over the default when present", async () => {
@@ -40,6 +42,6 @@ describe("VodafonePayKart", () => {
 
     render(await VodafonePayKart());
 
-    expect(screen.getByText("CMS Başlığı")).toBeInTheDocument();
+    expect(screen.getAllByText("CMS Başlığı").length).toBeGreaterThan(0);
   });
 });

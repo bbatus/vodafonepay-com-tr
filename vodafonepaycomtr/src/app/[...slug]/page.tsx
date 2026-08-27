@@ -7,7 +7,10 @@ import { Header } from "@/components/Header";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
+import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { Faq } from "@/components/Faq";
+import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
+import { ProductHero } from "@/components/ProductHero";
 import { campaignToCard, getCampaigns, getFaqItems, getPageBySlug, getPages, type CmsPageBlock } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 import { RichText } from "@/components/RichText";
@@ -37,35 +40,33 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
   switch (block.blockType) {
+    /**
+     * Renders through the same ProductHero the hand-written product pages
+     * use, rather than its own copy of the markup. When the product pages
+     * were migrated onto Pages, each block was re-implemented from scratch
+     * with generic styling, so a CMS-built page and a hand-built one showed
+     * visibly different UI for the same section. Sharing the component is
+     * what keeps them identical — and pins both to the live site's layout.
+     */
     case "hero":
       return (
-        <section className="mx-auto max-w-[1030px] px-4 lg:pt-4">
-          <div className="relative overflow-hidden rounded-xl">
-            <Image
-              src={block.image.url}
-              alt={block.image.alt || block.heading}
-              width={1030}
-              height={420}
-              priority
-              className="h-[240px] w-full object-cover lg:h-[420px]"
-            />
-          </div>
-          <div className="bg-[#f3f4f6] px-6 py-8 text-center">
-            <h1 className="text-2xl font-bold text-black lg:text-3xl">{block.heading}</h1>
-            {block.subheading && <p className="mt-2 text-base text-gray-600">{block.subheading}</p>}
-            {block.ctaLabel && block.ctaUrl && (
-              <Link href={block.ctaUrl} className="mt-4 inline-block rounded bg-vf-red px-6 py-3 text-sm font-bold text-white">
-                {block.ctaLabel}
-              </Link>
-            )}
-          </div>
-        </section>
+        <ProductHero
+          image={block.image.url}
+          imageAlt={block.image.alt || block.heading}
+          heading={block.heading}
+          subheading={block.subheading}
+          ctaLabel={block.ctaLabel}
+          ctaUrl={block.ctaUrl}
+        />
       );
 
     case "richText":
+      // Live section headings are left-aligned `text-2xl lg:text-4xl` in the
+      // bold Vodafone face, on the same 1030px column as every other section
+      // — not a narrower max-w-3xl block with a smaller heading.
       return (
-        <section className="mx-auto max-w-3xl px-4 py-10">
-          {block.heading && <h2 className="text-2xl font-bold text-black">{block.heading}</h2>}
+        <section className="mx-auto max-w-[1030px] px-4 py-10">
+          {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
           <div className="mt-4">
             <RichText data={block.body} />
           </div>
@@ -89,8 +90,11 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
         const card = campaignToCard(c);
         return { id: card.id, image: card.image, title: card.title, description: card.description, href: card.href };
       });
+      // 1030px, not 1280px: every other section on a product page sits on the
+      // live site's own content column, and the wider one made this block
+      // visibly overhang its neighbours.
       return (
-        <section className="mx-auto w-full max-w-[1280px] px-4 py-10">
+        <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
           <CardListGrid title={block.heading} items={items} />
         </section>
       );
@@ -98,9 +102,9 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
 
     case "video":
       return (
-        <section className="mx-auto max-w-3xl px-4 py-10">
-          {block.heading && <h2 className="text-2xl font-bold text-black">{block.heading}</h2>}
-          <div className="mt-4 aspect-video overflow-hidden rounded-lg">
+        <section className="mx-auto max-w-[1030px] px-4 py-16">
+          {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
+          <div className="mt-8 aspect-video overflow-hidden rounded-xl">
             <iframe
               src={`https://www.youtube.com/embed/${block.youtubeId}`}
               title={block.heading || "Video"}
@@ -111,12 +115,15 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
         </section>
       );
 
+    // The site's own surface treatment is a flat #F2F2F2 tile (`bg-vf-gray`),
+    // never a white card on a white page with a drop shadow — see
+    // VideosWithTabs/CardsWithIcons, both built against the live design.
     case "logoGrid":
       return (
-        <section className="mx-auto max-w-[1030px] px-4 py-10">
-          <div className="rounded-lg bg-white p-6 shadow-[0px_2px_12px_0px_#00000014] lg:p-10">
-            {block.heading && <h2 className="text-xl font-bold text-black lg:text-2xl">{block.heading}</h2>}
-            <div className="mt-8 grid grid-cols-3 gap-6 sm:grid-cols-5">
+        <section className="mx-auto max-w-[1030px] px-4 py-16">
+          {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
+          <div className="mt-8 rounded-xl bg-vf-gray p-6 lg:p-10">
+            <div className="grid grid-cols-3 items-center gap-6 sm:grid-cols-5">
               {block.logos.map((l) => {
                 const img = (
                   <Image
@@ -138,51 +145,53 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
         </section>
       );
 
+    /**
+     * Same reasoning as `hero`: the live cards are flat `#F2F2F2` tiles with
+     * a red 28px title, which CardsWithIcons already reproduces exactly. The
+     * block used to draw white shadowed cards with a black 16px title —
+     * nothing on vodafonepay.com.tr looks like that.
+     */
     case "iconCards":
       return (
-        <section className="mx-auto max-w-[1030px] px-4 py-10">
-          {block.heading && <h2 className="text-center text-2xl font-bold text-black lg:text-3xl">{block.heading}</h2>}
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {block.cards.map((c) => (
-              <div key={c.title} className="rounded-lg bg-white p-6 text-center shadow-[0px_2px_12px_0px_#00000014]">
-                <Image src={c.icon.url} alt={c.icon.alt || c.title} width={48} height={48} className="mx-auto h-12 w-12 object-contain" />
-                <h3 className="mt-4 text-base font-bold text-black">{c.title}</h3>
-                <p className="mt-2 text-sm text-gray-600">{c.text}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+        <CardsWithIcons
+          title={block.heading}
+          cards={block.cards.map((c) => ({ icon: c.icon.url, title: c.title, text: c.text }))}
+        />
       );
 
+    /**
+     * The live "Nasıl kullanırım?" section is a phone carousel: two columns
+     * of `h-[226px] rounded-xl` step boxes flanking one large phone
+     * screenshot, the active box filled Vodafone red. PhoneStepsCarousel is
+     * the component that was built against it — it was deleted during the
+     * Pages migration and restored here, because the block's stand-in (small
+     * red number badges beside 160px thumbnails) shared none of that design.
+     */
     case "steps":
       return (
-        <section className="mx-auto max-w-3xl px-4 py-10">
-          {block.heading && <h2 className="text-center text-2xl font-bold text-black lg:text-3xl">{block.heading}</h2>}
-          <ol className="mt-8 flex flex-col gap-8">
-            {block.steps.map((s) => (
-              <li key={s.number} className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-vf-red text-sm font-bold text-white">
-                  {s.number}
-                </span>
-                <div className="flex flex-col items-center gap-4 sm:flex-row">
-                  <Image src={s.image.url} alt={s.image.alt || s.text} width={200} height={360} className="h-auto w-40 rounded-lg object-cover" />
-                  <p className="text-center text-sm text-gray-700 sm:text-left">{s.text}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
+        <PhoneStepsCarousel
+          heading={block.heading ?? ""}
+          steps={block.steps.map((s) => ({ number: s.number, text: s.text, image: s.image.url }))}
+        />
       );
 
+    // Mirrors VideosWithTabs' own scroller: fixed-width `bg-vf-gray rounded-xl`
+    // tiles with the media inset, rather than white shadowed cards.
     case "imageTextSlides":
       return (
-        <section className="mx-auto max-w-[1030px] px-4 py-10">
-          {block.heading && <h2 className="text-center text-2xl font-bold text-black lg:text-3xl">{block.heading}</h2>}
-          <div className="mt-8 flex gap-6 overflow-x-auto pb-2">
+        <section className="mx-auto max-w-[1030px] px-4 py-16">
+          {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
+          <div className="mt-8 flex gap-x-5 overflow-x-auto pb-2">
             {block.slides.map((s) => (
-              <div key={s.image.url} className="w-64 shrink-0 rounded-lg bg-white shadow-[0px_2px_12px_0px_#00000014]">
-                <Image src={s.image.url} alt={s.image.alt || s.text} width={256} height={160} className="h-40 w-full rounded-t-lg object-cover" />
-                <p className="p-4 text-sm text-gray-700">{s.text}</p>
+              <div key={s.image.url} className="flex w-[253px] shrink-0 flex-col gap-y-3 rounded-xl bg-vf-gray p-4">
+                <Image
+                  src={s.image.url}
+                  alt={s.image.alt || s.text}
+                  width={253}
+                  height={160}
+                  className="h-40 w-full rounded-lg object-cover"
+                />
+                <p className="text-base text-black">{s.text}</p>
               </div>
             ))}
           </div>
@@ -191,12 +200,11 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
 
     case "videoList":
       return (
-        <section className="mx-auto max-w-3xl px-4 py-10">
-          {block.heading && <h2 className="text-2xl font-bold text-black">{block.heading}</h2>}
-          <div className="mt-4 flex flex-col gap-8">
+        <section className="mx-auto max-w-[1030px] px-4 py-16">
+          {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
+          <div className="mt-8 grid gap-8 lg:grid-cols-2">
             {block.videos.map((v) => (
-              <div key={v.youtubeId}>
-                <h3 className="mb-2 text-sm font-bold text-black">{v.title}</h3>
+              <div key={v.youtubeId} className="flex flex-col gap-y-3 rounded-xl bg-vf-gray p-4">
                 <div className="aspect-video overflow-hidden rounded-lg">
                   <iframe
                     src={`https://www.youtube-nocookie.com/embed/${v.youtubeId}`}
@@ -205,6 +213,7 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
                     allowFullScreen
                   />
                 </div>
+                <p className="text-center text-base font-bold text-black">{v.title}</p>
               </div>
             ))}
           </div>
