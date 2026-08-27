@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function WhereCanIBuy() {
   return (
-    <section className="mx-auto max-w-[1030px] px-4 py-16">
+    <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
       <div className="flex flex-col items-center gap-10 lg:flex-row">
         <div className="flex w-full max-w-[574px] items-center justify-center rounded-md bg-white p-6 shadow-[0px_2px_8px_0px_#00000014]">
           <Image

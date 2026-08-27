@@ -52,6 +52,10 @@ describe("ProductHero", () => {
   it("uses the live image geometry: 1030px-wide column, rounded-xl, 322px tall on desktop", () => {
     const { container } = render(<ProductHero {...base} />);
     expect(container.querySelector("section")?.className).toContain("max-w-[1030px]");
+    // `<main>` is a flex column, where an `mx-auto` item shrinks to its
+    // content instead of stretching — without w-full the 1030px cap is never
+    // reached and the section collapses to the width of its own text.
+    expect(container.querySelector("section")?.className).toContain("w-full");
     const frame = container.querySelector("section > div");
     expect(frame?.className).toContain("rounded-xl");
     expect(container.querySelector("img")?.className).toContain("lg:h-[322px]");

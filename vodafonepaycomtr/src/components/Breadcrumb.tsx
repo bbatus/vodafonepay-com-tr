@@ -10,7 +10,7 @@ import { ChevronRightIcon } from "@/components/icons";
  */
 export function Breadcrumb({ current, trail }: { current: string; trail?: { label: string; href: string }[] }) {
   return (
-    <nav aria-label="breadcrumb" className="mx-auto max-w-[1030px] px-4 py-4 text-sm text-gray-500">
+    <nav aria-label="breadcrumb" className="mx-auto w-full max-w-[1030px] px-4 py-4 text-sm text-gray-500">
       <ol className="flex items-center gap-x-2">
         <li>
           <Link href="/" className="hover:text-black">

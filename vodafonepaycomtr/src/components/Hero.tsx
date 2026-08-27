@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function Hero() {
   return (
-    <section className="mx-auto max-w-[1030px] lg:pt-4">
+    <section className="mx-auto w-full max-w-[1030px] lg:pt-4">
       <h1 className="sr-only">Vodafone Pay - Ödemenin Akıllı Hali</h1>
       <div className="relative overflow-hidden lg:rounded-xl">
         <Image

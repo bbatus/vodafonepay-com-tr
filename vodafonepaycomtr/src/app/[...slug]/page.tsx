@@ -65,7 +65,7 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
       // bold Vodafone face, on the same 1030px column as every other section
       // — not a narrower max-w-3xl block with a smaller heading.
       return (
-        <section className="mx-auto max-w-[1030px] px-4 py-10">
+        <section className="mx-auto w-full max-w-[1030px] px-4 py-10">
           {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
           <div className="mt-4">
             <RichText data={block.body} />
@@ -102,7 +102,7 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
 
     case "video":
       return (
-        <section className="mx-auto max-w-[1030px] px-4 py-16">
+        <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
           {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
           <div className="mt-8 aspect-video overflow-hidden rounded-xl">
             <iframe
@@ -120,7 +120,7 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
     // VideosWithTabs/CardsWithIcons, both built against the live design.
     case "logoGrid":
       return (
-        <section className="mx-auto max-w-[1030px] px-4 py-16">
+        <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
           {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
           <div className="mt-8 rounded-xl bg-vf-gray p-6 lg:p-10">
             <div className="grid grid-cols-3 items-center gap-6 sm:grid-cols-5">
@@ -179,7 +179,7 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
     // tiles with the media inset, rather than white shadowed cards.
     case "imageTextSlides":
       return (
-        <section className="mx-auto max-w-[1030px] px-4 py-16">
+        <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
           {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
           <div className="mt-8 flex gap-x-5 overflow-x-auto pb-2">
             {block.slides.map((s) => (
@@ -200,7 +200,7 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
 
     case "videoList":
       return (
-        <section className="mx-auto max-w-[1030px] px-4 py-16">
+        <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
           {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
           <div className="mt-8 grid gap-8 lg:grid-cols-2">
             {block.videos.map((v) => (

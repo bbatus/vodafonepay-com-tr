@@ -19,7 +19,7 @@ export function HowToEarn({
   invertIcons?: boolean;
 }) {
   return (
-    <section className="mx-auto max-w-[1030px] px-4 py-16">
+    <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
       <h2 className="text-center text-2xl font-bold text-black lg:text-left lg:text-4xl">{heading}</h2>
 
       <div className="mt-10 flex flex-col items-center lg:flex-row lg:items-start">

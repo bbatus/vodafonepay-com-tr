@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function LeadFormCta() {
   return (
-    <section className="mx-auto max-w-[1030px] px-4 py-8">
+    <section className="mx-auto w-full max-w-[1030px] px-4 py-8">
       <div
         className="flex items-center justify-center gap-x-6 rounded-md bg-cover bg-center px-6 py-7"
         style={{ backgroundImage: "url(/images/leadform-banner.svg)" }}

@@ -17,7 +17,7 @@ export function VideosWithTabs() {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <section className="mx-auto max-w-[1030px] px-4 py-16">
+    <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
       <div className="mx-auto flex w-full max-w-3xl justify-center rounded-lg bg-vf-gray p-1">
         {tabs.map((tab, i) => (
           <button

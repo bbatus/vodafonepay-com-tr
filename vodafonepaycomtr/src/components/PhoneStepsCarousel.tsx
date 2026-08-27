@@ -32,7 +32,7 @@ export function PhoneStepsCarousel({ heading, steps }: { heading: string; steps:
   const goNext = () => setActive((i) => (i + 1) % steps.length);
 
   return (
-    <section className="mx-auto max-w-[1030px] px-4 py-16">
+    <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
       <h2 className="text-center text-2xl font-bold text-black lg:text-4xl">{heading}</h2>
 
       <div className="mt-10 hidden gap-5 lg:flex">

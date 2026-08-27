@@ -20,6 +20,14 @@ import Link from "next/link";
  *
  * Live geometry: 1030px max width, `rounded-[12px]`, image 322px tall on
  * desktop, `background-size: cover` centred.
+ *
+ * The `w-full` next to `mx-auto` is load-bearing, here and in every other
+ * section component: the page's `<main>` is `flex flex-col`, and a flex item
+ * with `mx-auto` shrinks to its max-content width instead of stretching. So
+ * `mx-auto max-w-[1030px]` alone produced a column as narrow as its own text
+ * — a rich-text section measured 367px instead of 1030px, centred, while the
+ * hero (whose image declares width=1030) happened to look right. Only the
+ * campaign grid escaped it, because that one already carried `w-full`.
  */
 export function ProductHero({
   image,
@@ -44,7 +52,7 @@ export function ProductHero({
     ) : null;
 
   return (
-    <section className="mx-auto max-w-[1030px] px-4 lg:pt-4">
+    <section className="mx-auto w-full max-w-[1030px] px-4 lg:pt-4">
       <div className="relative overflow-hidden rounded-xl">
         <Image
           src={image}
@@ -54,7 +62,10 @@ export function ProductHero({
           priority
           className="h-[240px] w-full object-cover lg:h-[322px]"
         />
-        <div className="absolute inset-y-0 left-0 hidden max-w-md flex-col justify-center gap-y-4 px-8 lg:flex">
+        {/* `left-8`, not `px-8`: live sets the inset with `mx-8` OUTSIDE its
+            `max-w-md` box, so padding here would eat 64px out of the 448px and
+            wrap the heading onto an extra line the real site doesn't have. */}
+        <div className="absolute inset-y-0 left-8 hidden max-w-md flex-col justify-center gap-y-4 lg:flex">
           <h1 className="font-bold text-4xl leading-tight text-white">{heading}</h1>
           {subheading && <p className="font-light text-lg leading-7 text-white">{subheading}</p>}
           {cta}

@@ -18,7 +18,7 @@ export function FeatureHighlights({ features }: { features: Highlight[] }) {
   if (features.length === 0) return null;
 
   return (
-    <section className="mx-auto max-w-[1030px] px-4 py-10">
+    <section className="mx-auto w-full max-w-[1030px] px-4 py-10">
       <div className="flex items-center gap-x-10">
         <div className="flex w-full flex-col gap-y-6 lg:w-1/3">
           {features.map((feature) => (

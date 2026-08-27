@@ -35,7 +35,7 @@ export function PricesAndLimits({
   const [tab, setTab] = useState<"ucretler" | "limitler">("ucretler");
 
   return (
-    <section className="mx-auto max-w-[1030px] px-4 py-16">
+    <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
       <div className="flex w-full max-w-[300px] items-center gap-x-2 rounded-lg bg-vf-gray p-1">
         <button
           type="button"

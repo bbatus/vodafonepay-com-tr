@@ -17,7 +17,7 @@ export function EarnWithCard({ slides }: { slides: Slide[] }) {
   if (slides.length === 0) return null;
 
   return (
-    <section className="mx-auto max-w-[1030px] px-4 py-16">
+    <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
       <h2 className="text-2xl font-bold text-black lg:text-4xl">Vodafone Pay Kart ile Kazan</h2>
       <p className="mt-4 max-w-2xl text-base text-gray-600">
         Vodafone Pay Sanal ve Fiziksel Kart ile harcamalarını kolayca ve güvenli bir şekilde

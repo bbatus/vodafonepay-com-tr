@@ -21,7 +21,7 @@ export function Campaigns({ campaigns }: { campaigns: CampaignCard[] }) {
   if (campaigns.length === 0 || !campaign) return null;
 
   return (
-    <section className="mx-auto max-w-[1030px] px-4 py-10">
+    <section className="mx-auto w-full max-w-[1030px] px-4 py-10">
       {/* RFP follow-up: was inside FeatureHighlights, so an empty
           anasayfa-highlights CMS collection (that section returns null when
           empty) also silently hid this completely unrelated heading —

@@ -20,7 +20,7 @@ export function CardsWithIcons({
   cards: { icon: string; title: string; text: string }[];
 }) {
   return (
-    <section className="mx-auto max-w-[1030px] px-4 py-16">
+    <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
       {title && <h2 className="text-2xl font-bold text-black lg:text-4xl">{title}</h2>}
       {description && <p className="mt-4 max-w-2xl text-base text-gray-600">{description}</p>}
       <div className="mt-10 flex flex-wrap justify-center gap-5">
