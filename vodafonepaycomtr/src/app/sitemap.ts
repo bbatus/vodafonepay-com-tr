@@ -3,9 +3,18 @@ import { getBlogPosts, getCampaigns, getPages, getRepresentatives } from "@/lib/
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:3000";
 
+/**
+ * Hand-written routes under src/app only. Anything that lives in the Pages
+ * collection is picked up from the CMS below instead — listing it here too
+ * emits the same <loc> twice.
+ *
+ * `/aninda-bakiye`, `/qr-ile-faturana-yansit` and `/vodafone-pay-uygulama`
+ * used to be here and were removed when they were migrated onto Pages: the
+ * duplicate was invisible until `getPages()` was fixed, because that getter
+ * had been returning null and contributing nothing at all.
+ */
 const STATIC_ROUTES = [
   "",
-  "/aninda-bakiye",
   "/bilgi-guvenligi",
   "/blog",
   "/cerez-politikasi",
@@ -16,14 +25,12 @@ const STATIC_ROUTES = [
   "/iletisim",
   "/kampanyalar",
   "/kurumsal-yonetim",
-  "/qr-ile-faturana-yansit",
   "/sikca-sorulan-sorular",
   "/site-haritasi",
   "/sozlesmeler-ve-formlar",
   "/temsilciliklerimiz",
   "/ucretler-ve-limitler",
   "/vodafone-pay-kart",
-  "/vodafone-pay-uygulama",
   "/web-sitesi-hukum-ve-sartlari",
 ];
 
@@ -56,5 +63,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${SITE_URL}/${p.slug}`,
   }));
 
-  return [...staticEntries, ...campaignEntries, ...blogEntries, ...representativeEntries, ...editorPageEntries];
+  const all = [...staticEntries, ...campaignEntries, ...blogEntries, ...representativeEntries, ...editorPageEntries];
+
+  // Belt-and-braces: an editor is free to create a Page whose slug matches a
+  // hand-written route, and a sitemap must not list the same URL twice.
+  // First occurrence wins, so a static entry keeps its lastModified.
+  return [...new Map(all.map((entry) => [entry.url, entry])).values()];
 }

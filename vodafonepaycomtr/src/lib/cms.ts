@@ -876,8 +876,66 @@ export async function getPageBySlug(slug: string): Promise<CmsPage | null> {
   return data?.docs?.[0] ?? null;
 }
 
-export async function getPages(): Promise<CmsPage[] | null> {
-  const data = await cmsFetch("/pages?depth=0&limit=200", "pages", listResponseSchema(pageSchema));
+/**
+ * Route listing only — `generateStaticParams` and the sitemap need nothing
+ * but the slug, so this deliberately does NOT reuse `pageSchema`.
+ *
+ * It used to, and that was a real bug: `pageSchema` carries the `layout`
+ * block union, whose image fields are `mediaSchema` OBJECTS — but this
+ * request uses `depth=0`, where Payload returns an upload relation as a bare
+ * numeric id. So the moment any page contained an image-bearing block, the
+ * whole list failed validation and this returned null, which silently
+ * dropped every editor-built page out of the sitemap and pre-rendered none
+ * of them. Caught live in the app container's own fail-loud log:
+ *   [cms] response shape mismatch for "/pages?depth=0&limit=200" (tag: pages):
+ *   Invalid input: expected object, received number
+ *
+ * Asking only for the fields the callers actually read makes `depth=0`
+ * correct by construction instead of a latent trap. Private pages are
+ * already excluded server-side by the collection's `pagesRead` access.
+ */
+const pageRouteSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  title: z.string(),
+  slug: z.string(),
+});
+export type CmsPageRoute = z.infer<typeof pageRouteSchema>;
+
+export async function getPages(): Promise<CmsPageRoute[] | null> {
+  const data = await cmsFetch("/pages?depth=0&limit=200", "pages", listResponseSchema(pageRouteSchema));
+  return data?.docs ?? null;
+}
+
+/**
+ * RFP follow-up: a Page can now put ITSELF in the header's "Ürünler"
+ * dropdown via its own `showInProductsMenu` checkbox, instead of the editor
+ * having to hand-write a matching NavLinks record (and get the slug right).
+ *
+ * Deliberately its own tiny schema rather than reusing `pageSchema`: the
+ * menu only needs four scalar fields, and `pageSchema` would drag the whole
+ * `layout` block union into a request that renders on every single page of
+ * the site. That also makes this immune to the `depth=0` media problem that
+ * makes `getPages()` fail validation for pages containing image blocks —
+ * no media is fetched here at all.
+ *
+ * `visibility` is filtered server-side so a private page never reaches the
+ * menu; unpublished ones are already excluded by Payload's own draft access.
+ */
+const productsMenuPageSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  title: z.string(),
+  slug: z.string(),
+  productsMenuLabel: nullableString(),
+  productsMenuOrder: z.number().nullable().optional().transform((v) => v ?? undefined),
+});
+export type CmsProductsMenuPage = z.infer<typeof productsMenuPageSchema>;
+
+export async function getProductsMenuPages(): Promise<CmsProductsMenuPage[] | null> {
+  const data = await cmsFetch(
+    "/pages?depth=0&limit=100&sort=productsMenuOrder&where[showInProductsMenu][equals]=true&where[visibility][equals]=public",
+    "pages",
+    listResponseSchema(productsMenuPageSchema)
+  );
   return data?.docs ?? null;
 }
 

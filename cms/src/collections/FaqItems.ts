@@ -1,43 +1,31 @@
-import type { CollectionBeforeChangeHook, CollectionConfig } from "payload";
+import type { CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { dbLabel } from "@/lib/collectionLabels";
-import { assignFooterOrder, assignNextOrder, FOOTER_ORDER_FIELD_DESCRIPTION, FOOTER_ORDER_MAX, orderField } from "@/hooks/ordering";
+import {
+  assignFooterOrder,
+  assignNextFlaggedOrder,
+  assignNextOrder,
+  FOOTER_ORDER_FIELD_DESCRIPTION,
+  FOOTER_ORDER_MAX,
+  orderField,
+} from "@/hooks/ordering";
 import { CATEGORY_SCOPES } from "@/collections/Categories";
 
 /**
- * Separate from `assignNextOrder` (hooks/ordering.ts) because that helper
- * always reads/writes a field literally named `order` — `homepageOrder`
- * needed its own small version rather than a generalization neither other
- * caller needs yet. Only assigns when the question is actually flagged for
- * the homepage; nothing to number otherwise.
+ * Only assigns when the question is actually flagged for the homepage;
+ * nothing to number otherwise. The implementation lives in
+ * `hooks/ordering.ts` — it used to be a local hook here with a note saying
+ * it stayed local until a second caller needed the same shape; Pages'
+ * `showInProductsMenu`/`productsMenuOrder` became that caller.
  */
-const assignNextHomepageOrder: CollectionBeforeChangeHook = async ({ data, req }) => {
-  // Runs on create AND update — an editor can check "Anasayfada Göster" on
-  // an existing question later, not only set it at creation time, and that
-  // moment needs a homepageOrder just as much as a brand-new one does.
-  if (!data?.showOnHomepage) return data;
-  if (typeof data.homepageOrder === "number" && data.homepageOrder > 0) return data;
-
-  try {
-    const { docs } = await req.payload.find({
-      collection: "faq-items",
-      where: { showOnHomepage: { equals: true } },
-      sort: "-homepageOrder",
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    });
-    const highest = (docs[0] as { homepageOrder?: number } | undefined)?.homepageOrder;
-    data.homepageOrder = typeof highest === "number" ? highest + 1 : 1;
-  } catch (err) {
-    console.error("[ordering] failed to compute next homepageOrder:", err);
-    data.homepageOrder = 1;
-  }
-  return data;
-};
+const assignNextHomepageOrder = assignNextFlaggedOrder({
+  collection: "faq-items",
+  flagField: "showOnHomepage",
+  orderField: "homepageOrder",
+});
 
 export const FaqItems: CollectionConfig = {
   slug: "faq-items",

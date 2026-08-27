@@ -22,6 +22,7 @@ import {
   getPageBySlug,
   getPageMeta,
   getPages,
+  getProductsMenuPages,
   getProductHero,
   getRepresentativeById,
   getRepresentatives,
@@ -446,9 +447,61 @@ describe("cms.ts fetch-backed getters", () => {
   });
 
   it("getPages returns the full list of editor-built pages", async () => {
-    const doc = { id: "p1", title: "T", slug: "t", layout: [] };
+    const doc = { id: "p1", title: "T", slug: "t" };
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
     expect(await getPages()).toEqual([doc]);
+  });
+
+  /**
+   * Regression: getPages() used to validate against the full `pageSchema`,
+   * whose block images are media OBJECTS — but it requests depth=0, where
+   * Payload sends an upload relation as a bare numeric id. Any page holding
+   * an image-bearing block therefore failed validation and took the WHOLE
+   * list down to null, silently emptying the sitemap and pre-rendering
+   * nothing. The old test only ever passed `layout: []`, which is why it
+   * never caught this.
+   */
+  it("getPages survives a depth=0 payload whose block images are numeric ids", async () => {
+    const doc = {
+      id: "p1",
+      title: "Layout Test",
+      slug: "layout-test",
+      layout: [{ blockType: "hero", heading: "H", image: 26 }],
+    };
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
+
+    const pages = await getPages();
+
+    expect(pages).toEqual([{ id: "p1", title: "Layout Test", slug: "layout-test" }]);
+  });
+
+  it("getPages asks the CMS only for the route fields the sitemap/static params use", async () => {
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
+    await getPages();
+    expect(vi.mocked(fetch).mock.calls[0][0] as string).toContain("/pages?depth=0");
+  });
+
+  it("getProductsMenuPages filters to published+public menu pages and sorts by the menu position", async () => {
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [] }));
+    await getProductsMenuPages();
+    const url = vi.mocked(fetch).mock.calls[0][0] as string;
+    expect(url).toContain("where[showInProductsMenu][equals]=true");
+    // A private page must never surface in the header menu.
+    expect(url).toContain("where[visibility][equals]=public");
+    expect(url).toContain("sort=productsMenuOrder");
+  });
+
+  it("getProductsMenuPages keeps the optional label/order and tolerates them being absent", async () => {
+    const docs = [
+      { id: "1", title: "Anında Bakiye", slug: "aninda-bakiye", productsMenuOrder: 1 },
+      { id: "2", title: "QR ile Faturana Yansıt", slug: "qr", productsMenuLabel: "QR ile Öde", productsMenuOrder: 2 },
+    ];
+    vi.mocked(fetch).mockImplementation(() => okJson({ docs }));
+
+    const pages = await getProductsMenuPages();
+
+    expect(pages?.[0].productsMenuLabel).toBeUndefined();
+    expect(pages?.[1].productsMenuLabel).toBe("QR ile Öde");
   });
 
   it("getLegalPage passes through document groups and hero image when present", async () => {

@@ -56,4 +56,23 @@ describe("sitemap", () => {
     expect(entries.length).toBeGreaterThan(0);
     expect(entries.every((e) => !e.url.includes("undefined") && !e.url.includes("null"))).toBe(true);
   });
+
+  /**
+   * The three product pages migrated onto Pages were left behind in
+   * STATIC_ROUTES, so once getPages() was fixed they were emitted twice.
+   */
+  it("does not list a migrated product page both as a static route and as a Pages document", async () => {
+    mockAll({ pages: [{ id: "1", slug: "aninda-bakiye" }, { id: "2", slug: "qr-ile-faturana-yansit" }] });
+    const entries = await sitemap();
+    const urls = entries.map((e) => e.url);
+    expect(urls.filter((u) => u === "http://localhost:3000/aninda-bakiye")).toHaveLength(1);
+    expect(urls.filter((u) => u === "http://localhost:3000/qr-ile-faturana-yansit")).toHaveLength(1);
+  });
+
+  it("never emits the same URL twice, even if a Page's slug collides with a hand-built route", async () => {
+    mockAll({ pages: [{ id: "1", slug: "iletisim" }] });
+    const entries = await sitemap();
+    const urls = entries.map((e) => e.url);
+    expect(new Set(urls).size).toBe(urls.length);
+  });
 });

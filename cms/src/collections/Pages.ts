@@ -5,6 +5,7 @@ import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead }
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { sitePreviewUrl } from "@/lib/preview";
+import { assignNextFlaggedOrder } from "@/hooks/ordering";
 import { dbLabel } from "@/lib/collectionLabels";
 import { turkishSlugify, uniqueSlug } from "@/lib/slugify";
 import { seoKeywordsField } from "@/lib/seoFields";
@@ -695,8 +696,8 @@ export const Pages: CollectionConfig = {
       minRows: 1,
       admin: {
         description: {
-          tr: "Sayfa, aşağıya eklediğiniz bloklardan yukarıdan aşağı sırayla oluşur — her blok bir bölüm demektir. Sürükleyerek sırasını değiştirebilir, çöp kutusuyla silebilirsiniz. '+ Layout Ekle'deki kartların üzerindeki küçük görsel her bloğun ne işe yaradığını gösterir; hangi bloğu ne zaman kullanacağınızın TAM listesi ve ÖNEMLİSİ bu sayfayı 'Ürünler' menüsünde/footer'da nasıl göstereceğinizin adım adım anlatımı, sayfanın en üstündeki '?' (Yardım) butonunda.",
-          en: "The page is built top-to-bottom from the blocks you add below — each block is one section. Drag to reorder, use the trash icon to delete. The small image on each '+ Add Layout' card shows what that block is for; the FULL list of which block to use when — and IMPORTANTLY, how to show this page in the 'Ürünler' menu/footer — is in the '?' (Help) button at the top of the page.",
+          tr: "Sayfa, aşağıya eklediğiniz bloklardan yukarıdan aşağı sırayla oluşur — her blok bir bölüm demektir. Sürükleyerek sırasını değiştirebilir, çöp kutusuyla silebilirsiniz. '+ Layout Ekle'deki kartların üzerindeki küçük görsel her bloğun ne işe yaradığını gösterir; hangi bloğu ne zaman kullanacağınızın TAM listesi sayfanın en üstündeki '?' (Yardım) butonunda. Bu sayfayı header'daki 'Ürünler' menüsünde göstermek için sağdaki ''Ürünler' Menüsünde Göster' kutusunu işaretlemeniz yeterli; footer ve Ana Menü hâlâ 'Menü Linkleri' koleksiyonundan yönetiliyor (Yardım'da anlatılıyor).",
+          en: "The page is built top-to-bottom from the blocks you add below — each block is one section. Drag to reorder, use the trash icon to delete. The small image on each '+ Add Layout' card shows what that block is for; the FULL list of which block to use when is in the '?' (Help) button at the top of the page. To show this page in the header's 'Products' menu just tick 'Show in the 'Products' Menu' in the sidebar; the footer and Main Menu are still managed from the 'Nav Links' collection (explained in Help).",
         },
       },
       blocks: [
@@ -756,6 +757,64 @@ export const Pages: CollectionConfig = {
       },
     },
     {
+      /**
+       * RFP follow-up: bir sayfayı kaydedip yayınlamak, onu header'daki
+       * "Ürünler" menüsünde göstermeye yetmiyordu — editörün AYRI bir
+       * koleksiyona (NavLinks) gidip elle, doğru slug'ı kendi yazarak bir
+       * link kaydı açması gerekiyordu. Sayfanın kendi ekranında "menüde
+       * görünsün mü" diye bir seçenek olmaması, canlıdaki 5 ürün sayfasının
+       * neden kodda sabit bir dizide durduğunun da sebebiydi.
+       *
+       * Bu kutu o adımı sayfanın kendi kaydına taşıyor: işaretlendiğinde
+       * site header'ı sayfayı doğrudan Pages'ten okuyup menüye ekler (bkz.
+       * site tarafında `getProductsMenuPages` + `Header.tsx`). Slug elle
+       * yazılmadığı için "menüdeki link yanlış sayfaya gidiyor" hatası da
+       * yapısal olarak imkânsız hale geliyor.
+       *
+       * NavLinks KALDIRILMADI: hâlâ Pages'te olmayan elle yazılmış rotalar
+       * (/faturana-yansit, /vodafone-pay-kart) ve dış bağlantılar için tek
+       * yol o. Header iki kaynağı birleştirir.
+       */
+      name: "showInProductsMenu",
+      type: "checkbox",
+      defaultValue: false,
+      label: { tr: "'Ürünler' Menüsünde Göster", en: "Show in the 'Products' Menu" },
+      admin: {
+        position: "sidebar",
+        description: {
+          tr: "İşaretlerseniz bu sayfa, header'daki 'Ürünler' açılır menüsünde otomatik listelenir — Menü Linkleri'ne ayrıca kayıt açmanıza gerek kalmaz. Menüde ancak sayfa YAYINLANDIĞINDA ve Görünürlük 'Herkese Açık' olduğunda çıkar.",
+          en: "Check this and the page is automatically listed in the header's 'Products' dropdown — no separate Nav Links record needed. It only appears once the page is PUBLISHED and its Visibility is 'Public'.",
+        },
+      },
+    },
+    {
+      name: "productsMenuLabel",
+      type: "text",
+      label: { tr: "Menüde Görünecek İsim", en: "Label in the Menu" },
+      admin: {
+        position: "sidebar",
+        condition: (data) => Boolean(data?.showInProductsMenu),
+        description: {
+          tr: "Boş bırakırsanız sayfanın Başlığı kullanılır. Sadece menüde daha kısa/farklı bir yazı görünmesini istiyorsanız doldurun (örn. başlık 'Vodafone Pay Kart Nedir?' iken menüde 'Vodafone Pay Kart').",
+          en: "Leave empty to use the page's Title. Fill this in only if the menu should show shorter/different text (e.g. title 'Vodafone Pay Kart Nedir?' but menu 'Vodafone Pay Kart').",
+        },
+      },
+    },
+    {
+      name: "productsMenuOrder",
+      type: "number",
+      min: 1,
+      label: { tr: "Menüdeki Sırası", en: "Position in the Menu" },
+      admin: {
+        position: "sidebar",
+        condition: (data) => Boolean(data?.showInProductsMenu),
+        description: {
+          tr: "'Ürünler' menüsündeki sırası — 1'den başlar, küçük sayı üstte görünür. Boş bırakırsanız otomatik olarak sona eklenir. Menüde ayrıca Menü Linkleri'nden gelen kayıtlar da varsa, ikisi tek listede bu numaraya göre birlikte sıralanır.",
+          en: "Position in the 'Products' menu — starts at 1, lower shows higher up. Leave empty to append to the end. If the menu also has Nav Links records, both sources are sorted together in one list by this number.",
+        },
+      },
+    },
+    {
       name: "createdBy",
       type: "relationship",
       relationTo: "users",
@@ -784,7 +843,10 @@ export const Pages: CollectionConfig = {
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
     beforeValidate: [generateSlug, preventSelfParent],
-    beforeChange: [setCreatedBy],
+    beforeChange: [
+      setCreatedBy,
+      assignNextFlaggedOrder({ collection: "pages", flagField: "showInProductsMenu", orderField: "productsMenuOrder" }),
+    ],
     afterChange: [revalidateTag("pages"), auditAfterChange("pages")],
     afterDelete: [revalidateTagOnDelete("pages"), auditAfterDelete("pages")],
   },

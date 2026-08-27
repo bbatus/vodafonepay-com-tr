@@ -178,6 +178,53 @@ export function orderField(liveOrder?: { collection: string; watchPath: string; 
 }
 
 /**
+ * Sequential-append numbering for a "görünürlük kutusu + ona ait kendi sıra
+ * alanı" çifti — FaqItems'ın `showOnHomepage`/`homepageOrder`'ı ve Pages'in
+ * `showInProductsMenu`/`productsMenuOrder`'ı.
+ *
+ * `assignNextOrder`'dan ayrı, çünkü o her zaman düz `order` adlı bir alanı
+ * okuyup yazıyor. Bu mantık FaqItems'ın içinde yerel bir hook olarak
+ * duruyordu ve oradaki yorum "bir genelleştirmeye başka çağıran ihtiyaç
+ * duymadığı için yerel bırakıldı" diyordu — Pages birebir aynı şekle ihtiyaç
+ * duyunca o not vadesi doldu ve buraya taşındı.
+ *
+ * `assignFooterOrder`'ın aksine burada sabit bir slot üst sınırı YOK, o
+ * yüzden düz "en yüksek + 1" doğru davranış: bu listeler sınırsız.
+ */
+export function assignNextFlaggedOrder(args: {
+  collection: string;
+  flagField: string;
+  orderField: string;
+}): CollectionBeforeChangeHook {
+  const { collection, flagField, orderField: orderFieldName } = args;
+  return async ({ data, req }) => {
+    // Create VE update'te çalışır — editör "Ürünler menüsünde göster"i var
+    // olan bir kayıtta sonradan da işaretleyebilir, o an da bir sıraya
+    // yeni kayıt kadar ihtiyaç duyar.
+    if (!data?.[flagField]) return data;
+    const current = data[orderFieldName];
+    if (typeof current === "number" && current > 0) return data;
+
+    try {
+      const { docs } = await req.payload.find({
+        collection,
+        where: { [flagField]: { equals: true } },
+        sort: `-${orderFieldName}`,
+        limit: 1,
+        depth: 0,
+        overrideAccess: true,
+      });
+      const highest = (docs[0] as Record<string, unknown> | undefined)?.[orderFieldName];
+      data[orderFieldName] = typeof highest === "number" ? highest + 1 : 1;
+    } catch (err) {
+      console.error(`[ordering] failed to compute next ${orderFieldName} for "${collection}":`, err);
+      data[orderFieldName] = 1;
+    }
+    return data;
+  };
+}
+
+/**
  * RFP follow-up: "footer'da göster" seçeneği + 1-6 arası sıra —
  * Campaigns/FaqItems'a eklenen `showInFooter`/`footerOrder` çifti için.
  *

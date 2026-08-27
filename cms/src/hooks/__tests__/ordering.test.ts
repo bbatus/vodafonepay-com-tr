@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { PayloadRequest } from "payload";
-import { assignFooterOrder, assignNextOrder, FOOTER_ORDER_MAX, orderField } from "@/hooks/ordering";
+import { assignFooterOrder, assignNextFlaggedOrder, assignNextOrder, FOOTER_ORDER_MAX, orderField } from "@/hooks/ordering";
 
 function fakeReq(highest?: number, reject = false) {
   // Same canned response for every find() call (the "highest order" lookup
@@ -242,5 +242,90 @@ describe("orderField", () => {
       admin?: { components?: { Field?: { clientProps?: Record<string, unknown> } } };
     };
     expect(field.admin?.components?.Field?.clientProps?.mode).toBe("relationship");
+  });
+});
+
+describe("assignNextFlaggedOrder", () => {
+  const hook = assignNextFlaggedOrder({
+    collection: "pages",
+    flagField: "showInProductsMenu",
+    orderField: "productsMenuOrder",
+  });
+
+  const call = (data: Record<string, unknown>, req: PayloadRequest) =>
+    hook({ data, operation: "create", req, collection: {} as never, context: {} } as never) as Promise<
+      Record<string, unknown>
+    >;
+
+  it("leaves an unflagged document alone and never queries the DB for it", async () => {
+    const find = vi.fn();
+    const req = { payload: { find } } as unknown as PayloadRequest;
+
+    const data = await call({ showInProductsMenu: false, title: "Gizli" }, req);
+
+    expect(data.productsMenuOrder).toBeUndefined();
+    expect(find).not.toHaveBeenCalled();
+  });
+
+  it("gives the first flagged document position 1", async () => {
+    const find = vi.fn().mockResolvedValue({ docs: [], totalDocs: 0 });
+    const req = { payload: { find } } as unknown as PayloadRequest;
+
+    const data = await call({ showInProductsMenu: true }, req);
+
+    expect(data.productsMenuOrder).toBe(1);
+  });
+
+  it("appends after the current highest position", async () => {
+    const find = vi.fn().mockResolvedValue({ docs: [{ productsMenuOrder: 4 }], totalDocs: 1 });
+    const req = { payload: { find } } as unknown as PayloadRequest;
+
+    const data = await call({ showInProductsMenu: true }, req);
+
+    expect(data.productsMenuOrder).toBe(5);
+    // Only siblings that are actually in the menu may influence the number.
+    expect(find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: "pages",
+        where: { showInProductsMenu: { equals: true } },
+        sort: "-productsMenuOrder",
+      })
+    );
+  });
+
+  it("respects a position the editor typed themselves", async () => {
+    const find = vi.fn();
+    const req = { payload: { find } } as unknown as PayloadRequest;
+
+    const data = await call({ showInProductsMenu: true, productsMenuOrder: 2 }, req);
+
+    expect(data.productsMenuOrder).toBe(2);
+    expect(find).not.toHaveBeenCalled();
+  });
+
+  it("still saves with position 1 when the lookup fails, rather than blocking the editor", async () => {
+    const find = vi.fn().mockRejectedValue(new Error("db down"));
+    const req = { payload: { find } } as unknown as PayloadRequest;
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const data = await call({ showInProductsMenu: true }, req);
+
+    expect(data.productsMenuOrder).toBe(1);
+    error.mockRestore();
+  });
+
+  it("numbers a document flagged later on update, not only at creation time", async () => {
+    const find = vi.fn().mockResolvedValue({ docs: [{ productsMenuOrder: 2 }], totalDocs: 1 });
+    const req = { payload: { find } } as unknown as PayloadRequest;
+
+    const data = (await hook({
+      data: { showInProductsMenu: true },
+      operation: "update",
+      req,
+      collection: {} as never,
+      context: {},
+    } as never)) as Record<string, unknown>;
+
+    expect(data.productsMenuOrder).toBe(3);
   });
 });
