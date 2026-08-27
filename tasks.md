@@ -410,3 +410,56 @@ değişikliğiyle ilgisizdi), bu turda kapatıldı. Detay: `docs/STATUS.md` §2.
       CVE-2026-14456, CVE-2026-18798, CVE-2026-63072, CVE-2026-63076).
 - [x] Rebuild + healthy doğrulandı, `scripts/trivy-scan.sh all` 0 bulgu
       raporladı.
+
+## 23. Sayfalar koleksiyonu — "Ürünler menüsünde göster" + getPages() bug'ı — Kullanıcı testi bekliyor (27.08.2026)
+
+**Durum:** Kod tarafı bitti ve canlıda (localhost) benim tarafımdan
+doğrulandı; **kullanıcı henüz test etmedi**. Detay: `docs/STATUS.md`.
+
+### 23a. Bir sayfa kendini "Ürünler" menüsüne koyabiliyor
+
+Sorun: Bir Page kaydedilip yayınlansa bile header'daki "Ürünler" menüsünde
+görünmüyordu — editörün AYRI bir koleksiyona (`Menü Linkleri`/NavLinks)
+gidip slug'ı elle yazarak bir link kaydı açması gerekiyordu. Canlıdaki 5
+ürün sayfasının `Header.tsx` içinde sabit bir dizide durmasının sebebi de
+buydu (yeni görsel/metin gerektiğinde koda dokunmak gerekiyordu).
+
+- [x] `Pages`'e `showInProductsMenu` kutusu eklendi (+ opsiyonel
+      `productsMenuLabel` ve `productsMenuOrder`) — Campaigns/FaqItems'taki
+      `showInFooter`/`footerOrder` deseninin aynısı.
+- [x] Site header'ı iki kaynağı tek listede birleştiriyor: NavLinks
+      (`header-products`) + Pages (`showInProductsMenu`), ortak sıra
+      numarasına göre. NavLinks KALDIRILMADI — Pages'te olmayan elle
+      yazılmış rotalar (`/faturana-yansit`, `/vodafone-pay-kart`) ve dış
+      bağlantılar için hâlâ tek yol o.
+- [x] `assignNextHomepageOrder` (FaqItems'ta yereldi) `ordering.ts`'e
+      `assignNextFlaggedOrder` olarak taşındı — kendi yorumu "ikinci bir
+      çağıran olduğunda genelleştir" diyordu, bu o çağıran.
+- [x] Yardım metni (`helpContent.ts`) ve alan açıklamaları güncellendi —
+      eski "menüler ayrı yerden yönetiliyor" adımı artık yanlış bilgiydi.
+- [x] DB kolonları elle eklendi (`pages` + `_pages_v`), bkz. `docs/STATUS.md` §5.
+- [ ] **Kullanıcı testi:** CMS'te bir sayfa açıp kutuyu işaretle → yayınla →
+      sitede "Ürünler" menüsünde çıktığını, etiketin/sıranın çalıştığını,
+      Görünürlük "Gizli" yapılınca menüden düştüğünü doğrula.
+
+### 23b. 10 layout bloğunun tamamı UI'dan tek tek eklenip test edildi
+
+- [x] CMS UI'ından bir sayfa oluşturulup 10 blok tipinin hepsi tek tek
+      eklendi (hero, richText, faqList, campaignGrid, video, logoGrid,
+      iconCards, steps, imageTextSlides, videoList) — **hepsi render
+      oluyor**: 10 `<section>`, 2 YouTube gömme, 23 görsel, konsol/sunucu
+      hatası yok. Blok seçicide de 10'unun hepsi listeleniyor.
+- [x] **Bu tur GERÇEK bir bug ortaya çıkardı** (uygulama zaten loglamış,
+      kimse bakmamış): `getPages()` tam `pageSchema`'ya doğruluyordu (blok
+      görselleri **nesne** bekliyor) ama `depth=0` ile istiyordu (Payload
+      orada upload ilişkisini **sayı id** döndürüyor). Görsel içeren tek bir
+      blok bile tüm listeyi `null`'a düşürüyordu → **editörün yaptığı her
+      sayfa sitemap'ten sessizce düşüyordu** ve hiçbiri statik üretilmiyordu.
+      Canlıda doğrulandı: sitemap'te sıfır Pages kaydı vardı.
+- [x] İkincil bug (yukarıdaki düzeltme açığa çıkardı): Pages'e göç ettirilen
+      3 ürün sayfası `STATIC_ROUTES`'tan hiç silinmemişti → sitemap'te çift
+      çıkıyorlardı. Bayat kayıtlar silindi + liste tekilleştirildi.
+- [x] Regresyon testleri yazıldı (eski test `layout: []` kullandığı için bu
+      bug'ı hiç yakalayamıyordu). Site 355, CMS 449 test geçiyor.
+- [ ] **Kullanıcı testi:** `Layout Test Sayfasi` CMS'te duruyor — açıp
+      blokları gözden geçir; istenmiyorsa sil.
