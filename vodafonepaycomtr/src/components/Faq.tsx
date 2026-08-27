@@ -19,9 +19,22 @@ export function Faq({ items, showHeading = true }: { items: FaqItem[]; showHeadi
   if (items.length === 0) return null;
 
   return (
-    <section className="bg-[#f9fafb] px-4 py-16 lg:px-16">
-      {showHeading && <h2 className="text-center text-3xl font-bold text-black">Sıkça Sorulan Sorular</h2>}
-      <div className="mx-auto mt-10 flex max-w-3xl flex-col gap-y-3">
+    /**
+     * Measured against the live `widget_General_FAQs`: the accordion card
+     * itself (`bg-white px-5 py-[22px] rounded shadow-[0px_2px_8px_0px_#00000029]`)
+     * was already exact, but the frame around it was not — live has NO tinted
+     * section background, sits its cards on the same 1030px content column as
+     * every other section (ours capped them at max-w-3xl / 768px), spaces them
+     * 20px apart, and left-aligns a 28px heading on desktop instead of
+     * centring a 30px one.
+     */
+    <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
+      {showHeading && (
+        <h2 className="mb-10 text-center text-2xl font-bold leading-tight text-black lg:text-start lg:text-[28px]">
+          Sıkça Sorulan Sorular
+        </h2>
+      )}
+      <div className="flex flex-col gap-y-5">
         {items.map((item, i) => {
           const isOpen = openIndex === i;
           return (

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
 import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
+import { BrandLogoGrid } from "@/components/BrandLogoGrid";
 import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { Faq } from "@/components/Faq";
 import { FeatureHighlights } from "@/components/FeatureHighlights";
@@ -131,34 +131,20 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
         </section>
       );
 
-    // The site's own surface treatment is a flat #F2F2F2 tile (`bg-vf-gray`),
-    // never a white card on a white page with a drop shadow — see
-    // VideosWithTabs/CardsWithIcons, both built against the live design.
+    /**
+     * Live parity: `widget_WhereCanIUse`. This block used to draw its own
+     * 80x40 logos in a grey tile with no brand names at all — measuring the
+     * live widget showed 140x140 transparent tiles WITH the brand name under
+     * each, inside a 1400px white card. BrandLogoGrid now carries that, and
+     * the block renders through it so /faturana-yansit and an editor-built
+     * page stay identical.
+     */
     case "logoGrid":
       return (
-        <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
-          {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
-          <div className="mt-8 rounded-xl bg-vf-gray p-6 lg:p-10">
-            <div className="grid grid-cols-3 items-center gap-6 sm:grid-cols-5">
-              {block.logos.map((l) => {
-                const img = (
-                  <Image
-                    src={l.logo.url}
-                    alt={l.logo.alt || l.name}
-                    width={80}
-                    height={40}
-                    className="h-auto max-h-10 w-auto max-w-full object-contain"
-                  />
-                );
-                return (
-                  <div key={l.name} className="flex h-16 items-center justify-center">
-                    {l.linkUrl ? <Link href={l.linkUrl}>{img}</Link> : img}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+        <BrandLogoGrid
+          heading={block.heading || undefined}
+          brands={block.logos.map((l) => ({ name: l.name, logo: l.logo.url, linkUrl: l.linkUrl }))}
+        />
       );
 
     /**
@@ -289,9 +275,12 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
       return (
         <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
           {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
-          <div className="mt-8 flex gap-x-5 overflow-x-auto pb-2">
+          {/* One `#F2F2F2 rounded-md` panel holding the slides, matching the
+              live `widget_EarnWithCard` surface — the live site never puts a
+              row of separately-tinted tiles straight onto the white page. */}
+          <div className="mt-8 flex gap-x-5 overflow-x-auto rounded-md bg-vf-gray p-4 lg:p-9">
             {block.slides.map((s) => (
-              <div key={s.image.url} className="flex w-[253px] shrink-0 flex-col gap-y-3 rounded-xl bg-vf-gray p-4">
+              <div key={s.image.url} className="flex w-[253px] shrink-0 flex-col gap-y-3">
                 <Image
                   src={s.image.url}
                   alt={s.image.alt || s.text}

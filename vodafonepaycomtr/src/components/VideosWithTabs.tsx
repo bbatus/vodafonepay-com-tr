@@ -18,14 +18,18 @@ export function VideosWithTabs() {
 
   return (
     <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
-      <div className="mx-auto flex w-full max-w-3xl justify-center rounded-lg bg-vf-gray p-1">
+      {/* Live `widget_VideosWithTabs`: the pill strip is bg-white, and the
+          ACTIVE tab is filled near-black (#0D0D0D) with white text at a fixed
+          286px — not a white-on-grey "selected" chip with grey inactive text,
+          which is what this used to render. */}
+      <div className="mx-auto mb-5 flex w-fit max-w-full items-center justify-center gap-x-2 overflow-x-auto rounded-lg bg-white">
         {tabs.map((tab, i) => (
           <button
             type="button"
             key={tab.label}
             onClick={() => setActiveTab(i)}
-            className={`flex-1 rounded-md px-4 py-3 text-sm font-bold transition-colors ${
-              activeTab === i ? "bg-white text-black shadow-sm" : "text-gray-500"
+            className={`m-1 shrink-0 rounded-md px-2 py-3 text-xs font-light transition-colors lg:w-[286px] lg:px-10 lg:text-base ${
+              activeTab === i ? "bg-[#0D0D0D] text-white" : "text-black"
             }`}
           >
             {tab.label}

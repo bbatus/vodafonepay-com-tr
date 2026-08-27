@@ -25,7 +25,10 @@ export function ImageSideCarousel({
 
   return (
     <div className="mt-10">
-      <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-stretch">
+      {/* Live `widget_EarnWithCard` wraps this whole pairing in one
+          `bg-[#f2f2f2] rounded-md` panel (1030x391, lg:pl-9, gap-x-[50px]) —
+          we were rendering the image and the slide loose on the white page. */}
+      <div className="flex flex-col items-center gap-8 rounded-md bg-vf-gray p-4 lg:flex-row lg:items-stretch lg:gap-x-[50px] lg:p-9">
         <Image
           src={sideImage}
           alt={sideImageAlt}

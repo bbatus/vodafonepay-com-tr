@@ -32,8 +32,13 @@ export function CardListCard({ item, linkLabel = "Detayları gör" }: { item: Ca
   const label = item.linkLabel || linkLabel;
   const content = (
     <>
-      <Image src={item.image} alt={item.title} width={361} height={240} className="h-[240px] w-full rounded object-cover" />
-      <h3 className="mt-4 text-lg font-bold text-black">{item.title}</h3>
+      {/* Measured on the live `.campaign-card`: the frame (max-w-[361px]
+          rounded-md bg-white p-5 shadow-md) already matched, but the media and
+          title did not — live shows the artwork at 321x180 `object-contain`
+          with NO corner rounding (so wide campaign key visuals are never
+          cropped), and titles at 20px in #333 rather than 18px pure black. */}
+      <Image src={item.image} alt={item.title} width={321} height={180} className="h-[180px] w-full object-contain" />
+      <h3 className="mt-4 text-xl font-bold text-[#333]">{item.title}</h3>
       {/* line-clamp-3 caps the card regardless of how long a CMS excerpt/description
           ends up being — a long excerpt (BlogPosts.excerpt is also
           maxLength-capped now, but this is the layout-side backstop) used to
