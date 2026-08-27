@@ -1,11 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { BlockRenderer } from "@/app/[...slug]/page";
-import { getCampaigns, getFaqItems } from "@/lib/cms";
+import { getBlogPosts, getCampaigns, getFaqItems, getFeeRows, getLimitTables } from "@/lib/cms";
 
 vi.mock("@/lib/cms", async () => {
   const actual = await vi.importActual<typeof import("@/lib/cms")>("@/lib/cms");
-  return { ...actual, getFaqItems: vi.fn(), getCampaigns: vi.fn() };
+  return {
+    ...actual,
+    getFaqItems: vi.fn(),
+    getCampaigns: vi.fn(),
+    getFeeRows: vi.fn(),
+    getLimitTables: vi.fn(),
+    getBlogPosts: vi.fn(),
+  };
 });
 
 const image = { url: "/a.jpg", alt: "a" };
@@ -129,6 +136,42 @@ describe("BlockRenderer", () => {
     expect(screen.getByText("Nasıl Kazanırım?")).toBeInTheDocument();
     expect(screen.getByText("Bakiye Yükle")).toBeInTheDocument();
     expect(screen.getByText("Nakit iade kazan")).toBeInTheDocument();
+  });
+
+  it("imageWithText: renders heading, copy and image, and can flip the image side", async () => {
+    const { container } = render(
+      await BlockRenderer({
+        block: { blockType: "imageWithText", heading: "Nereden alabilirim?", text: "Mağazalardan.", image, imageSide: "right" },
+      })
+    );
+    expect(screen.getByText("Nereden alabilirim?")).toBeInTheDocument();
+    expect(screen.getByText("Mağazalardan.")).toBeInTheDocument();
+    // imageSide:right must reorder on desktop only — mobile always shows the image first.
+    expect(container.innerHTML).toContain("lg:order-2");
+  });
+
+  it("pricesAndLimits: pulls the collections rather than carrying its own numbers", async () => {
+    vi.mocked(getFeeRows).mockResolvedValue([{ id: "1", label: "Hizmet Bedeli", value: "31,90 TL", order: 1 }] as never);
+    vi.mocked(getLimitTables).mockResolvedValue([] as never);
+    render(await BlockRenderer({ block: { blockType: "pricesAndLimits" } }));
+    expect(screen.getByText("Hizmet Bedeli")).toBeInTheDocument();
+  });
+
+  it("pricesAndLimits: renders nothing when both collections are empty, instead of an empty table shell", async () => {
+    vi.mocked(getFeeRows).mockResolvedValue([] as never);
+    vi.mocked(getLimitTables).mockResolvedValue([] as never);
+    const { container } = render(await BlockRenderer({ block: { blockType: "pricesAndLimits" } }));
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("blogGrid: lists posts and can scope them to one category", async () => {
+    vi.mocked(getBlogPosts).mockResolvedValue([
+      { id: "1", title: "Yazı A", slug: "a", coverImage: image, body: null, category: { label: "Haberler", slug: "haberler" } },
+      { id: "2", title: "Yazı B", slug: "b", coverImage: image, body: null, category: { label: "İpuçları", slug: "ipuclari" } },
+    ] as never);
+    render(await BlockRenderer({ block: { blockType: "blogGrid", heading: "Bloglar", category: "haberler" } }));
+    expect(screen.getByText("Yazı A")).toBeInTheDocument();
+    expect(screen.queryByText("Yazı B")).not.toBeInTheDocument();
   });
 
   it("imageTextSlides: renders each slide's text", async () => {

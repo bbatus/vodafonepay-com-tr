@@ -818,6 +818,27 @@ const howToEarnBlockSchema = z.object({
   image: mediaSchema,
   steps: z.array(z.object({ icon: mediaSchema, title: z.string(), description: z.string() })),
 });
+/** Live parity: `widget_WhereCanIBuy` / `widget_WhereCanIUse`. */
+const imageWithTextBlockSchema = z.object({
+  blockType: z.literal("imageWithText"),
+  id: z.string().optional(),
+  heading: z.string(),
+  text: z.string(),
+  image: mediaSchema,
+  imageSide: z.enum(["left", "right"]).nullable().optional().transform((v) => v ?? "left"),
+});
+/** Live parity: `widget_PricesAndLimits` — data comes from the collections, not the block. */
+const pricesAndLimitsBlockSchema = z.object({
+  blockType: z.literal("pricesAndLimits"),
+  id: z.string().optional(),
+});
+/** Live parity: `widget_Blogs` — the campaignGrid mirror for Blog Posts. */
+const blogGridBlockSchema = z.object({
+  blockType: z.literal("blogGrid"),
+  id: z.string().optional(),
+  heading: z.string(),
+  category: nullableString(),
+});
 const imageTextSlidesBlockSchema = z.object({
   blockType: z.literal("imageTextSlides"),
   id: z.string().optional(),
@@ -841,6 +862,9 @@ const pageBlockSchema = z.discriminatedUnion("blockType", [
   iconCardsBlockSchema,
   stepsBlockSchema,
   howToEarnBlockSchema,
+  imageWithTextBlockSchema,
+  pricesAndLimitsBlockSchema,
+  blogGridBlockSchema,
   imageTextSlidesBlockSchema,
   videoListBlockSchema,
 ]);

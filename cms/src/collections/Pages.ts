@@ -562,6 +562,151 @@ const HowToEarnBlock: Block = {
   ],
 };
 
+/**
+ * Live parity: `widget_WhereCanIBuy` (/vodafone-pay-kart) and
+ * `widget_WhereCanIUse` (/faturana-yansit) are the same shape under two
+ * names — one illustration with copy beside it. The block library had no way
+ * to express "görsel bir tarafta, yazı diğer tarafta", which is one of the
+ * most common section shapes on the live site.
+ */
+const ImageWithTextBlock: Block = {
+  slug: "imageWithText",
+  labels: {
+    singular: { tr: "Görsel + Yan Metin Bloğu", en: "Image + Side Text Block" },
+    plural: { tr: "Görsel + Yan Metin Blokları", en: "Image + Side Text Blocks" },
+  },
+  admin: {
+    images: blockThumb(
+      `<rect x="24" y="70" width="200" height="180" rx="8" fill="url(#iwtGrad)"/><text x="250" y="110" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">Nereden satın</text><text x="250" y="136" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">alabilirim?</text><rect x="250" y="156" width="200" height="9" rx="3" fill="#d1d5db"/><rect x="250" y="174" width="190" height="9" rx="3" fill="#d1d5db"/><rect x="250" y="192" width="160" height="9" rx="3" fill="#d1d5db"/>`,
+      vfImageFill("iwtGrad")
+    ),
+  },
+  fields: [
+    {
+      name: "heading",
+      type: "text",
+      required: true,
+      admin: {
+        description: {
+          tr: "Görselin yanında görünecek başlık. Örnek: \"Nereden satın alabilirim?\" · \"Nerelerde kullanabilirim?\".",
+          en: "The heading shown beside the image. E.g.: \"Nereden satın alabilirim?\" · \"Nerelerde kullanabilirim?\".",
+        },
+      },
+    },
+    {
+      name: "text",
+      type: "textarea",
+      required: true,
+      admin: {
+        description: {
+          tr: "Başlığın altındaki açıklama metni — 2-4 cümle.",
+          en: "The explanatory copy under the heading — 2-4 sentences.",
+        },
+      },
+    },
+    {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      required: true,
+      admin: {
+        description: {
+          tr: "Yanda görünecek görsel/illüstrasyon. Önerilen genişlik: 434 piksel.",
+          en: "The illustration shown alongside. Recommended width: 434px.",
+        },
+      },
+    },
+    {
+      name: "imageSide",
+      type: "select",
+      defaultValue: "left",
+      label: { tr: "Görselin Tarafı", en: "Image Side" },
+      options: [
+        { label: { tr: "Solda (yazı sağda)", en: "Left (text on the right)" }, value: "left" },
+        { label: { tr: "Sağda (yazı solda)", en: "Right (text on the left)" }, value: "right" },
+      ],
+      admin: {
+        description: {
+          tr: "Görselin masaüstünde hangi tarafta duracağı. Mobilde görsel her zaman üstte gösterilir.",
+          en: "Which side the image sits on for desktop. On mobile the image is always shown first.",
+        },
+      },
+    },
+  ],
+};
+
+/**
+ * Live parity: `widget_PricesAndLimits` (/ucretler-ve-limitler). Takes no
+ * content fields on purpose — the numbers already live in the Fee Rows and
+ * Limit Tables collections, and duplicating them into a block would create a
+ * second copy an editor has to keep in sync. Same pattern as `faqList` and
+ * `campaignGrid`, which also render a collection rather than their own data.
+ */
+const PricesAndLimitsBlock: Block = {
+  slug: "pricesAndLimits",
+  labels: {
+    singular: { tr: "Ücretler ve Limitler Bloğu", en: "Fees and Limits Block" },
+    plural: { tr: "Ücretler ve Limitler Blokları", en: "Fees and Limits Blocks" },
+  },
+  admin: {
+    images: blockThumb(
+      `<rect x="30" y="30" width="150" height="34" rx="8" fill="#f2f2f2"/><rect x="34" y="34" width="70" height="26" rx="6" fill="#ffffff"/><text x="46" y="52" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Ücretler</text><text x="118" y="52" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">Limitler</text><rect x="30" y="82" width="420" height="30" fill="#f2f2f2"/><text x="42" y="102" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Faturana Yansıt Hizmet Bedeli</text><text x="330" y="102" font-family="Arial, sans-serif" font-size="12" fill="#111827">31,90 TL</text><rect x="30" y="112" width="420" height="30" fill="#fafafa"/><text x="42" y="132" font-family="Arial, sans-serif" font-size="12" fill="#111827">Anında Bakiye İşlem Ücreti</text><text x="330" y="132" font-family="Arial, sans-serif" font-size="12" fill="#111827">%10</text><rect x="30" y="142" width="420" height="30" fill="#ffffff"/><text x="42" y="162" font-family="Arial, sans-serif" font-size="12" fill="#111827">Fatura Ödeme</text><text x="330" y="162" font-family="Arial, sans-serif" font-size="12" fill="#111827">Ücretsiz</text><rect x="30" y="172" width="420" height="30" fill="#fafafa"/><text x="42" y="192" font-family="Arial, sans-serif" font-size="12" fill="#111827">ATM Bakiye Sorgulama</text><text x="330" y="192" font-family="Arial, sans-serif" font-size="12" fill="#111827">Ücretsiz</text>`
+    ),
+  },
+  fields: [
+    {
+      name: "note",
+      type: "ui",
+      admin: {
+        components: {
+          Field: "/components/CollectionBackedBlockNote#default",
+        },
+      },
+    },
+  ],
+};
+
+/**
+ * Live parity: `widget_Blogs` (/blog). The mirror of `campaignGrid` — same
+ * card grid, fed from Blog Posts instead of Campaigns.
+ */
+const BlogGridBlock: Block = {
+  slug: "blogGrid",
+  labels: {
+    singular: { tr: "Blog Grid Bloğu", en: "Blog Grid Block" },
+    plural: { tr: "Blog Grid Blokları", en: "Blog Grid Blocks" },
+  },
+  admin: {
+    images: blockThumb(
+      `<text x="30" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Bloglar</text><rect x="30" y="46" width="130" height="80" rx="6" fill="url(#blogGrad)"/><text x="30" y="146" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Ulaşım Kartı Yükleme</text><rect x="30" y="154" width="110" height="8" rx="2" fill="#d1d5db"/><rect x="180" y="46" width="130" height="80" rx="6" fill="url(#blogGrad)"/><text x="180" y="146" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">QR ile Ödeme</text><rect x="180" y="154" width="110" height="8" rx="2" fill="#d1d5db"/><rect x="330" y="46" width="130" height="80" rx="6" fill="url(#blogGrad)"/><text x="330" y="146" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Anında Bakiye</text><rect x="330" y="154" width="110" height="8" rx="2" fill="#d1d5db"/>`,
+      vfImageFill("blogGrad")
+    ),
+  },
+  fields: [
+    {
+      name: "heading",
+      type: "text",
+      required: true,
+      admin: {
+        description: {
+          tr: "Vitrinin başlığı. Örnek: \"Bloglar\" · \"Son Yazılar\".",
+          en: "The showcase's heading. E.g.: \"Bloglar\" · \"Son Yazılar\".",
+        },
+      },
+    },
+    {
+      name: "category",
+      type: "text",
+      admin: {
+        description: {
+          tr: "Sadece BELİRLİ bir kategorideki yazıları göstermek için Kategoriler koleksiyonundaki (Akış: Blog) o kategorinin slug'ını yazın, örn: haberler. Boş bırakılırsa TÜM yazılar gelir.",
+          en: "To show only ONE category's posts, enter that category's slug from the Categories collection (Flow: Blog), e.g.: haberler. Leave empty for ALL posts.",
+        },
+      },
+    },
+  ],
+};
+
 const ImageTextSlidesBlock: Block = {
   slug: "imageTextSlides",
   labels: {
@@ -791,6 +936,9 @@ export const Pages: CollectionConfig = {
         IconCardsBlock,
         StepsBlock,
         HowToEarnBlock,
+        ImageWithTextBlock,
+        PricesAndLimitsBlock,
+        BlogGridBlock,
         ImageTextSlidesBlock,
         VideoListBlock,
       ],

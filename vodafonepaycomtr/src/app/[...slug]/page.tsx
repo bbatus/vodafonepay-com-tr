@@ -10,9 +10,22 @@ import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
 import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { Faq } from "@/components/Faq";
 import { HowToEarn } from "@/components/HowToEarn";
+import { ImageWithText } from "@/components/ImageWithText";
+import { PricesAndLimits } from "@/components/PricesAndLimits";
 import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
 import { ProductHero } from "@/components/ProductHero";
-import { campaignToCard, getCampaigns, getFaqItems, getPageBySlug, getPages, type CmsPageBlock } from "@/lib/cms";
+import {
+  campaignToCard,
+  getBlogPosts,
+  getCampaigns,
+  getFaqItems,
+  getFeeRows,
+  getLimitTables,
+  getPageBySlug,
+  getPages,
+  richTextToPlainText,
+  type CmsPageBlock,
+} from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 import { RichText } from "@/components/RichText";
 
@@ -191,6 +204,63 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
           invertIcons={false}
         />
       );
+
+    /**
+     * Live parity: `widget_WhereCanIBuy` / `widget_WhereCanIUse`. Renders
+     * through the same ImageWithText the hand-written /vodafone-pay-kart page
+     * now uses, so the two can't diverge.
+     */
+    case "imageWithText":
+      return (
+        <ImageWithText
+          heading={block.heading}
+          text={block.text}
+          image={block.image.url}
+          imageAlt={block.image.alt || block.heading}
+          imageSide={block.imageSide}
+        />
+      );
+
+    /**
+     * Live parity: `widget_PricesAndLimits`. Reads the Fee Rows / Limit Tables
+     * collections rather than carrying its own copy of the numbers — an
+     * editor edits them in one place and every page showing this block
+     * follows. Renders nothing at all if both are empty, instead of an empty
+     * table shell (the fallback-masking rule: show the real state).
+     */
+    case "pricesAndLimits": {
+      const [feeRows, limitTables] = await Promise.all([getFeeRows(), getLimitTables()]);
+      if (!feeRows?.length && !limitTables?.length) return null;
+      return (
+        <PricesAndLimits
+          feeRows={(feeRows ?? []).map((r) => [r.label, r.value] as [string, string])}
+          limitTables={(limitTables ?? []).map((t) => ({
+            title: t.title,
+            rows: t.rows.map(
+              (r) => [r.category, r.period, r.unverifiedLimit, r.verifiedLimit] as [string, string, string, string]
+            ),
+          }))}
+        />
+      );
+    }
+
+    /** Live parity: `widget_Blogs` — same grid as campaignGrid, fed from Blog Posts. */
+    case "blogGrid": {
+      const posts = await getBlogPosts();
+      const filtered = block.category ? posts?.filter((p) => p.category?.slug === block.category) : posts;
+      const items: CardListItem[] = (filtered ?? []).map((p) => ({
+        id: p.id,
+        image: p.coverImage.url,
+        title: p.title,
+        description: richTextToPlainText(p.body, 120),
+        href: `/blog/${p.slug}`,
+      }));
+      return (
+        <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
+          <CardListGrid title={block.heading} items={items} />
+        </section>
+      );
+    }
 
     // Mirrors VideosWithTabs' own scroller: fixed-width `bg-vf-gray rounded-xl`
     // tiles with the media inset, rather than white shadowed cards.
