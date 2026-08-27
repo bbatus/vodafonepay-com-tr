@@ -463,3 +463,45 @@ buydu (yeni görsel/metin gerektiğinde koda dokunmak gerekiyordu).
       bug'ı hiç yakalayamıyordu). Site 355, CMS 449 test geçiyor.
 - [ ] **Kullanıcı testi:** `Layout Test Sayfasi` CMS'te duruyor — açıp
       blokları gözden geçir; istenmiyorsa sil.
+
+## 24. Layout bloklarının teması canlı siteyle birebir hizalandı (27.08.2026)
+
+**İstek:** "layoutta eklediğimiz şey canlı sitenin css yapısına uyuyo mu…
+hero blogumuzda başlığın arkasındaki box çok çirkin… canlı sitede yapılar
+nasılsa layout aynı css temasında olmalı, tamamen aynı olsun."
+
+**Kök neden:** Ürün sayfaları Pages'e göç ederken her blok sıfırdan, jenerik
+stille yeniden yazıldı — elle yazılmış sayfaların zaten canlıya birebir uyan
+bileşenleri (`ProductHero`, `CardsWithIcons`, `PhoneStepsCarousel`) yeniden
+kullanılmadı. Sonuç: aynı bölüm, CMS sayfasında ve elle yazılmış sayfada
+farklı görünüyordu ve ikisi de canlıya uymuyordu.
+
+- [x] Canlı `vodafonepay.com.tr/aninda-bakiye` + `/qr-ile-faturana-yansit`
+      ölçüldü (ikisi yapısal olarak birebir aynı).
+- [x] **Hero (şikayet edilen madde):** canlı hero TEK değil İKİ layout —
+      `lg`+ ekranda metin görselin ÜSTÜNE beyaz overlay olarak biniyor ve
+      hiçbir gri kutu YOK; `lg` altında overlay gizlenip görselin altında
+      `#f3f4f6` şerit çıkıyor ve metne yapışıyor (`my-[10px]`). Bizimki her
+      ekranda `px-6 py-8` ile 96px'lik gri kutu çiziyordu. `ProductHero`
+      artık iki dalı da yapıyor (h1 masaüstü dalında, mobil dalda düz div —
+      canlının kendi yöntemi, tek h1 korunuyor).
+- [x] **iconCards:** canlı kartlar düz `#F2F2F2` `rounded-md`, kırmızı 28px
+      başlıklı. Blok beyaz+gölgeli, siyah 16px başlık çiziyordu →
+      `CardsWithIcons`'a bağlandı (o zaten uyuyordu).
+- [x] **steps:** canlı, `h-[226px] rounded-xl` kutuların 368px telefon
+      görselini çevrelediği bir karusel, aktif kutu kırmızı dolu.
+      `PhoneStepsCarousel` göç sırasında silinmişti → geri getirildi.
+- [x] richText/video/logoGrid/imageTextSlides/videoList/campaignGrid sitenin
+      kendi token'larına taşındı (1030px kolon, `text-2xl lg:text-4xl`
+      başlık, `bg-vf-gray` yüzey).
+- [x] **Ayrıca bulunan gerçek layout bug'ı:** `<main>` flex-column olduğu için
+      `mx-auto` olan section'lar kendi metin genişliğine büzülüyordu — bir
+      rich-text bölümü 1030px yerine 367px ölçüldü ve ortalandı. 15 section
+      bileşenine + blok render'ına `w-full` eklendi.
+- [x] Canlı doğrulama (masaüstü 1440 + mobil 375): overlay/şerit doğru
+      breakpoint'lerde, başlık canlı gibi 2 satır, 4 section de 1030px.
+      SSS bölümünün 1425px tam genişlik olması canlıyla AYNI — dokunulmadı.
+- [x] `ProductHero` için 5 regresyon testi (canlı geometrisi teste bağlandı).
+      Site 364, CMS 449 test; tsc/lint/build temiz.
+- [ ] **Kullanıcı testi:** ürün sayfalarını ve `Layout Test Sayfasi`'nı
+      masaüstü+mobilde canlıyla yan yana gözden geçir.
