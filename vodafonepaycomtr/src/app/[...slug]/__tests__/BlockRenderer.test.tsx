@@ -174,6 +174,49 @@ describe("BlockRenderer", () => {
     expect(screen.queryByText("Yazı B")).not.toBeInTheDocument();
   });
 
+  it("featureHighlights: renders each feature and prefers an uploaded image over the built-in video", async () => {
+    const { container } = render(
+      await BlockRenderer({
+        block: {
+          blockType: "featureHighlights",
+          heading: "Ayrıcalıklı Dünya",
+          media: image,
+          features: [{ icon: image, title: "Nakit İade", description: "Harcadıkça kazan" }],
+        },
+      })
+    );
+    expect(screen.getByText("Nakit İade")).toBeInTheDocument();
+    expect(container.querySelector("video")).toBeNull();
+  });
+
+  it("featureHighlights: falls back to the site's own video when no media is uploaded", async () => {
+    const { container } = render(
+      await BlockRenderer({
+        block: {
+          blockType: "featureHighlights",
+          heading: undefined,
+          media: undefined,
+          features: [{ icon: image, title: "Nakit İade", description: "Harcadıkça kazan" }],
+        },
+      })
+    );
+    expect(container.querySelector("video")).not.toBeNull();
+  });
+
+  it("profileGrid: renders every person with their name and role", async () => {
+    render(
+      await BlockRenderer({
+        block: {
+          blockType: "profileGrid",
+          heading: "Yönetim Kurulu",
+          people: [{ photo: image, name: "Ada Yılmaz", title: "Genel Müdür" }],
+        },
+      })
+    );
+    expect(screen.getByText("Ada Yılmaz")).toBeInTheDocument();
+    expect(screen.getByText("Genel Müdür")).toBeInTheDocument();
+  });
+
   it("imageTextSlides: renders each slide's text", async () => {
     render(
       await BlockRenderer({

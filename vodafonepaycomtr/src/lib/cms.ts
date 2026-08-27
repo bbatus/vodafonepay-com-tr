@@ -839,6 +839,21 @@ const blogGridBlockSchema = z.object({
   heading: z.string(),
   category: nullableString(),
 });
+/** Live parity: `widget_Homepage_VpayAyricaliklarDunyasi`. */
+const featureHighlightsBlockSchema = z.object({
+  blockType: z.literal("featureHighlights"),
+  id: z.string().optional(),
+  heading: nullableString(),
+  media: mediaSchema.nullable().optional().transform((v) => v ?? undefined),
+  features: z.array(z.object({ icon: mediaSchema, title: z.string(), description: z.string() })),
+});
+/** Live parity: `widget_BoardOfDirectors`. */
+const profileGridBlockSchema = z.object({
+  blockType: z.literal("profileGrid"),
+  id: z.string().optional(),
+  heading: nullableString(),
+  people: z.array(z.object({ photo: mediaSchema, name: z.string(), title: z.string() })),
+});
 const imageTextSlidesBlockSchema = z.object({
   blockType: z.literal("imageTextSlides"),
   id: z.string().optional(),
@@ -865,6 +880,8 @@ const pageBlockSchema = z.discriminatedUnion("blockType", [
   imageWithTextBlockSchema,
   pricesAndLimitsBlockSchema,
   blogGridBlockSchema,
+  featureHighlightsBlockSchema,
+  profileGridBlockSchema,
   imageTextSlidesBlockSchema,
   videoListBlockSchema,
 ]);

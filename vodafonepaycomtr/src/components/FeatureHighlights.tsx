@@ -14,11 +14,26 @@ interface Highlight {
  * empty list renders nothing — see docs for which collections still keep a
  * fallback (the ones with zero rows, where the fallback IS the live content).
  */
-export function FeatureHighlights({ features }: { features: Highlight[] }) {
+export function FeatureHighlights({
+  features,
+  heading,
+  media,
+}: {
+  features: Highlight[];
+  heading?: string;
+  /**
+   * The homepage passes nothing and keeps the built-in looping video, which is
+   * what the live `widget_Homepage_VpayAyricaliklarDunyasi` shows. The CMS
+   * block passes an uploaded image instead, so an editor can build this
+   * section without a developer adding a video file to /public first.
+   */
+  media?: { url: string; alt: string };
+}) {
   if (features.length === 0) return null;
 
   return (
     <section className="mx-auto w-full max-w-[1030px] px-4 py-10">
+      {heading && <h2 className="mb-6 text-left text-2xl font-bold leading-8 text-black lg:text-4xl lg:leading-10">{heading}</h2>}
       <div className="flex items-center gap-x-10">
         <div className="flex w-full flex-col gap-y-6 lg:w-1/3">
           {features.map((feature) => (
@@ -32,7 +47,11 @@ export function FeatureHighlights({ features }: { features: Highlight[] }) {
           ))}
         </div>
         <div className="hidden w-2/3 overflow-hidden rounded-xl lg:block">
-          <video className="h-[340px] w-full object-cover" src="/videos/feature-loop.mp4" autoPlay muted loop playsInline />
+          {media ? (
+            <Image src={media.url} alt={media.alt} width={660} height={340} className="h-[340px] w-full object-cover" />
+          ) : (
+            <video className="h-[340px] w-full object-cover" src="/videos/feature-loop.mp4" autoPlay muted loop playsInline />
+          )}
         </div>
       </div>
     </section>

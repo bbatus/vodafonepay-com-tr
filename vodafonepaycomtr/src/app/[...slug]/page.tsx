@@ -9,7 +9,9 @@ import { Footer } from "@/components/Footer";
 import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
 import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { Faq } from "@/components/Faq";
+import { FeatureHighlights } from "@/components/FeatureHighlights";
 import { HowToEarn } from "@/components/HowToEarn";
+import { ProfileGrid } from "@/components/ProfileGrid";
 import { ImageWithText } from "@/components/ImageWithText";
 import { PricesAndLimits } from "@/components/PricesAndLimits";
 import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
@@ -261,6 +263,25 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
         </section>
       );
     }
+
+    /** Live parity: `widget_Homepage_VpayAyricaliklarDunyasi`. */
+    case "featureHighlights":
+      return (
+        <FeatureHighlights
+          heading={block.heading}
+          media={block.media}
+          features={block.features.map((f) => ({ icon: f.icon.url, title: f.title, description: f.description }))}
+        />
+      );
+
+    /** Live parity: `widget_BoardOfDirectors`. */
+    case "profileGrid":
+      return (
+        <ProfileGrid
+          heading={block.heading}
+          people={block.people.map((p) => ({ photo: p.photo.url, name: p.name, title: p.title }))}
+        />
+      );
 
     // Mirrors VideosWithTabs' own scroller: fixed-width `bg-vf-gray rounded-xl`
     // tiles with the media inset, rather than white shadowed cards.

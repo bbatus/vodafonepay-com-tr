@@ -707,6 +707,144 @@ const BlogGridBlock: Block = {
   ],
 };
 
+/**
+ * Live parity: `widget_Homepage_VpayAyricaliklarDunyasi` (homepage) and
+ * `widget_VpayApp_VpayAyricalikliDunyasi` (/vodafone-pay-uygulama) — a
+ * one-third column of icon + title + copy rows with a large media panel
+ * filling the rest.
+ */
+const FeatureHighlightsBlock: Block = {
+  slug: "featureHighlights",
+  labels: {
+    singular: { tr: "Öne Çıkan Özellikler Bloğu", en: "Feature Highlights Block" },
+    plural: { tr: "Öne Çıkan Özellikler Blokları", en: "Feature Highlights Blocks" },
+  },
+  admin: {
+    images: blockThumb(
+      `<text x="30" y="32" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Vodafone Pay'in Ayrıcalıklı Dünyası</text><circle cx="44" cy="76" r="14" fill="#e60000"/><text x="70" y="72" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">Akıllı Ödeme Yöntemleri</text><rect x="70" y="82" width="150" height="7" rx="2" fill="#d1d5db"/><circle cx="44" cy="136" r="14" fill="#e60000"/><text x="70" y="132" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">Nakit İade</text><rect x="70" y="142" width="150" height="7" rx="2" fill="#d1d5db"/><circle cx="44" cy="196" r="14" fill="#e60000"/><text x="70" y="192" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">Güvenli Altyapı</text><rect x="70" y="202" width="150" height="7" rx="2" fill="#d1d5db"/><rect x="255" y="60" width="200" height="160" rx="12" fill="url(#fhGrad)"/>`,
+      vfImageFill("fhGrad")
+    ),
+  },
+  fields: [
+    {
+      name: "heading",
+      type: "text",
+      admin: {
+        description: {
+          tr: "Bölümün başlığı. Örnek: \"Vodafone Pay'in Ayrıcalıklı Dünyası\". Boş bırakılabilir.",
+          en: "The section's heading. E.g.: \"Vodafone Pay'in Ayrıcalıklı Dünyası\". Optional.",
+        },
+      },
+    },
+    {
+      name: "media",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        description: {
+          tr: "Sağdaki büyük görsel (masaüstünde görünür). Boş bırakılırsa sitenin kendi tanıtım videosu gösterilir.",
+          en: "The large image on the right (desktop only). Leave empty to show the site's own promo video instead.",
+        },
+      },
+    },
+    {
+      name: "features",
+      type: "array",
+      minRows: 1,
+      admin: {
+        description: {
+          tr: "Solda alt alta sıralanan özellikler (ikon + başlık + kısa açıklama). Genelde 3-4 tane kullanılır.",
+          en: "The features listed down the left (icon + title + short copy). Usually 3-4 of them.",
+        },
+      },
+      fields: [
+        {
+          name: "icon",
+          type: "upload",
+          relationTo: "media",
+          required: true,
+          admin: { description: { tr: "Özelliğin ikonu (36x36 piksel önerilir).", en: "The feature's icon (36x36px recommended)." } },
+        },
+        {
+          name: "title",
+          type: "text",
+          required: true,
+          admin: { description: { tr: "Özelliğin başlığı, örn: 'Akıllı Ödeme Yöntemleri'.", en: "The feature's title, e.g.: 'Akıllı Ödeme Yöntemleri'." } },
+        },
+        {
+          name: "description",
+          type: "textarea",
+          required: true,
+          admin: { description: { tr: "Özelliğin tek cümlelik açıklaması.", en: "A one-sentence description of the feature." } },
+        },
+      ],
+    },
+  ],
+};
+
+/**
+ * Live parity: `widget_BoardOfDirectors` (/kurumsal-yonetim). Named
+ * generically because the shape is "photo + name + role" — it suits any team
+ * or management listing, not just the board.
+ */
+const ProfileGridBlock: Block = {
+  slug: "profileGrid",
+  labels: {
+    singular: { tr: "Kişi Kartları Bloğu", en: "Profile Grid Block" },
+    plural: { tr: "Kişi Kartları Blokları", en: "Profile Grid Blocks" },
+  },
+  admin: {
+    images: blockThumb(
+      `<text x="30" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Yönetim Kurulu ve Üst Yönetim</text><rect x="30" y="48" width="130" height="120" rx="8" fill="#f2f2f2"/><rect x="40" y="58" width="110" height="70" rx="6" fill="url(#pgGrad)"/><text x="40" y="146" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Ada Yılmaz</text><text x="40" y="162" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Genel Müdür</text><rect x="175" y="48" width="130" height="120" rx="8" fill="#f2f2f2"/><rect x="185" y="58" width="110" height="70" rx="6" fill="url(#pgGrad)"/><text x="185" y="146" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Deniz Kaya</text><text x="185" y="162" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Finans Direktörü</text><rect x="320" y="48" width="130" height="120" rx="8" fill="#f2f2f2"/><rect x="330" y="58" width="110" height="70" rx="6" fill="url(#pgGrad)"/><text x="330" y="146" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Ege Demir</text><text x="330" y="162" font-family="Arial, sans-serif" font-size="11" fill="#6b7280">Teknoloji Direktörü</text>`,
+      vfImageFill("pgGrad")
+    ),
+  },
+  fields: [
+    {
+      name: "heading",
+      type: "text",
+      admin: {
+        description: {
+          tr: "Bölümün başlığı. Örnek: \"Yönetim Kurulu ve Üst Yönetim\" · \"Ekibimiz\". Boş bırakılabilir.",
+          en: "The section's heading. E.g.: \"Yönetim Kurulu ve Üst Yönetim\" · \"Ekibimiz\". Optional.",
+        },
+      },
+    },
+    {
+      name: "people",
+      type: "array",
+      minRows: 1,
+      admin: {
+        description: {
+          tr: "Her satır bir kişi (fotoğraf + isim + unvan). Masaüstünde 3'lü, tablette 2'li, mobilde tek sütun dizilir.",
+          en: "Each row is one person (photo + name + role). Lays out 3 across on desktop, 2 on tablet, 1 on mobile.",
+        },
+      },
+      fields: [
+        {
+          name: "photo",
+          type: "upload",
+          relationTo: "media",
+          required: true,
+          admin: { description: { tr: "Kişinin fotoğrafı. Önerilen ölçü: 291x200 piksel.", en: "The person's photo. Recommended size: 291x200px." } },
+        },
+        {
+          name: "name",
+          type: "text",
+          required: true,
+          admin: { description: { tr: "Ad soyad.", en: "Full name." } },
+        },
+        {
+          name: "title",
+          type: "text",
+          required: true,
+          admin: { description: { tr: "Unvan, örn: 'Genel Müdür'.", en: "Role, e.g.: 'Genel Müdür'." } },
+        },
+      ],
+    },
+  ],
+};
+
 const ImageTextSlidesBlock: Block = {
   slug: "imageTextSlides",
   labels: {
@@ -939,6 +1077,8 @@ export const Pages: CollectionConfig = {
         ImageWithTextBlock,
         PricesAndLimitsBlock,
         BlogGridBlock,
+        FeatureHighlightsBlock,
+        ProfileGridBlock,
         ImageTextSlidesBlock,
         VideoListBlock,
       ],
