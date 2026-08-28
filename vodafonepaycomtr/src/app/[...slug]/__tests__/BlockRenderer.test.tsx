@@ -1,7 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { BlockRenderer } from "@/app/[...slug]/page";
-import { getBlogPosts, getCampaigns, getFaqItems, getFeeRows, getLimitTables } from "@/lib/cms";
+import {
+  getBlogPosts,
+  getCampaigns,
+  getContactInfo,
+  getFaqItems,
+  getFeeRows,
+  getLimitTables,
+  getRepresentatives,
+} from "@/lib/cms";
 
 vi.mock("@/lib/cms", async () => {
   const actual = await vi.importActual<typeof import("@/lib/cms")>("@/lib/cms");
@@ -12,6 +20,8 @@ vi.mock("@/lib/cms", async () => {
     getFeeRows: vi.fn(),
     getLimitTables: vi.fn(),
     getBlogPosts: vi.fn(),
+    getContactInfo: vi.fn(),
+    getRepresentatives: vi.fn(),
   };
 });
 
@@ -215,6 +225,46 @@ describe("BlockRenderer", () => {
     );
     expect(screen.getByText("Ada Yılmaz")).toBeInTheDocument();
     expect(screen.getByText("Genel Müdür")).toBeInTheDocument();
+  });
+
+  it("mediaPanel: renders the heading over the background art, with the video when given", async () => {
+    const { container } = render(
+      await BlockRenderer({
+        block: { blockType: "mediaPanel", heading: "Nerelerde kullanılır?", text: "Her yerde.", backgroundImage: image, youtubeId: "abc123" },
+      })
+    );
+    expect(screen.getByText("Nerelerde kullanılır?")).toBeInTheDocument();
+    expect(container.querySelector("iframe")).not.toBeNull();
+  });
+
+  it("mediaPanel: omits the video when no id is set", async () => {
+    const { container } = render(
+      await BlockRenderer({
+        block: { blockType: "mediaPanel", heading: "Başlık", text: undefined, backgroundImage: image, youtubeId: undefined },
+      })
+    );
+    expect(container.querySelector("iframe")).toBeNull();
+  });
+
+  it("contactInfo: renders the global's details, and nothing at all when it is unset", async () => {
+    vi.mocked(getContactInfo).mockResolvedValue({ companyName: "Vodafone A.Ş.", address: "İstanbul" } as never);
+    const { unmount } = render(await BlockRenderer({ block: { blockType: "contactInfo", heading: "İletişim" } }));
+    expect(screen.getByText("Vodafone A.Ş.")).toBeInTheDocument();
+    unmount();
+
+    vi.mocked(getContactInfo).mockResolvedValue(null);
+    const { container } = render(await BlockRenderer({ block: { blockType: "contactInfo", heading: "İletişim" } }));
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("representatives: lists the collection and honours the limit", async () => {
+    vi.mocked(getRepresentatives).mockResolvedValue([
+      { id: "1", businessName: "Ada", address: "A", province: "İstanbul", district: "Kadıköy" },
+      { id: "2", businessName: "Deniz", address: "B", province: "İzmir", district: "Konak" },
+    ] as never);
+    render(await BlockRenderer({ block: { blockType: "representatives", heading: "Temsilciler", limit: 1 } }));
+    expect(screen.getByText("Ada")).toBeInTheDocument();
+    expect(screen.queryByText("Deniz")).not.toBeInTheDocument();
   });
 
   it("imageTextSlides: renders each slide's text", async () => {

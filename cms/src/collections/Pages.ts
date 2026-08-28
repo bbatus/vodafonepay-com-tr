@@ -845,6 +845,83 @@ const ProfileGridBlock: Block = {
   ],
 };
 
+/**
+ * Live parity: `widget_PhysicalCardUsed` (/vodafone-pay-kart) — art used as
+ * the panel BACKGROUND with white copy and an optional video on top. Named
+ * generically because the shape suits any product/campaign section, not just
+ * the physical card.
+ */
+const MediaPanelBlock: Block = {
+  slug: "mediaPanel",
+  labels: {
+    singular: { tr: "Görsel Zeminli Panel", en: "Media Panel" },
+    plural: { tr: "Görsel Zeminli Paneller", en: "Media Panels" },
+  },
+  admin: {
+    images: blockThumb(
+      `<rect x="24" y="40" width="432" height="240" rx="12" fill="url(#mpGrad)"/><text x="56" y="100" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#ffffff">Fiziksel Kart nerelerde kullanılır?</text><rect x="56" y="118" width="240" height="8" rx="2" fill="#ffffff" opacity="0.6"/><rect x="56" y="136" width="200" height="8" rx="2" fill="#ffffff" opacity="0.6"/><rect x="56" y="164" width="180" height="100" rx="6" fill="#000000" opacity="0.55"/><circle cx="146" cy="214" r="20" fill="#ffffff" opacity="0.9"/><path d="M140 204 l18 10 l-18 10 z" fill="#e60000"/>`,
+      vfImageFill("mpGrad")
+    ),
+  },
+  fields: [
+    { name: "heading", type: "text", required: true,
+      admin: { description: { tr: "Panelin üzerindeki beyaz başlık.", en: "The white heading over the panel." } } },
+    { name: "text", type: "textarea",
+      admin: { description: { tr: "Başlığın altındaki açıklama. Boş bırakılabilir.", en: "Copy under the heading. Optional." } } },
+    { name: "backgroundImage", type: "upload", relationTo: "media", required: true,
+      admin: { description: { tr: "Panelin arka plan görseli — metin bunun ÜZERİNE beyaz olarak biner, o yüzden koyu bir görsel seçin. Önerilen: 1030x420 piksel.", en: "The panel's background art — the copy sits ON it in white, so pick a dark image. Recommended: 1030x420px." } } },
+    { name: "youtubeId", type: "text",
+      admin: { description: { tr: "Panelin içinde gösterilecek videonun YouTube ID'si (tam URL değil). Boş bırakılırsa video gösterilmez.", en: "YouTube ID (not the full URL) of a video to embed inside the panel. Leave empty for no video." } } },
+  ],
+};
+
+/**
+ * Live parity: `widget_FooterPages\ContactInfo` (/iletisim). Collection-backed
+ * like `pricesAndLimits` — the details live in the ContactInfo global.
+ */
+const ContactInfoBlock: Block = {
+  slug: "contactInfo",
+  labels: {
+    singular: { tr: "İletişim Bilgileri Bloğu", en: "Contact Info Block" },
+    plural: { tr: "İletişim Bilgileri Blokları", en: "Contact Info Blocks" },
+  },
+  admin: {
+    images: blockThumb(
+      `<text x="30" y="34" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">İletişim Bilgileri</text><rect x="30" y="56" width="420" height="200" rx="8" fill="#f2f2f2"/><text x="50" y="92" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">Şirket Unvanı</text><text x="250" y="92" font-family="Arial, sans-serif" font-size="13" fill="#333333">Vodafone Elektronik Para A.Ş.</text><text x="50" y="132" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">Adres</text><text x="250" y="132" font-family="Arial, sans-serif" font-size="13" fill="#333333">İstanbul</text><text x="50" y="172" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">Telefon</text><text x="250" y="172" font-family="Arial, sans-serif" font-size="13" fill="#333333">0850 250 XX XX</text><text x="50" y="212" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#111827">KEP Adresi</text><text x="250" y="212" font-family="Arial, sans-serif" font-size="13" fill="#333333">vodafone@hs01.kep.tr</text>`
+    ),
+  },
+  fields: [
+    { name: "heading", type: "text",
+      admin: { description: { tr: "Bölümün başlığı, örn: 'İletişim Bilgileri'. Boş bırakılabilir.", en: "The section heading, e.g. 'İletişim Bilgileri'. Optional." } } },
+    { name: "note", type: "ui", admin: { components: { Field: "/components/CollectionBackedBlockNote#default" } } },
+  ],
+};
+
+/**
+ * Live parity: `widget_Representatives` (/temsilciliklerimiz) — the directory
+ * listing only. The province/district search form stays on its own page; it is
+ * a whole page's worth of UI, not a section to drop mid-page.
+ */
+const RepresentativesBlock: Block = {
+  slug: "representatives",
+  labels: {
+    singular: { tr: "Temsilci Listesi Bloğu", en: "Representative List Block" },
+    plural: { tr: "Temsilci Listesi Blokları", en: "Representative List Blocks" },
+  },
+  admin: {
+    images: blockThumb(
+      `<text x="30" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Temsilciliklerimiz</text><rect x="30" y="48" width="130" height="110" rx="8" fill="#f2f2f2"/><text x="42" y="76" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Ada İletişim</text><rect x="42" y="86" width="100" height="7" rx="2" fill="#d1d5db"/><rect x="42" y="100" width="80" height="7" rx="2" fill="#d1d5db"/><rect x="175" y="48" width="130" height="110" rx="8" fill="#f2f2f2"/><text x="187" y="76" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Deniz Telekom</text><rect x="187" y="86" width="100" height="7" rx="2" fill="#d1d5db"/><rect x="187" y="100" width="80" height="7" rx="2" fill="#d1d5db"/><rect x="320" y="48" width="130" height="110" rx="8" fill="#f2f2f2"/><text x="332" y="76" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Ege Mobil</text><rect x="332" y="86" width="100" height="7" rx="2" fill="#d1d5db"/><rect x="332" y="100" width="80" height="7" rx="2" fill="#d1d5db"/>`
+    ),
+  },
+  fields: [
+    { name: "heading", type: "text",
+      admin: { description: { tr: "Bölümün başlığı, örn: 'Temsilciliklerimiz'. Boş bırakılabilir.", en: "The section heading. Optional." } } },
+    { name: "limit", type: "number", min: 1,
+      admin: { description: { tr: "En fazla kaç temsilci gösterilsin. Boş bırakılırsa TÜMÜ listelenir — tam liste için /temsilciliklerimiz sayfasını kullanmak genelde daha doğrudur.", en: "How many representatives to show at most. Leave empty for ALL — for the full directory the /temsilciliklerimiz page is usually the better place." } } },
+    { name: "note", type: "ui", admin: { components: { Field: "/components/CollectionBackedBlockNote#default" } } },
+  ],
+};
+
 const ImageTextSlidesBlock: Block = {
   slug: "imageTextSlides",
   labels: {
@@ -1079,6 +1156,9 @@ export const Pages: CollectionConfig = {
         BlogGridBlock,
         FeatureHighlightsBlock,
         ProfileGridBlock,
+        MediaPanelBlock,
+        ContactInfoBlock,
+        RepresentativesBlock,
         ImageTextSlidesBlock,
         VideoListBlock,
       ],

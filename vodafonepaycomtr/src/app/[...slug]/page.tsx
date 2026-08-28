@@ -11,7 +11,10 @@ import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { Faq } from "@/components/Faq";
 import { FeatureHighlights } from "@/components/FeatureHighlights";
 import { HowToEarn } from "@/components/HowToEarn";
+import { ContactInfoPanel } from "@/components/ContactInfoPanel";
+import { MediaPanel } from "@/components/MediaPanel";
 import { ProfileGrid } from "@/components/ProfileGrid";
+import { RepresentativeList } from "@/components/RepresentativeList";
 import { ImageWithText } from "@/components/ImageWithText";
 import { PricesAndLimits } from "@/components/PricesAndLimits";
 import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
@@ -21,10 +24,12 @@ import {
   getBlogPosts,
   getCampaigns,
   getFaqItems,
+  getContactInfo,
   getFeeRows,
   getLimitTables,
   getPageBySlug,
   getPages,
+  getRepresentatives,
   richTextToPlainText,
   type CmsPageBlock,
 } from "@/lib/cms";
@@ -259,6 +264,31 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
           features={block.features.map((f) => ({ icon: f.icon.url, title: f.title, description: f.description }))}
         />
       );
+
+    /** Live parity: `widget_PhysicalCardUsed`. */
+    case "mediaPanel":
+      return (
+        <MediaPanel
+          heading={block.heading}
+          text={block.text}
+          backgroundImage={block.backgroundImage.url}
+          youtubeId={block.youtubeId}
+        />
+      );
+
+    /** Live parity: `widget_FooterPages\ContactInfo` — reads the global. */
+    case "contactInfo": {
+      const info = await getContactInfo();
+      if (!info) return null;
+      return <ContactInfoPanel info={info} heading={block.heading} />;
+    }
+
+    /** Live parity: `widget_Representatives` — reads the collection. */
+    case "representatives": {
+      const reps = await getRepresentatives();
+      if (!reps?.length) return null;
+      return <RepresentativeList representatives={reps} heading={block.heading} limit={block.limit} />;
+    }
 
     /** Live parity: `widget_BoardOfDirectors`. */
     case "profileGrid":

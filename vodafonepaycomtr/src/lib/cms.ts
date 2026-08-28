@@ -854,6 +854,28 @@ const profileGridBlockSchema = z.object({
   heading: nullableString(),
   people: z.array(z.object({ photo: mediaSchema, name: z.string(), title: z.string() })),
 });
+/** Live parity: `widget_PhysicalCardUsed`. */
+const mediaPanelBlockSchema = z.object({
+  blockType: z.literal("mediaPanel"),
+  id: z.string().optional(),
+  heading: z.string(),
+  text: nullableString(),
+  backgroundImage: mediaSchema,
+  youtubeId: nullableString(),
+});
+/** Live parity: `widget_FooterPages\ContactInfo` — data comes from the global. */
+const contactInfoBlockSchema = z.object({
+  blockType: z.literal("contactInfo"),
+  id: z.string().optional(),
+  heading: nullableString(),
+});
+/** Live parity: `widget_Representatives` — data comes from the collection. */
+const representativesBlockSchema = z.object({
+  blockType: z.literal("representatives"),
+  id: z.string().optional(),
+  heading: nullableString(),
+  limit: z.number().nullable().optional().transform((v) => v ?? undefined),
+});
 const imageTextSlidesBlockSchema = z.object({
   blockType: z.literal("imageTextSlides"),
   id: z.string().optional(),
@@ -882,6 +904,9 @@ const pageBlockSchema = z.discriminatedUnion("blockType", [
   blogGridBlockSchema,
   featureHighlightsBlockSchema,
   profileGridBlockSchema,
+  mediaPanelBlockSchema,
+  contactInfoBlockSchema,
+  representativesBlockSchema,
   imageTextSlidesBlockSchema,
   videoListBlockSchema,
 ]);
