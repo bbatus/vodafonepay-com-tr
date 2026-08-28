@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/JsonLd";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -38,6 +39,14 @@ export default async function BlogYazisi({ params }: { params: Promise<{ slug: s
       <AppDownloadBanner />
       <Header />
       <Breadcrumb current={post.title} />
+      <ArticleJsonLd
+        title={post.title}
+        description={richTextToPlainText(post.body, 160)}
+        image={post.coverImage.url}
+        path={`/blog/${post.slug}`}
+        publishedDate={post.publishedDate}
+      />
+      <BreadcrumbJsonLd current={post.title} path={`/blog/${post.slug}`} trail={[{ label: "Blog", href: "/blog" }]} />
 
       <section className="mx-auto w-full max-w-[840px] px-4 pb-20">
         <Image

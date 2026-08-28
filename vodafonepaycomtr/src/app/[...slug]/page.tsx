@@ -8,12 +8,14 @@ import { Footer } from "@/components/Footer";
 import { CardListGrid, type CardListItem } from "@/components/CardListGrid";
 import { BrandLogoGrid } from "@/components/BrandLogoGrid";
 import { CardsWithIcons } from "@/components/CardsWithIcons";
+import { BreadcrumbJsonLd } from "@/components/JsonLd";
 import { Faq } from "@/components/Faq";
 import { FeatureHighlights } from "@/components/FeatureHighlights";
 import { HowToEarn } from "@/components/HowToEarn";
 import { ContactInfoPanel } from "@/components/ContactInfoPanel";
 import { MediaPanel } from "@/components/MediaPanel";
 import { ProfileGrid } from "@/components/ProfileGrid";
+import { StepPhones } from "@/components/StepPhones";
 import { RepresentativeList } from "@/components/RepresentativeList";
 import { ImageWithText } from "@/components/ImageWithText";
 import { PricesAndLimits } from "@/components/PricesAndLimits";
@@ -265,6 +267,16 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
         />
       );
 
+    /** Live parity: `widget_Homepage_VpayStepPhones`. */
+    case "stepPhones":
+      return (
+        <StepPhones
+          heading={block.heading}
+          description={block.description}
+          steps={block.steps.map((s) => ({ title: s.title, description: s.description, image: s.image.url, imageAlt: s.image.alt || s.title }))}
+        />
+      );
+
     /** Live parity: `widget_PhysicalCardUsed`. */
     case "mediaPanel":
       return (
@@ -362,6 +374,11 @@ export default async function EditorPage({ params }: { params: Promise<{ slug: s
       <AppDownloadBanner />
       <Header />
       <Breadcrumb current={page.title} trail={page.parent ? [{ label: page.parent.title, href: `/${page.parent.slug}` }] : undefined} />
+      <BreadcrumbJsonLd
+        current={page.title}
+        path={`/${page.slug}`}
+        trail={page.parent ? [{ label: page.parent.title, href: `/${page.parent.slug}` }] : undefined}
+      />
 
       {page.layout.map((block) => (
         <BlockRenderer key={block.id ?? JSON.stringify(block)} block={block} />

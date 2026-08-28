@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FaqJsonLd } from "@/components/JsonLd";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -48,6 +49,7 @@ export default async function SikcaSorulanSorular() {
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
+      <FaqJsonLd items={items.map((i) => ({ question: i.question, answer: i.answer }))} />
       <FaqCategoryFilter items={items.length ? items : undefined} categories={categories} allLabel={allLabel} />
       <Footer />
     </main>

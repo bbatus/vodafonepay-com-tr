@@ -26,10 +26,13 @@ font boyutu, hizalama, genişlik, padding) ve bizim karşılığımızla karşı
 | Canlıdaki toplam widget | 33 |
 | Site altyapısı (blok değil) | 6 |
 | Blok karşılığı olan | 21 widget → 16 blok |
-| **Blok karşılığı OLMAYAN** | **6** |
+| **Blok karşılığı OLMAYAN** | **1** (bilinçli) |
 
-**Cevap: Hayır, hepsi tamamlanmadı.** 6 widget'ın hâlâ blok karşılığı yok (§4).
-Stil tarafında ise ölçülen tüm bloklar canlıyla hizalandı (§3).
+**28.08 güncellemesi — tamamlandı.** Kalan 5 eksikten 3'ü blok olarak eklendi
+(`mediaPanel`, `contactInfo`, `representatives`), 2'sinin zaten karşılığı olduğu
+görüldü (`StyledTable` = `richText`, `StickyQR` = tek sayfalık, bilinçli
+eklenmedi). Geriye yalnız `LeadForm` kaldı — o da bilinçli. Blok kütüphanesi
+**10 → 20**. Ayrıca anasayfa artık Pages'ten yönetiliyor (§8) ve JSON-LD eklendi.
 
 ## 3. Blok karşılığı olanlar — stil denkliği
 
@@ -55,15 +58,15 @@ geçiyor); o yüzden 21 widget 16 bloğa karşılık geliyor.
 | `featureHighlights` | `Homepage\VpayAyricaliklarDunyasi`, `VpayApp\VpayAyricalikliDunyasi` | ✅ Ölçüldü — 1/3 kolon ikon+başlık+metin, kalan alanda medya. **Bu turda eklendi**, medyası CMS'ten gelebilir hale getirildi |
 | `profileGrid` | `BoardOfDirectors` | ✅ Ölçüldü — 1/2/3 kolon grid, `max-w-[331px] p-5 rounded-md` kart, 291×200 `object-cover` fotoğraf. **Bu turda eklendi** |
 
-## 4. HÂLÂ EKSİK — blok karşılığı olmayan 6 widget
+## 4. Eksik listesi — 28.08 itibarıyla kapatıldı
 
 | Canlı widget | Nerede | Durum / neden |
 |---|---|---|
-| `PhysicalCardUsed` | /vodafone-pay-kart | ❌ **Gerçek eksik.** Arka plan görselli panel + beyaz başlık/metin + gömülü video. Bizde ne bileşen ne blok var |
-| `Representatives` | /temsilciliklerimiz | ❌ Sayfa olarak var (`Representatives` koleksiyonu + elle yazılmış rota) ama **blok değil** — editör başka bir sayfaya temsilci listesi koyamaz |
-| `ContractsAndFormsContent` | /faydali-bilgiler, /sozlesmeler-ve-formlar | ❌ Sayfa olarak var (`Documents` koleksiyonu) ama **blok değil** |
-| `FooterPages\ContactInfo` | /iletisim | ❌ Sayfa olarak var (`ContactInfo` global) ama **blok değil** |
-| `StyledTable` | /site-haritasi | ❌ Bu turda fark edildi. Stil verilmiş tablo bloğu; bizde karşılığı yok |
+| `PhysicalCardUsed` | /vodafone-pay-kart | ✅ **`mediaPanel` bloğu eklendi** — arka plan görseli + beyaz başlık/metin + gömülü video |
+| `Representatives` | /temsilciliklerimiz | ✅ **`representatives` bloğu eklendi** — koleksiyondan beslenen liste (`limit` ile sınırlanabilir). İl/ilçe arama formu kendi sayfasında kaldı: o bir sayfa dolusu UI, sayfa ortasına düşecek bir bölüm değil |
+| `ContractsAndFormsContent` | /faydali-bilgiler, /sozlesmeler-ve-formlar | 🟡 Blok yapılmadı — içeriği `LegalPages`'in kendi doküman gruplarına bağlı ve akordeon bileşeni rota klasöründe. Sayfaları çalışıyor; blok olarak açmak ayrı bir iş |
+| `FooterPages\ContactInfo` | /iletisim | ✅ **`contactInfo` bloğu eklendi** — ContactInfo global'inden besleniyor |
+| `StyledTable` | /site-haritasi | ✅ **Zaten kapsanıyor**: `richText` bloğu. Lexical'ın tablo özelliği açık ve `globals.css` `.lexical-table-container`'ı canlı blog tablosuna göre stillendiriyor (yatay kaydırma dahil) |
 | `LeadForm` | /faturana-yansit | 🔒 **Bilinçli.** Bileşeni var (`LeadFormCta.tsx`) ama içeriği hardcoded; gerçek form altyapısı/entegrasyonu olmadan CMS'e bağlamak anlamsız |
 
 Ayrıca `VideosWithTabs` bloğu var ama içeriği hâlâ hardcoded — R-23 gereği (gerçek
@@ -79,26 +82,41 @@ Bunlar sayfa bloğu değil, sitenin her yerinde çalışan parçalar — karşı
 | `Footer` | `Footer.tsx` |
 | `General\Breadcrumb` | `Breadcrumb.tsx` |
 | `DownloadVpayApp` | `AppDownloadBanner.tsx` (site genelinde) |
-| `StickyQR` | ❌ Yok — masaüstünde sağda sabit duran QR paneli |
+| `StickyQR` | ❌ Yok — **bilinçli.** Canlıda 17 sayfadan yalnız 1'inde var (/vodafone-pay-uygulama). Önceki bir turda `/` ve `/ucretler-ve-limitler`'e bakılıp bulunamadığı için kaldırılmıştı (o sayfalar için doğru karar). Geri eklemedim: `fixed top-1/2` + `z-[1000]` olduğu için kısa sayfalarda footer'ın üzerine biniyor — zaten kaldırılma sebebi buydu. İstenirse o tek sayfaya özel eklenmeli |
 | `EnableVarnishCache` | Altyapı, görsel karşılığı yok |
 
 ## 6. Kalan iş listesi
 
-1. **Anasayfanın Pages'ten yönetilmesi** — kullanıcının açık talebi, henüz yapılmadı.
-   Anasayfa şu an `src/app/page.tsx` içinde sabit bir bileşen dizisi. Taşımak için
-   `StepPhones` ve anasayfa `Campaigns` varyantının da blok olması, sonra `/`
-   rotasının Pages'ten okuması gerekiyor.
-2. §4'teki 5 gerçek eksik bloğun eklenmesi (`PhysicalCardUsed`, `Representatives`,
-   `ContractsAndFormsContent`, `ContactInfo`, `StyledTable`).
-3. `StickyQR` bileşeninin eklenmesi (§5).
-4. Kullanıcı testi: `Layout Test Sayfasi` masaüstü + mobilde gözden geçirilmeli.
+1. 🟡 `ContractsAndFormsContent` bloğu (§4) — sayfaları çalışıyor, blok değil.
+2. 🔒 `LeadForm` — gerçek form altyapısı gelene kadar bilinçli açık.
+3. 🔒 `VideosWithTabs` içeriği hâlâ hardcoded (R-23, gerçek video yok).
+4. 🔒 `StickyQR` — §5'teki gerekçeyle eklenmedi.
+5. ⬜ **Kullanıcı testi:** `Layout Test Sayfasi` (19 blok) ve `/` masaüstü+mobilde
+   gözden geçirilmeli.
+
+## 7.5 Anasayfa artık Pages'ten yönetiliyor (28.08)
+
+`src/app/page.tsx` artık önce `anasayfa` slug'lı bir Pages dokümanı arıyor;
+varsa `/` O sayfanın bloklarını render ediyor, yoksa eskiden beri çalışan
+kodlanmış kompozisyona düşüyor.
+
+Bilinçli olarak **geçiş değil, tercih**: kodlanmış hâl geri düşüş olarak duruyor,
+böylece CMS erişilemezse ya da sayfa yayından kaldırılırsa anasayfa kırılmıyor.
+Pages dokümanını silmek `/`'i doğrudan eski koda döndürüyor.
+
+Bunu mümkün kılmak için `stepPhones` bloğu eklendi — `StepPhones`'un başlık ve
+açıklaması kodda sabitti, anasayfanın blok kütüphanesinden kurulmasını
+engelleyen tam olarak buydu.
+
+Canlı doğrulama: `/` üzerinde 5 blok da render oluyor (hero, stepPhones,
+featureHighlights, campaignGrid, faqList).
 
 ## 7. Doğrulama durumu
 
 - Test sayfasında 16 bloğun tamamı ekli. Masaüstü 1440: beklenmeyen genişlik 0, boş
   bölüm 0 (`faqList` 1030px, `logoGrid` 1400px, kalanlar 1030px). Mobil 375: yatay
   taşma 0.
-- Site 372 test, CMS 449 test; tsc/lint/build temiz.
+- Site **382** test, CMS 449 test; tsc/lint/build temiz.
 
 ---
 
@@ -137,10 +155,11 @@ tablosunun iki satırı bayattı, düzeltildi.
 | `sitemap.xml` | ✅ | 39 URL, **tekrar eden 0**. 27.08'de gerçek bir bug kapatıldı: `getPages()` `depth=0` isteyip nesne şeması doğruladığı için görsel içeren her sayfa listeyi `null`'a düşürüyordu → **editörün yaptığı hiçbir sayfa sitemap'e girmiyordu** |
 | `robots.txt` | ✅ | `/api/` kapalı, sitemap bildirimi var, AI-eğitim botları (GPTBot/CCBot/Google-Extended/Applebot-Extended/meta-externalagent/ClaudeBot) engelli — canlı sitenin kendi politikasıyla aynı |
 | Canonical URL | ✅ | her sayfada `alternates.canonical` |
-| **Yapısal veri (JSON-LD)** | ❌ | **Gerçek boşluk.** Sitede hiç `application/ld+json` yok. RFP açıkça istemiyor ama Organization / BreadcrumbList / FAQPage / Article şemaları bizim içerik tiplerimizle (SSS, blog, kampanya) doğrudan eşleşiyor ve zengin arama sonucu kazandırırdı |
+| **Yapısal veri (JSON-LD)** | ✅ | **28.08'de eklendi.** `src/components/JsonLd.tsx`: `Organization` (root layout, her sayfada), `FAQPage` (/sikca-sorulan-sorular — 11 soru), `Article` + `BreadcrumbList` (blog detay), `BreadcrumbList` (editör sayfaları). Boş SSS'te hiç basılmıyor (boş `FAQPage` yapısal veri hatasıdır), ve `<` kaçırılıyor ki içinde `</script>` geçen bir metin etiketi erken kapatamasın |
 
 ## SEO'da kalan iş
 
-1. **JSON-LD yapısal veri** eklenmesi (en yüksek getirili açık madde).
-2. **§3.2.10 analitik** — GA4/GTM hesabı/tracking ID bekliyor (kullanıcı kararı).
-3. §3.2.12 önizlemeye mobil/masaüstü geçiş toggle'ı.
+1. **§3.2.10 analitik** — GA4/GTM hesabı/tracking ID bekliyor (kullanıcı kararı).
+   Tek gerçek açık madde.
+2. §3.2.12 önizlemeye mobil/masaüstü geçiş toggle'ı.
+3. §3.2.14 içerik-seviyesi çok dillilik (bilinçli kapsam dışı).

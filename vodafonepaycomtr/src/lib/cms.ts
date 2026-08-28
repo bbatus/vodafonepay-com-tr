@@ -876,6 +876,14 @@ const representativesBlockSchema = z.object({
   heading: nullableString(),
   limit: z.number().nullable().optional().transform((v) => v ?? undefined),
 });
+/** Live parity: `widget_Homepage_VpayStepPhones`. */
+const stepPhonesBlockSchema = z.object({
+  blockType: z.literal("stepPhones"),
+  id: z.string().optional(),
+  heading: nullableString(),
+  description: nullableString(),
+  steps: z.array(z.object({ image: mediaSchema, title: z.string(), description: z.string() })),
+});
 const imageTextSlidesBlockSchema = z.object({
   blockType: z.literal("imageTextSlides"),
   id: z.string().optional(),
@@ -907,6 +915,7 @@ const pageBlockSchema = z.discriminatedUnion("blockType", [
   mediaPanelBlockSchema,
   contactInfoBlockSchema,
   representativesBlockSchema,
+  stepPhonesBlockSchema,
   imageTextSlidesBlockSchema,
   videoListBlockSchema,
 ]);

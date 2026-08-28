@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { OrganizationJsonLd } from "@/components/JsonLd";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -53,6 +54,7 @@ export default function RootLayout({
       className={`${vodafoneRegular.variable} ${vodafoneLight.variable} ${vodafoneBold.variable} h-full antialiased`}
     >
       <head>
+        <OrganizationJsonLd />
         {/* RFP feedback: hide this site's own scrollbar only when it's
             embedded in the CMS's publish-preview iframe (see globals.css) —
             runs synchronously, before paint, so there's no scrollbar flash. */}

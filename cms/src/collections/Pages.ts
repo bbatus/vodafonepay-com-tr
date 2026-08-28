@@ -922,6 +922,44 @@ const RepresentativesBlock: Block = {
   ],
 };
 
+/**
+ * Live parity: `widget_Homepage_VpayStepPhones` — the homepage's alternating
+ * phone-screenshot / copy rows. Added so the HOMEPAGE itself can be rebuilt
+ * from the block library (its heading and description used to be hardcoded in
+ * StepPhones.tsx, which is what blocked that).
+ */
+const StepPhonesBlock: Block = {
+  slug: "stepPhones",
+  labels: {
+    singular: { tr: "Telefonlu Tanıtım Bloğu", en: "Phone Showcase Block" },
+    plural: { tr: "Telefonlu Tanıtım Blokları", en: "Phone Showcase Blocks" },
+  },
+  admin: {
+    images: blockThumb(
+      `<text x="120" y="34" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#111827">Vodafone Pay'de bizi neler bekliyor?</text><rect x="40" y="60" width="90" height="180" rx="12" fill="url(#spGrad)"/><text x="160" y="110" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">Faturana Yansıt</text><rect x="160" y="124" width="220" height="8" rx="2" fill="#d1d5db"/><rect x="160" y="142" width="180" height="8" rx="2" fill="#d1d5db"/><rect x="350" y="250" width="90" height="60" rx="12" fill="url(#spGrad)"/><text x="60" y="282" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">Vodafone Pay Kart</text><rect x="60" y="296" width="220" height="8" rx="2" fill="#d1d5db"/>`,
+      vfImageFill("spGrad")
+    ),
+  },
+  fields: [
+    { name: "heading", type: "text",
+      admin: { description: { tr: "Bölümün ortalı başlığı. Boş bırakılırsa anasayfanın kendi başlığı kullanılır.", en: "The section's centred heading. Leave empty to use the homepage's own." } } },
+    { name: "description", type: "textarea",
+      admin: { description: { tr: "Başlığın altındaki tanıtım metni. Boş bırakılabilir.", en: "The intro copy under the heading. Optional." } } },
+    {
+      name: "steps", type: "array", minRows: 1,
+      admin: { description: { tr: "Her satır bir ürün tanıtımı (telefon görseli + başlık + açıklama). Satırlar dönüşümlü olarak solda/sağda dizilir.", en: "Each row is one product showcase (phone image + title + copy). Rows alternate left/right." } },
+      fields: [
+        { name: "image", type: "upload", relationTo: "media", required: true,
+          admin: { description: { tr: "Telefon ekran görüntüsü. Önerilen genişlik: 560 piksel.", en: "The phone screenshot. Recommended width: 560px." } } },
+        { name: "title", type: "text", required: true,
+          admin: { description: { tr: "Ürünün adı, örn: 'Faturana Yansıt'.", en: "The product name, e.g. 'Faturana Yansıt'." } } },
+        { name: "description", type: "textarea", required: true,
+          admin: { description: { tr: "Ürünün kısa açıklaması.", en: "A short description of the product." } } },
+      ],
+    },
+  ],
+};
+
 const ImageTextSlidesBlock: Block = {
   slug: "imageTextSlides",
   labels: {
@@ -1156,6 +1194,7 @@ export const Pages: CollectionConfig = {
         BlogGridBlock,
         FeatureHighlightsBlock,
         ProfileGridBlock,
+        StepPhonesBlock,
         MediaPanelBlock,
         ContactInfoBlock,
         RepresentativesBlock,

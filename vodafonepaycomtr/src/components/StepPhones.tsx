@@ -10,19 +10,32 @@ import type { StepProduct } from "@/types/homepage";
  * empty list renders nothing — see docs for which collections still keep a
  * fallback (the ones with zero rows, where the fallback IS the live content).
  */
-export function StepPhones({ steps }: { steps: StepProduct[] }) {
+const DEFAULT_HEADING = "Vodafone Pay'de bizi neler bekliyor ?";
+const DEFAULT_DESCRIPTION =
+  "Vodafone Pay'in Faturana Yansıt, Vodafone Pay Kart ve Cüzdan ürünleriyle kolay ve güvenli bir şekilde alışveriş yapıp yüzlerce TL nakit iade ve indirim kazanabileceğiniz bir dünya sizi bekliyor.";
+
+/**
+ * `heading`/`description` became props so the CMS `stepPhones` block can drive
+ * this section — they used to be hardcoded, which is why the homepage could
+ * not be rebuilt from the block library. The homepage passes nothing and keeps
+ * the copy it has always shown.
+ */
+export function StepPhones({
+  steps,
+  heading = DEFAULT_HEADING,
+  description = DEFAULT_DESCRIPTION,
+}: {
+  steps: StepProduct[];
+  heading?: string;
+  description?: string;
+}) {
   if (steps.length === 0) return null;
 
   return (
     <section className="mx-auto w-full max-w-[1030px] px-4 py-16 lg:px-0">
       <div className="mx-auto max-w-3xl text-center">
-        <h2 className="text-3xl font-bold text-black lg:text-[36px] lg:leading-[40px]">
-          Vodafone Pay&apos;de bizi neler bekliyor ?
-        </h2>
-        <p className="mt-4 text-base text-gray-600">
-          Vodafone Pay&apos;in Faturana Yansıt, Vodafone Pay Kart ve Cüzdan ürünleriyle kolay ve güvenli bir
-          şekilde alışveriş yapıp yüzlerce TL nakit iade ve indirim kazanabileceğiniz bir dünya sizi bekliyor.
-        </p>
+        <h2 className="text-3xl font-bold text-black lg:text-[36px] lg:leading-[40px]">{heading}</h2>
+        <p className="mt-4 text-base text-gray-600">{description}</p>
       </div>
 
       <div className="mt-12 flex flex-col gap-y-16">
