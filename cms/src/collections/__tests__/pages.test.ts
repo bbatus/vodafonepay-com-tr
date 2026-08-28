@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { PayloadRequest } from "payload";
-import { categoryExistsValidate, generateSlug, pagesRead, preventSelfParent, setCreatedBy } from "@/collections/Pages";
+import { categoryExistsValidate, generateSlug, pagesRead, preventSelfParent } from "@/collections/Pages";
 import { CATEGORY_SCOPES } from "@/collections/Categories";
 
 function fakeReq(existingSlugs: string[] = []): { req: PayloadRequest; count: ReturnType<typeof vi.fn> } {
@@ -38,20 +38,6 @@ describe("Pages generateSlug", () => {
     const data: MutablePageData = { title: "Hakkımızda" };
     await generateSlug({ data, operation: "create", req } as never);
     expect(data.slug).toBe("hakkimizda-2");
-  });
-});
-
-describe("Pages setCreatedBy", () => {
-  it("stamps createdBy on create", () => {
-    const data: Record<string, unknown> = {};
-    setCreatedBy({ data, operation: "create", req: { user: { id: 7 } } } as never);
-    expect(data.createdBy).toBe(7);
-  });
-
-  it("never touches createdBy on update", () => {
-    const data: Record<string, unknown> = {};
-    setCreatedBy({ data, operation: "update", req: { user: { id: 7 } } } as never);
-    expect(data.createdBy).toBeUndefined();
   });
 });
 

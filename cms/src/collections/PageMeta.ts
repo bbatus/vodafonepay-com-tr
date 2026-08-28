@@ -1,8 +1,9 @@
 import type { CollectionConfig } from "payload";
-import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { denyMakerEditPublished, denyMakerPublish, standardCreate, standardDelete, standardReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { setOwnerOnCreate } from "@/hooks/ownership";
 import { dbLabel } from "@/lib/collectionLabels";
 import { seoKeywordsField } from "@/lib/seoFields";
 
@@ -37,9 +38,9 @@ export const PageMeta: CollectionConfig = {
   access: {
     read: publishedOrAuthenticated,
     readVersions: authenticated,
-    create: newVerticalCreate,
-    update: newVerticalReadWrite,
-    delete: isNewVerticalMaker,
+    create: standardCreate,
+    update: standardReadWrite,
+    delete: standardDelete,
   },
   fields: [
     {
@@ -54,9 +55,17 @@ export const PageMeta: CollectionConfig = {
     { name: "seoDescription", type: "textarea" },
     seoKeywordsField,
     { name: "ogImage", type: "upload", relationTo: "media" },
+    {
+      name: "createdBy",
+      type: "relationship",
+      relationTo: "users",
+      label: { tr: "Oluşturan", en: "Created By" },
+      admin: { position: "sidebar", readOnly: true },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeChange: [setOwnerOnCreate("createdBy"), denyMakerEditPublished, denyMakerPublish],
     afterChange: [revalidateTag("page-meta"), auditAfterChange("page-meta")],
     afterDelete: [revalidateTagOnDelete("page-meta"), auditAfterDelete("page-meta")],
   },

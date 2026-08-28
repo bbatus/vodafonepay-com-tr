@@ -1,8 +1,9 @@
 import type { CollectionConfig } from "payload";
-import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { denyMakerEditPublished, denyMakerPublish, standardCreate, standardDelete, standardReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { setOwnerOnCreate } from "@/hooks/ownership";
 import { dbLabel } from "@/lib/collectionLabels";
 import { assignNextOrder, orderField } from "@/hooks/ordering";
 
@@ -32,9 +33,9 @@ export const LimitTables: CollectionConfig = {
   access: {
     read: publishedOrAuthenticated,
     readVersions: authenticated,
-    create: newVerticalCreate,
-    update: newVerticalReadWrite,
-    delete: isNewVerticalMaker,
+    create: standardCreate,
+    update: standardReadWrite,
+    delete: standardDelete,
   },
   fields: [
     { name: "title", type: "text", required: true },
@@ -51,10 +52,17 @@ export const LimitTables: CollectionConfig = {
         { name: "verifiedLimit", type: "text", required: true },
       ],
     },
+    {
+      name: "createdBy",
+      type: "relationship",
+      relationTo: "users",
+      label: { tr: "Oluşturan", en: "Created By" },
+      admin: { position: "sidebar", readOnly: true },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    beforeChange: [assignNextOrder("limit-tables")],
+    beforeChange: [setOwnerOnCreate("createdBy"), assignNextOrder("limit-tables"), denyMakerEditPublished, denyMakerPublish],
     afterChange: [revalidateTag("limit-tables"), auditAfterChange("limit-tables")],
     afterDelete: [revalidateTagOnDelete("limit-tables"), auditAfterDelete("limit-tables")],
   },

@@ -604,3 +604,87 @@ kendi "sessiz maskeleme yapma" kuralına aykırıydı.
 - [ ] **Kullanıcı testi:** CMS'te bir SSS/Kampanya/Blog bloğunun kategorisine
       olmayan bir şey yaz → kaydetmeye çalış (hata almalısın), alanın altındaki
       listeden doğrusunu seç.
+
+## 27. ProductHeroes/FeatureCards/StepCards hayalet koleksiyonları emekliye ayrıldı, 2 sayfa Pages'e taşındı (28.08.2026)
+
+`/aninda-bakiye`'deki adım kartlarının "Adım Kartları" listesinde neden
+görünmediği sorusu, gerçek bir mimari kusuru ortaya çıkardı: bu üç koleksiyon
+sidebar'da listeleniyordu ama DB'de sıfır kayıt vardı — `StepCards` render
+kodunda hiç çağrılmıyordu bile. Gerçek içerik hep Pages'in kendi
+`hero`/`steps`/`stepPhones`/`featureHighlights` bloklarındaydı.
+`ProductHeroes`/`FeatureCards` tam ölü değildi — sadece iki elle-yazılmış
+route'un (`/vodafone-pay-kart`, `/faturana-yansit`) hâlâ çağırdığı, boş
+oldukları için hep hardcoded fallback'e düşen bir mekanizmaydı.
+
+- [x] `/vodafone-pay-kart` ve `/faturana-yansit` gerçek Pages belgesine
+      dönüştürüldü (id 9, 10) — mevcut hardcoded/fallback içerik bloklara
+      taşındı, faturana-yansit'in 13 fallback SSS'i yeni bir
+      `faturana-yansit` FAQ kategorisine seed edildi.
+- [x] Migration'da bulunan 2 blok-alan açığı (EarnWithCard'ın sabit-görsel
+      karuseli, VideoGuideSection'ın koyu panel) yeni blok yerine mevcut
+      bloklara opsiyonel alan eklenerek kapatıldı: `iconCards.description`,
+      `imageTextSlides.sideImage`/`intro`, `videoList.subheading`/
+      `darkBackgroundImage`. `VideosWithTabs`/`LeadFormCta` için (gerçek
+      içeriği olmayan, bilinçli hardcoded) 2 "marker" blok eklendi.
+- [x] Üç koleksiyon kod + DB'den tamamen silindi
+      (`scripts/drop-ghost-collections.sql`).
+- [x] Mentalite AGENTS.md'ye yazıldı: yeni koleksiyon/alan aynı değişiklikte
+      gerçek bir render yoluna bağlanmalı, önce Pages'in blok kütüphanesi
+      genişletilmeli.
+- [x] Bu mentalite kodun geri kalanına da uygulandı: `Pages.deeplink` ve
+      `LegalPages.deeplink` kendi alan açıklamalarında "henüz render
+      edilmiyor" diye itiraf ediyordu (RFP §3.1.7) — ikisi de artık
+      "İlgili bağlantı →" linkiyle bağlandı (6 route + `[...slug]`).
+      Diğer tüm koleksiyonlar taranıp aynı hastalıkta başka biri
+      bulunmadı — Announcements/CookieRows/PageMeta boş ama gerçekten
+      bağlı, sadece henüz veri girilmemiş (mimari kusur değil).
+- [x] Canlı doğrulama: her iki sayfa tarayıcıda kontrol edildi, tüm içerik
+      eskiyle birebir eşleşiyor; faturana-yansit ilk kez CMS'ten gerçek SEO
+      meta alıyor. Admin sidebar'da "Ürün Sayfaları" grubu tamamen kalktı.
+      468 CMS + 378 site testi geçti.
+
+## 28. Growth Maker/Checker'ın kapsamı Campaigns'ten tüm CMS'e genişletildi (28.08.2026)
+
+Gerçek AccessPoint rol matrisi paylaşıldı — kullanıcı bunlardan 3'ünü kabul
+etti (4.'sü, "biz"/geliştirici kod erişimi, bilinçli olarak dışarıda
+bırakıldı, dokunulmadı): `RL_VODAFONEPAY_CMS_EXEC_CONTENT_PRW` →
+`NEW_VERTICAL_CHECKER`, `ROLE_VODAFONEPAY_CMS_MAKER_RW` → `GROWTH_MAKER`,
+`ROLE_VODAFONEPAY_CMS_CHECKER_RO` → `GROWTH_CHECKER`. LDAP eşlemesi
+(`roleMapping.ts`) zaten 18.08 refactor'ünden beri bu tam ID'lerle
+yazılıydı — değişiklik gerekmedi. Asıl iş: Growth'un yetkisi bugüne kadar
+sadece Campaigns'le sınırlıydı, artık New Vertical ile birebir aynı içerik
+kapsamına sahip.
+
+Kullanıcı onayıyla netleşen kararlar (AskUserQuestion):
+1. Kapsam: New Vertical'ın gördüğü tüm içerik (14 collection + Media).
+2. Silme: Growth Maker her yerde de sadece kendi taslağını silebilir.
+3. Growth Checker artık hiçbir yerde create yapamaz (Campaigns'teki mevcut
+   hakkı da kaldırıldı) — sadece onaylar/yayınlar.
+4. Categories/Representatives/Documents'a da `versions.drafts:true`
+   eklendi — taslak kavramı olmayan bu 3 collection'da da segregation-of-
+   duties aynı şekilde işlesin diye.
+
+- [x] `cms/src/access/roles.ts`'e paylaşılan yapı taşları eklendi:
+      `growthCreate`, `growthReadWrite`, `standardCreate`,
+      `standardReadWrite`, `standardDelete`, `denyMakerEditPublished`.
+      Campaigns'in kendi zengin `reviewStatus`/`unpublishRequest`/
+      `forceLiveEdit` sistemi BİLİNÇLİ OLARAK diğer collection'lara
+      taşınmadı — onun yerine `denyMakerPublish` (yayınlayamaz) +
+      `denyMakerEditPublished` (yayındakine dokunamaz) ikilisi genelleştirildi.
+- [x] 13 "standard shape" collection + Campaigns + Media güncellendi:
+      `createdBy` alanı eklendi (Campaigns/Pages'teki tekrar eden
+      `setCreatedBy` de kaldırılıp var olan `hooks/ownership.ts`'teki
+      `setOwnerOnCreate` paylaşılan hook'una taşındı).
+- [x] Categories/Representatives/Documents'a drafts eklendi — DB migration
+      (`scripts/growth-role-migration-28-08.sql`, idempotent): `_status` +
+      `created_by_id` + tam `_v` versiyon tabloları, mevcut tüm satırlar
+      `published`'e backfill edildi (site'ten hiçbir şey kaybolmadı).
+- [x] `collectionLabels.ts`/`rolePermissions.ts` (elle bakımlı SOX matrisi)
+      yeni duruma göre güncellendi.
+- [x] 468 CMS testi geçiyor (roles.test.ts'e yeni fonksiyonlar için testler
+      eklendi).
+- [x] Canlı doğrulama: API'den tam senaryo (Growth Maker taslak oluşturur →
+      yayınlayamaz → yayındakine dokunamaz; Growth Checker create edemez →
+      taslağı yayınlayabilir; NV Checker davranışı değişmedi) ve gerçek
+      admin UI'da (sidebar artık New Vertical ile aynı, yayındaki bir SSS'i
+      düzenlemeye çalışınca doğru kırmızı hata toast'ı çıkıyor) test edildi.

@@ -1,9 +1,10 @@
 import type { CollectionBeforeValidateHook, CollectionConfig } from "payload";
 import { turkishSlugify } from "@/lib/slugify";
-import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { denyMakerEditPublished, denyMakerPublish, standardCreate, standardDelete, standardReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { setOwnerOnCreate } from "@/hooks/ownership";
 import { dbLabel } from "@/lib/collectionLabels";
 
 type DocumentRow = { prefix?: string; label?: string; source?: string; slug?: string };
@@ -82,9 +83,9 @@ export const LegalPages: CollectionConfig = {
   access: {
     read: publishedOrAuthenticated,
     readVersions: authenticated,
-    create: newVerticalCreate,
-    update: newVerticalReadWrite,
-    delete: isNewVerticalMaker,
+    create: standardCreate,
+    update: standardReadWrite,
+    delete: standardDelete,
   },
   fields: [
     {
@@ -310,10 +311,18 @@ export const LegalPages: CollectionConfig = {
         },
       },
     },
+    {
+      name: "createdBy",
+      type: "relationship",
+      relationTo: "users",
+      label: { tr: "Oluşturan", en: "Created By" },
+      admin: { position: "sidebar", readOnly: true },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
     beforeValidate: [fillDocumentSlugs],
+    beforeChange: [setOwnerOnCreate("createdBy"), denyMakerEditPublished, denyMakerPublish],
     afterChange: [revalidateTag("legal-pages"), auditAfterChange("legal-pages")],
     afterDelete: [revalidateTagOnDelete("legal-pages"), auditAfterDelete("legal-pages")],
   },

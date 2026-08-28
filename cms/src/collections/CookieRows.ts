@@ -1,8 +1,9 @@
 import type { CollectionConfig } from "payload";
-import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { denyMakerEditPublished, denyMakerPublish, standardCreate, standardDelete, standardReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { setOwnerOnCreate } from "@/hooks/ownership";
 import { dbLabel } from "@/lib/collectionLabels";
 
 export const CookieRows: CollectionConfig = {
@@ -30,9 +31,9 @@ export const CookieRows: CollectionConfig = {
   access: {
     read: publishedOrAuthenticated,
     readVersions: authenticated,
-    create: newVerticalCreate,
-    update: newVerticalReadWrite,
-    delete: isNewVerticalMaker,
+    create: standardCreate,
+    update: standardReadWrite,
+    delete: standardDelete,
   },
   fields: [
     { name: "name", type: "text", required: true },
@@ -59,9 +60,17 @@ export const CookieRows: CollectionConfig = {
     },
     { name: "description", type: "textarea", required: true },
     { name: "duration", type: "text", required: true },
+    {
+      name: "createdBy",
+      type: "relationship",
+      relationTo: "users",
+      label: { tr: "Oluşturan", en: "Created By" },
+      admin: { position: "sidebar", readOnly: true },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeChange: [setOwnerOnCreate("createdBy"), denyMakerEditPublished, denyMakerPublish],
     afterChange: [revalidateTag("cookie-rows"), auditAfterChange("cookie-rows")],
     afterDelete: [revalidateTagOnDelete("cookie-rows"), auditAfterDelete("cookie-rows")],
   },

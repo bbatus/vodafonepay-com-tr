@@ -2,7 +2,8 @@ import type { CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
-import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { denyMakerEditPublished, denyMakerPublish, standardCreate, standardDelete, standardReadWrite } from "@/access/roles";
+import { setOwnerOnCreate } from "@/hooks/ownership";
 import { dbLabel } from "@/lib/collectionLabels";
 import {
   assignFooterOrder,
@@ -69,9 +70,9 @@ export const FaqItems: CollectionConfig = {
   access: {
     read: publishedOrAuthenticated,
     readVersions: authenticated,
-    create: newVerticalCreate,
-    update: newVerticalReadWrite,
-    delete: isNewVerticalMaker,
+    create: standardCreate,
+    update: standardReadWrite,
+    delete: standardDelete,
   },
   fields: [
     { name: "question", type: "text", required: true },
@@ -203,10 +204,24 @@ export const FaqItems: CollectionConfig = {
         },
       },
     },
+    {
+      name: "createdBy",
+      type: "relationship",
+      relationTo: "users",
+      label: { tr: "Oluşturan", en: "Created By" },
+      admin: { position: "sidebar", readOnly: true },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    beforeChange: [assignNextOrder("faq-items", ["category"]), assignNextHomepageOrder, assignFooterOrder("faq-items")],
+    beforeChange: [
+      setOwnerOnCreate("createdBy"),
+      assignNextOrder("faq-items", ["category"]),
+      assignNextHomepageOrder,
+      assignFooterOrder("faq-items"),
+      denyMakerEditPublished,
+      denyMakerPublish,
+    ],
     afterChange: [revalidateTag("faq-items"), auditAfterChange("faq-items")],
     afterDelete: [revalidateTagOnDelete("faq-items"), auditAfterDelete("faq-items")],
   },

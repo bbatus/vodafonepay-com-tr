@@ -45,9 +45,24 @@ export const DRAFT_ENABLED_COLLECTIONS = new Set([
   "legal-pages",
   "cookie-rows",
   "page-meta",
+  // Follow-up 28.08: Growth's expanded scope needed the same maker/checker
+  // draft→published gate these three didn't have before (see
+  // Categories.ts/Representatives.ts/Documents.ts and
+  // scripts/growth-role-migration-28-08.sql).
+  "categories",
+  "representatives",
+  "documents",
 ]);
 
-/** New Vertical roles see every content collection; Growth roles only ever touch Campaigns. */
+/**
+ * Every content collection either department's maker/checker pair can
+ * touch. Used to be New-Vertical-only with Growth fenced to `["campaigns"]`
+ * — follow-up 28.08 (business decision): Growth Maker/Checker now mirror
+ * New Vertical's own content scope exactly, so both dashboard constants
+ * below are intentionally identical. Kept as two separate exports (rather
+ * than one alias) so a future divergence between the two departments'
+ * dashboards is a one-line change, not a refactor.
+ */
 export const NEW_VERTICAL_DASHBOARD_COLLECTIONS = [
   "campaigns",
   "faq-items",
@@ -64,9 +79,10 @@ export const NEW_VERTICAL_DASHBOARD_COLLECTIONS = [
   "page-meta",
   "media",
   "documents",
+  "categories",
 ];
 
-export const GROWTH_DASHBOARD_COLLECTIONS = ["campaigns"];
+export const GROWTH_DASHBOARD_COLLECTIONS = [...NEW_VERTICAL_DASHBOARD_COLLECTIONS];
 
 /**
  * RFP feedback: 21 of 22 collections had no `labels` at all — Payload falls

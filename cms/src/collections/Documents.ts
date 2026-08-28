@@ -1,9 +1,11 @@
 import type { CollectionConfig } from "payload";
-import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { denyMakerEditPublished, denyMakerPublish, standardCreate, standardDelete, standardReadWrite } from "@/access/roles";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
 import { dbLabel } from "@/lib/collectionLabels";
 import { normalizeUploadFilename } from "@/hooks/normalizeUploadFilename";
+import { setOwnerOnCreate } from "@/hooks/ownership";
 
 /**
  * Separate from Media (which is image-only, with imageSizes/focalPoint that
@@ -36,19 +38,38 @@ export const Documents: CollectionConfig = {
     // /admin/collections/documents sidebar entry and direct routes are gone.
     hidden: true,
   },
-  access: {
-    read: () => true,
-    create: newVerticalCreate,
-    update: newVerticalReadWrite,
-    delete: isNewVerticalMaker,
+  versions: {
+    drafts: true,
   },
-  fields: [],
+  access: {
+    // Follow-up 28.08 (Growth's expanded scope): a Growth Maker's freshly
+    // uploaded document must go through the same publish gate as everything
+    // else — public read is now published-only rather than unconditional.
+    // Every pre-existing row was backfilled to `_status: "published"` in the
+    // same migration that added drafts here, so this is not a behavior
+    // change for any document that was already live.
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
+    create: standardCreate,
+    update: standardReadWrite,
+    delete: standardDelete,
+  },
+  fields: [
+    {
+      name: "createdBy",
+      type: "relationship",
+      relationTo: "users",
+      label: { tr: "Oluşturan", en: "Created By" },
+      admin: { position: "sidebar", readOnly: true },
+    },
+  ],
   upload: {
     mimeTypes: ["application/pdf", "audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/ogg", "audio/mp4", "audio/x-m4a"],
   },
   hooks: {
-    beforeOperation: [normalizeUploadFilename],
+    beforeOperation: [normalizeUploadFilename, denyUnauthenticatedDraftRead],
     beforeDelete: [blockDeleteIfReferenced("documents")],
+    beforeChange: [setOwnerOnCreate("createdBy"), denyMakerEditPublished, denyMakerPublish],
     afterChange: [auditAfterChange("documents")],
     afterDelete: [auditAfterDelete("documents")],
   },

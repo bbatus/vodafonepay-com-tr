@@ -1,6 +1,6 @@
 import { APIError } from "payload";
 import type { CollectionBeforeChangeHook, CollectionBeforeOperationHook, CollectionConfig } from "payload";
-import { isNewVerticalMaker, mediaCreate, newVerticalReadWrite } from "@/access/roles";
+import { isNewVerticalMaker, mediaCreate, standardReadWrite } from "@/access/roles";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
 import { dbLabel } from "@/lib/collectionLabels";
@@ -108,7 +108,7 @@ export const Media: CollectionConfig = {
   access: {
     read: () => true,
     create: mediaCreate,
-    update: newVerticalReadWrite,
+    update: standardReadWrite,
     delete: isNewVerticalMaker,
   },
   fields: [

@@ -1,8 +1,9 @@
 import type { CollectionConfig } from "payload";
-import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { denyMakerEditPublished, denyMakerPublish, standardCreate, standardDelete, standardReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { setOwnerOnCreate } from "@/hooks/ownership";
 import { dbLabel } from "@/lib/collectionLabels";
 import { assignNextOrder, orderField, rejectIfGroupFull, FOOTER_ORDER_MAX } from "@/hooks/ordering";
 
@@ -38,9 +39,9 @@ export const NavLinks: CollectionConfig = {
   access: {
     read: publishedOrAuthenticated,
     readVersions: authenticated,
-    create: newVerticalCreate,
-    update: newVerticalReadWrite,
-    delete: isNewVerticalMaker,
+    create: standardCreate,
+    update: standardReadWrite,
+    delete: standardDelete,
   },
   fields: [
     {
@@ -99,12 +100,22 @@ export const NavLinks: CollectionConfig = {
       ],
     },
     orderField({ collection: "nav-links", watchPath: "section", mode: "relationship" }),
+    {
+      name: "createdBy",
+      type: "relationship",
+      relationTo: "users",
+      label: { tr: "Oluşturan", en: "Created By" },
+      admin: { position: "sidebar", readOnly: true },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
     beforeChange: [
+      setOwnerOnCreate("createdBy"),
       rejectIfGroupFull({ collection: "nav-links", scopeField: "section", limits: NAV_LINK_FOOTER_SECTION_LIMITS }),
       assignNextOrder("nav-links", ["section"]),
+      denyMakerEditPublished,
+      denyMakerPublish,
     ],
     afterChange: [revalidateTag("nav-links"), auditAfterChange("nav-links")],
     afterDelete: [revalidateTagOnDelete("nav-links"), auditAfterDelete("nav-links")],

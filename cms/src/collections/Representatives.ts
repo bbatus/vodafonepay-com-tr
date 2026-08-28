@@ -1,7 +1,9 @@
 import type { CollectionConfig } from "payload";
-import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { denyMakerEditPublished, denyMakerPublish, standardCreate, standardDelete, standardReadWrite } from "@/access/roles";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { setOwnerOnCreate } from "@/hooks/ownership";
 import { dbLabel } from "@/lib/collectionLabels";
 
 export const Representatives: CollectionConfig = {
@@ -23,11 +25,19 @@ export const Representatives: CollectionConfig = {
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "representatives" } }],
     },
   },
+  versions: {
+    drafts: true,
+  },
   access: {
-    read: () => true,
-    create: newVerticalCreate,
-    update: newVerticalReadWrite,
-    delete: isNewVerticalMaker,
+    // Follow-up 28.08: public read is now published-only (was unconditional)
+    // now that a draft state exists — every pre-existing row was backfilled
+    // to `_status: "published"` in the same migration, so this is not a
+    // behavior change for any representative that was already live.
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
+    create: standardCreate,
+    update: standardReadWrite,
+    delete: standardDelete,
   },
   fields: [
     { name: "businessName", type: "text", required: true },
@@ -40,8 +50,17 @@ export const Representatives: CollectionConfig = {
     { name: "district", type: "text", required: true },
     { name: "authorizedPerson", type: "text" },
     { name: "qrCode", type: "upload", relationTo: "media" },
+    {
+      name: "createdBy",
+      type: "relationship",
+      relationTo: "users",
+      label: { tr: "Oluşturan", en: "Created By" },
+      admin: { position: "sidebar", readOnly: true },
+    },
   ],
   hooks: {
+    beforeOperation: [denyUnauthenticatedDraftRead],
+    beforeChange: [setOwnerOnCreate("createdBy"), denyMakerEditPublished, denyMakerPublish],
     afterChange: [revalidateTag("representatives"), auditAfterChange("representatives")],
     afterDelete: [revalidateTagOnDelete("representatives"), auditAfterDelete("representatives")],
   },

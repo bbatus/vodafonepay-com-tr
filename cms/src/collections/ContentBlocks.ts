@@ -1,8 +1,9 @@
 import type { CollectionConfig } from "payload";
-import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { denyMakerEditPublished, denyMakerPublish, standardCreate, standardDelete, standardReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { setOwnerOnCreate } from "@/hooks/ownership";
 import { dbLabel } from "@/lib/collectionLabels";
 import { assignNextOrder, orderField } from "@/hooks/ordering";
 
@@ -44,9 +45,9 @@ export const ContentBlocks: CollectionConfig = {
   access: {
     read: publishedOrAuthenticated,
     readVersions: authenticated,
-    create: newVerticalCreate,
-    update: newVerticalReadWrite,
-    delete: isNewVerticalMaker,
+    create: standardCreate,
+    update: standardReadWrite,
+    delete: standardDelete,
   },
   fields: [
     {
@@ -83,10 +84,22 @@ export const ContentBlocks: CollectionConfig = {
     { name: "youtubeId", type: "text", admin: { description: { tr: "video için, örn: 7CCEsOaoH2A", en: "For video, e.g.: 7CCEsOaoH2A" } } },
     { name: "linkUrl", type: "text" },
     orderField({ collection: "content-blocks", watchPath: "page", mode: "relationship" }),
+    {
+      name: "createdBy",
+      type: "relationship",
+      relationTo: "users",
+      label: { tr: "Oluşturan", en: "Created By" },
+      admin: { position: "sidebar", readOnly: true },
+    },
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    beforeChange: [assignNextOrder("content-blocks", ["page"])],
+    beforeChange: [
+      setOwnerOnCreate("createdBy"),
+      assignNextOrder("content-blocks", ["page"]),
+      denyMakerEditPublished,
+      denyMakerPublish,
+    ],
     afterChange: [revalidateTag("content-blocks"), auditAfterChange("content-blocks")],
     afterDelete: [revalidateTagOnDelete("content-blocks"), auditAfterDelete("content-blocks")],
   },

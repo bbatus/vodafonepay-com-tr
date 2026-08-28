@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { CollectionBeforeChangeHook, PayloadRequest } from "payload";
 import { FaqItems } from "@/collections/FaqItems";
 
-const assignNextHomepageOrder = FaqItems.hooks!.beforeChange![1] as CollectionBeforeChangeHook;
+const assignNextHomepageOrder = FaqItems.hooks!.beforeChange![2] as CollectionBeforeChangeHook;
 
 function fakeReq(highest: number | undefined, findImpl?: () => Promise<never>) {
   const find = findImpl

@@ -3,12 +3,18 @@ import type { PayloadRequest } from "payload";
 import {
   campaignsCreate,
   campaignsReadWrite,
+  denyMakerEditPublished,
   denyMakerPublish,
+  growthCreate,
+  growthReadWrite,
   isNewVerticalMaker,
   mediaCreate,
   newVerticalCreate,
   newVerticalReadWrite,
   ROLES,
+  standardCreate,
+  standardDelete,
+  standardReadWrite,
 } from "@/access/roles";
 
 const reqWithRole = (role?: string) => ({ user: role ? { role } : undefined }) as unknown as PayloadRequest;
@@ -52,13 +58,17 @@ describe("mediaCreate", () => {
 });
 
 describe("campaignsCreate", () => {
-  it("allows New Vertical maker and both Growth roles", () => {
+  it("allows New Vertical maker and Growth maker", () => {
     expect(campaignsCreate({ req: reqWithRole(ROLES.NEW_VERTICAL_MAKER) })).toBe(true);
     expect(campaignsCreate({ req: reqWithRole(ROLES.GROWTH_MAKER) })).toBe(true);
-    // Growth Checker can create its own campaigns too, not just approve
-    // GROWTH_MAKER's — the "_RO" in its LDAP name is AccessPoint's naming
-    // convention, not a read-only restriction. See ROLES.GROWTH_CHECKER.
-    expect(campaignsCreate({ req: reqWithRole(ROLES.GROWTH_CHECKER) })).toBe(true);
+  });
+
+  // Follow-up 28.08: the business re-confirmed the role table — Growth
+  // Checker approves/publishes, it never creates, on Campaigns same as
+  // everywhere else now. The earlier reading (Checker can create too) is
+  // no longer correct — see ROLES.GROWTH_CHECKER's comment.
+  it("denies Growth checker — it approves, it doesn't create", () => {
+    expect(campaignsCreate({ req: reqWithRole(ROLES.GROWTH_CHECKER) })).toBe(false);
   });
 
   it("denies the New Vertical checker — it approves, it doesn't create", () => {
@@ -102,5 +112,81 @@ describe("denyMakerPublish", () => {
     const data = { _status: "draft", title: "x" };
     const result = await denyMakerPublish({ data, req: reqWithRole(ROLES.GROWTH_MAKER) } as never);
     expect(result).toBe(data);
+  });
+});
+
+// Follow-up 28.08: Growth expanded from Campaigns-only to every "standard
+// shape" collection New Vertical already had — these five are the generic
+// building blocks every one of those collections wires in.
+describe("growthCreate / growthReadWrite", () => {
+  it("growthCreate allows only GROWTH_MAKER", () => {
+    expect(growthCreate({ req: reqWithRole(ROLES.GROWTH_MAKER) })).toBe(true);
+    expect(growthCreate({ req: reqWithRole(ROLES.GROWTH_CHECKER) })).toBe(false);
+    expect(growthCreate({ req: reqWithRole(ROLES.NEW_VERTICAL_MAKER) })).toBe(false);
+  });
+
+  it("growthReadWrite allows both Growth roles, denies New Vertical", () => {
+    expect(growthReadWrite({ req: reqWithRole(ROLES.GROWTH_MAKER) })).toBe(true);
+    expect(growthReadWrite({ req: reqWithRole(ROLES.GROWTH_CHECKER) })).toBe(true);
+    expect(growthReadWrite({ req: reqWithRole(ROLES.NEW_VERTICAL_MAKER) })).toBe(false);
+  });
+});
+
+describe("standardCreate / standardReadWrite / standardDelete", () => {
+  it("standardCreate allows both makers, denies both checkers", () => {
+    expect(standardCreate({ req: reqWithRole(ROLES.NEW_VERTICAL_MAKER) })).toBe(true);
+    expect(standardCreate({ req: reqWithRole(ROLES.GROWTH_MAKER) })).toBe(true);
+    expect(standardCreate({ req: reqWithRole(ROLES.NEW_VERTICAL_CHECKER) })).toBe(false);
+    expect(standardCreate({ req: reqWithRole(ROLES.GROWTH_CHECKER) })).toBe(false);
+  });
+
+  it("standardReadWrite allows all four roles", () => {
+    for (const role of Object.values(ROLES)) {
+      expect(standardReadWrite({ req: reqWithRole(role) })).toBe(true);
+    }
+  });
+
+  it("standardDelete: New Vertical maker can delete anything", () => {
+    expect(standardDelete({ req: reqWithRole(ROLES.NEW_VERTICAL_MAKER) } as never)).toBe(true);
+  });
+
+  it("standardDelete: Growth maker can only delete its own drafts (scoped Where)", () => {
+    const req = { user: { id: 42, role: ROLES.GROWTH_MAKER } } as unknown as PayloadRequest;
+    expect(standardDelete({ req } as never)).toEqual({
+      and: [{ _status: { equals: "draft" } }, { createdBy: { equals: 42 } }],
+    });
+  });
+
+  it("standardDelete: both checkers can never delete", () => {
+    expect(standardDelete({ req: reqWithRole(ROLES.NEW_VERTICAL_CHECKER) } as never)).toBe(false);
+    expect(standardDelete({ req: reqWithRole(ROLES.GROWTH_CHECKER) } as never)).toBe(false);
+  });
+});
+
+describe("denyMakerEditPublished", () => {
+  const call = (role: string | undefined, operation: string, status: string | undefined) =>
+    denyMakerEditPublished({
+      data: {},
+      operation,
+      originalDoc: status ? { _status: status } : {},
+      req: reqWithRole(role),
+    } as never);
+
+  it("throws when GROWTH_MAKER updates an already-published document", async () => {
+    await expect(call(ROLES.GROWTH_MAKER, "update", "published")).rejects.toThrow();
+  });
+
+  it("allows GROWTH_MAKER to update its own draft", async () => {
+    await expect(call(ROLES.GROWTH_MAKER, "update", "draft")).resolves.not.toThrow();
+  });
+
+  it("allows GROWTH_MAKER to create (not an update)", async () => {
+    await expect(call(ROLES.GROWTH_MAKER, "create", "published")).resolves.not.toThrow();
+  });
+
+  it("allows every other role to edit a published document", async () => {
+    await expect(call(ROLES.NEW_VERTICAL_MAKER, "update", "published")).resolves.not.toThrow();
+    await expect(call(ROLES.NEW_VERTICAL_CHECKER, "update", "published")).resolves.not.toThrow();
+    await expect(call(ROLES.GROWTH_CHECKER, "update", "published")).resolves.not.toThrow();
   });
 });

@@ -2,10 +2,12 @@ import type { CollectionBeforeValidateHook, CollectionConfig } from "payload";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { blockDeleteIfReferenced } from "@/hooks/referentialIntegrity";
-import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import { denyMakerEditPublished, denyMakerPublish, standardCreate, standardDelete, standardReadWrite } from "@/access/roles";
+import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { dbLabel } from "@/lib/collectionLabels";
 import { assignNextOrder, orderField } from "@/hooks/ordering";
 import { turkishSlugify, uniqueSlug } from "@/lib/slugify";
+import { setOwnerOnCreate } from "@/hooks/ownership";
 
 /**
  * E1: slug is now auto-generated from `label` — never typed by hand, so a
@@ -122,11 +124,19 @@ export const Categories: CollectionConfig = {
       ],
     },
   },
+  versions: {
+    drafts: true,
+  },
   access: {
-    read: () => true,
-    create: newVerticalCreate,
-    update: newVerticalReadWrite,
-    delete: isNewVerticalMaker,
+    // Follow-up 28.08: public read is now published-only (was unconditional)
+    // now that a draft state exists — every pre-existing row was backfilled
+    // to `_status: "published"` in the same migration, so this is not a
+    // behavior change for any category that was already live.
+    read: publishedOrAuthenticated,
+    readVersions: authenticated,
+    create: standardCreate,
+    update: standardReadWrite,
+    delete: standardDelete,
   },
   fields: [
     {
@@ -187,13 +197,21 @@ export const Categories: CollectionConfig = {
       },
     },
     orderField({ collection: "categories", watchPath: "scope", mode: "relationship" }),
+    {
+      name: "createdBy",
+      type: "relationship",
+      relationTo: "users",
+      label: { tr: "Oluşturan", en: "Created By" },
+      admin: { position: "sidebar", readOnly: true },
+    },
   ],
   hooks: {
+    beforeOperation: [denyUnauthenticatedDraftRead],
     beforeValidate: [generateSlug],
     // Scoped per `scope` — a new campaign category and a new FAQ category
     // shouldn't compete for the same order sequence, same reasoning as
     // FaqItems' own per-category scoping.
-    beforeChange: [assignNextOrder("categories", ["scope"])],
+    beforeChange: [setOwnerOnCreate("createdBy"), assignNextOrder("categories", ["scope"]), denyMakerEditPublished, denyMakerPublish],
     // RFP feedback 5.1 (the reported bug): a category with campaigns in it
     // could be deleted with no warning, silently NULLing every one of those
     // campaigns' `required` category field.

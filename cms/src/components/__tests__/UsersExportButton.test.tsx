@@ -69,7 +69,7 @@ describe("UsersExportButton", () => {
     const csv = await csvText();
     expect(csv).toContain('"E-posta";"Rol";"Dil Tercihi";"Hesap Durumu"');
     expect(csv).toContain("active@vodafone.local");
-    expect(csv).toContain("Growth — Maker (sadece Campaigns)");
+    expect(csv).toContain("Growth — Maker (New Vertical ile aynı kapsam, yayınlayamaz)");
     expect(csv).toContain('"English"');
     expect(csv).toContain('"Aktif"');
     expect(csv).toContain("10.0.0.5");

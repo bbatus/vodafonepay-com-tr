@@ -1,17 +1,10 @@
 import { APIError } from "payload";
-import type {
-  Access,
-  Block,
-  CollectionBeforeChangeHook,
-  CollectionBeforeValidateHook,
-  CollectionConfig,
-  PayloadRequest,
-  Where,
-} from "payload";
-import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
+import type { Access, Block, CollectionBeforeValidateHook, CollectionConfig, PayloadRequest, Where } from "payload";
+import { denyMakerEditPublished, denyMakerPublish, standardCreate, standardDelete, standardReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
+import { setOwnerOnCreate } from "@/hooks/ownership";
 import { sitePreviewUrl } from "@/lib/preview";
 import { assignNextFlaggedOrder } from "@/hooks/ordering";
 import { dbLabel } from "@/lib/collectionLabels";
@@ -1240,14 +1233,6 @@ export const generateSlug: CollectionBeforeValidateHook = async ({ data, operati
   return data;
 };
 
-/** Same `createdBy` provenance pattern as Campaigns.ts — set once, on create, never editable after. */
-export const setCreatedBy: CollectionBeforeChangeHook = ({ data, operation, req }) => {
-  if (operation === "create" && req.user?.id) {
-    data.createdBy = req.user.id;
-  }
-  return data;
-};
-
 /**
  * `parent`'s admin `filterOptions` (below) already hides a document from
  * its own parent dropdown, but that's UI-only — a direct API call could
@@ -1315,9 +1300,9 @@ export const Pages: CollectionConfig = {
   access: {
     read: pagesRead,
     readVersions: authenticated,
-    create: newVerticalCreate,
-    update: newVerticalReadWrite,
-    delete: isNewVerticalMaker,
+    create: standardCreate,
+    update: standardReadWrite,
+    delete: standardDelete,
   },
   fields: [
     // RFP feedback 5.7: was `localized: true` — the only localized field in the
@@ -1519,8 +1504,10 @@ export const Pages: CollectionConfig = {
     beforeOperation: [denyUnauthenticatedDraftRead],
     beforeValidate: [generateSlug, preventSelfParent],
     beforeChange: [
-      setCreatedBy,
+      setOwnerOnCreate("createdBy"),
       assignNextFlaggedOrder({ collection: "pages", flagField: "showInProductsMenu", orderField: "productsMenuOrder" }),
+      denyMakerEditPublished,
+      denyMakerPublish,
     ],
     afterChange: [revalidateTag("pages"), auditAfterChange("pages")],
     afterDelete: [revalidateTagOnDelete("pages"), auditAfterDelete("pages")],

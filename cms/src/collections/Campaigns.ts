@@ -1,42 +1,16 @@
 import { APIError } from "payload";
-import type { Access, CollectionAfterChangeHook, CollectionBeforeChangeHook, CollectionConfig, Where } from "payload";
+import type { CollectionAfterChangeHook, CollectionBeforeChangeHook, CollectionConfig } from "payload";
 import { revalidateCampaignPaths, revalidateCampaignPathsOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete, writeAuditLog } from "@/hooks/audit";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
-import { campaignsCreate, campaignsReadWrite, denyMakerPublish, hasActiveCheckerDelegate, isNewVerticalMaker, ROLES } from "@/access/roles";
+import { campaignsCreate, campaignsReadWrite, denyMakerPublish, hasActiveCheckerDelegate, ROLES, standardDelete } from "@/access/roles";
+import { setOwnerOnCreate } from "@/hooks/ownership";
 import { sitePreviewUrl } from "@/lib/preview";
 import { dbLabel } from "@/lib/collectionLabels";
 import { CATEGORY_SCOPES } from "@/collections/Categories";
 import { assignFooterOrder, FOOTER_ORDER_FIELD_DESCRIPTION, FOOTER_ORDER_MAX } from "@/hooks/ordering";
 import { autoSlug } from "@/hooks/autoSlug";
 import { seoKeywordsField } from "@/lib/seoFields";
-
-/**
- * Growth Maker can never publish its own campaigns (denyMakerPublish), but
- * until now it also couldn't delete a mistakenly-created one — the only
- * escape hatch was asking a New Vertical Maker to clean it up by hand.
- * Scoped narrowly: own campaigns only (via `createdBy`, set below), and
- * only while still a draft — once a Checker publishes it, deletion reverts
- * to New Vertical Maker only, same as every other collection.
- */
-const campaignsDelete: Access = (args) => {
-  if (isNewVerticalMaker(args)) return true;
-  const role = (args.req.user as { role?: string } | undefined)?.role;
-  if (role === ROLES.GROWTH_MAKER && args.req.user?.id) {
-    const where: Where = {
-      and: [{ _status: { equals: "draft" } }, { createdBy: { equals: args.req.user.id } }],
-    };
-    return where;
-  }
-  return false;
-};
-
-const setCreatedBy: CollectionBeforeChangeHook = ({ data, operation, req }) => {
-  if (operation === "create" && req.user?.id) {
-    data.createdBy = req.user.id;
-  }
-  return data;
-};
 
 /**
  * RFP feedback 3.11: a Growth Maker editing (resubmitting) a draft that was
@@ -249,7 +223,7 @@ export const Campaigns: CollectionConfig = {
     readVersions: authenticated,
     create: campaignsCreate,
     update: campaignsReadWrite,
-    delete: campaignsDelete,
+    delete: standardDelete,
   },
   fields: [
     {
@@ -574,7 +548,7 @@ export const Campaigns: CollectionConfig = {
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
     beforeValidate: [autoSlug("campaigns", "title")],
-    beforeChange: [setCreatedBy, manageReviewCycle, guardPublishedEdit, denyMakerPublish, assignFooterOrder("campaigns")],
+    beforeChange: [setOwnerOnCreate("createdBy"), manageReviewCycle, guardPublishedEdit, denyMakerPublish, assignFooterOrder("campaigns")],
     afterChange: [revalidateCampaignPaths, auditAfterChange("campaigns"), auditRejection],
     afterDelete: [revalidateCampaignPathsOnDelete, auditAfterDelete("campaigns")],
   },

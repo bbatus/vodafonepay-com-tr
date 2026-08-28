@@ -13,7 +13,9 @@ import { COLLECTION_LABELS, DRAFT_ENABLED_COLLECTIONS } from "@/lib/collectionLa
 type Category = "standard" | "media" | "campaigns" | "users" | "audit-logs" | "contact-info";
 
 const CATEGORY_BY_COLLECTION: Record<string, Category> = {
-  // create: newVerticalCreate, update: newVerticalReadWrite, delete: isNewVerticalMaker
+  // create: standardCreate, update: standardReadWrite, delete: standardDelete
+  // (follow-up 28.08: Growth Maker/Checker now share this shape too, not
+  // just New Vertical — see access/roles.ts)
   "faq-items": "standard",
   "blog-posts": "standard",
   announcements: "standard",
@@ -27,6 +29,7 @@ const CATEGORY_BY_COLLECTION: Record<string, Category> = {
   "cookie-rows": "standard",
   "page-meta": "standard",
   documents: "standard",
+  categories: "standard",
   media: "media",
   campaigns: "campaigns",
   users: "users",
@@ -52,23 +55,32 @@ const MATRIX: Record<Category, Record<RoleValue, PermissionFlags>> = {
   standard: {
     [NV_MAKER]: { view: true, create: true, update: true, publish: true, delete: true },
     [NV_CHECKER]: { view: true, create: false, update: true, publish: true, delete: false },
-    [G_MAKER]: { view: true, create: false, update: false, publish: false, delete: false },
-    [G_CHECKER]: { view: true, create: false, update: false, publish: false, delete: false },
+    // Follow-up 28.08: Growth expanded from Campaigns-only to every
+    // "standard" collection — same maker/checker shape Campaigns already
+    // had. G_MAKER's `delete: false` here is a simplification, same as
+    // Campaigns below: the real access function (`standardDelete`) does
+    // allow deleting one's own still-draft records, just not expressed in
+    // this summary-line matrix.
+    [G_MAKER]: { view: true, create: true, update: true, publish: false, delete: false },
+    [G_CHECKER]: { view: true, create: false, update: true, publish: true, delete: false },
   },
   media: {
     [NV_MAKER]: { view: true, create: true, update: true, publish: false, delete: true },
     [NV_CHECKER]: { view: true, create: false, update: true, publish: false, delete: false },
-    [G_MAKER]: { view: true, create: true, update: false, publish: false, delete: false },
-    [G_CHECKER]: { view: true, create: true, update: false, publish: false, delete: false },
+    // Follow-up 28.08: update was NV-only before (`newVerticalReadWrite`) —
+    // now `standardReadWrite`, so both Growth roles can update media too.
+    [G_MAKER]: { view: true, create: true, update: true, publish: false, delete: false },
+    [G_CHECKER]: { view: true, create: true, update: true, publish: false, delete: false },
   },
   campaigns: {
     [NV_MAKER]: { view: true, create: true, update: true, publish: true, delete: true },
     [NV_CHECKER]: { view: true, create: false, update: true, publish: true, delete: false },
     [G_MAKER]: { view: true, create: true, update: true, publish: false, delete: false },
-    // G_CHECKER can create its own campaigns AND approve/publish G_MAKER's —
-    // the AccessPoint role table's "_RO" suffix is a naming convention, not a
-    // read-only restriction (see ROLES.GROWTH_CHECKER in access/roles.ts).
-    [G_CHECKER]: { view: true, create: true, update: true, publish: true, delete: false },
+    // Follow-up 28.08: the business re-confirmed the role table — G_CHECKER
+    // approves/publishes, it never creates (the earlier reading, that its
+    // AccessPoint "_RO" suffix was just a naming convention rather than an
+    // actual restriction, is no longer correct — see ROLES.GROWTH_CHECKER).
+    [G_CHECKER]: { view: true, create: false, update: true, publish: true, delete: false },
   },
   users: {
     [NV_MAKER]: { view: true, create: true, update: true, publish: false, delete: true },

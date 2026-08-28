@@ -7,8 +7,12 @@ import { CookieRows } from "@/collections/CookieRows";
 import { ROLES } from "@/access/roles";
 
 describe("Documents", () => {
-  it("is publicly readable (RFP: contracts/forms must be downloadable by visitors)", () => {
-    expect(Documents.access?.read?.({} as never)).toBe(true);
+  it("read follows publishedOrAuthenticated — anonymous only sees published rows (follow-up 28.08: drafts enabled)", () => {
+    const read = Documents.access!.read!;
+    const anonymous = { headers: { get: () => null } } as unknown as PayloadRequest;
+    const authed = { user: { id: 1 }, headers: { get: () => null } } as unknown as PayloadRequest;
+    expect(read({ req: authed } as never)).toBe(true);
+    expect(read({ req: anonymous } as never)).toEqual({ _status: { equals: "published" } });
   });
 
   it("is hidden from the admin sidebar (unified into LegalPages' own drawer)", () => {
@@ -23,17 +27,27 @@ describe("Documents", () => {
     }
   });
 
-  it("only a New Vertical Maker can delete", () => {
-    const maker = { user: { role: ROLES.NEW_VERTICAL_MAKER } } as unknown as PayloadRequest;
-    const checker = { user: { role: ROLES.NEW_VERTICAL_CHECKER } } as unknown as PayloadRequest;
+  it("a New Vertical Maker can delete anything; a Growth Maker only its own drafts; checkers never", () => {
+    const maker = { user: { id: 1, role: ROLES.NEW_VERTICAL_MAKER } } as unknown as PayloadRequest;
+    const checker = { user: { id: 1, role: ROLES.NEW_VERTICAL_CHECKER } } as unknown as PayloadRequest;
+    const growthMaker = { user: { id: 5, role: ROLES.GROWTH_MAKER } } as unknown as PayloadRequest;
+    const growthChecker = { user: { id: 1, role: ROLES.GROWTH_CHECKER } } as unknown as PayloadRequest;
     expect(Documents.access?.delete?.({ req: maker } as never)).toBe(true);
     expect(Documents.access?.delete?.({ req: checker } as never)).toBe(false);
+    expect(Documents.access?.delete?.({ req: growthMaker } as never)).toEqual({
+      and: [{ _status: { equals: "draft" } }, { createdBy: { equals: 5 } }],
+    });
+    expect(Documents.access?.delete?.({ req: growthChecker } as never)).toBe(false);
   });
 });
 
 describe("Representatives", () => {
-  it("is publicly readable (powers /temsilciliklerimiz search + /temsilci/[id])", () => {
-    expect(Representatives.access?.read?.({} as never)).toBe(true);
+  it("read follows publishedOrAuthenticated — anonymous only sees published rows (follow-up 28.08: drafts enabled)", () => {
+    const read = Representatives.access!.read!;
+    const anonymous = { headers: { get: () => null } } as unknown as PayloadRequest;
+    const authed = { user: { id: 1 }, headers: { get: () => null } } as unknown as PayloadRequest;
+    expect(read({ req: authed } as never)).toBe(true);
+    expect(read({ req: anonymous } as never)).toEqual({ _status: { equals: "published" } });
   });
 
   it("requires businessName, address, province, district", () => {
