@@ -36,25 +36,25 @@ export function PricesAndLimits({
 
   return (
     <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
-      <div className="flex w-full max-w-[300px] items-center gap-x-2 rounded-lg bg-vf-gray p-1">
-        <button
-          type="button"
-          onClick={() => setTab("ucretler")}
-          className={`w-full rounded-md py-2.5 text-sm font-bold transition-colors ${
-            tab === "ucretler" ? "bg-white text-black shadow-sm" : "text-gray-500"
-          }`}
-        >
-          Ücretler
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("limitler")}
-          className={`w-full rounded-md py-2.5 text-sm font-bold transition-colors ${
-            tab === "limitler" ? "bg-white text-black shadow-sm" : "text-gray-500"
-          }`}
-        >
-          Limitler
-        </button>
+      {/* Live `widget_PricesAndLimits` reuses the SAME pill strip as
+          VideosWithTabs: `bg-white rounded-lg gap-x-2 max-w-[300px] mx-auto`
+          with the active tab filled #0D0D0D in white and the inactive one
+          transparent with black text. Ours was a grey strip with a white
+          "selected" chip and grey inactive text — a different control
+          entirely. */}
+      <div className="mx-auto flex w-full max-w-[300px] items-center gap-x-2 rounded-lg bg-white">
+        {(["ucretler", "limitler"] as const).map((key) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setTab(key)}
+            className={`m-1 w-full rounded-md py-2.5 text-xs font-light transition-colors lg:text-base ${
+              tab === key ? "bg-[#0D0D0D] text-white" : "text-black"
+            }`}
+          >
+            {key === "ucretler" ? "Ücretler" : "Limitler"}
+          </button>
+        ))}
       </div>
 
       {tab === "ucretler" ? (
