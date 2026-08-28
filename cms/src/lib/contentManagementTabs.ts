@@ -148,24 +148,6 @@ export const REPORT_COLLECTIONS: ReportCollection[] = [
     ],
   },
   {
-    slug: "product-heroes",
-    titleField: "heading",
-    hasDraft: true,
-    columns: [PAGE, STATUS, UPDATED],
-  },
-  {
-    slug: "feature-cards",
-    titleField: "title",
-    hasDraft: true,
-    columns: [PAGE, ORDER, STATUS, UPDATED],
-  },
-  {
-    slug: "step-cards",
-    titleField: "text",
-    hasDraft: true,
-    columns: [PAGE, { key: "number", label: { tr: "Adım", en: "Step" } }, ORDER, STATUS, UPDATED],
-  },
-  {
     slug: "fee-rows",
     titleField: "label",
     hasDraft: true,

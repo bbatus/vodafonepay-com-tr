@@ -64,9 +64,6 @@ export const REFERENCE_MAP: Record<string, ReferenceSource[]> = {
   media: [
     { collection: "campaigns", path: "image", titleField: "title", blocking: true },
     { collection: "blog-posts", path: "coverImage", titleField: "title", blocking: true },
-    { collection: "feature-cards", path: "icon", titleField: "title", blocking: true },
-    { collection: "step-cards", path: "image", titleField: "text", blocking: true },
-    { collection: "product-heroes", path: "image", titleField: "heading", blocking: true },
     { collection: "content-blocks", path: "image", titleField: "title", blocking: true },
     { collection: "page-meta", path: "ogImage", titleField: "pageKey", blocking: true },
     { collection: "pages", path: "ogImage", titleField: "title", blocking: true },

@@ -5,14 +5,11 @@ import { BlogPosts } from "@/collections/BlogPosts";
 import { Campaigns } from "@/collections/Campaigns";
 import { ContentBlocks } from "@/collections/ContentBlocks";
 import { FaqItems } from "@/collections/FaqItems";
-import { FeatureCards } from "@/collections/FeatureCards";
 import { FeeRows } from "@/collections/FeeRows";
 import { LegalPages } from "@/collections/LegalPages";
 import { LimitTables } from "@/collections/LimitTables";
 import { Media } from "@/collections/Media";
 import { NavLinks } from "@/collections/NavLinks";
-import { ProductHeroes } from "@/collections/ProductHeroes";
-import { StepCards } from "@/collections/StepCards";
 import { Users } from "@/collections/Users";
 import { AuditLogs } from "@/collections/AuditLogs";
 import { ContactInfo } from "@/globals/ContactInfo";
@@ -25,13 +22,10 @@ const draftsEnabledNewVerticalOnly = [
 ] as const;
 
 const newVerticalOnly = [
-  ["FeatureCards", FeatureCards],
   ["FeeRows", FeeRows],
   ["LegalPages", LegalPages],
   ["LimitTables", LimitTables],
   ["NavLinks", NavLinks],
-  ["ProductHeroes", ProductHeroes],
-  ["StepCards", StepCards],
   ["ContentBlocks", ContentBlocks],
 ] as const;
 

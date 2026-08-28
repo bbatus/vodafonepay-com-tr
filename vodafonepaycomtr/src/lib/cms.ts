@@ -498,69 +498,6 @@ export async function getNavLinks(): Promise<CmsNavLink[] | null> {
   return data?.docs ?? null;
 }
 
-export type ProductHeroPage =
-  | "anasayfa"
-  | "vodafone-pay-uygulama"
-  | "vodafone-pay-kart"
-  | "qr-ile-faturana-yansit"
-  | "faturana-yansit"
-  | "aninda-bakiye";
-
-const productHeroSchema = z.object({
-  id: z.union([z.string(), z.number()]).transform(String),
-  page: z.custom<ProductHeroPage>((v) => typeof v === "string"),
-  image: mediaSchema,
-  heading: z.string(),
-});
-export type CmsProductHero = z.infer<typeof productHeroSchema>;
-
-export async function getProductHero(page: ProductHeroPage): Promise<CmsProductHero | null> {
-  const data = await cmsFetch(
-    `/product-heroes?depth=1&limit=1&where[page][equals]=${encodeURIComponent(page)}`,
-    "product-heroes",
-    listResponseSchema(productHeroSchema)
-  );
-  return data?.docs?.[0] ?? null;
-}
-
-const featureCardSchema = z.object({
-  id: z.union([z.string(), z.number()]).transform(String),
-  page: z.string(),
-  icon: mediaSchema,
-  title: z.string(),
-  text: z.string(),
-  order: z.number(),
-});
-export type CmsFeatureCard = z.infer<typeof featureCardSchema>;
-
-export async function getFeatureCards(page: string): Promise<CmsFeatureCard[] | null> {
-  const data = await cmsFetch(
-    `/feature-cards?depth=1&limit=50&sort=order&where[page][equals]=${encodeURIComponent(page)}`,
-    "feature-cards",
-    listResponseSchema(featureCardSchema)
-  );
-  return data?.docs ?? null;
-}
-
-const stepCardSchema = z.object({
-  id: z.union([z.string(), z.number()]).transform(String),
-  page: z.string(),
-  number: z.string(),
-  text: z.string(),
-  image: mediaSchema,
-  order: z.number(),
-});
-export type CmsStepCard = z.infer<typeof stepCardSchema>;
-
-export async function getStepCards(page: string): Promise<CmsStepCard[] | null> {
-  const data = await cmsFetch(
-    `/step-cards?depth=1&limit=50&sort=order&where[page][equals]=${encodeURIComponent(page)}`,
-    "step-cards",
-    listResponseSchema(stepCardSchema)
-  );
-  return data?.docs ?? null;
-}
-
 const announcementSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   title: z.string(),
@@ -802,6 +739,7 @@ const iconCardsBlockSchema = z.object({
   blockType: z.literal("iconCards"),
   id: z.string().optional(),
   heading: nullableString(),
+  description: nullableString(),
   cards: z.array(z.object({ icon: mediaSchema, title: z.string(), text: z.string() })),
 });
 const stepsBlockSchema = z.object({
@@ -888,13 +826,26 @@ const imageTextSlidesBlockSchema = z.object({
   blockType: z.literal("imageTextSlides"),
   id: z.string().optional(),
   heading: nullableString(),
+  intro: nullableString(),
+  sideImage: mediaSchema.nullable().optional().transform((v) => v ?? undefined),
   slides: z.array(z.object({ image: mediaSchema, text: z.string() })),
 });
 const videoListBlockSchema = z.object({
   blockType: z.literal("videoList"),
   id: z.string().optional(),
   heading: nullableString(),
+  subheading: nullableString(),
+  darkBackgroundImage: mediaSchema.nullable().optional().transform((v) => v ?? undefined),
   videos: z.array(z.object({ title: z.string(), youtubeId: z.string() })),
+});
+/** See Pages.ts's VideosWithTabsMarkerBlock/LeadFormCtaBlock comment — fields:[] by design. */
+const videosWithTabsMarkerBlockSchema = z.object({
+  blockType: z.literal("videosWithTabsMarker"),
+  id: z.string().optional(),
+});
+const leadFormCtaBlockSchema = z.object({
+  blockType: z.literal("leadFormCta"),
+  id: z.string().optional(),
 });
 
 const pageBlockSchema = z.discriminatedUnion("blockType", [
@@ -918,6 +869,8 @@ const pageBlockSchema = z.discriminatedUnion("blockType", [
   stepPhonesBlockSchema,
   imageTextSlidesBlockSchema,
   videoListBlockSchema,
+  videosWithTabsMarkerBlockSchema,
+  leadFormCtaBlockSchema,
 ]);
 export type CmsPageBlock = z.infer<typeof pageBlockSchema>;
 

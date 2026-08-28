@@ -431,6 +431,20 @@ const IconCardsBlock: Block = {
       },
     },
     {
+      // Migration follow-up (28.08): CardsWithIcons.tsx already accepts an
+      // optional `description` subheading under the heading — used by the
+      // hand-written /faturana-yansit page but never exposed here, so an
+      // editor recreating that page from the block had nowhere to put it.
+      name: "description",
+      type: "textarea",
+      admin: {
+        description: {
+          tr: "Başlığın altındaki açıklama paragrafı. Boş bırakılabilir.",
+          en: "The paragraph under the heading. Optional.",
+        },
+      },
+    },
+    {
       name: "cards",
       type: "array",
       minRows: 1,
@@ -1042,6 +1056,34 @@ const ImageTextSlidesBlock: Block = {
       admin: { description: { tr: "Bölümün başlığı, örn: 'Neler Kazanırsın?'. Boş bırakılabilir.", en: "The section's heading, e.g.: 'Neler Kazanırsın?'. Optional." } },
     },
     {
+      // Migration follow-up (28.08): fills the gap ImageSideCarousel.tsx's
+      // layout left — a fixed side image + a paragraph next to a
+      // one-slide-at-a-time carousel (used by hand-written /vodafone-pay-kart's
+      // "Kartla Kazan" section). Both optional and independent of each other:
+      // leaving both empty keeps this block's original scroller-of-slides
+      // rendering (BlockRenderer switches on `sideImage` alone) — nothing
+      // about any EXISTING use of this block changes.
+      name: "intro",
+      type: "textarea",
+      admin: {
+        description: {
+          tr: "Başlığın altındaki açıklama paragrafı. Boş bırakılabilir.",
+          en: "The paragraph under the heading. Optional.",
+        },
+      },
+    },
+    {
+      name: "sideImage",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        description: {
+          tr: "Doldurulursa slaytlar, bu sabit görselin yanında TEK SEFERDE bir slayt gösteren bir karusel olarak render edilir (noktalarla gezinilir) — boş bırakılırsa slaytlar yatay kaydırmalı bir şerit olarak kalır.",
+          en: "If set, the slides render as a carousel showing ONE slide at a time next to this fixed image (dot navigation) — leave empty to keep the slides as a horizontal scrolling strip.",
+        },
+      },
+    },
+    {
       name: "slides",
       type: "array",
       minRows: 1,
@@ -1074,6 +1116,35 @@ const VideoListBlock: Block = {
   fields: [
     { name: "heading", type: "text", admin: { description: { tr: "Bölümün başlığı. Boş bırakılabilir.", en: "The section's heading. Optional." } } },
     {
+      // Migration follow-up (28.08): closes the gap VideoGuideSection.tsx's
+      // dark full-bleed layout left (hand-written /vodafone-pay-kart's
+      // "Fiziksel Kart nerelerde kullanılır?" section) — a heading + a
+      // second line under it, over a full-width background image with white
+      // text. Both optional and independent: leaving `darkBackgroundImage`
+      // empty keeps this block's original light-card-grid rendering
+      // (BlockRenderer switches on `darkBackgroundImage` alone) — no
+      // EXISTING use of this block changes.
+      name: "subheading",
+      type: "text",
+      admin: {
+        description: {
+          tr: "Başlığın altındaki ikinci satır. Sadece 'Koyu Zemin Görseli' doluyken gösterilir. Boş bırakılabilir.",
+          en: "A second line under the heading. Only shown while 'Dark Background Image' is set. Optional.",
+        },
+      },
+    },
+    {
+      name: "darkBackgroundImage",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        description: {
+          tr: "Doldurulursa bölüm, bu görseli tam genişlikte zemin yapan koyu bir panel olarak render edilir (başlık/alt başlık/video etiketleri beyaz) — boş bırakılırsa videolar açık renkli kart ızgarası olarak kalır.",
+          en: "If set, the section renders as a dark panel with this image as a full-width background (heading/subheading/video labels in white) — leave empty to keep the videos as a light card grid.",
+        },
+      },
+    },
+    {
       name: "videos",
       type: "array",
       minRows: 1,
@@ -1104,6 +1175,47 @@ const VideoListBlock: Block = {
       ],
     },
   ],
+};
+
+/**
+ * Migration follow-up (28.08): a "marker" block with no editable fields.
+ * VideosWithTabs.tsx (tabbed video-thumbnail scroller) and LeadFormCta.tsx
+ * (banner + a non-functional "Formu doldurun" button) are not CMS content —
+ * their copy is fixed placeholder/decorative chrome specific to
+ * /faturana-yansit, not something an editor edits per-page. But when that
+ * page moved from a hand-written route into a Pages document, these two
+ * pieces still needed a way to be POSITIONED in the page's layout (added,
+ * removed, reordered like any other section) without pretending they carry
+ * editable content they don't have. An editor drags this block in exactly
+ * where the fixed component should render; BlockRenderer renders the real
+ * component with no props.
+ */
+const VideosWithTabsMarkerBlock: Block = {
+  slug: "videosWithTabsMarker",
+  labels: {
+    // The label itself carries the "nothing to edit" note — Payload's Block
+    // type has no `admin.description` (field-level only), and this block is
+    // deliberately fields:[] so there's nowhere else to put it.
+    singular: {
+      tr: "Sekmeli Video Tanıtımı (Sabit, Düzenlenemez)",
+      en: "Tabbed Video Showcase (Fixed, Not Editable)",
+    },
+    plural: {
+      tr: "Sekmeli Video Tanıtımları (Sabit, Düzenlenemez)",
+      en: "Tabbed Video Showcases (Fixed, Not Editable)",
+    },
+  },
+  fields: [],
+};
+
+/** See VideosWithTabsMarkerBlock's comment — same reasoning, for LeadFormCta.tsx. */
+const LeadFormCtaBlock: Block = {
+  slug: "leadFormCta",
+  labels: {
+    singular: { tr: "Form Çağrısı Bannerı (Sabit, Düzenlenemez)", en: "Lead Form Banner (Fixed, Not Editable)" },
+    plural: { tr: "Form Çağrısı Bannerları (Sabit, Düzenlenemez)", en: "Lead Form Banners (Fixed, Not Editable)" },
+  },
+  fields: [],
 };
 
 /**
@@ -1263,6 +1375,8 @@ export const Pages: CollectionConfig = {
         RepresentativesBlock,
         ImageTextSlidesBlock,
         VideoListBlock,
+        VideosWithTabsMarkerBlock,
+        LeadFormCtaBlock,
       ],
     },
     { name: "seoTitle", type: "text" },

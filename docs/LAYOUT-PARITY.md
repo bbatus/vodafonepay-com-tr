@@ -111,6 +111,53 @@ engelleyen tam olarak buydu.
 Canlı doğrulama: `/` üzerinde 5 blok da render oluyor (hero, stepPhones,
 featureHighlights, campaignGrid, faqList).
 
+## 7.6 vodafone-pay-kart ve faturana-yansit de Pages'e taşındı, 3 hayalet koleksiyon silindi (28.08)
+
+Kullanıcının `/aninda-bakiye`'deki adım kartlarının "Adım Kartları" listesinde
+neden görünmediğini sorması, gerçek bir mimari kusuru ortaya çıkardı:
+`ProductHeroes`/`FeatureCards`/`StepCards` üçü de ayrı, kendi başına
+koleksiyonlardı — sidebar'da listeleniyorlardı ama DB'de **sıfır kayıt**
+vardı. `StepCards` render kodunda hiç çağrılmıyordu bile; `ProductHeroes`/
+`FeatureCards` ise sadece iki elle-yazılmış route'un (`/vodafone-pay-kart`,
+`/faturana-yansit`) hâlâ çağırdığı, ama boş oldukları için hep hardcoded
+fallback'e düşen bir mekanizmaydı. Gerçek içerik hep Pages'in kendi layout
+bloklarındaydı (`hero`, `steps`/`stepPhones`, `featureHighlights`).
+
+Kapatmak için: her iki hand-written route gerçek bir Pages belgesine
+dönüştürüldü (id 9, 10 — mevcut hardcoded/fallback içerik birebir bloklara
+taşındı, faturana-yansit'in 13 fallback SSS'i yeni bir `faturana-yansit`
+FAQ kategorisine seed edildi), sonra üç koleksiyon de kod + DB'den tamamen
+silindi (`scripts/drop-ghost-collections.sql`).
+
+Migration sırasında bulunan 2 gerçek blok-alan açığı kapatıldı (yeni blok
+yerine mevcut bloklara opsiyonel alan — daha az kod):
+- `iconCards`'a opsiyonel `description` alanı eklendi (CardsWithIcons zaten
+  destekliyordu, blok geçmiyordu).
+- `imageTextSlides`'a opsiyonel `sideImage`+`intro` eklendi — doluysa
+  `ImageSideCarousel`'ın sabit-görsel+tek-slayt-karusel düzenine geçiyor
+  (EarnWithCard'ın layout'u), boşsa eski kaydırmalı şerit davranışı aynen
+  kalıyor.
+- `videoList`'e opsiyonel `subheading`+`darkBackgroundImage` eklendi — doluysa
+  koyu tam-genişlik panel oluyor (VideoGuideSection'ın layout'u), boşsa eski
+  açık kart ızgarası aynen kalıyor.
+- İki "marker" blok eklendi (`videosWithTabsMarker`, `leadFormCta`) —
+  alanı yok, sadece `VideosWithTabs`/`LeadFormCta`'nın (gerçek içeriği
+  olmayan, R-23 gereği bilinçli hardcoded iki bileşen) sayfa düzenindeki
+  YERİNİ kontrol ediyor.
+
+Bu satırın hemen üstündeki "eksik listesi"nde `PhysicalCardUsed` için not
+edilen `mediaPanel` (tek video) çözümünden ayrı — `videoList`'in yeni koyu
+panel modu çoklu-video ("Fiziksel Kart nerelerde kullanılır?" 2-video grid)
+içindir, ikisi farklı ihtiyaçlar.
+
+Canlı doğrulama: `/vodafone-pay-kart` ve `/faturana-yansit` her ikisi de
+`[...slug]`'tan (artık Pages belgesi olarak) render oluyor, tüm bölümler
+metinsel olarak eskisiyle birebir aynı; faturana-yansit ayrıca ilk kez
+`seoTitle`/`seoDescription` CMS'ten geliyor (önceden hardcoded'du, hiç
+`getPageMeta` çağırmıyordu). Admin sidebar'da "Ürün Sayfaları" grubu ve
+üç koleksiyon tamamen kalktı; DB'de `product_heroes`/`feature_cards`/
+`step_cards` tabloları yok.
+
 ## 7. Doğrulama durumu
 
 - Test sayfasında 16 bloğun tamamı ekli. Masaüstü 1440: beklenmeyen genişlik 0, boş

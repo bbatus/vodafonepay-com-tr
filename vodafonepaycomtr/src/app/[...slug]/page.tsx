@@ -21,6 +21,9 @@ import { ImageWithText } from "@/components/ImageWithText";
 import { PricesAndLimits } from "@/components/PricesAndLimits";
 import { PhoneStepsCarousel } from "@/components/PhoneStepsCarousel";
 import { ProductHero } from "@/components/ProductHero";
+import { ImageSideCarousel } from "@/components/ImageSideCarousel";
+import { VideosWithTabs } from "@/components/VideosWithTabs";
+import { LeadFormCta } from "@/components/LeadFormCta";
 import {
   campaignToCard,
   getBlogPosts,
@@ -164,6 +167,7 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
       return (
         <CardsWithIcons
           title={block.heading}
+          description={block.description}
           cards={block.cards.map((c) => ({ icon: c.icon.url, title: c.title, text: c.text }))}
         />
       );
@@ -313,7 +317,24 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
 
     // Mirrors VideosWithTabs' own scroller: fixed-width `bg-vf-gray rounded-xl`
     // tiles with the media inset, rather than white shadowed cards.
+    // `sideImage` set → the fixed-image + one-slide-at-a-time carousel layout
+    // (live parity: `widget_EarnWithCard`'s "Kartla Kazan" pairing, migrated
+    // from the hand-written /vodafone-pay-kart page — see ImageSideCarousel.tsx).
+    // Unset → the original horizontal scroller, unchanged for any existing use.
     case "imageTextSlides":
+      if (block.sideImage) {
+        return (
+          <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
+            {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
+            {block.intro && <p className="mt-4 max-w-2xl text-base text-gray-600">{block.intro}</p>}
+            <ImageSideCarousel
+              sideImage={block.sideImage.url}
+              sideImageAlt={block.sideImage.alt || block.heading || ""}
+              slides={block.slides.map((s) => ({ image: s.image.url, text: s.text }))}
+            />
+          </section>
+        );
+      }
       return (
         <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
           {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
@@ -337,7 +358,39 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
         </section>
       );
 
+    // `darkBackgroundImage` set → the dark full-bleed panel (live parity:
+    // hand-written /vodafone-pay-kart's "Fiziksel Kart nerelerde kullanılır?"
+    // section — see VideoGuideSection.tsx). Unset → the original light card
+    // grid, unchanged for any existing use.
     case "videoList":
+      if (block.darkBackgroundImage) {
+        return (
+          <section
+            className="bg-cover bg-center px-4 py-16 lg:px-[52px]"
+            style={{ backgroundImage: `url(${block.darkBackgroundImage.url})`, backgroundColor: "#1a0000" }}
+          >
+            {block.heading && <h2 className="text-lg font-bold text-white">{block.heading}</h2>}
+            {block.subheading && <p className="mt-1 text-lg text-white/80">{block.subheading}</p>}
+            <div className="mt-6 grid gap-8 lg:grid-cols-2">
+              {block.videos.map((v) => (
+                <div key={v.youtubeId}>
+                  <p className="mb-3 text-base text-white">{v.title}</p>
+                  <div className="aspect-video w-full overflow-hidden rounded-xl">
+                    <iframe
+                      className="h-full w-full"
+                      src={`https://www.youtube.com/embed/${v.youtubeId}`}
+                      title={v.title}
+                      loading="lazy"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      }
       return (
         <section className="mx-auto w-full max-w-[1030px] px-4 py-16">
           {block.heading && <h2 className="text-2xl font-bold text-black lg:text-4xl">{block.heading}</h2>}
@@ -358,6 +411,12 @@ export async function BlockRenderer({ block }: { block: CmsPageBlock }) {
           </div>
         </section>
       );
+
+    case "videosWithTabsMarker":
+      return <VideosWithTabs />;
+
+    case "leadFormCta":
+      return <LeadFormCta />;
 
     default:
       return null;

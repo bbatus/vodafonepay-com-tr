@@ -9,8 +9,8 @@ import { ROLES } from "@/access/roles";
 
 /**
  * RFP §3.1.6: content sorting. The `order` number field already existed on
- * every collection that renders as an ordered list (StepCards/FeatureCards/
- * ContentBlocks/FaqItems/NavLinks/Announcements/FeeRows/LimitTables), but
+ * every collection that renders as an ordered list (ContentBlocks/FaqItems/
+ * NavLinks/Announcements/FeeRows/LimitTables), but
  * editors had to type a number and guess at ordering relative to siblings —
  * no drag-and-drop. Payload's own drag-reorder only applies to array/blocks
  * SUB-fields inside one document, not to a list of separate collection
@@ -18,7 +18,7 @@ import { ROLES } from "@/access/roles";
  * `admin.components.beforeList`) rather than a config flag.
  *
  * `groupField` scopes reordering to siblings that actually compete for the
- * same `order` sequence (e.g. StepCards' `page`, NavLinks' `section`,
+ * same `order` sequence (e.g. ContentBlocks' `page`, NavLinks' `section`,
  * FaqItems' `category`) — dragging can only reorder within one group, never
  * across unrelated ones. Collections with a single flat list (FeeRows,
  * LimitTables, Announcements) omit it and get one group.
@@ -44,7 +44,7 @@ function labelOf(doc: ReorderableDoc): string {
 }
 
 /**
- * `groupField`'s value can be a plain string (StepCards' `page`, NavLinks'
+ * `groupField`'s value can be a plain string (ContentBlocks' `page`, NavLinks'
  * `section` — both `select` fields), a bare relationship id (FaqItems'
  * `category` fetched at depth:0, since this widget never needs the full
  * related doc), or a populated relationship object if some future caller
@@ -118,7 +118,7 @@ function DraggableGroup({
   collection: string;
   /**
    * The field name this group is scoped by (Categories' "scope", NavLinks'
-   * "section", FaqItems'/StepCards'/FeatureCards' relationship field, …) —
+   * "section", FaqItems'/Categories' relationship field, …) —
    * bug found live: without this, `handleSave` PATCHes `{ order }` alone,
    * and the server's `assignNextOrder`/`rejectIfOrderTaken` (hooks/
    * ordering.ts) collision check derives its scope constraint FROM the PATCH

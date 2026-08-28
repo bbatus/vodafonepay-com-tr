@@ -85,10 +85,10 @@ async function rejectIfOrderTaken(args: {
  * also checked for collisions with a sibling in the same group, on both
  * create and update, via rejectIfOrderTaken above.
  *
- * `scopeFields` are the fields that define "the same list" — StepCards and
- * FeatureCards are per `page`, FaqItems per `category`, NavLinks per
- * `section`. Without scoping, adding a card to one page would push the
- * numbering of every other page's cards.
+ * `scopeFields` are the fields that define "the same list" — ContentBlocks
+ * is per `page`, FaqItems per `category`, NavLinks per `section`. Without
+ * scoping, adding a block to one page would push the numbering of every
+ * other page's blocks.
  */
 export function assignNextOrder(collection: string, scopeFields: string[] = []): CollectionBeforeChangeHook {
   return async ({ data, operation, req, originalDoc }) => {

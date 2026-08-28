@@ -3,13 +3,10 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { QrDownloadBadge } from "@/components/QrDownloadBadge";
-import { WhereCanIBuy } from "@/components/WhereCanIBuy";
 import { Hero } from "@/components/Hero";
 import { LeadFormCta } from "@/components/LeadFormCta";
-import { EarnWithCard } from "@/components/EarnWithCard";
 import { BrandLogoGrid } from "@/components/BrandLogoGrid";
 import { FeatureHighlights } from "@/components/FeatureHighlights";
-import { VideoGuideSection } from "@/components/VideoGuideSection";
 import { CardsWithIcons } from "@/components/CardsWithIcons";
 import { ProductHero } from "@/components/ProductHero";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
@@ -39,13 +36,6 @@ describe("QrDownloadBadge", () => {
   });
 });
 
-describe("WhereCanIBuy", () => {
-  it("renders the heading", () => {
-    render(<WhereCanIBuy />);
-    expect(screen.getByText("Nereden satın alabilirim?")).toBeInTheDocument();
-  });
-});
-
 describe("Hero", () => {
   it("renders the Vodafone Pay tagline", () => {
     render(<Hero />);
@@ -57,18 +47,6 @@ describe("LeadFormCta", () => {
   it("renders the CTA button", () => {
     render(<LeadFormCta />);
     expect(screen.getByText("Formu doldurun")).toBeInTheDocument();
-  });
-});
-
-describe("EarnWithCard", () => {
-  it("renders nothing when given no slides", () => {
-    const { container } = render(<EarnWithCard slides={[]} />);
-    expect(container).toBeEmptyDOMElement();
-  });
-
-  it("renders the heading and carousel when slides are given", () => {
-    render(<EarnWithCard slides={[{ image: "/a.jpg", text: "Kazanç 1" }]} />);
-    expect(screen.getByText("Vodafone Pay Kart ile Kazan")).toBeInTheDocument();
   });
 });
 
@@ -102,19 +80,6 @@ describe("FeatureHighlights", () => {
     render(<FeatureHighlights features={[{ icon: "/icon.svg", title: "Özellik", description: "Açıklama" }]} />);
     expect(screen.getByText("Özellik")).toBeInTheDocument();
     expect(screen.getByText("Açıklama")).toBeInTheDocument();
-  });
-});
-
-describe("VideoGuideSection", () => {
-  it("renders nothing when given no videos", () => {
-    const { container } = render(<VideoGuideSection videos={[]} />);
-    expect(container).toBeEmptyDOMElement();
-  });
-
-  it("embeds each video by its YouTube id", () => {
-    render(<VideoGuideSection videos={[{ title: "Nasıl Kullanılır", youtubeId: "abc123" }]} />);
-    const frame = screen.getByTitle("Nasıl Kullanılır") as HTMLIFrameElement;
-    expect(frame.src).toContain("abc123");
   });
 });
 

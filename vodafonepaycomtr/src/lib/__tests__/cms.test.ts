@@ -11,7 +11,6 @@ import {
   getContentBlocks,
   getCookieRows,
   getFaqItems,
-  getFeatureCards,
   getFeeRows,
   getFooterCampaigns,
   getFooterFaqItems,
@@ -23,10 +22,8 @@ import {
   getPageMeta,
   getPages,
   getProductsMenuPages,
-  getProductHero,
   getRepresentativeById,
   getRepresentatives,
-  getStepCards,
   getTranslation,
   richTextToLines,
   richTextToPlainText,
@@ -358,27 +355,6 @@ describe("cms.ts fetch-backed getters", () => {
     const doc = { id: "n1", label: "L", href: "/x", section: "header-main", order: 0 };
     vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
     expect(await getNavLinks()).toEqual([doc]);
-  });
-
-  it("getProductHero returns the first doc, or null if none", async () => {
-    const doc = { id: "p1", page: "aninda-bakiye", image: media, heading: "H" };
-    vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [doc] }));
-    expect(await getProductHero("aninda-bakiye")).toEqual(doc);
-
-    vi.mocked(fetch).mockImplementationOnce(() => okJson({ docs: [] }));
-    expect(await getProductHero("aninda-bakiye")).toBeNull();
-  });
-
-  it("getFeatureCards returns docs on success", async () => {
-    const doc = { id: "fc1", page: "aninda-bakiye", icon: media, title: "T", text: "X", order: 0 };
-    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
-    expect(await getFeatureCards("aninda-bakiye")).toEqual([doc]);
-  });
-
-  it("getStepCards returns docs on success", async () => {
-    const doc = { id: "sc1", page: "aninda-bakiye", number: "1", text: "X", image: media, order: 0 };
-    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
-    expect(await getStepCards("aninda-bakiye")).toEqual([doc]);
   });
 
   it("getAnnouncements returns docs on success", async () => {

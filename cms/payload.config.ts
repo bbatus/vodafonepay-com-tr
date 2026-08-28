@@ -38,9 +38,6 @@ import { BlogPosts } from "./src/collections/BlogPosts";
 import { FeeRows } from "./src/collections/FeeRows";
 import { LimitTables } from "./src/collections/LimitTables";
 import { NavLinks } from "./src/collections/NavLinks";
-import { ProductHeroes } from "./src/collections/ProductHeroes";
-import { FeatureCards } from "./src/collections/FeatureCards";
-import { StepCards } from "./src/collections/StepCards";
 import { Announcements } from "./src/collections/Announcements";
 import { LegalPages } from "./src/collections/LegalPages";
 import { ContentBlocks } from "./src/collections/ContentBlocks";
@@ -403,10 +400,6 @@ export default buildConfig({
     LegalPages,
     CookieRows,
     PageMeta,
-    // — Ürün Sayfaları —
-    ProductHeroes,
-    FeatureCards,
-    StepCards,
     // Hidden from every sidebar group (admin.hidden) — reachable only through
     // the "Geri Bildirim Gönder" screen's submit endpoint.
     Feedback,

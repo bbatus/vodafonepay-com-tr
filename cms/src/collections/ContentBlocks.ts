@@ -9,11 +9,9 @@ import { assignNextOrder, orderField } from "@/hooks/ordering";
 /**
  * Generic content block for the several small, one-off sections that used to
  * be hardcoded arrays inside components (StepPhones, AppFeatures,
- * EarnWithCard, FeatureHighlights, VideoGuideSection, VideosWithTabs,
- * BrandLogoGrid). A dedicated collection per component would mean 7+ nearly
- * identical collections; `page` + `blockType` scope a single flexible one
- * instead, matching the `page`-scoped pattern FeatureCards/StepCards already
- * use elsewhere in this CMS.
+ * FeatureHighlights, BrandLogoGrid). A dedicated collection per component
+ * would mean several nearly identical collections; `page` + `blockType`
+ * scope a single flexible one instead.
  */
 export const ContentBlocks: CollectionConfig = {
   slug: "content-blocks",

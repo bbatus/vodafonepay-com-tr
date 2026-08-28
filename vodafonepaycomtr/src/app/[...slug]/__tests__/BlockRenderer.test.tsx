@@ -111,7 +111,12 @@ describe("BlockRenderer", () => {
   it("iconCards: renders each card's title and text", async () => {
     render(
       await BlockRenderer({
-        block: { blockType: "iconCards", heading: "Kartlar", cards: [{ icon: image, title: "Kart 1", text: "Metin 1" }] },
+        block: {
+          blockType: "iconCards",
+          heading: "Kartlar",
+          description: undefined,
+          cards: [{ icon: image, title: "Kart 1", text: "Metin 1" }],
+        },
       })
     );
     expect(screen.getByText("Kart 1")).toBeInTheDocument();
@@ -267,22 +272,81 @@ describe("BlockRenderer", () => {
     expect(screen.queryByText("Deniz")).not.toBeInTheDocument();
   });
 
-  it("imageTextSlides: renders each slide's text", async () => {
-    render(
+  it("imageTextSlides: renders each slide's text as a scroller when no sideImage is set", async () => {
+    const { container } = render(
       await BlockRenderer({
-        block: { blockType: "imageTextSlides", heading: "Slaytlar", slides: [{ image, text: "Slayt metni" }] },
+        block: {
+          blockType: "imageTextSlides",
+          heading: "Slaytlar",
+          intro: undefined,
+          sideImage: undefined,
+          slides: [{ image, text: "Slayt metni" }],
+        },
       })
     );
     expect(screen.getByText("Slayt metni")).toBeInTheDocument();
+    // The scroller variant has no dot-navigation buttons (that's the carousel variant below).
+    expect(container.querySelectorAll('button[aria-label$=". kart"]').length).toBe(0);
   });
 
-  it("videoList: embeds each video by id and title", async () => {
+  it("imageTextSlides: renders the fixed-image carousel when sideImage is set", async () => {
+    render(
+      await BlockRenderer({
+        block: {
+          blockType: "imageTextSlides",
+          heading: "Kartla Kazan",
+          intro: "Harcadıkça kazan.",
+          sideImage: image,
+          slides: [{ image, text: "İlk slayt" }],
+        },
+      })
+    );
+    expect(screen.getByText("Kartla Kazan")).toBeInTheDocument();
+    expect(screen.getByText("Harcadıkça kazan.")).toBeInTheDocument();
+    expect(screen.getByText("İlk slayt")).toBeInTheDocument();
+  });
+
+  it("videoList: embeds each video by id and title as a light card grid when no darkBackgroundImage is set", async () => {
     const { container } = render(
       await BlockRenderer({
-        block: { blockType: "videoList", heading: "Videolar", videos: [{ title: "Video 1", youtubeId: "xyz789" }] },
+        block: {
+          blockType: "videoList",
+          heading: "Videolar",
+          subheading: undefined,
+          darkBackgroundImage: undefined,
+          videos: [{ title: "Video 1", youtubeId: "xyz789" }],
+        },
       })
     );
     expect(screen.getByText("Video 1")).toBeInTheDocument();
     expect(container.querySelector("iframe")?.getAttribute("src")).toContain("xyz789");
+    expect(container.querySelector("section")?.className).not.toContain("bg-cover");
+  });
+
+  it("videoList: renders the dark full-bleed panel when darkBackgroundImage is set", async () => {
+    const { container } = render(
+      await BlockRenderer({
+        block: {
+          blockType: "videoList",
+          heading: "Nerelerde kullanılır?",
+          subheading: "Her yerde geçerli.",
+          darkBackgroundImage: image,
+          videos: [{ title: "Video 1", youtubeId: "xyz789" }],
+        },
+      })
+    );
+    expect(screen.getByText("Nerelerde kullanılır?")).toBeInTheDocument();
+    expect(screen.getByText("Her yerde geçerli.")).toBeInTheDocument();
+    expect(container.querySelector("section")?.getAttribute("style")).toContain(image.url);
+  });
+
+  it("videosWithTabsMarker: renders the fixed VideosWithTabs component", async () => {
+    render(await BlockRenderer({ block: { blockType: "videosWithTabsMarker" } }));
+    expect(screen.getByText(/Faturana Yansıt'ı alışverişte nasıl kullanırım\?/)).toBeInTheDocument();
+  });
+
+  it("leadFormCta: renders the fixed LeadFormCta component", async () => {
+    render(await BlockRenderer({ block: { blockType: "leadFormCta" } }));
+    expect(screen.getByText("Formu doldurun")).toBeInTheDocument();
   });
 });

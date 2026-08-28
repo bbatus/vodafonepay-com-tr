@@ -33,7 +33,7 @@ import { useDbStrings } from "./useDbStrings";
  * single site-wide sequence, not grouped by anything. Those three used to
  * call `orderField()` with no `liveOrder` config, so their editors got NO
  * live count/suggestion while every scoped collection (Categories,
- * FeatureCards, StepCards, ContentBlocks, NavLinks, FaqItems' `order`) did —
+ * ContentBlocks, NavLinks, FaqItems' `order`) did —
  * an inconsistency across the collections that share this exact pattern,
  * not an intentional difference. `watchPath` is unused in this mode (there
  * is nothing to watch) and the query always covers the whole collection.

@@ -26,9 +26,6 @@ export const COLLECTION_LABELS: Record<string, { tr: string; en: string }> = {
   "legal-pages": { tr: "Hukuki Sayfalar", en: "Legal Pages" },
   "cookie-rows": { tr: "Çerez Satırları", en: "Cookie Rows" },
   "page-meta": { tr: "Sayfa Meta Bilgileri", en: "Page Meta" },
-  "product-heroes": { tr: "Ürün Hero Alanları", en: "Product Heroes" },
-  "feature-cards": { tr: "Özellik Kartları", en: "Feature Cards" },
-  "step-cards": { tr: "Adım Kartları", en: "Step Cards" },
   media: { tr: "Medya", en: "Media" },
   documents: { tr: "Dokümanlar", en: "Documents" },
   "contact-info": { tr: "İletişim Bilgileri", en: "Contact Info" },
@@ -48,9 +45,6 @@ export const DRAFT_ENABLED_COLLECTIONS = new Set([
   "legal-pages",
   "cookie-rows",
   "page-meta",
-  "product-heroes",
-  "feature-cards",
-  "step-cards",
 ]);
 
 /** New Vertical roles see every content collection; Growth roles only ever touch Campaigns. */
@@ -68,9 +62,6 @@ export const NEW_VERTICAL_DASHBOARD_COLLECTIONS = [
   "legal-pages",
   "cookie-rows",
   "page-meta",
-  "product-heroes",
-  "feature-cards",
-  "step-cards",
   "media",
   "documents",
 ];
