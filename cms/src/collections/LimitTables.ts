@@ -38,7 +38,7 @@ export const LimitTables: CollectionConfig = {
   },
   fields: [
     { name: "title", type: "text", required: true },
-    orderField(),
+    orderField({ collection: "limit-tables", mode: "flat" }),
     {
       name: "rows",
       type: "array",

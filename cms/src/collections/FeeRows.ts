@@ -44,7 +44,7 @@ export const FeeRows: CollectionConfig = {
   fields: [
     { name: "label", type: "text", required: true },
     { name: "value", type: "text", required: true },
-    orderField(),
+    orderField({ collection: "fee-rows", mode: "flat" }),
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],

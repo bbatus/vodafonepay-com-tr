@@ -1353,6 +1353,11 @@ export const Pages: CollectionConfig = {
       },
     },
     {
+      // Same shape as FaqItems' showOnHomepage/homepageOrder pair
+      // (assignNextFlaggedOrder, hooks/ordering.ts) — audited alongside it
+      // (28.08) and found missing the matching LiveOrderField widget that
+      // homepageOrder already has, purely an oversight from when this field
+      // was added, not an intentional difference.
       name: "productsMenuOrder",
       type: "number",
       min: 1,
@@ -1363,6 +1368,12 @@ export const Pages: CollectionConfig = {
         description: {
           tr: "'Ürünler' menüsündeki sırası — 1'den başlar, küçük sayı üstte görünür. Boş bırakırsanız otomatik olarak sona eklenir. Menüde ayrıca Menü Linkleri'nden gelen kayıtlar da varsa, ikisi tek listede bu numaraya göre birlikte sıralanır.",
           en: "Position in the 'Products' menu — starts at 1, lower shows higher up. Leave empty to append to the end. If the menu also has Nav Links records, both sources are sorted together in one list by this number.",
+        },
+        components: {
+          Field: {
+            path: "/components/LiveOrderField#default",
+            clientProps: { collection: "pages", watchPath: "showInProductsMenu", mode: "boolean" },
+          },
         },
       },
     },

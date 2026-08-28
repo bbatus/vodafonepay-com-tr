@@ -27,13 +27,23 @@ import { useDbStrings } from "./useDbStrings";
  * both see (and use) the same suggested number — the last save wins the
  * `order` value, same race that already exists without this component. Not
  * solved here; noted as a known limitation in the round report.
+ *
+ * `mode: "flat"` (audit follow-up, 28.08) is for the collections that have
+ * no scope field at all — Announcements/FeeRows/LimitTables' `order` is a
+ * single site-wide sequence, not grouped by anything. Those three used to
+ * call `orderField()` with no `liveOrder` config, so their editors got NO
+ * live count/suggestion while every scoped collection (Categories,
+ * FeatureCards, StepCards, ContentBlocks, NavLinks, FaqItems' `order`) did —
+ * an inconsistency across the collections that share this exact pattern,
+ * not an intentional difference. `watchPath` is unused in this mode (there
+ * is nothing to watch) and the query always covers the whole collection.
  */
 
-type Mode = "relationship" | "boolean";
+type Mode = "relationship" | "boolean" | "flat";
 
 type LiveOrderFieldProps = NumberFieldClientProps & {
   collection: string;
-  watchPath: string;
+  watchPath?: string;
   mode: Mode;
 };
 
@@ -42,29 +52,32 @@ export default function LiveOrderField(props: LiveOrderFieldProps) {
   const locale = useAdminLocale();
   const t = useDbStrings(locale);
   const { value, setValue } = useField<number>({ path });
-  const watchedValue = useFormFields(([fields]) => fields[watchPath]?.value);
+  const watchedValue = useFormFields(([fields]) => (watchPath ? fields[watchPath]?.value : undefined));
 
   const [info, setInfo] = useState<{ count: number; suggested: number } | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // A boolean group field ("is this in the footer?") collapses to a single
-    // group key when checked, and to "no group" when not.
+    // group key when checked, and to "no group" when not. A flat (ungrouped)
+    // collection always has a group — there's nothing to wait on.
     const booleanGroupValue = watchedValue ? "true" : null;
     const groupValue =
-      mode === "boolean" ? booleanGroupValue : (watchedValue as string | number | null | undefined);
+      mode === "flat"
+        ? "flat"
+        : mode === "boolean"
+          ? booleanGroupValue
+          : (watchedValue as string | number | null | undefined);
     if (!groupValue) {
       startTransition(() => setInfo(null));
       return;
     }
     let cancelled = false;
     startTransition(() => setLoading(true));
-    const params = new URLSearchParams({
-      depth: "0",
-      limit: "1",
-      sort: `-${path}`,
-      [`where[${watchPath}][equals]`]: String(groupValue),
-    });
+    const params = new URLSearchParams({ depth: "0", limit: "1", sort: `-${path}` });
+    if (mode !== "flat" && watchPath) {
+      params.set(`where[${watchPath}][equals]`, String(groupValue));
+    }
     fetch(`/api/${collection}?${params.toString()}`, { credentials: "same-origin" })
       .then((r) => r.json())
       .then((data: { totalDocs?: number; docs?: Record<string, unknown>[] }) => {

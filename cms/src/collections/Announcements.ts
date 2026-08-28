@@ -65,7 +65,7 @@ export const Announcements: CollectionConfig = {
         },
       },
     },
-    orderField(),
+    orderField({ collection: "announcements", mode: "flat" }),
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],

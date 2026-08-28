@@ -155,7 +155,15 @@ export const ORDER_FIELD_DESCRIPTION = {
  * the field description: blank means "put it at the end", which is what the
  * hook then does.
  */
-export function orderField(liveOrder?: { collection: string; watchPath: string; mode?: "relationship" | "boolean" }): Field {
+export function orderField(liveOrder?: {
+  collection: string;
+  // Required for "relationship"/"boolean" (there has to be a field to
+  // group by); meaningless for "flat" — an ungrouped, site-wide sequence,
+  // used by Announcements/FeeRows/LimitTables so they get the same live
+  // count/suggestion every scoped collection already has.
+  watchPath?: string;
+  mode?: "relationship" | "boolean" | "flat";
+}): Field {
   return {
     name: "order",
     type: "number",
@@ -168,7 +176,11 @@ export function orderField(liveOrder?: { collection: string; watchPath: string; 
             components: {
               Field: {
                 path: "/components/LiveOrderField#default",
-                clientProps: { collection: liveOrder.collection, watchPath: liveOrder.watchPath, mode: liveOrder.mode ?? "relationship" },
+                clientProps: {
+                  collection: liveOrder.collection,
+                  watchPath: liveOrder.watchPath,
+                  mode: liveOrder.mode ?? "relationship",
+                },
               },
             },
           }

@@ -80,4 +80,15 @@ describe("LiveOrderField", () => {
     render(<LiveOrderField {...baseProps} mode="boolean" />);
     await waitFor(() => expect(screen.getByText(/önerilen sıra: 1/)).toBeInTheDocument());
   });
+
+  it("flat mode fetches immediately with no watchPath and no group filter", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ totalDocs: 4, docs: [{ order: 4 }] }) });
+    vi.stubGlobal("fetch", fetchMock);
+    mockUseField.mockReturnValue({ value: undefined, setValue: vi.fn() });
+    render(<LiveOrderField {...baseProps} watchPath={undefined} mode="flat" />);
+    await waitFor(() => expect(screen.getByText(/4 kayıt var/)).toBeInTheDocument());
+    expect(screen.getByText(/önerilen sıra: 5/)).toBeInTheDocument();
+    const calledUrl = fetchMock.mock.calls[0][0] as string;
+    expect(calledUrl).not.toContain("where[");
+  });
 });

@@ -251,6 +251,18 @@ describe("orderField", () => {
     };
     expect(field.admin?.components?.Field?.clientProps?.mode).toBe("relationship");
   });
+
+  it("wires flat mode (no watchPath needed) for ungrouped collections", () => {
+    const field = orderField({ collection: "announcements", mode: "flat" }) as {
+      admin?: { components?: { Field?: { path?: string; clientProps?: Record<string, unknown> } } };
+    };
+    expect(field.admin?.components?.Field?.path).toBe("/components/LiveOrderField#default");
+    expect(field.admin?.components?.Field?.clientProps).toEqual({
+      collection: "announcements",
+      watchPath: undefined,
+      mode: "flat",
+    });
+  });
 });
 
 describe("assignNextFlaggedOrder", () => {
