@@ -7,7 +7,7 @@ const FETCH_TIMEOUT_MS = 8000;
  * Payload returns unset optional fields as JSON `null`, not an omitted key —
  * plain `z.string().optional()` only accepts `undefined`, so it rejected
  * every real document with an empty optional field (confirmed live: CMS
- * "campaigns" and "content-blocks" responses both failed validation this
+ * the "campaigns" response failed validation this
  * way until this fix). `.nullable()` + a transform normalizes both
  * `null` and `undefined` to a single consistent value.
  */
@@ -516,27 +516,6 @@ export async function getAnnouncements(): Promise<CmsAnnouncement[] | null> {
   return data?.docs ?? null;
 }
 
-const contentBlockSchema = z.object({
-  id: z.union([z.string(), z.number()]).transform(String),
-  page: z.string(),
-  blockType: z.enum(["step", "slide", "video", "logo"]),
-  title: nullableString(),
-  text: nullableString(),
-  image: mediaSchema.nullable().optional().transform((v) => v ?? undefined),
-  youtubeId: nullableString(),
-  linkUrl: nullableString(),
-  order: z.number(),
-});
-export type CmsContentBlock = z.infer<typeof contentBlockSchema>;
-
-export async function getContentBlocks(page: string): Promise<CmsContentBlock[] | null> {
-  const data = await cmsFetch(
-    `/content-blocks?depth=1&limit=50&sort=order&where[page][equals]=${encodeURIComponent(page)}`,
-    "content-blocks",
-    listResponseSchema(contentBlockSchema)
-  );
-  return data?.docs ?? null;
-}
 
 export type LegalPageSlug =
   | "gizlilik-ve-guvenlik-politikasi"

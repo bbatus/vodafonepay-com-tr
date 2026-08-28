@@ -16,6 +16,18 @@
 # very next visit, deploy or no deploy.
 set -euo pipefail
 
+# docker-compose.yml reads REVALIDATE_SECRET from .env, so the running app
+# validates against whatever is in there — but this script used to fall
+# straight through to the `dev-revalidate-secret` default, which stopped
+# matching the moment .env carried a real secret. Every warm-up since then
+# died on "HTTP 401 / Invalid secret" (seen live 29.08.2026), which meant the
+# one documented post-deploy step silently never ran. Read the same file
+# compose does; an env var passed on the command line still wins.
+ENV_FILE="${ENV_FILE:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.env}"
+if [ -z "${REVALIDATE_SECRET:-}" ] && [ -f "$ENV_FILE" ]; then
+  REVALIDATE_SECRET="$(grep -E '^REVALIDATE_SECRET=' "$ENV_FILE" | tail -n 1 | cut -d= -f2-)"
+fi
+
 SITE_URL="${SITE_URL:-http://localhost:3000}"
 REVALIDATE_SECRET="${REVALIDATE_SECRET:-dev-revalidate-secret}"
 

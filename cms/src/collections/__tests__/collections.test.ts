@@ -3,7 +3,6 @@ import type { PayloadRequest } from "payload";
 import { Announcements } from "@/collections/Announcements";
 import { BlogPosts } from "@/collections/BlogPosts";
 import { Campaigns } from "@/collections/Campaigns";
-import { ContentBlocks } from "@/collections/ContentBlocks";
 import { FaqItems } from "@/collections/FaqItems";
 import { FeeRows } from "@/collections/FeeRows";
 import { LegalPages } from "@/collections/LegalPages";
@@ -26,7 +25,6 @@ const newVerticalOnly = [
   ["LegalPages", LegalPages],
   ["LimitTables", LimitTables],
   ["NavLinks", NavLinks],
-  ["ContentBlocks", ContentBlocks],
 ] as const;
 
 describe("New Vertical-only, drafts-enabled collections", () => {

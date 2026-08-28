@@ -20,7 +20,6 @@ const CATEGORY_BY_COLLECTION: Record<string, Category> = {
   "faq-items": "standard",
   "blog-posts": "standard",
   announcements: "standard",
-  "content-blocks": "standard",
   representatives: "standard",
   pages: "standard",
   "fee-rows": "standard",

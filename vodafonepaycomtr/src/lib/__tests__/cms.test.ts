@@ -8,7 +8,6 @@ import {
   getCampaigns,
   getCategories,
   getContactInfo,
-  getContentBlocks,
   getCookieRows,
   getFaqItems,
   getFeeRows,
@@ -534,19 +533,6 @@ describe("cms.ts fetch-backed getters", () => {
   it("getContactInfo returns null when the global is empty/unset", async () => {
     vi.mocked(fetch).mockImplementation(() => okJson({}));
     expect(await getContactInfo()).toBeNull();
-  });
-
-  it("getContentBlocks scopes the query by page and returns docs on success", async () => {
-    const doc = { id: "cb1", page: "anasayfa-steps", blockType: "step", title: "T", text: "X", image: media, order: 0 };
-    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [doc] }));
-    expect(await getContentBlocks("anasayfa-steps")).toEqual([doc]);
-    const calledUrl = vi.mocked(fetch).mock.calls[0][0] as string;
-    expect(calledUrl).toContain("where[page][equals]=anasayfa-steps");
-  });
-
-  it("getContentBlocks rejects an unknown blockType", async () => {
-    vi.mocked(fetch).mockImplementation(() => okJson({ docs: [{ id: "cb1", page: "x", blockType: "not-real", order: 0 }] }));
-    expect(await getContentBlocks("x")).toBeNull();
   });
 
   it("getCampaignBySlug filters by slug and returns the first match", async () => {

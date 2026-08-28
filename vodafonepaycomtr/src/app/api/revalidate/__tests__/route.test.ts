@@ -76,7 +76,6 @@ describe("POST /api/revalidate", () => {
       "announcements",
       "legal-pages",
       "contact-info",
-      "content-blocks",
       "representatives",
       "cookie-rows",
       "page-meta",

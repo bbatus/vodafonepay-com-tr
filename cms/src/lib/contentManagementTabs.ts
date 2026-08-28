@@ -110,27 +110,6 @@ export const REPORT_COLLECTIONS: ReportCollection[] = [
     columns: [{ key: "deeplink", label: { tr: "Bağlantı", en: "Link" } }, ORDER, STATUS, UPDATED],
   },
   {
-    slug: "content-blocks",
-    titleField: "title",
-    hasDraft: true,
-    columns: [
-      PAGE,
-      {
-        key: "blockType",
-        label: { tr: "Blok Tipi", en: "Block Type" },
-        values: {
-          step: { tr: "Adım", en: "Step" },
-          slide: { tr: "Slayt", en: "Slide" },
-          video: { tr: "Video", en: "Video" },
-          logo: { tr: "Logo", en: "Logo" },
-        },
-      },
-      ORDER,
-      STATUS,
-      UPDATED,
-    ],
-  },
-  {
     slug: "pages",
     titleField: "title",
     hasDraft: true,

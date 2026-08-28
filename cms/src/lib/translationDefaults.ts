@@ -353,8 +353,6 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "collectionLabel.blog-posts.plural": { tr: "Blog Yazıları", en: "Blog Posts" },
   "collectionLabel.announcements.singular": { tr: "Duyuru", en: "Announcement" },
   "collectionLabel.announcements.plural": { tr: "Duyurular", en: "Announcements" },
-  "collectionLabel.content-blocks.singular": { tr: "İçerik Bloğu", en: "Content Block" },
-  "collectionLabel.content-blocks.plural": { tr: "İçerik Blokları", en: "Content Blocks" },
   "collectionLabel.representatives.singular": { tr: "Temsilci", en: "Representative" },
   "collectionLabel.representatives.plural": { tr: "Temsilciler", en: "Representatives" },
   "collectionLabel.pages.singular": { tr: "Sayfa", en: "Page" },

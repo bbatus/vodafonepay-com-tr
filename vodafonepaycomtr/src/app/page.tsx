@@ -2,14 +2,11 @@ import type { Metadata } from "next";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
-import { StepPhones } from "@/components/StepPhones";
-import { FeatureHighlights } from "@/components/FeatureHighlights";
 import { Campaigns } from "@/components/Campaigns";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { campaignToCard, getCampaigns, getContentBlocks, getHomepageFaqItems, getPageBySlug, getPageMeta } from "@/lib/cms";
+import { campaignToCard, getCampaigns, getHomepageFaqItems, getPageBySlug, getPageMeta } from "@/lib/cms";
 import { BlockRenderer } from "@/app/[...slug]/page";
-import type { StepProduct } from "@/types/homepage";
 import { buildMetadata } from "@/lib/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -56,12 +53,7 @@ export default async function Home() {
     );
   }
 
-  const [cmsCampaigns, cmsFaqItems, cmsSteps, cmsHighlights] = await Promise.all([
-    getCampaigns(),
-    getHomepageFaqItems(),
-    getContentBlocks("anasayfa-steps"),
-    getContentBlocks("anasayfa-highlights"),
-  ]);
+  const [cmsCampaigns, cmsFaqItems] = await Promise.all([getCampaigns(), getHomepageFaqItems()]);
 
   // RFP feedback 5.0: every one of these used to degrade to `undefined` so the
   // component would substitute its own hardcoded copy — the homepage rendered
@@ -69,25 +61,18 @@ export default async function Home() {
   // stays empty and the section simply doesn't render.
   const featuredCampaigns = (cmsCampaigns ?? []).filter((c) => c.featured).map(campaignToCard);
   const faqItems = (cmsFaqItems ?? []).map((f) => ({ question: f.question, answer: f.answer, deeplink: f.deeplink }));
-  const steps: StepProduct[] = (cmsSteps ?? []).map((s) => ({
-    title: s.title ?? "",
-    description: s.text ?? "",
-    image: s.image?.url ?? "",
-    imageAlt: s.image?.alt || s.title || "",
-  }));
-  const highlights = (cmsHighlights ?? []).map((h) => ({
-    icon: h.image?.url ?? "",
-    title: h.title ?? "",
-    description: h.text ?? "",
-  }));
 
+  // The step-phone and feature-highlight sections used to be fed from the
+  // ContentBlocks collection, which was retired on 29.08 — see the commit and
+  // AGENTS.md. They live in the `anasayfa` Pages document's own `stepPhones`
+  // and `featureHighlights` blocks now, which is the branch above; this
+  // CMS-unreachable fallback keeps the hero, campaigns and FAQ it can still
+  // source, and simply has no steps or highlights to show.
   return (
     <main className="flex min-h-screen flex-col">
       <AppDownloadBanner />
       <Header />
       <Hero />
-      <StepPhones steps={steps} />
-      <FeatureHighlights features={highlights} />
       <Campaigns campaigns={featuredCampaigns} />
       <Faq items={faqItems} />
       <Footer />

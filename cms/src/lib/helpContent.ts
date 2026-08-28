@@ -179,24 +179,6 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
       ],
     },
   },
-  "content-blocks": {
-    tr: {
-      title: "İçerik Blokları",
-      steps: [
-        "Bu collection, anasayfa ve ürün sayfalarındaki adım/video/logo gibi tekrarlayan blokları besler.",
-        "'page' alanı hangi sayfaya ait olduğunu belirler (örn. anasayfa-steps, kart-video-guide) — sıralama bu değere göre gruplanır.",
-        "Liste üstündeki panelden aynı 'page' grubundaki blokları sürükleyerek sıralayabilirsiniz.",
-      ],
-    },
-    en: {
-      title: "Content Blocks",
-      steps: [
-        "This collection feeds recurring blocks (steps/video/logo) on the homepage and product pages.",
-        "The 'page' field determines which page it belongs to (e.g. homepage-steps, card-video-guide) — reordering is grouped by this value.",
-        "Use the panel above the list to drag-and-drop reorder blocks within the same 'page' group.",
-      ],
-    },
-  },
   representatives: {
     tr: {
       title: "Temsilciler",

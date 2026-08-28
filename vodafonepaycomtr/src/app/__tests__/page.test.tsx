@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import Home from "@/app/page";
-import { getCampaigns, getContentBlocks, getHomepageFaqItems, getPageBySlug, getPageMeta } from "@/lib/cms";
+import { getCampaigns, getHomepageFaqItems, getPageBySlug, getPageMeta } from "@/lib/cms";
 
 vi.mock("@/lib/cms", async () => {
   const actual = await vi.importActual<typeof import("@/lib/cms")>("@/lib/cms");
@@ -9,7 +9,6 @@ vi.mock("@/lib/cms", async () => {
     ...actual,
     getCampaigns: vi.fn(),
     getHomepageFaqItems: vi.fn(),
-    getContentBlocks: vi.fn(),
     getPageMeta: vi.fn(),
     getNavLinks: vi.fn(),
     getPageBySlug: vi.fn(),
@@ -31,7 +30,6 @@ function mockEmpty() {
   vi.mocked(getPageBySlug).mockResolvedValue(null);
   vi.mocked(getCampaigns).mockResolvedValue(null);
   vi.mocked(getHomepageFaqItems).mockResolvedValue(null);
-  vi.mocked(getContentBlocks).mockResolvedValue(null);
   vi.mocked(getPageMeta).mockResolvedValue(null);
 }
 

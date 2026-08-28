@@ -40,7 +40,6 @@ import { LimitTables } from "./src/collections/LimitTables";
 import { NavLinks } from "./src/collections/NavLinks";
 import { Announcements } from "./src/collections/Announcements";
 import { LegalPages } from "./src/collections/LegalPages";
-import { ContentBlocks } from "./src/collections/ContentBlocks";
 import { Representatives } from "./src/collections/Representatives";
 import { CookieRows } from "./src/collections/CookieRows";
 import { AuditLogs } from "./src/collections/AuditLogs";
@@ -391,7 +390,6 @@ export default buildConfig({
     FaqItems,
     BlogPosts,
     Representatives,
-    ContentBlocks,
     Announcements,
     FeeRows,
     LimitTables,
