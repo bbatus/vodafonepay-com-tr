@@ -560,3 +560,47 @@ bloğumuzla karşılaştırıldı.
 - [x] Site 372, CMS 449 test; tsc/lint temiz.
 - [ ] **Kullanıcı testi:** `Layout Test Sayfasi`'nı masaüstü+mobilde gözden
       geçir; yeni 6 bloğu CMS'te kendi sayfanda dene.
+
+## 26. İki gerçek bug: blok kaydetme hatası + sessiz kategori hatası (28.08.2026)
+
+**Kullanıcı bildirimi:** "anasayfaya bir layout ekledim, oluşmadı" +
+"/melihbatuhan'da bazı eklenen layoutlar gözükmedi".
+
+### 26a. Sayfa kaydetme, elle yazılan blok tablolarında kırılıyordu
+
+**Kök neden:** Yeni blokların DB tablolarını elle `CREATE TABLE` ile açmıştım
+(R-10 sonrası bile push interaktif olduğu için). Payload'ın kendi ürettiği
+tablolarda olan **`_parent_id → pages(id) ON DELETE CASCADE` foreign key'i ve
+index'ler eksikti.** Payload bir sayfanın `layout`'unu güncellerken eski blok
+satırlarını bu cascade ile temizliyor; olmayınca eski satırlar kalıyor ve
+yeniden ekleme primary key'e çarpıyordu:
+`Değer benzersiz olmalıdır / path: id / tableName: pages`.
+
+Admin UI mevcut blok ID'lerini geri gönderdiği için **UI'dan her kaydetme
+başarısız oluyordu**; benim API scriptlerim ID'leri sıyırdığı için fark
+edilmemişti. Kullanıcının eklediği blok bu yüzden hiç kaydedilmemişti
+(sayfanın yeni sürümü bile oluşmamıştı).
+
+- [x] 28 blok tablosunun tamamına eksik FK + index eklendi
+      (`scripts/fix-block-table-constraints.sql`, idempotent).
+- [x] FK eklenemeyen tablolarda **50 yetim satır** bulundu ve temizlendi —
+      bunlar zaten hatanın kaynağı olan artık kayıtlardı.
+- [x] Doğrulandı: ID'leri koruyarak kaydetme, yeniden kaydetme ve yeni blok
+      ekleme — üçü de OK. UI'dan da test edildi.
+
+### 26b. Olmayan kategori yazılınca blok sessizce kayboluyordu
+
+`/melihbatuhan`'daki SSS bloğunun kategorisi `testtttt` yazılmıştı; böyle bir
+kategori yok → 0 soru → blok hiç render olmuyor, hiçbir uyarı yok. Projenin
+kendi "sessiz maskeleme yapma" kuralına aykırıydı.
+
+- [x] `faqList`/`campaignGrid`/`blogGrid` kategori alanlarına
+      `categoryExistsValidate` eklendi — olmayan slug artık kaydedilemiyor,
+      hata hangi blok/alan olduğunu söylüyor.
+- [x] Payload iç içe blok `validate`'inden sadece alan yolunu yüzeye
+      çıkardığı için, geçerli slug listesi editörün göreceği yere kondu:
+      alanın altında canlı liste (`CategorySlugHint`, tr/en).
+- [x] 5 birim testi. CMS 454 test geçiyor.
+- [ ] **Kullanıcı testi:** CMS'te bir SSS/Kampanya/Blog bloğunun kategorisine
+      olmayan bir şey yaz → kaydetmeye çalış (hata almalısın), alanın altındaki
+      listeden doğrusunu seç.

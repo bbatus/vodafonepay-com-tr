@@ -1,5 +1,13 @@
 import { APIError } from "payload";
-import type { Access, Block, CollectionBeforeChangeHook, CollectionBeforeValidateHook, CollectionConfig, Where } from "payload";
+import type {
+  Access,
+  Block,
+  CollectionBeforeChangeHook,
+  CollectionBeforeValidateHook,
+  CollectionConfig,
+  PayloadRequest,
+  Where,
+} from "payload";
 import { isNewVerticalMaker, newVerticalCreate, newVerticalReadWrite } from "@/access/roles";
 import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead } from "@/access/authenticated";
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
@@ -8,6 +16,7 @@ import { sitePreviewUrl } from "@/lib/preview";
 import { assignNextFlaggedOrder } from "@/hooks/ordering";
 import { dbLabel } from "@/lib/collectionLabels";
 import { turkishSlugify, uniqueSlug } from "@/lib/slugify";
+import { CATEGORY_SCOPES, type CategoryScope } from "@/collections/Categories";
 import { seoKeywordsField } from "@/lib/seoFields";
 
 /**
@@ -72,6 +81,42 @@ function blockThumb(inner: string, defs = ""): { thumbnail: { url: string; alt: 
   const defsBlock = defs ? `<defs>${defs}</defs>` : "";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" width="480" height="320">${defsBlock}<rect width="480" height="320" fill="#ffffff"/>${inner}</svg>`;
   return { thumbnail: { url: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`, alt: "" } };
+}
+
+/**
+ * A block's `category` is a free-text slug, and typing one that doesn't exist
+ * used to save silently — the block then rendered NOTHING on the site, with no
+ * clue why. Found live: a page whose FAQ block had category "testtttt" showed
+ * an invisible gap where the section should be.
+ *
+ * Kept as text rather than converted to a relationship because existing block
+ * rows already store slugs and the site's own getters filter by slug; this
+ * validates the value instead, and names the categories that DO exist so the
+ * editor can fix it without leaving the screen.
+ */
+export function categoryExistsValidate(scope: CategoryScope) {
+  return async (value: unknown, { req }: { req?: PayloadRequest }) => {
+    if (!value || typeof value !== "string" || !value.trim()) return true;
+    if (!req?.payload) return true;
+    const { docs, totalDocs } = await req.payload.find({
+      collection: "categories",
+      where: { scope: { equals: scope } },
+      limit: 100,
+      depth: 0,
+      overrideAccess: true,
+    });
+    if (docs.some((d) => (d as { slug?: string }).slug === value.trim())) return true;
+    const available = docs.map((d) => (d as { slug?: string }).slug).filter(Boolean).join(", ");
+    const isEnglish = req.i18n?.language === "en";
+    if (totalDocs === 0) {
+      return isEnglish
+        ? `No category exists in this flow yet — create one in Categories first, or leave this empty to show everything.`
+        : `Bu akışta henüz hiç kategori yok — önce Kategoriler'den bir tane oluşturun ya da hepsini göstermek için boş bırakın.`;
+    }
+    return isEnglish
+      ? `"${value}" is not a category in this flow. Available: ${available}. Leave empty to show all.`
+      : `"${value}" bu akışta bir kategori değil. Mevcut olanlar: ${available}. Hepsini göstermek için boş bırakın.`;
+  };
 }
 
 const HeroBlock: Block = {
@@ -194,12 +239,18 @@ const FaqListBlock: Block = {
     {
       name: "category",
       type: "text",
+      validate: categoryExistsValidate(CATEGORY_SCOPES.FAQ),
       admin: {
         description: {
           tr: "Sadece BELİRLİ bir kategorideki soruları göstermek için Kategoriler koleksiyonundaki (Akış: Sık Sorulanlar) o kategorinin slug'ını yazın, örn: kampanyalar. Boş bırakılırsa SSS akışındaki TÜM sorular gelir.",
           en: "To show questions from only ONE SPECIFIC category, enter that category's slug from the Categories collection (Flow: FAQ), e.g.: kampanyalar. If left empty, ALL questions in the FAQ flow are shown.",
         },
       },
+    },
+    {
+      name: "categoryHint",
+      type: "ui",
+      admin: { components: { Field: { path: "/components/CategorySlugHint#default", clientProps: { scope: "faq" } } } },
     },
   ],
 };
@@ -231,12 +282,18 @@ const CampaignGridBlock: Block = {
     {
       name: "category",
       type: "text",
+      validate: categoryExistsValidate(CATEGORY_SCOPES.CAMPAIGN),
       admin: {
         description: {
           tr: "Sadece BELİRLİ bir kategorideki kampanyaları göstermek için Kategoriler koleksiyonundaki (Akış: Kampanyalar) o kategorinin slug'ını yazın, örn: kart. Boş bırakılırsa TÜM aktif kampanyalar gelir.",
           en: "To show campaigns from only ONE SPECIFIC category, enter that category's slug from the Categories collection (Flow: Campaigns), e.g.: kart. If left empty, ALL active campaigns are shown.",
         },
       },
+    },
+    {
+      name: "categoryHint",
+      type: "ui",
+      admin: { components: { Field: { path: "/components/CategorySlugHint#default", clientProps: { scope: "campaign" } } } },
     },
   ],
 };
@@ -697,12 +754,18 @@ const BlogGridBlock: Block = {
     {
       name: "category",
       type: "text",
+      validate: categoryExistsValidate(CATEGORY_SCOPES.BLOG),
       admin: {
         description: {
           tr: "Sadece BELİRLİ bir kategorideki yazıları göstermek için Kategoriler koleksiyonundaki (Akış: Blog) o kategorinin slug'ını yazın, örn: haberler. Boş bırakılırsa TÜM yazılar gelir.",
           en: "To show only ONE category's posts, enter that category's slug from the Categories collection (Flow: Blog), e.g.: haberler. Leave empty for ALL posts.",
         },
       },
+    },
+    {
+      name: "categoryHint",
+      type: "ui",
+      admin: { components: { Field: { path: "/components/CategorySlugHint#default", clientProps: { scope: "blog" } } } },
     },
   ],
 };

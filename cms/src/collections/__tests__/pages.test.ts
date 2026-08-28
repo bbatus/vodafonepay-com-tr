@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { PayloadRequest } from "payload";
-import { generateSlug, pagesRead, preventSelfParent, setCreatedBy } from "@/collections/Pages";
+import { categoryExistsValidate, generateSlug, pagesRead, preventSelfParent, setCreatedBy } from "@/collections/Pages";
+import { CATEGORY_SCOPES } from "@/collections/Categories";
 
 function fakeReq(existingSlugs: string[] = []): { req: PayloadRequest; count: ReturnType<typeof vi.fn> } {
   const count = vi.fn(async ({ where }: { where: { slug: { equals: string } } }) => ({
@@ -92,5 +93,48 @@ describe("Pages pagesRead — Butterfly-parity visibility gate", () => {
     expect(pagesRead({ req: reqWithUser(false) } as never)).toEqual({
       and: [{ _status: { equals: "published" } }, { visibility: { equals: "public" } }],
     });
+  });
+});
+
+/**
+ * Regression: a block's `category` accepted any string, so a typo saved fine
+ * and the block then rendered NOTHING on the site with no explanation. Found
+ * live on a page whose FAQ block had category "testtttt".
+ */
+describe("Pages categoryExistsValidate", () => {
+  const reqWithCategories = (slugs: string[], language = "tr") =>
+    ({
+      i18n: { language },
+      payload: {
+        find: vi.fn(async () => ({ docs: slugs.map((slug) => ({ slug })), totalDocs: slugs.length })),
+      },
+    }) as unknown as PayloadRequest;
+
+  const validate = categoryExistsValidate(CATEGORY_SCOPES.FAQ);
+
+  it("accepts an empty value — empty means 'show everything', not an error", async () => {
+    expect(await validate("", { req: reqWithCategories(["genel"]) })).toBe(true);
+    expect(await validate(undefined, { req: reqWithCategories(["genel"]) })).toBe(true);
+    expect(await validate("   ", { req: reqWithCategories(["genel"]) })).toBe(true);
+  });
+
+  it("accepts a slug that exists in the same flow", async () => {
+    expect(await validate("genel", { req: reqWithCategories(["genel", "odeme"]) })).toBe(true);
+  });
+
+  it("rejects a slug that does not exist and names the ones that do", async () => {
+    const result = await validate("testtttt", { req: reqWithCategories(["genel", "odeme"]) });
+    expect(result).toContain("testtttt");
+    expect(result).toContain("genel, odeme");
+  });
+
+  it("says to create a category first when the flow has none at all", async () => {
+    const result = await validate("herhangi", { req: reqWithCategories([]) });
+    expect(result).toContain("Kategoriler");
+  });
+
+  it("answers in English when the editor's admin language is English", async () => {
+    const result = await validate("nope", { req: reqWithCategories(["genel"], "en") });
+    expect(result).toContain("is not a category");
   });
 });
