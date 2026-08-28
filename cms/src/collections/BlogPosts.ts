@@ -67,12 +67,13 @@ export const BlogPosts: CollectionConfig = {
     delete: standardDelete,
   },
   fields: [
-    { name: "title", type: "text", required: true },
+    { name: "title", type: "text", required: true, label: { tr: "Başlık", en: "Title" } },
     {
       name: "slug",
       type: "text",
       required: true,
       unique: true,
+      label: { tr: "Slug", en: "Slug" },
       admin: {
         position: "sidebar",
         readOnly: true,
@@ -90,6 +91,7 @@ export const BlogPosts: CollectionConfig = {
       type: "upload",
       relationTo: "media",
       required: true,
+      label: { tr: "Kapak Görseli", en: "Cover Image" },
       admin: {
         description: {
           tr: "Liste kartında 361x240 (yatay/dikdörtgen) kırpılır — kare değil, yatay fotoğraf tercih edin.",
@@ -128,6 +130,7 @@ export const BlogPosts: CollectionConfig = {
       type: "relationship",
       relationTo: "categories",
       required: true,
+      label: { tr: "Kategori", en: "Category" },
       // RFP follow-up: used to share Campaigns' scope (it matched the live
       // site's taxonomy at the time, but that was Campaigns' list Blog
       // happened to reuse, not Blog's own). Blog now manages its own
@@ -155,13 +158,14 @@ export const BlogPosts: CollectionConfig = {
         },
       },
     },
-    { name: "publishedDate", type: "date", admin: { date: { pickerAppearance: "dayOnly" } } },
+    { name: "publishedDate", type: "date", label: { tr: "Yayın Tarihi", en: "Published Date" }, admin: { date: { pickerAppearance: "dayOnly" } } },
     {
       // Named postStatus (not "status") — see the same collision noted on
       // Campaigns.campaignStatus.
       name: "postStatus",
       type: "select",
       defaultValue: "active",
+      label: { tr: "Yazı Durumu", en: "Post Status" },
       options: [
         { label: { tr: "Aktif", en: "Active" }, value: "active" },
         { label: { tr: "Arşivlendi", en: "Archived" }, value: "archived" },
@@ -173,8 +177,8 @@ export const BlogPosts: CollectionConfig = {
         },
       },
     },
-    { name: "seoTitle", type: "text" },
-    { name: "seoDescription", type: "textarea" },
+    { name: "seoTitle", type: "text", label: { tr: "SEO Başlığı", en: "SEO Title" } },
+    { name: "seoDescription", type: "textarea", label: { tr: "SEO Açıklaması", en: "SEO Description" } },
     seoKeywordsField,
     {
       // RFP §3.1.7: "Each content item should have a deeplink field in

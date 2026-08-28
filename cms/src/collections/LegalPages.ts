@@ -108,8 +108,8 @@ export const LegalPages: CollectionConfig = {
         },
       ],
     },
-    { name: "title", type: "text", required: true },
-    { name: "intro", type: "richText", required: true },
+    { name: "title", type: "text", required: true, label: { tr: "Başlık", en: "Title" } },
+    { name: "intro", type: "richText", required: true, label: { tr: "Giriş Metni", en: "Intro" } },
     {
       // Follow-up 25.08: "sözleşmeler ve formlar sayfasının görselini
       // değiştirebilsin" — only meaningful for the one slug that actually
@@ -139,6 +139,10 @@ export const LegalPages: CollectionConfig = {
       name: "groups",
       type: "array",
       label: { tr: "Belge Grupları", en: "Document Groups" },
+      // Payload names each array row from `labels.singular` — without these the
+      // rows and the add button stayed "Group 01" / "Group ekle" in an
+      // otherwise fully Turkish screen (seen live 28.08).
+      labels: { singular: { tr: "Grup", en: "Group" }, plural: { tr: "Gruplar", en: "Groups" } },
       admin: {
         condition: (data) => data?.slug === "sozlesmeler-ve-formlar",
         description: {
@@ -152,6 +156,7 @@ export const LegalPages: CollectionConfig = {
           name: "documents",
           type: "array",
           label: { tr: "Belgeler", en: "Documents" },
+          labels: { singular: { tr: "Belge", en: "Document" }, plural: { tr: "Belgeler", en: "Documents" } },
           fields: [
             {
               // Follow-up 25.08: "tıklayınız öncesine de metin girebilmem

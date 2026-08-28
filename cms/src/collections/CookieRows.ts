@@ -40,12 +40,13 @@ export const CookieRows: CollectionConfig = {
     delete: standardDelete,
   },
   fields: [
-    { name: "name", type: "text", required: true },
-    { name: "provider", type: "text", required: true },
+    { name: "name", type: "text", required: true, label: { tr: "Çerez Adı", en: "Name" } },
+    { name: "provider", type: "text", required: true, label: { tr: "Sağlayıcı", en: "Provider" } },
     {
       name: "party",
       type: "select",
       required: true,
+      label: { tr: "Taraf", en: "Party" },
       options: [
         { label: { tr: "Birinci taraf", en: "First party" }, value: "Birinci taraf" },
         { label: { tr: "Üçüncü taraf", en: "Third party" }, value: "Üçüncü taraf" },
@@ -55,6 +56,7 @@ export const CookieRows: CollectionConfig = {
       name: "category",
       type: "select",
       required: true,
+      label: { tr: "Kategori", en: "Category" },
       options: [
         { label: { tr: "Zorunlu", en: "Necessary" }, value: "Zorunlu" },
         { label: { tr: "İşlevsel", en: "Functional" }, value: "İşlevsel" },
@@ -62,8 +64,8 @@ export const CookieRows: CollectionConfig = {
         { label: { tr: "Reklam/Pazarlama", en: "Advertising/Marketing" }, value: "Reklam/Pazarlama" },
       ],
     },
-    { name: "description", type: "textarea", required: true },
-    { name: "duration", type: "text", required: true },
+    { name: "description", type: "textarea", required: true, label: { tr: "Açıklama", en: "Description" } },
+    { name: "duration", type: "text", required: true, label: { tr: "Saklama Süresi", en: "Duration" } },
     {
       name: "createdBy",
       type: "relationship",

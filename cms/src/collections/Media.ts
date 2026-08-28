@@ -116,14 +116,17 @@ export const Media: CollectionConfig = {
       name: "alt",
       type: "text",
       required: true,
+      label: { tr: "Alternatif Metin (alt)", en: "Alt Text" },
     },
     {
       name: "caption",
       type: "text",
+      label: { tr: "Açıklama (caption)", en: "Caption" },
     },
     {
       name: "mediaType",
       type: "select",
+      label: { tr: "Medya Türü", en: "Media Type" },
       admin: { position: "sidebar", readOnly: true },
       options: [
         { label: { tr: "Görsel", en: "Image" }, value: "image" },
@@ -136,6 +139,7 @@ export const Media: CollectionConfig = {
       name: "uploadedBy",
       type: "relationship",
       relationTo: "users",
+      label: { tr: "Yükleyen", en: "Uploaded By" },
       admin: { position: "sidebar", readOnly: true },
     },
     {
@@ -168,6 +172,7 @@ export const Media: CollectionConfig = {
       // collections/fields it actually scans.
       name: "usageList",
       type: "ui",
+      label: { tr: "Kullanıldığı Yerler", en: "Used In" },
       admin: {
         position: "sidebar",
         components: { Field: "/components/MediaUsageField#default" },

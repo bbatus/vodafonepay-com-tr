@@ -47,6 +47,7 @@ export const Announcements: CollectionConfig = {
       name: "title",
       type: "text",
       required: true,
+      label: { tr: "Başlık", en: "Title" },
       admin: {
         description: {
           tr: "Örn: 18.08.2026 02:00-08:00 Vodafone Pay Planlı Altyapı Çalışması",
@@ -58,11 +59,13 @@ export const Announcements: CollectionConfig = {
       name: "body",
       type: "textarea",
       required: true,
+      label: { tr: "Metin", en: "Body" },
       admin: { description: { tr: "Paragraflar arasına boş satır bırakın.", en: "Leave a blank line between paragraphs." } },
     },
     {
       name: "deeplink",
       type: "text",
+      label: { tr: "Bağlantı (Deeplink)", en: "Deeplink" },
       admin: {
         description: {
           tr: "Örn: /kampanyalar/{slug} veya bir uygulama deeplink'i — verilirse duyuru tıklanabilir olur.",

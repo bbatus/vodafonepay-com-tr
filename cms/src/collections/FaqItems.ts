@@ -79,8 +79,8 @@ export const FaqItems: CollectionConfig = {
     delete: standardDelete,
   },
   fields: [
-    { name: "question", type: "text", required: true },
-    { name: "answer", type: "textarea", required: true },
+    { name: "question", type: "text", required: true, label: { tr: "Soru", en: "Question" } },
+    { name: "answer", type: "textarea", required: true, label: { tr: "Cevap", en: "Answer" } },
     {
       // RFP §3.1.7: "Each content item should have a deeplink field in
       // order to enable redirection." An FAQ answer is often "see the full
@@ -110,6 +110,7 @@ export const FaqItems: CollectionConfig = {
       type: "relationship",
       relationTo: "categories",
       required: true,
+      label: { tr: "Kategori", en: "Category" },
       // Categories is shared with Campaigns/BlogPosts now — `scope` keeps
       // this picker from also offering their (unrelated) categories. See
       // Categories.ts for why this has to be a separate list at all.

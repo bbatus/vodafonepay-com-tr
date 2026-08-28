@@ -336,7 +336,7 @@ export const Campaigns: CollectionConfig = {
         condition: (data) => data?.unpublishRequest === "pending",
       },
     },
-    { name: "title", type: "text", required: true },
+    { name: "title", type: "text", required: true, label: { tr: "Başlık", en: "Title" } },
     {
       // Follow-up 25.08: was a required, hand-typed field — an editor who
       // skipped it got a bare 400 on save AND an unusable publish preview
@@ -372,16 +372,18 @@ export const Campaigns: CollectionConfig = {
         return true;
       },
     },
-    { name: "description", type: "textarea", required: true },
-    { name: "image", type: "upload", relationTo: "media", required: true },
+    { name: "description", type: "textarea", required: true, label: { tr: "Açıklama", en: "Description" } },
+    { name: "image", type: "upload", relationTo: "media", required: true, label: { tr: "Görsel", en: "Image" } },
     {
       name: "body",
       type: "richText",
+      label: { tr: "İçerik", en: "Body" },
       admin: { description: { tr: "Detay sayfasının gövde metni", en: "The detail page's body copy" } },
     },
     {
       name: "terms",
       type: "richText",
+      label: { tr: "Katılım Koşulları", en: "Terms" },
       admin: { description: { tr: "Katılım koşulları / kampanya esasları", en: "Terms of participation / campaign rules" } },
     },
     {
@@ -392,6 +394,7 @@ export const Campaigns: CollectionConfig = {
       type: "relationship",
       relationTo: "categories",
       required: true,
+      label: { tr: "Kategori", en: "Category" },
       // Categories is shared with FaqItems now — `scope` keeps the two
       // pickers from offering each other's options (see Categories.ts).
       filterOptions: () => ({ scope: { equals: CATEGORY_SCOPES.CAMPAIGN } }),

@@ -80,6 +80,15 @@ function LimitTableRow({ lt, onSaved }: { lt: LimitTable; onSaved: () => void })
  * global permission set; this view is hand-rolled (FeeRows/LimitTables are
  * `admin.hidden`) so it has to do that check itself. Same principle as
  * MakerAwarePublishButton: don't offer a control the server will refuse.
+ *
+ * `redirectAfterCreate={false}` is load-bearing, not tidiness. Payload's edit
+ * view redirects to the new document's own route after a create (Edit/index.js
+ * — `!isEditing && depth < 2 && redirectAfterCreate !== false`), and a drawer
+ * opened straight from this view sits at depth 1, inside that window. Both of
+ * these collections are `admin.hidden`, so their own routes 404 — creating a
+ * fee row dropped the editor onto a black "404 This page could not be found"
+ * even though the record had saved fine. Caught in the browser on 28.08; the
+ * API tests never saw it because the redirect is client-side.
  */
 function CreateButton({ collectionSlug, label, onSaved }: { collectionSlug: "fee-rows" | "limit-tables"; label: string; onSaved: () => void }) {
   const { permissions } = useAuth();
@@ -92,7 +101,7 @@ function CreateButton({ collectionSlug, label, onSaved }: { collectionSlug: "fee
           <span className="btn__label">{label}</span>
         </span>
       </DocToggler>
-      <DocDrawer onSave={onSaved} />
+      <DocDrawer onSave={onSaved} redirectAfterCreate={false} />
     </div>
   );
 }

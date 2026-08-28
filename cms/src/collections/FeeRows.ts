@@ -49,8 +49,8 @@ export const FeeRows: CollectionConfig = {
     delete: standardDelete,
   },
   fields: [
-    { name: "label", type: "text", required: true },
-    { name: "value", type: "text", required: true },
+    { name: "label", type: "text", required: true, label: { tr: "Etiket", en: "Label" } },
+    { name: "value", type: "text", required: true, label: { tr: "Değer", en: "Value" } },
     orderField({ collection: "fee-rows", mode: "flat" }),
     {
       name: "createdBy",

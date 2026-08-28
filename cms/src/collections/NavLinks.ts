@@ -52,6 +52,7 @@ export const NavLinks: CollectionConfig = {
       name: "label",
       type: "text",
       required: true,
+      label: { tr: "Etiket", en: "Label" },
       admin: {
         description: {
           tr: "Menüde/footer'da görünecek yazı, örn: 'Vodafone Pay Kart'.",
@@ -63,6 +64,7 @@ export const NavLinks: CollectionConfig = {
       name: "href",
       type: "text",
       required: true,
+      label: { tr: "Adres (href)", en: "Href" },
       admin: {
         description: {
           tr: "Tıklanınca gidilecek adres. İç sayfa için başında / olacak şekilde yazın (örn. /vodafone-pay-kart veya, Pages'te oluşturduğunuz bir sayfa için /{o sayfanın slug'ı}); dış bağlantı için https:// ile başlayın (örn. Bilgi Toplum Hizmetleri linki gibi). Bu alan HERHANGİ bir adresi kabul eder — geliştirici sitedeki mevcut sayfaların adres listesini size verebilir.",
@@ -90,6 +92,7 @@ export const NavLinks: CollectionConfig = {
       name: "section",
       type: "select",
       required: true,
+      label: { tr: "Bölüm", en: "Section" },
       admin: {
         description: {
           tr: `Bu link NEREDE görünecek? Header — Ürünler = üst menüdeki 'Ürünler' açılır listesi. Header — Ana Menü = üst menünün geri kalanı (Kampanyalar, Blog vb.). Footer — Kurumsal/Yasal, footer'daki o iki sütuna karşılık gelir ve her biri en fazla ${FOOTER_ORDER_MAX} link alabilir (footer'ın taşmaması için) — dolu bir sütuna yenisini eklemek isterseniz önce var olan birini silmeniz gerekir. Footer'daki 'Sık Sorulanlar' ve 'Kampanyalar' sütunları artık BURADAN değil, ilgili Sık Sorulanlar/Kampanyalar kaydındaki 'Footer'da Göster' kutusundan yönetiliyor (onlar da aynı ${FOOTER_ORDER_MAX} sınırına tabi). Bir linki KALDIRMAK için bu kaydı silin; SIRASINI değiştirmek için listedeki sürükle-bırak aracını kullanın.`,

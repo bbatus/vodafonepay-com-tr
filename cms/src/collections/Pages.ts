@@ -127,6 +127,7 @@ const HeroBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       required: true,
       admin: {
@@ -138,6 +139,7 @@ const HeroBlock: Block = {
     },
     {
       name: "subheading",
+      label: { tr: "Alt Başlık", en: "Subheading" },
       type: "text",
       admin: {
         description: {
@@ -148,6 +150,7 @@ const HeroBlock: Block = {
     },
     {
       name: "image",
+      label: { tr: "Görsel", en: "Image" },
       type: "upload",
       relationTo: "media",
       required: true,
@@ -160,6 +163,7 @@ const HeroBlock: Block = {
     },
     {
       name: "ctaLabel",
+      label: { tr: "Buton Yazısı", en: "Button Label" },
       type: "text",
       admin: {
         description: {
@@ -170,6 +174,7 @@ const HeroBlock: Block = {
     },
     {
       name: "ctaUrl",
+      label: { tr: "Buton Linki", en: "Button Link" },
       type: "text",
       admin: {
         description: {
@@ -195,6 +200,7 @@ const RichTextBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       admin: {
         description: {
@@ -203,7 +209,7 @@ const RichTextBlock: Block = {
         },
       },
     },
-    { name: "body", type: "richText", required: true },
+    { name: "body", label: { tr: "İçerik", en: "Body" }, type: "richText", required: true },
   ],
 };
 
@@ -221,6 +227,7 @@ const FaqListBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       admin: {
         description: {
@@ -231,6 +238,7 @@ const FaqListBlock: Block = {
     },
     {
       name: "category",
+      label: { tr: "Kategori", en: "Category" },
       type: "text",
       validate: categoryExistsValidate(CATEGORY_SCOPES.FAQ),
       admin: {
@@ -242,6 +250,7 @@ const FaqListBlock: Block = {
     },
     {
       name: "categoryHint",
+      label: { tr: "Kategori İpucu", en: "Category Hint" },
       type: "ui",
       admin: { components: { Field: { path: "/components/CategorySlugHint#default", clientProps: { scope: "faq" } } } },
     },
@@ -263,6 +272,7 @@ const CampaignGridBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       required: true,
       admin: {
@@ -274,6 +284,7 @@ const CampaignGridBlock: Block = {
     },
     {
       name: "category",
+      label: { tr: "Kategori", en: "Category" },
       type: "text",
       validate: categoryExistsValidate(CATEGORY_SCOPES.CAMPAIGN),
       admin: {
@@ -285,6 +296,7 @@ const CampaignGridBlock: Block = {
     },
     {
       name: "categoryHint",
+      label: { tr: "Kategori İpucu", en: "Category Hint" },
       type: "ui",
       admin: { components: { Field: { path: "/components/CategorySlugHint#default", clientProps: { scope: "campaign" } } } },
     },
@@ -306,6 +318,7 @@ const VideoBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       admin: {
         description: {
@@ -316,6 +329,7 @@ const VideoBlock: Block = {
     },
     {
       name: "youtubeId",
+      label: { tr: "YouTube ID", en: "YouTube ID" },
       type: "text",
       required: true,
       admin: {
@@ -342,6 +356,7 @@ const LogoGridBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       admin: {
         description: {
@@ -352,7 +367,9 @@ const LogoGridBlock: Block = {
     },
     {
       name: "logos",
+      label: { tr: "Logolar", en: "Logos" },
       type: "array",
+      labels: { singular: { tr: "Logo", en: "Logo" }, plural: { tr: "Logolar", en: "Logos" } },
       minRows: 1,
       admin: {
         description: {
@@ -363,6 +380,7 @@ const LogoGridBlock: Block = {
       fields: [
         {
           name: "name",
+          label: { tr: "İsim", en: "Name" },
           type: "text",
           required: true,
           admin: {
@@ -372,9 +390,10 @@ const LogoGridBlock: Block = {
             },
           },
         },
-        { name: "logo", type: "upload", relationTo: "media", required: true, admin: { description: { tr: "Logo görseli.", en: "The logo image." } } },
+        { name: "logo", label: { tr: "Logo", en: "Logo" }, type: "upload", relationTo: "media", required: true, admin: { description: { tr: "Logo görseli.", en: "The logo image." } } },
         {
           name: "linkUrl",
+          label: { tr: "Bağlantı Adresi", en: "Link URL" },
           type: "text",
           admin: {
             description: {
@@ -415,6 +434,7 @@ const IconCardsBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       admin: {
         description: {
@@ -429,6 +449,7 @@ const IconCardsBlock: Block = {
       // hand-written /faturana-yansit page but never exposed here, so an
       // editor recreating that page from the block had nowhere to put it.
       name: "description",
+      label: { tr: "Açıklama", en: "Description" },
       type: "textarea",
       admin: {
         description: {
@@ -439,7 +460,9 @@ const IconCardsBlock: Block = {
     },
     {
       name: "cards",
+      label: { tr: "Kartlar", en: "Cards" },
       type: "array",
+      labels: { singular: { tr: "Kart", en: "Card" }, plural: { tr: "Kartlar", en: "Cards" } },
       minRows: 1,
       admin: {
         description: {
@@ -450,6 +473,7 @@ const IconCardsBlock: Block = {
       fields: [
         {
           name: "icon",
+          label: { tr: "İkon", en: "Icon" },
           type: "upload",
           relationTo: "media",
           required: true,
@@ -462,6 +486,7 @@ const IconCardsBlock: Block = {
         },
         {
           name: "title",
+          label: { tr: "Başlık", en: "Title" },
           type: "text",
           required: true,
           admin: {
@@ -473,6 +498,7 @@ const IconCardsBlock: Block = {
         },
         {
           name: "text",
+          label: { tr: "Metin", en: "Text" },
           type: "textarea",
           required: true,
           admin: {
@@ -502,6 +528,7 @@ const StepsBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       admin: {
         description: {
@@ -512,7 +539,9 @@ const StepsBlock: Block = {
     },
     {
       name: "steps",
+      label: { tr: "Adımlar", en: "Steps" },
       type: "array",
+      labels: { singular: { tr: "Adım", en: "Step" }, plural: { tr: "Adımlar", en: "Steps" } },
       minRows: 1,
       admin: {
         description: {
@@ -523,18 +552,21 @@ const StepsBlock: Block = {
       fields: [
         {
           name: "number",
+          label: { tr: "Numara", en: "Number" },
           type: "text",
           required: true,
           admin: { description: { tr: "Adım numarası, örn: '01', '02'.", en: "The step number, e.g.: '01', '02'." } },
         },
         {
           name: "text",
+          label: { tr: "Metin", en: "Text" },
           type: "textarea",
           required: true,
           admin: { description: { tr: "Bu adımda kullanıcının ne yapacağını anlatan metin.", en: "Text describing what the user does at this step." } },
         },
         {
           name: "image",
+          label: { tr: "Görsel", en: "Image" },
           type: "upload",
           relationTo: "media",
           required: true,
@@ -570,6 +602,7 @@ const HowToEarnBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       required: true,
       admin: {
@@ -581,6 +614,7 @@ const HowToEarnBlock: Block = {
     },
     {
       name: "image",
+      label: { tr: "Görsel", en: "Image" },
       type: "upload",
       relationTo: "media",
       required: true,
@@ -593,7 +627,9 @@ const HowToEarnBlock: Block = {
     },
     {
       name: "steps",
+      label: { tr: "Adımlar", en: "Steps" },
       type: "array",
+      labels: { singular: { tr: "Adım", en: "Step" }, plural: { tr: "Adımlar", en: "Steps" } },
       minRows: 1,
       admin: {
         description: {
@@ -604,6 +640,7 @@ const HowToEarnBlock: Block = {
       fields: [
         {
           name: "icon",
+          label: { tr: "İkon", en: "Icon" },
           type: "upload",
           relationTo: "media",
           required: true,
@@ -611,12 +648,14 @@ const HowToEarnBlock: Block = {
         },
         {
           name: "title",
+          label: { tr: "Başlık", en: "Title" },
           type: "text",
           required: true,
           admin: { description: { tr: "Adımın başlığı, örn: 'Bakiye Yükle'.", en: "The step's title, e.g.: 'Bakiye Yükle'." } },
         },
         {
           name: "description",
+          label: { tr: "Açıklama", en: "Description" },
           type: "textarea",
           required: true,
           admin: { description: { tr: "Adımın kısa açıklaması.", en: "A short description of the step." } },
@@ -648,6 +687,7 @@ const ImageWithTextBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       required: true,
       admin: {
@@ -659,6 +699,7 @@ const ImageWithTextBlock: Block = {
     },
     {
       name: "text",
+      label: { tr: "Metin", en: "Text" },
       type: "textarea",
       required: true,
       admin: {
@@ -670,6 +711,7 @@ const ImageWithTextBlock: Block = {
     },
     {
       name: "image",
+      label: { tr: "Görsel", en: "Image" },
       type: "upload",
       relationTo: "media",
       required: true,
@@ -720,6 +762,7 @@ const PricesAndLimitsBlock: Block = {
   fields: [
     {
       name: "note",
+      label: { tr: "Not", en: "Note" },
       type: "ui",
       admin: {
         components: {
@@ -749,6 +792,7 @@ const BlogGridBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       required: true,
       admin: {
@@ -760,6 +804,7 @@ const BlogGridBlock: Block = {
     },
     {
       name: "category",
+      label: { tr: "Kategori", en: "Category" },
       type: "text",
       validate: categoryExistsValidate(CATEGORY_SCOPES.BLOG),
       admin: {
@@ -771,6 +816,7 @@ const BlogGridBlock: Block = {
     },
     {
       name: "categoryHint",
+      label: { tr: "Kategori İpucu", en: "Category Hint" },
       type: "ui",
       admin: { components: { Field: { path: "/components/CategorySlugHint#default", clientProps: { scope: "blog" } } } },
     },
@@ -798,6 +844,7 @@ const FeatureHighlightsBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       admin: {
         description: {
@@ -808,6 +855,7 @@ const FeatureHighlightsBlock: Block = {
     },
     {
       name: "media",
+      label: { tr: "Medya", en: "Media" },
       type: "upload",
       relationTo: "media",
       admin: {
@@ -819,7 +867,9 @@ const FeatureHighlightsBlock: Block = {
     },
     {
       name: "features",
+      label: { tr: "Özellikler", en: "Features" },
       type: "array",
+      labels: { singular: { tr: "Özellik", en: "Feature" }, plural: { tr: "Özellikler", en: "Features" } },
       minRows: 1,
       admin: {
         description: {
@@ -830,6 +880,7 @@ const FeatureHighlightsBlock: Block = {
       fields: [
         {
           name: "icon",
+          label: { tr: "İkon", en: "Icon" },
           type: "upload",
           relationTo: "media",
           required: true,
@@ -837,12 +888,14 @@ const FeatureHighlightsBlock: Block = {
         },
         {
           name: "title",
+          label: { tr: "Başlık", en: "Title" },
           type: "text",
           required: true,
           admin: { description: { tr: "Özelliğin başlığı, örn: 'Akıllı Ödeme Yöntemleri'.", en: "The feature's title, e.g.: 'Akıllı Ödeme Yöntemleri'." } },
         },
         {
           name: "description",
+          label: { tr: "Açıklama", en: "Description" },
           type: "textarea",
           required: true,
           admin: { description: { tr: "Özelliğin tek cümlelik açıklaması.", en: "A one-sentence description of the feature." } },
@@ -872,6 +925,7 @@ const ProfileGridBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       admin: {
         description: {
@@ -882,7 +936,9 @@ const ProfileGridBlock: Block = {
     },
     {
       name: "people",
+      label: { tr: "Kişiler", en: "People" },
       type: "array",
+      labels: { singular: { tr: "Kişi", en: "Person" }, plural: { tr: "Kişiler", en: "People" } },
       minRows: 1,
       admin: {
         description: {
@@ -893,6 +949,7 @@ const ProfileGridBlock: Block = {
       fields: [
         {
           name: "photo",
+          label: { tr: "Fotoğraf", en: "Photo" },
           type: "upload",
           relationTo: "media",
           required: true,
@@ -900,12 +957,14 @@ const ProfileGridBlock: Block = {
         },
         {
           name: "name",
+          label: { tr: "İsim", en: "Name" },
           type: "text",
           required: true,
           admin: { description: { tr: "Ad soyad.", en: "Full name." } },
         },
         {
           name: "title",
+          label: { tr: "Başlık", en: "Title" },
           type: "text",
           required: true,
           admin: { description: { tr: "Unvan, örn: 'Genel Müdür'.", en: "Role, e.g.: 'Genel Müdür'." } },
@@ -934,13 +993,13 @@ const MediaPanelBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", required: true,
+    { name: "heading", label: { tr: "Başlık", en: "Heading" }, type: "text", required: true,
       admin: { description: { tr: "Panelin üzerindeki beyaz başlık.", en: "The white heading over the panel." } } },
-    { name: "text", type: "textarea",
+    { name: "text", label: { tr: "Metin", en: "Text" }, type: "textarea",
       admin: { description: { tr: "Başlığın altındaki açıklama. Boş bırakılabilir.", en: "Copy under the heading. Optional." } } },
-    { name: "backgroundImage", type: "upload", relationTo: "media", required: true,
+    { name: "backgroundImage", label: { tr: "Arka Plan Görseli", en: "Background Image" }, type: "upload", relationTo: "media", required: true,
       admin: { description: { tr: "Panelin arka plan görseli — metin bunun ÜZERİNE beyaz olarak biner, o yüzden koyu bir görsel seçin. Önerilen: 1030x420 piksel.", en: "The panel's background art — the copy sits ON it in white, so pick a dark image. Recommended: 1030x420px." } } },
-    { name: "youtubeId", type: "text",
+    { name: "youtubeId", label: { tr: "YouTube ID", en: "YouTube ID" }, type: "text",
       admin: { description: { tr: "Panelin içinde gösterilecek videonun YouTube ID'si (tam URL değil). Boş bırakılırsa video gösterilmez.", en: "YouTube ID (not the full URL) of a video to embed inside the panel. Leave empty for no video." } } },
   ],
 };
@@ -961,9 +1020,9 @@ const ContactInfoBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text",
+    { name: "heading", label: { tr: "Başlık", en: "Heading" }, type: "text",
       admin: { description: { tr: "Bölümün başlığı, örn: 'İletişim Bilgileri'. Boş bırakılabilir.", en: "The section heading, e.g. 'İletişim Bilgileri'. Optional." } } },
-    { name: "note", type: "ui", admin: { components: { Field: "/components/CollectionBackedBlockNote#default" } } },
+    { name: "note", label: { tr: "Not", en: "Note" }, type: "ui", admin: { components: { Field: "/components/CollectionBackedBlockNote#default" } } },
   ],
 };
 
@@ -984,11 +1043,11 @@ const RepresentativesBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text",
+    { name: "heading", label: { tr: "Başlık", en: "Heading" }, type: "text",
       admin: { description: { tr: "Bölümün başlığı, örn: 'Temsilciliklerimiz'. Boş bırakılabilir.", en: "The section heading. Optional." } } },
-    { name: "limit", type: "number", min: 1,
+    { name: "limit", label: { tr: "Adet Sınırı", en: "Limit" }, type: "number", min: 1,
       admin: { description: { tr: "En fazla kaç temsilci gösterilsin. Boş bırakılırsa TÜMÜ listelenir — tam liste için /temsilciliklerimiz sayfasını kullanmak genelde daha doğrudur.", en: "How many representatives to show at most. Leave empty for ALL — for the full directory the /temsilciliklerimiz page is usually the better place." } } },
-    { name: "note", type: "ui", admin: { components: { Field: "/components/CollectionBackedBlockNote#default" } } },
+    { name: "note", label: { tr: "Not", en: "Note" }, type: "ui", admin: { components: { Field: "/components/CollectionBackedBlockNote#default" } } },
   ],
 };
 
@@ -1011,19 +1070,21 @@ const StepPhonesBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text",
+    { name: "heading", label: { tr: "Başlık", en: "Heading" }, type: "text",
       admin: { description: { tr: "Bölümün ortalı başlığı. Boş bırakılırsa anasayfanın kendi başlığı kullanılır.", en: "The section's centred heading. Leave empty to use the homepage's own." } } },
-    { name: "description", type: "textarea",
+    { name: "description", label: { tr: "Açıklama", en: "Description" }, type: "textarea",
       admin: { description: { tr: "Başlığın altındaki tanıtım metni. Boş bırakılabilir.", en: "The intro copy under the heading. Optional." } } },
     {
       name: "steps", type: "array", minRows: 1,
+      label: { tr: "Adımlar", en: "Steps" },
+      labels: { singular: { tr: "Adım", en: "Step" }, plural: { tr: "Adımlar", en: "Steps" } },
       admin: { description: { tr: "Her satır bir ürün tanıtımı (telefon görseli + başlık + açıklama). Satırlar dönüşümlü olarak solda/sağda dizilir.", en: "Each row is one product showcase (phone image + title + copy). Rows alternate left/right." } },
       fields: [
-        { name: "image", type: "upload", relationTo: "media", required: true,
+        { name: "image", label: { tr: "Görsel", en: "Image" }, type: "upload", relationTo: "media", required: true,
           admin: { description: { tr: "Telefon ekran görüntüsü. Önerilen genişlik: 560 piksel.", en: "The phone screenshot. Recommended width: 560px." } } },
-        { name: "title", type: "text", required: true,
+        { name: "title", label: { tr: "Başlık", en: "Title" }, type: "text", required: true,
           admin: { description: { tr: "Ürünün adı, örn: 'Faturana Yansıt'.", en: "The product name, e.g. 'Faturana Yansıt'." } } },
-        { name: "description", type: "textarea", required: true,
+        { name: "description", label: { tr: "Açıklama", en: "Description" }, type: "textarea", required: true,
           admin: { description: { tr: "Ürünün kısa açıklaması.", en: "A short description of the product." } } },
       ],
     },
@@ -1045,6 +1106,7 @@ const ImageTextSlidesBlock: Block = {
   fields: [
     {
       name: "heading",
+      label: { tr: "Başlık", en: "Heading" },
       type: "text",
       admin: { description: { tr: "Bölümün başlığı, örn: 'Neler Kazanırsın?'. Boş bırakılabilir.", en: "The section's heading, e.g.: 'Neler Kazanırsın?'. Optional." } },
     },
@@ -1057,6 +1119,7 @@ const ImageTextSlidesBlock: Block = {
       // rendering (BlockRenderer switches on `sideImage` alone) — nothing
       // about any EXISTING use of this block changes.
       name: "intro",
+      label: { tr: "Giriş Metni", en: "Intro" },
       type: "textarea",
       admin: {
         description: {
@@ -1067,6 +1130,7 @@ const ImageTextSlidesBlock: Block = {
     },
     {
       name: "sideImage",
+      label: { tr: "Yan Görsel", en: "Side Image" },
       type: "upload",
       relationTo: "media",
       admin: {
@@ -1078,7 +1142,9 @@ const ImageTextSlidesBlock: Block = {
     },
     {
       name: "slides",
+      label: { tr: "Slaytlar", en: "Slides" },
       type: "array",
+      labels: { singular: { tr: "Slayt", en: "Slide" }, plural: { tr: "Slaytlar", en: "Slides" } },
       minRows: 1,
       admin: {
         description: {
@@ -1087,8 +1153,8 @@ const ImageTextSlidesBlock: Block = {
         },
       },
       fields: [
-        { name: "image", type: "upload", relationTo: "media", required: true, admin: { description: { tr: "Slaytın görseli.", en: "The slide's image." } } },
-        { name: "text", type: "textarea", required: true, admin: { description: { tr: "Slaytın açıklama metni.", en: "The slide's text." } } },
+        { name: "image", label: { tr: "Görsel", en: "Image" }, type: "upload", relationTo: "media", required: true, admin: { description: { tr: "Slaytın görseli.", en: "The slide's image." } } },
+        { name: "text", label: { tr: "Metin", en: "Text" }, type: "textarea", required: true, admin: { description: { tr: "Slaytın açıklama metni.", en: "The slide's text." } } },
       ],
     },
   ],
@@ -1107,7 +1173,7 @@ const VideoListBlock: Block = {
     ),
   },
   fields: [
-    { name: "heading", type: "text", admin: { description: { tr: "Bölümün başlığı. Boş bırakılabilir.", en: "The section's heading. Optional." } } },
+    { name: "heading", label: { tr: "Başlık", en: "Heading" }, type: "text", admin: { description: { tr: "Bölümün başlığı. Boş bırakılabilir.", en: "The section's heading. Optional." } } },
     {
       // Migration follow-up (28.08): closes the gap VideoGuideSection.tsx's
       // dark full-bleed layout left (hand-written /vodafone-pay-kart's
@@ -1118,6 +1184,7 @@ const VideoListBlock: Block = {
       // (BlockRenderer switches on `darkBackgroundImage` alone) — no
       // EXISTING use of this block changes.
       name: "subheading",
+      label: { tr: "Alt Başlık", en: "Subheading" },
       type: "text",
       admin: {
         description: {
@@ -1128,6 +1195,7 @@ const VideoListBlock: Block = {
     },
     {
       name: "darkBackgroundImage",
+      label: { tr: "Koyu Arka Plan Görseli", en: "Dark Background Image" },
       type: "upload",
       relationTo: "media",
       admin: {
@@ -1139,7 +1207,9 @@ const VideoListBlock: Block = {
     },
     {
       name: "videos",
+      label: { tr: "Videolar", en: "Videos" },
       type: "array",
+      labels: { singular: { tr: "Video", en: "Video" }, plural: { tr: "Videolar", en: "Videos" } },
       minRows: 1,
       admin: {
         description: {
@@ -1150,12 +1220,14 @@ const VideoListBlock: Block = {
       fields: [
         {
           name: "title",
+          label: { tr: "Başlık", en: "Title" },
           type: "text",
           required: true,
           admin: { description: { tr: "Bu videonun sekme/başlık metni, örn: 'Nasıl Kart Alırım?'.", en: "This video's tab/title text, e.g.: 'Nasıl Kart Alırım?'." } },
         },
         {
           name: "youtubeId",
+          label: { tr: "YouTube ID", en: "YouTube ID" },
           type: "text",
           required: true,
           admin: {
@@ -1312,6 +1384,7 @@ export const Pages: CollectionConfig = {
     // header while switching it changed nothing. See payload.config.ts.
     {
       name: "title",
+      label: { tr: "Başlık", en: "Title" },
       type: "text",
       required: true,
       admin: {
@@ -1323,6 +1396,7 @@ export const Pages: CollectionConfig = {
     },
     {
       name: "slug",
+      label: { tr: "Slug", en: "Slug" },
       type: "text",
       required: true,
       unique: true,
@@ -1366,10 +1440,10 @@ export const Pages: CollectionConfig = {
         LeadFormCtaBlock,
       ],
     },
-    { name: "seoTitle", type: "text" },
-    { name: "seoDescription", type: "textarea" },
+    { name: "seoTitle", label: { tr: "SEO Başlığı", en: "SEO Title" }, type: "text" },
+    { name: "seoDescription", label: { tr: "SEO Açıklaması", en: "SEO Description" }, type: "textarea" },
     seoKeywordsField,
-    { name: "ogImage", type: "upload", relationTo: "media" },
+    { name: "ogImage", label: { tr: "Paylaşım Görseli (OG)", en: "OG Image" }, type: "upload", relationTo: "media" },
     {
       // Butterfly-parity gap-fill: simple parent reference for a breadcrumb
       // trail (Ana Sayfa > Üst Sayfa > Bu Sayfa) — deliberately NOT full

@@ -44,18 +44,20 @@ export const LimitTables: CollectionConfig = {
     delete: standardDelete,
   },
   fields: [
-    { name: "title", type: "text", required: true },
+    { name: "title", type: "text", required: true, label: { tr: "Başlık", en: "Title" } },
     orderField({ collection: "limit-tables", mode: "flat" }),
     {
       name: "rows",
       type: "array",
       required: true,
       minRows: 1,
+      label: { tr: "Satırlar", en: "Rows" },
+      labels: { singular: { tr: "Satır", en: "Row" }, plural: { tr: "Satırlar", en: "Rows" } },
       fields: [
-        { name: "category", type: "text", required: true },
-        { name: "period", type: "text", required: true },
-        { name: "unverifiedLimit", type: "text", required: true },
-        { name: "verifiedLimit", type: "text", required: true },
+        { name: "category", type: "text", required: true, label: { tr: "Kategori", en: "Category" } },
+        { name: "period", type: "text", required: true, label: { tr: "Dönem", en: "Period" } },
+        { name: "unverifiedLimit", type: "text", required: true, label: { tr: "Kimliği Doğrulanmamış Limit", en: "Unverified Limit" } },
+        { name: "verifiedLimit", type: "text", required: true, label: { tr: "Kimliği Doğrulanmış Limit", en: "Verified Limit" } },
       ],
     },
     {

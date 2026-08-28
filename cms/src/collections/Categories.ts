@@ -172,6 +172,7 @@ export const Categories: CollectionConfig = {
       name: "label",
       type: "text",
       required: true,
+      label: { tr: "İsim", en: "Label" },
       admin: {
         description: {
           tr: "Filtre sekmesinde ve kampanya listesinde görünen isim. Örnek: Kart",
@@ -186,6 +187,7 @@ export const Categories: CollectionConfig = {
       name: "slug",
       type: "text",
       required: true,
+      label: { tr: "Slug", en: "Slug" },
       // NOT globally unique any more — uniqueness is per `scope` (see the
       // compound index below and generateSlug's scoped count check). A bare
       // `unique: true` here would still be a single-column DB constraint and

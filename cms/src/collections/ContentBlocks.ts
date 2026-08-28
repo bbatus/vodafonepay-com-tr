@@ -58,6 +58,7 @@ export const ContentBlocks: CollectionConfig = {
       name: "page",
       type: "text",
       required: true,
+      label: { tr: "Sayfa/Grup Anahtarı", en: "Page" },
       admin: {
         description: {
           tr: "Örn: anasayfa-steps, uygulama-ayricalikli, kart-earn, brand-logos, kart-video-guide, faturana-yansit-videos",
@@ -70,6 +71,7 @@ export const ContentBlocks: CollectionConfig = {
       type: "select",
       required: true,
       defaultValue: "slide",
+      label: { tr: "Blok Türü", en: "Block Type" },
       options: [
         { label: { tr: "Adım (başlık + açıklama + görsel)", en: "Step (heading + text + image)" }, value: "step" },
         { label: { tr: "Slayt (açıklama + görsel)", en: "Slide (text + image)" }, value: "slide" },
@@ -77,16 +79,17 @@ export const ContentBlocks: CollectionConfig = {
         { label: { tr: "Logo (isim + logo)", en: "Logo (name + logo)" }, value: "logo" },
       ],
     },
-    { name: "title", type: "text", admin: { description: { tr: "step / video / logo için", en: "For step / video / logo" } } },
-    { name: "text", type: "textarea", admin: { description: { tr: "step / slide için", en: "For step / slide" } } },
+    { name: "title", type: "text", label: { tr: "Başlık", en: "Title" }, admin: { description: { tr: "step / video / logo için", en: "For step / video / logo" } } },
+    { name: "text", type: "textarea", label: { tr: "Metin", en: "Text" }, admin: { description: { tr: "step / slide için", en: "For step / slide" } } },
     {
       name: "image",
       type: "upload",
       relationTo: "media",
+      label: { tr: "Görsel", en: "Image" },
       admin: { description: { tr: "step / slide / logo için", en: "For step / slide / logo" } },
     },
-    { name: "youtubeId", type: "text", admin: { description: { tr: "video için, örn: 7CCEsOaoH2A", en: "For video, e.g.: 7CCEsOaoH2A" } } },
-    { name: "linkUrl", type: "text" },
+    { name: "youtubeId", type: "text", label: { tr: "YouTube ID", en: "YouTube ID" }, admin: { description: { tr: "video için, örn: 7CCEsOaoH2A", en: "For video, e.g.: 7CCEsOaoH2A" } } },
+    { name: "linkUrl", type: "text", label: { tr: "Bağlantı Adresi", en: "Link URL" } },
     orderField({ collection: "content-blocks", watchPath: "page", mode: "relationship" }),
     {
       name: "createdBy",
