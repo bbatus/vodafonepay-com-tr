@@ -94,6 +94,10 @@ export const Categories: CollectionConfig = {
     defaultColumns: ["label", "scope", "slug", "order"],
     group: { tr: "İçerik Yönetimi", en: "Content Management" },
     components: {
+      edit: {
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
+      },
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "categories" } },
         // RFP follow-up: full-column CSV export, Turkish-Excel safe.

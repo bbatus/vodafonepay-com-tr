@@ -29,6 +29,10 @@ export const PageMeta: CollectionConfig = {
       en: "Per-page breadcrumb text and SEO fields. pageKey must exactly match the site's route (e.g.: /aninda-bakiye).",
     },
     components: {
+      edit: {
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
+      },
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "page-meta" } }],
     },
   },

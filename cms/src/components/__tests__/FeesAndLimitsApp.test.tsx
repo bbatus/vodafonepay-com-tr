@@ -3,8 +3,15 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import FeesAndLimitsApp from "@/components/FeesAndLimitsApp";
 
+// Flipped per-test to cover the Growth Checker case (`create: false`), whose
+// create buttons must not render at all — see CreateButton in the component.
+let canCreate = true;
+
 vi.mock("@payloadcms/ui", () => ({
   useTranslation: () => ({ i18n: { language: "tr" } }),
+  useAuth: () => ({
+    permissions: { collections: { "fee-rows": { create: canCreate }, "limit-tables": { create: canCreate } } },
+  }),
   useDocumentDrawer: () => [
     () => null,
     ({ children, className }: { children: React.ReactNode; className?: string }) => (
@@ -20,6 +27,7 @@ vi.mock("@/components/ReorderWidget", () => ({
 }));
 
 beforeEach(() => {
+  canCreate = true;
   vi.stubGlobal(
     "fetch",
     vi.fn((url: string) => {
@@ -72,5 +80,25 @@ describe("FeesAndLimitsApp", () => {
     );
     render(<FeesAndLimitsApp />);
     await waitFor(() => expect(screen.getByText("Bu koleksiyonu görüntüleme yetkiniz yok.")).toBeInTheDocument());
+  });
+
+  it("shows the create buttons to a role that has create permission", async () => {
+    render(<FeesAndLimitsApp />);
+    await waitFor(() => expect(screen.getByText("İşlem Ücreti")).toBeInTheDocument());
+    expect(screen.getByText("Yeni Ücret Satırı")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Limit Tabloları", pressed: false }));
+    await waitFor(() => expect(screen.getByText("Yeni Limit Tablosu")).toBeInTheDocument());
+  });
+
+  it("hides the create buttons from a role without create permission (Growth Checker)", async () => {
+    canCreate = false;
+    render(<FeesAndLimitsApp />);
+    await waitFor(() => expect(screen.getByText("İşlem Ücreti")).toBeInTheDocument());
+    expect(screen.queryByText("Yeni Ücret Satırı")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Limit Tabloları", pressed: false }));
+    await waitFor(() => expect(screen.getByText("Günlük Limit")).toBeInTheDocument());
+    expect(screen.queryByText("Yeni Limit Tablosu")).not.toBeInTheDocument();
   });
 });

@@ -22,6 +22,10 @@ export const Representatives: CollectionConfig = {
       en: "Representative/dealer records — the /temsilciliklerimiz search form and the /temsilci/[id] detail page use this data.",
     },
     components: {
+      edit: {
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
+      },
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "representatives" } }],
     },
   },

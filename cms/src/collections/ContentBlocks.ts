@@ -33,6 +33,10 @@ export const ContentBlocks: CollectionConfig = {
       en: "Content blocks for one-off components like StepPhones/AppFeatures/EarnWithCard/FeatureHighlights/VideoGuideSection/VideosWithTabs/BrandLogoGrid. The `page` field determines which component/page each one belongs to.",
     },
     components: {
+      edit: {
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
+      },
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "content-blocks" } },
         { path: "/components/ReorderWidget#default", clientProps: { collection: "content-blocks", groupField: "page" } },

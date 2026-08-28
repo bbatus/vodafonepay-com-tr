@@ -30,6 +30,12 @@ export const FeeRows: CollectionConfig = {
     // longer links to those routes — it edits/creates fee-rows through
     // `useDocumentDrawer`, which defaults `overrideEntityVisibility: true`
     // and bypasses that exact check.
+    components: {
+      edit: {
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
+      },
+    },
     hidden: true,
   },
   versions: {

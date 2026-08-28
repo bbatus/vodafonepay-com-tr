@@ -74,6 +74,10 @@ export const LegalPages: CollectionConfig = {
       en: "Structural parts of these legal pages (tables/lists) stay fixed in code; what's managed here is intro text, plus the page image and document groups for Sözleşmeler ve Formlar.",
     },
     components: {
+      edit: {
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
+      },
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "legal-pages" } }],
     },
   },

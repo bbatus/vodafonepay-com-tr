@@ -22,6 +22,10 @@ export const Announcements: CollectionConfig = {
     defaultColumns: ["title", "order", "_status"],
     group: { tr: "İçerik Yönetimi", en: "Content Management" },
     components: {
+      edit: {
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
+      },
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "announcements" } },
         { path: "/components/ReorderWidget#default", clientProps: { collection: "announcements" } },

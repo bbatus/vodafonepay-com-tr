@@ -22,6 +22,10 @@ export const CookieRows: CollectionConfig = {
       en: "Rows of the cookie table on the /cerez-politikasi page.",
     },
     components: {
+      edit: {
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
+      },
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "cookie-rows" } }],
     },
   },

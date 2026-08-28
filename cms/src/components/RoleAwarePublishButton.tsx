@@ -5,6 +5,7 @@ import { useAuth, useConfig, useDocumentInfo, useForm, useFormModified, useLocal
 import { formatAdminURL } from "payload/shared";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
+import { useIsActiveCheckerDelegate } from "./useIsActiveCheckerDelegate";
 import { ROLES } from "@/access/roles";
 
 /**
@@ -26,42 +27,6 @@ import { ROLES } from "@/access/roles";
  * than re-deriving anything secret client-side) — only clicking "Onayla ve
  * Yayınla" inside that modal actually submits the publish.
  */
-/**
- * Answers the same question `hasActiveCheckerDelegate` answers server-side
- * (access/roles.ts), via a plain REST query `users.read` is already open to —
- * this is a client component, so useAuth() only knows the session's own role.
- */
-function useIsActiveCheckerDelegate(role: string | undefined, userId: string | number | undefined): boolean {
-  const [isActiveDelegate, setIsActiveDelegate] = useState(false);
-
-  useEffect(() => {
-    if (role !== ROLES.GROWTH_MAKER || !userId) return;
-    const params = new URLSearchParams({
-      limit: "1",
-      depth: "0",
-      "where[and][0][delegateTo][equals]": String(userId),
-      "where[and][1][role][in][0]": ROLES.NEW_VERTICAL_CHECKER,
-      "where[and][1][role][in][1]": ROLES.GROWTH_CHECKER,
-      "where[and][2][or][0][delegationExpiresAt][exists]": "false",
-      "where[and][2][or][1][delegationExpiresAt][greater_than]": new Date().toISOString(),
-    });
-    let cancelled = false;
-    fetch(`/api/users?${params.toString()}`, { credentials: "same-origin" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!cancelled) setIsActiveDelegate((data?.totalDocs ?? 0) > 0);
-      })
-      .catch(() => {
-        if (!cancelled) setIsActiveDelegate(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [role, userId]);
-
-  return isActiveDelegate;
-}
-
 /** Stops the admin page behind an open modal from scrolling under the pointer. */
 function useLockBodyScroll(locked: boolean): void {
   useEffect(() => {

@@ -1291,6 +1291,8 @@ export const Pages: CollectionConfig = {
       // the list, one screen back. Same component, second placement.
       edit: {
         beforeDocumentControls: [{ path: "/components/HelpButton#default", clientProps: { collection: "pages" } }],
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
       },
     },
   },

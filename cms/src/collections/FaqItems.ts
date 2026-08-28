@@ -47,6 +47,10 @@ export const FaqItems: CollectionConfig = {
     defaultColumns: ["question", "category", "showOnHomepage", "order", "createdAt", "_status"],
     group: { tr: "İçerik Yönetimi", en: "Content Management" },
     components: {
+      edit: {
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
+      },
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "faq-items" } },
         {

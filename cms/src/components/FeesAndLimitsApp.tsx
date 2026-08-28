@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useEffect, useState } from "react";
-import { useDocumentDrawer } from "@payloadcms/ui";
+import { useAuth, useDocumentDrawer } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
 import ReorderWidget from "./ReorderWidget";
@@ -70,8 +70,21 @@ function LimitTableRow({ lt, onSaved }: { lt: LimitTable; onSaved: () => void })
   );
 }
 
+/**
+ * Found during the 28.08 UI walkthrough: this button rendered for everyone,
+ * so a Growth Checker — who has `create: false` on every collection by
+ * design (they approve, they don't author) — got a working-looking "Yeni
+ * Ücret Satırı" whose only possible outcome was a 403 on save.
+ *
+ * Payload's own List view hides its Create button the same way, off the
+ * global permission set; this view is hand-rolled (FeeRows/LimitTables are
+ * `admin.hidden`) so it has to do that check itself. Same principle as
+ * MakerAwarePublishButton: don't offer a control the server will refuse.
+ */
 function CreateButton({ collectionSlug, label, onSaved }: { collectionSlug: "fee-rows" | "limit-tables"; label: string; onSaved: () => void }) {
+  const { permissions } = useAuth();
   const [DocDrawer, DocToggler] = useDocumentDrawer({ collectionSlug });
+  if (!permissions?.collections?.[collectionSlug]?.create) return null;
   return (
     <div className="cm-toolbar">
       <DocToggler className="btn btn--style-primary btn--size-small">

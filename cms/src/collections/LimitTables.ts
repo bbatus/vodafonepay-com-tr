@@ -25,6 +25,12 @@ export const LimitTables: CollectionConfig = {
     // with editing/creating routed through FeesAndLimitsApp's
     // useDocumentDrawer instead of a direct /admin/collections/limit-tables
     // link.
+    components: {
+      edit: {
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
+      },
+    },
     hidden: true,
   },
   versions: {

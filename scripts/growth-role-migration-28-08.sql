@@ -207,3 +207,48 @@ DO $$ BEGIN
     ALTER TABLE _representatives_v ADD CONSTRAINT _representatives_v_version_qr_code_id_media_id_fk FOREIGN KEY (version_qr_code_id) REFERENCES media(id) ON DELETE SET NULL;
   END IF;
 END $$;
+
+-- ============================================================
+-- PART 6: version-row backfill (added 28.08, after a live bug)
+--
+-- Creating the `_v` TABLES is not enough. Payload serves a
+-- drafts-enabled collection's admin queries out of the versions table
+-- whenever it is asked for draft data — which the admin does for, among
+-- other things, a relationship picker rendered inside an unsaved document.
+-- With the tables present but EMPTY, every such query returned zero rows:
+-- the FAQ "Category" picker showed "Seçenek yok" even though all 11
+-- categories existed and the plain REST GET returned them fine. Found by
+-- walking the admin UI; the API-level tests never hit it because they pass
+-- the relationship id directly.
+--
+-- Fix: give every pre-existing document one `latest`, published version row,
+-- which is exactly the state Payload would have created had drafts been
+-- enabled from the start.
+-- ============================================================
+INSERT INTO _categories_v (parent_id, version_scope, version_label, version_slug, version_order,
+                           version_created_by_id, version_updated_at, version_created_at, version__status, latest,
+                           created_at, updated_at)
+SELECT c.id, c.scope::text::enum__categories_v_version_scope, c.label, c.slug, c."order",
+       c.created_by_id, c.updated_at, c.created_at, 'published'::enum__categories_v_version_status, true,
+       now(), now()
+FROM categories c
+WHERE NOT EXISTS (SELECT 1 FROM _categories_v v WHERE v.parent_id = c.id);
+
+INSERT INTO _representatives_v (parent_id, version_business_name, version_rep_code, version_activity_description,
+                                version_phone, version_mersis_no, version_address, version_province, version_district,
+                                version_authorized_person, version_qr_code_id, version_created_by_id,
+                                version_updated_at, version_created_at, version__status, latest, created_at, updated_at)
+SELECT r.id, r.business_name, r.rep_code, r.activity_description, r.phone, r.mersis_no, r.address, r.province,
+       r.district, r.authorized_person, r.qr_code_id, r.created_by_id,
+       r.updated_at, r.created_at, 'published'::enum__representatives_v_version_status, true, now(), now()
+FROM representatives r
+WHERE NOT EXISTS (SELECT 1 FROM _representatives_v v WHERE v.parent_id = r.id);
+
+INSERT INTO _documents_v (parent_id, version_url, version_thumbnail_u_r_l, version_filename, version_mime_type,
+                          version_filesize, version_width, version_height, version_focal_x, version_focal_y,
+                          version_created_by_id, version_updated_at, version_created_at, version__status, latest,
+                          created_at, updated_at)
+SELECT d.id, d.url, d.thumbnail_u_r_l, d.filename, d.mime_type, d.filesize, d.width, d.height, d.focal_x, d.focal_y,
+       d.created_by_id, d.updated_at, d.created_at, 'published'::enum__documents_v_version_status, true, now(), now()
+FROM documents d
+WHERE NOT EXISTS (SELECT 1 FROM _documents_v v WHERE v.parent_id = d.id);

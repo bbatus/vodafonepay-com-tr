@@ -767,3 +767,55 @@ dönüyordu — ortama bağımlı, kalıcı kırıklık. Mock eklendi.
 
 - [x] **Site: 380/380 test geçiyor** (önceki turlarda 377/380 idi).
 - [x] **CMS: 468/468 test geçiyor.**
+
+### 29e. Yayınla butonu Checker'a alındı + gerçek UI turu (API değil)
+
+Kullanıcı haklıydı: 29a–29d'deki 196 kanıtlık denetim **tamamen API üzerinden**
+koşuyordu ve tek bir collection UI'da gezilmişti. Bu turda 14 collection'ın
+hepsi tarayıcıda tek tek, iki rolle açıldı — ve API testlerinin **yapısal
+olarak göremeyeceği** üç ayrı hata çıktı.
+
+- [x] **Yayınla butonu Maker'da kaldırıldı** (kullanıcı isteği: "zaten maker
+      yayınlayamıyor, yayınla butonunun olmasına gerek yok, checker'da olsun").
+      Payload butonu `update` yetkisi olan herkese basıyor ve `denyMakerPublish`
+      hook'undan haberi yok; Maker'ın gördüğü buton sadece 403 toast
+      üretebiliyordu. Yeni `MakerAwarePublishButton` yerine gri "Onay bekliyor
+      (Checker yayınlar)" bilgisi gösteriyor. Aktif checker vekili (delegate)
+      gerçek butonu görmeye devam ediyor — sunucu tarafında yayınlama hakkı
+      var, UI'da elinden alınmamalı. 14 collection'a bağlandı; Campaigns kendi
+      `RoleAwarePublishButton`'ını (reddet / yayından kaldırma talebi / acil
+      canlı düzenleme akışı) koruyor.
+- [x] **Bug 1 — boş `_v` tabloları:** Categories/Representatives/Documents'a bu
+      turda draft eklenmişti ama mevcut satırların versiyon kaydı yoktu;
+      Payload admin ilişki seçicilerini versiyon tablosundan okuduğu için SSS
+      formundaki kategori seçicisi "Seçenek yok" diyordu. Migration'a PART 6
+      (geriye dönük versiyon doldurma) eklendi. **API testleri bunu göremezdi:
+      ilişki id'lerini doğrudan gönderiyorlar, seçiciyi hiç açmıyorlar.**
+- [x] **Bug 2 — `importMap.js`:** `MakerAwarePublishButton` kayıt defterine
+      eklenmeyince Payload yayınla yuvasına **hiçbir şey** basmadı — iki rol
+      için de. Eşlenmemiş bileşen yolu hata vermiyor, sessizce boş render
+      ediyor. R-10 geleneği gereği elle eklendi. **Ders: `admin.components.*`'a
+      yeni bir yol yazan her değişiklik aynı commit'te `importMap.js`'e de
+      girmeli, ve sonucu tarayıcıda görülmeli.**
+- [x] **Bug 3 — Checker'da "Yeni Ücret Satırı" butonu:** `/admin/fees-and-limits`
+      elle yazılmış bir görünüm (FeeRows/LimitTables `admin.hidden`), ve
+      `CreateButton` hiçbir yetki kontrolü yapmıyordu. Growth Checker'ın
+      tasarım gereği hiçbir yerde `create` yetkisi yok; buton çalışır
+      görünüyor, kaydetmede 403 veriyordu. `useAuth().permissions` ile
+      gizlendi — yayınla butonuyla birebir aynı ilke. 2 test eklendi.
+- [x] **Growth Maker (ece.boran), 14/14 collection tarayıcıda doğrulandı:**
+      sadece `Onaya Gönder` + gri `Onay bekliyor (Checker yayınlar)`, yayınla
+      butonu yok — faq-items, pages, announcements, blog-posts, content-blocks,
+      cookie-rows, nav-links, page-meta, categories, representatives,
+      legal-pages, campaigns, fee-rows (drawer), limit-tables (drawer).
+- [x] **Growth Checker (mert.sarihan) tarayıcıda doğrulandı:** her collection'da
+      `Değişiklikleri yayınla` görünüyor, hiçbirinde "Yeni oluştur" yok;
+      fee-rows/limit-tables drawer'ında da yayınla var, create butonu yok.
+      Uçtan uca kanıt: Checker bir SSS taslağını yayınladı ("Başarıyla
+      güncellendi.", durum → Yayınlandı, Sürümler 2), ardından Maker aynı
+      kayıtta yayınla butonu yerine bekleme bilgisini gördü.
+- [x] `documents`/`fee-rows`/`limit-tables` doğrudan `/admin/collections/...`
+      adreslerinde 404 veriyor — `admin.hidden: true` olduğu için beklenen
+      davranış, düzenleme kendi drawer'ları üzerinden.
+- [x] **CMS: 470/470, site: 380/380 test geçiyor**; `tsc --noEmit` ve `eslint`
+      iki projede de temiz.

@@ -35,6 +35,7 @@ import { ParagraphFeatureClient as ParagraphFeatureClient_e70f5e05f09f93e00b997e
 import { default as default_711bc278b156b086d4259b6330cee300 } from '../../../components/FooterOrderField'
 import { default as default_be85d66e6e8081b44bdd02f21d196473 } from '../../../components/CampaignsExportButton'
 import { default as default_ac1bfc79f9c031f2e7cc5c94a1ec554f } from '../../../components/RoleAwarePublishButton'
+import { default as default_makeraware28082026publishbtn0001 } from '../../../components/MakerAwarePublishButton'
 import { default as default_cb4c1b7ebb500fe4e8c64c3b984929e8 } from '../../../components/SaveOrSubmitButton'
 import { default as default_18fd37c2abc6ad1a5e75f32825708510 } from '../../../components/CategorySlugHint'
 import { default as default_130ecbd76bd70cd9a95997b236b69841 } from '../../../components/CollectionBackedBlockNote'
@@ -96,6 +97,7 @@ export const importMap = {
   "/components/FooterOrderField#default": default_711bc278b156b086d4259b6330cee300,
   "/components/CampaignsExportButton#default": default_be85d66e6e8081b44bdd02f21d196473,
   "/components/RoleAwarePublishButton#default": default_ac1bfc79f9c031f2e7cc5c94a1ec554f,
+  "/components/MakerAwarePublishButton#default": default_makeraware28082026publishbtn0001,
   "/components/SaveOrSubmitButton#default": default_cb4c1b7ebb500fe4e8c64c3b984929e8,
   "/components/CategorySlugHint#default": default_18fd37c2abc6ad1a5e75f32825708510,
   "/components/CollectionBackedBlockNote#default": default_130ecbd76bd70cd9a95997b236b69841,

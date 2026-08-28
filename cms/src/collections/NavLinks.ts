@@ -27,6 +27,10 @@ export const NavLinks: CollectionConfig = {
     defaultColumns: ["label", "href", "section", "order"],
     group: { tr: "Site Yapısı", en: "Site Structure" },
     components: {
+      edit: {
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
+      },
       beforeList: [
         { path: "/components/HelpButton#default", clientProps: { collection: "nav-links" } },
         { path: "/components/ReorderWidget#default", clientProps: { collection: "nav-links", groupField: "section" } },

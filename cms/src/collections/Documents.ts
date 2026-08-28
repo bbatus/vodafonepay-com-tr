@@ -26,6 +26,10 @@ export const Documents: CollectionConfig = {
     useAsTitle: "filename",
     group: { tr: "Sistem", en: "System" },
     components: {
+      edit: {
+        PublishButton: "/components/MakerAwarePublishButton#default",
+        SaveDraftButton: "/components/SaveOrSubmitButton#default",
+      },
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "documents" } }],
     },
     // Follow-up 25.08: "dökümanlar ve hukuki sayfalar için 2 ayrı collection
