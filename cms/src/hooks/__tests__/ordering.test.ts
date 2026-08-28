@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import type { PayloadRequest } from "payload";
-import { assignFooterOrder, assignNextFlaggedOrder, assignNextOrder, FOOTER_ORDER_MAX, orderField } from "@/hooks/ordering";
+import {
+  assignFooterOrder,
+  assignNextFlaggedOrder,
+  assignNextOrder,
+  FOOTER_ORDER_MAX,
+  orderField,
+  rejectIfGroupFull,
+} from "@/hooks/ordering";
 
 function fakeReq(highest?: number, reject = false) {
   // Same canned response for every find() call (the "highest order" lookup
@@ -169,10 +176,11 @@ describe("assignFooterOrder", () => {
     expect(result.footerOrder).toBe(3);
   });
 
-  it(`rejects turning a 7th item on once all ${FOOTER_ORDER_MAX} slots are taken`, async () => {
+  it(`rejects turning on one more item once all ${FOOTER_ORDER_MAX} slots are taken`, async () => {
+    const taken = Array.from({ length: FOOTER_ORDER_MAX }, (_, i) => i + 1);
     const find = vi.fn().mockResolvedValue({
-      docs: [1, 2, 3, 4, 5, 6].map((footerOrder) => ({ footerOrder })),
-      totalDocs: 6,
+      docs: taken.map((footerOrder) => ({ footerOrder })),
+      totalDocs: taken.length,
     });
     const req = { payload: { find } } as unknown as PayloadRequest;
     await expect(runFooter({ showInFooter: true }, req)).rejects.toThrow(new RegExp(String(FOOTER_ORDER_MAX)));
@@ -327,5 +335,62 @@ describe("assignNextFlaggedOrder", () => {
     } as never)) as Record<string, unknown>;
 
     expect(data.productsMenuOrder).toBe(3);
+  });
+});
+
+describe("rejectIfGroupFull", () => {
+  const hook = rejectIfGroupFull({
+    collection: "nav-links",
+    scopeField: "section",
+    limits: { "footer-kurumsal": FOOTER_ORDER_MAX, "footer-yasal": FOOTER_ORDER_MAX },
+  });
+
+  const call = (
+    data: Record<string, unknown>,
+    req: PayloadRequest,
+    operation: "create" | "update" = "create",
+    originalDoc?: Record<string, unknown>
+  ) => hook({ data, operation, req, originalDoc, collection: {} as never, context: {} } as never);
+
+  it("ignores a section with no configured limit", async () => {
+    const find = vi.fn();
+    const req = { payload: { find } } as unknown as PayloadRequest;
+    await call({ section: "header-main" }, req);
+    expect(find).not.toHaveBeenCalled();
+  });
+
+  it("allows a new link when the footer section is under the limit", async () => {
+    const find = vi.fn().mockResolvedValue({ totalDocs: FOOTER_ORDER_MAX - 1 });
+    const req = { payload: { find } } as unknown as PayloadRequest;
+    await expect(call({ section: "footer-kurumsal" }, req)).resolves.toBeDefined();
+  });
+
+  it(`rejects a new link once the footer section already has ${FOOTER_ORDER_MAX}`, async () => {
+    const find = vi.fn().mockResolvedValue({ totalDocs: FOOTER_ORDER_MAX });
+    const req = { payload: { find } } as unknown as PayloadRequest;
+    await expect(call({ section: "footer-kurumsal" }, req)).rejects.toThrow(new RegExp(String(FOOTER_ORDER_MAX)));
+  });
+
+  it("resaving a link that stays in its own already-full section never counts itself", async () => {
+    const find = vi.fn();
+    const req = { payload: { find } } as unknown as PayloadRequest;
+    await call(
+      { section: "footer-yasal" },
+      req,
+      "update",
+      { id: "self-id", section: "footer-yasal" }
+    );
+    expect(find).not.toHaveBeenCalled();
+  });
+
+  it("moving an existing link INTO a full footer section is still rejected, excluding itself from the count", async () => {
+    const find = vi.fn().mockResolvedValue({ totalDocs: FOOTER_ORDER_MAX });
+    const req = { payload: { find } } as unknown as PayloadRequest;
+    await expect(
+      call({ section: "footer-yasal" }, req, "update", { id: "self-id", section: "header-main" })
+    ).rejects.toThrow(new RegExp(String(FOOTER_ORDER_MAX)));
+    expect(find).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { and: expect.arrayContaining([{ id: { not_equals: "self-id" } }]) } })
+    );
   });
 });

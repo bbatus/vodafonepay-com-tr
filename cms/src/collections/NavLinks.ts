@@ -4,7 +4,12 @@ import { authenticated, publishedOrAuthenticated, denyUnauthenticatedDraftRead }
 import { revalidateTag, revalidateTagOnDelete } from "@/hooks/revalidate";
 import { auditAfterChange, auditAfterDelete } from "@/hooks/audit";
 import { dbLabel } from "@/lib/collectionLabels";
-import { assignNextOrder, orderField } from "@/hooks/ordering";
+import { assignNextOrder, orderField, rejectIfGroupFull, FOOTER_ORDER_MAX } from "@/hooks/ordering";
+
+const NAV_LINK_FOOTER_SECTION_LIMITS = {
+  "footer-kurumsal": FOOTER_ORDER_MAX,
+  "footer-yasal": FOOTER_ORDER_MAX,
+};
 
 export const NavLinks: CollectionConfig = {
   slug: "nav-links",
@@ -82,8 +87,8 @@ export const NavLinks: CollectionConfig = {
       required: true,
       admin: {
         description: {
-          tr: "Bu link NEREDE görünecek? Header — Ürünler = üst menüdeki 'Ürünler' açılır listesi. Header — Ana Menü = üst menünün geri kalanı (Kampanyalar, Blog vb.). Footer — Kurumsal/Yasal, footer'daki o iki sütuna karşılık gelir. Footer'daki 'Sık Sorulanlar' ve 'Kampanyalar' sütunları artık BURADAN değil, ilgili Sık Sorulanlar/Kampanyalar kaydındaki 'Footer'da Göster' kutusundan yönetiliyor. Bir linki KALDIRMAK için bu kaydı silin; SIRASINI değiştirmek için listedeki sürükle-bırak aracını kullanın.",
-          en: "WHERE will this link appear? Header — Ürünler = the 'Ürünler' dropdown in the top menu. Header — Ana Menü = the rest of the top menu (Kampanyalar, Blog, etc.). Footer — Kurumsal/Yasal correspond to those two footer columns. The footer's 'Sık Sorulanlar' and 'Kampanyalar' columns are no longer managed HERE — use the 'Show in Footer' checkbox on the relevant FAQ/Campaign record instead. To REMOVE a link, delete this record; to reorder, use the drag-and-drop tool on the list.",
+          tr: `Bu link NEREDE görünecek? Header — Ürünler = üst menüdeki 'Ürünler' açılır listesi. Header — Ana Menü = üst menünün geri kalanı (Kampanyalar, Blog vb.). Footer — Kurumsal/Yasal, footer'daki o iki sütuna karşılık gelir ve her biri en fazla ${FOOTER_ORDER_MAX} link alabilir (footer'ın taşmaması için) — dolu bir sütuna yenisini eklemek isterseniz önce var olan birini silmeniz gerekir. Footer'daki 'Sık Sorulanlar' ve 'Kampanyalar' sütunları artık BURADAN değil, ilgili Sık Sorulanlar/Kampanyalar kaydındaki 'Footer'da Göster' kutusundan yönetiliyor (onlar da aynı ${FOOTER_ORDER_MAX} sınırına tabi). Bir linki KALDIRMAK için bu kaydı silin; SIRASINI değiştirmek için listedeki sürükle-bırak aracını kullanın.`,
+          en: `WHERE will this link appear? Header — Ürünler = the 'Ürünler' dropdown in the top menu. Header — Ana Menü = the rest of the top menu (Kampanyalar, Blog, etc.). Footer — Kurumsal/Yasal correspond to those two footer columns, and each one holds at most ${FOOTER_ORDER_MAX} links (so the footer doesn't overflow) — to add another to a full column, delete an existing one first. The footer's 'Sık Sorulanlar' and 'Kampanyalar' columns are no longer managed HERE — use the 'Show in Footer' checkbox on the relevant FAQ/Campaign record instead (same ${FOOTER_ORDER_MAX} limit applies there too). To REMOVE a link, delete this record; to reorder, use the drag-and-drop tool on the list.`,
         },
       },
       options: [
@@ -97,7 +102,10 @@ export const NavLinks: CollectionConfig = {
   ],
   hooks: {
     beforeOperation: [denyUnauthenticatedDraftRead],
-    beforeChange: [assignNextOrder("nav-links", ["section"])],
+    beforeChange: [
+      rejectIfGroupFull({ collection: "nav-links", scopeField: "section", limits: NAV_LINK_FOOTER_SECTION_LIMITS }),
+      assignNextOrder("nav-links", ["section"]),
+    ],
     afterChange: [revalidateTag("nav-links"), auditAfterChange("nav-links")],
     afterDelete: [revalidateTagOnDelete("nav-links"), auditAfterDelete("nav-links")],
   },

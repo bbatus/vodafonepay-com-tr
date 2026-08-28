@@ -237,7 +237,7 @@ export function assignNextFlaggedOrder(args: {
  * kullanıcının kendi talebi de zaten buydu: "otomatik hangi sıra boşsa
  * onunla listelensin".
  */
-export const FOOTER_ORDER_MAX = 6;
+export const FOOTER_ORDER_MAX = 7;
 
 export const FOOTER_ORDER_FIELD_DESCRIPTION = {
   tr: `Footer'daki gösterim sırası (1-${FOOTER_ORDER_MAX}). Boş bırakılırsa 1-${FOOTER_ORDER_MAX} arasında boş olan ilk sıraya otomatik yerleşir. Footer'da aynı anda en fazla ${FOOTER_ORDER_MAX} kayıt gösterilebilir.`,
@@ -355,5 +355,61 @@ export function assignFooterOrder(collection: string): CollectionBeforeChangeHoo
       );
     }
     return data;
+  };
+}
+
+/**
+ * RFP follow-up: "footer aşağı doğru genişler, bunun bir sınırı olmalı" —
+ * NavLinks'in Footer — Kurumsal / Footer — Yasal bölümleri Campaigns/FaqItems
+ * gibi ayrı bir `showInFooter` kutusuna sahip değil: bir kayıt zaten o
+ * bölümdeyse (section = "footer-kurumsal") footer'da GÖRÜNÜR, ara bir
+ * açma/kapama durumu yok. O yüzden `assignFooterOrder`'ın slot-doldurma
+ * mantığı yerine, burada basitçe grup büyüklüğünü sayıp sınırı aşan
+ * kaydı reddediyoruz — 8. linki eklemeye çalışan editör "önce birini silin"
+ * mesajını görür.
+ *
+ * `scopeField`'ın YENİ değeri (data'daki) limitler tablosunda yoksa (örn.
+ * "header-main") hiç çalışmaz — sınır sadece footer bölümlerine uygulanıyor.
+ * Bir güncelleme kaydı zaten bulunduğu bölümde bırakıyorsa (section
+ * değişmiyorsa) sayıma hiç girmiyoruz — var olan bir kaydı resave etmek asla
+ * kendi doluluğuna çarpmamalı.
+ */
+export function rejectIfGroupFull(args: {
+  collection: string;
+  scopeField: string;
+  limits: Record<string, number>;
+}): CollectionBeforeChangeHook {
+  const { collection, scopeField, limits } = args;
+  return async ({ data, operation, req, originalDoc }) => {
+    const scopeValue = data?.[scopeField];
+    if (typeof scopeValue !== "string") return data;
+    const limit = limits[scopeValue];
+    if (!limit) return data;
+
+    const previousScope = (originalDoc as Record<string, unknown> | undefined)?.[scopeField];
+    const excludeId = operation === "update" ? (originalDoc as { id?: string | number } | undefined)?.id : undefined;
+    if (operation === "update" && previousScope === scopeValue) return data;
+
+    const constraints: Where[] = [{ [scopeField]: { equals: scopeValue } }];
+    if (excludeId !== undefined) constraints.push({ id: { not_equals: excludeId } });
+
+    const { totalDocs } = await req.payload.find({
+      collection,
+      where: { and: constraints },
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
+    });
+    if (totalDocs < limit) return data;
+
+    const lang = locale(req);
+    throw new APIError(
+      lang === "en"
+        ? `This section already has the maximum of ${limit} links — delete an existing one before adding another.`
+        : `Bu bölümde zaten en fazla ${limit} link var — yeni bir tane eklemeden önce var olan birini silin.`,
+      400,
+      undefined,
+      true
+    );
   };
 }
