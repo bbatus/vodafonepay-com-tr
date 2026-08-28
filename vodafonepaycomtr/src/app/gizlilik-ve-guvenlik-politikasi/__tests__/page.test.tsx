@@ -11,15 +11,17 @@ vi.mock("@/components/Header", () => ({ Header: () => <header>Header</header> })
 vi.mock("@/components/Footer", () => ({ Footer: () => <footer>Footer</footer> }));
 
 describe("GizlilikVeGuvenlikPolitikasi", () => {
-  it("uses the fallback intro paragraph when the CMS has no legal page", async () => {
+  // Follow-up 28.08: the hardcoded fallback is gone — the body lives in the
+  // `legal-pages` collection now, so an empty/unreachable CMS must render an
+  // honestly empty section rather than a stale copy of the real content.
+  it("renders no intro paragraph when the CMS has no legal page", async () => {
     vi.mocked(getLegalPage).mockResolvedValue(null);
     vi.mocked(getPageMeta).mockResolvedValue(null);
 
     render(await GizlilikVeGuvenlikPolitikasi());
 
-    // The page's own hardcoded (never-CMS) sections mention "6698 sayılı..."
-    // too, so match on wording unique to fallbackIntro specifically.
-    expect(screen.getByText(/veri sorumlusu sıfatıyla, hizmet aldığınız Vodafone/)).toBeInTheDocument();
+    // Wording that was unique to the removed fallbackIntro array.
+    expect(screen.queryByText(/veri sorumlusu sıfatıyla, hizmet aldığınız Vodafone/)).not.toBeInTheDocument();
   });
 
   it("renders the CMS-edited intro (RichText) instead of the fallback when a legal page exists", async () => {

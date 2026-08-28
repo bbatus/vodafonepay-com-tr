@@ -11,18 +11,21 @@ vi.mock("@/components/Header", () => ({ Header: () => <header>Header</header> })
 vi.mock("@/components/Footer", () => ({ Footer: () => <footer>Footer</footer> }));
 
 describe("CerezPolitikasi", () => {
-  it("falls back to the hand-maintained cookieRows list when the CMS has none", async () => {
+  // Follow-up 28.08: the hardcoded 59-row fallback table is gone — the rows
+  // live in the `cookie-rows` collection now, so an empty/unreachable CMS
+  // must render an empty table rather than a stale copy of the real one.
+  it("renders no cookie rows at all when the CMS has none", async () => {
     vi.mocked(getLegalPage).mockResolvedValue(null);
     vi.mocked(getCookieRows).mockResolvedValue(null);
     vi.mocked(getPageMeta).mockResolvedValue(null);
 
-    render(await CerezPolitikasi());
+    const { container } = render(await CerezPolitikasi());
 
-    // A cookie name from the hardcoded fallback table.
-    expect(screen.getByText("_ga")).toBeInTheDocument();
+    expect(screen.queryByText("_ga")).not.toBeInTheDocument();
+    expect(container.querySelectorAll("tbody tr")).toHaveLength(0);
   });
 
-  it("uses the CMS cookie rows when present, not the fallback table", async () => {
+  it("renders the CMS cookie rows", async () => {
     vi.mocked(getLegalPage).mockResolvedValue(null);
     vi.mocked(getCookieRows).mockResolvedValue([
       { id: "1", name: "cms_cookie", provider: "vodafonepay.com.tr", party: "Birinci taraf", category: "Zorunlu", description: "d", duration: "1 Yıl" },

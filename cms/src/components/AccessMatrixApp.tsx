@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
-import { getAccessMatrixRows, type PermissionFlags } from "@/lib/rolePermissions";
+import { getAccessMatrixRows, getRoleDirectory, type PermissionFlags } from "@/lib/rolePermissions";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 
 const FLAG_ORDER: (keyof PermissionFlags)[] = ["view", "create", "update", "publish", "delete"];
@@ -43,10 +43,22 @@ const FLAG_SHORT: Record<keyof PermissionFlags, { tr: string; en: string }> = {
  * permissions) keeps every icon under a labeled column instead of relying on
  * position/tooltip alone to say which permission it is.
  */
+/**
+ * Local tr/en map rather than `useDbStrings` keys: these five labels describe
+ * the AccessPoint role table itself, which is fixed reference data, not
+ * editor-tunable microcopy. Same `STRINGS` pattern AGENTS.md documents for
+ * admin components (ReorderWidget/HelpButton).
+ */
+const DIR_STRINGS = {
+  tr: { role: "Rol", group: "AccessPoint Rol Adı", department: "Yetkili Departman", approver: "Rol Sorumlusu", critical: "Kritik mi?", yes: "Evet", no: "Hayır" },
+  en: { role: "Role", group: "AccessPoint Role Name", department: "Owning Department", approver: "Role Approver", critical: "Critical?", yes: "Yes", no: "No" },
+};
+
 export default function AccessMatrixApp() {
   const locale = useAdminLocale();
   const t = useDbStrings(locale);
   const rows = useMemo(() => getAccessMatrixRows(), []);
+  const roleDirectory = useMemo(() => getRoleDirectory(), []);
   const [query, setQuery] = useState("");
 
   const roles = useMemo(() => {
@@ -78,11 +90,19 @@ export default function AccessMatrixApp() {
     const header = [
       t("accessMatrix.column.collection"),
       t("accessMatrix.column.role"),
+      // Follow-up 28.08: the AccessPoint group name travels with the export,
+      // so the CSV an auditor receives is self-describing.
+      DIR_STRINGS[locale].group,
+      DIR_STRINGS[locale].department,
+      DIR_STRINGS[locale].approver,
       ...FLAG_ORDER.map((f) => FLAG_LABEL[f][locale]),
     ];
     const csvRows = rows.map((r) => [
       r.collectionLabel[locale],
       r.roleLabel[locale],
+      r.ldapGroup,
+      r.department[locale],
+      r.approver,
       ...FLAG_ORDER.map((f) => (r.flags[f] ? "1" : "0")),
     ]);
     downloadCsv(buildCsv(header, csvRows), `kullanici-erisim-matrisi-${new Date().toISOString().slice(0, 10)}.csv`);
@@ -91,6 +111,42 @@ export default function AccessMatrixApp() {
   return (
     <div className="access-matrix">
       <p className="access-matrix__intro">{t("accessMatrix.intro")}</p>
+
+      {/* Follow-up 28.08: the matrix below names roles by our own friendly
+          label ("Growth — Maker"), which an auditor cannot line up against
+          the AccessPoint role table they were given. This panel is that
+          missing link: each role's real AD group name, the department that
+          owns it, and who approves a request for it. Source data:
+          access/roleMapping.ts's ROLE_DIRECTORY. */}
+      <div className="table-wrap">
+        <table className="access-matrix__table">
+          <thead>
+            <tr>
+              <th scope="col">{DIR_STRINGS[locale].role}</th>
+              <th scope="col">{DIR_STRINGS[locale].group}</th>
+              <th scope="col">{DIR_STRINGS[locale].department}</th>
+              <th scope="col">{DIR_STRINGS[locale].approver}</th>
+              <th scope="col">{DIR_STRINGS[locale].critical}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {roleDirectory.map((r) => (
+              <tr key={r.role}>
+                <th scope="row" className="access-matrix__collection-cell">
+                  {r.roleLabel[locale]}
+                  <div className="access-matrix__role-summary">{r.summary[locale]}</div>
+                </th>
+                <td>
+                  <code>{r.ldapGroup}</code>
+                </td>
+                <td>{r.department[locale]}</td>
+                <td>{r.approver}</td>
+                <td title={r.criticalNotice[locale]}>{r.critical ? DIR_STRINGS[locale].yes : DIR_STRINGS[locale].no}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div className="access-matrix__toolbar">
         <input

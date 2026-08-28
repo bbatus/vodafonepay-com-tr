@@ -1650,6 +1650,16 @@ a {
   border-right: 1px solid var(--theme-elevation-100);
 }
 
+/* Role-directory panel (28.08): the one-line "what this role may do" note
+   under each role name, in the AccessPoint identity table above the matrix. */
+.access-matrix__role-summary {
+  font-weight: 400;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  max-width: 42ch;
+  color: var(--theme-elevation-600);
+}
+
 .access-matrix__slug {
   font-size: 0.6875rem;
   font-weight: 400;

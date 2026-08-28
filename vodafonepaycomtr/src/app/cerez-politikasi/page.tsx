@@ -4,7 +4,6 @@ import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Footer } from "@/components/Footer";
-import { cookieRows as fallbackCookieRows } from "./cookieRows";
 import { getCookieRows, getLegalPage, getPageMeta } from "@/lib/cms";
 import { buildMetadata } from "@/lib/metadata";
 import { RichText } from "@/components/RichText";
@@ -20,25 +19,16 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-/**
- * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
- *
- * Checked against the live DB: the CMS collection behind this section has ZERO
- * rows, so unlike the FAQ/announcement/campaign fallbacks removed in this
- * round, this array is not dead code that only fires on an outage — it IS what
- * the site currently renders. Deleting it would blank a working section rather
- * than reveal a masked failure. Remove it in the same change that seeds the
- * collection; see the round report's "kalan fallback'ler" table.
- */
-const fallbackIntro = [
-  "Vodafone'da kişisel verileriniz güvence altındadır. Bu çerçevede Vodafone, kişisel verilerinizi tüm teknik ve idari tedbirleri alarak korur. Gerekli güvenlik düzeyi için bütün teknolojik imkanlar kullanılır.",
-  "Vodafone Elektronik Para ve Ödeme Hizmetleri AŞ (\"Vodafone\") ve tarafından, 6698 sayılı Kişisel Verilerin Korunması Kanunu ('KVKK') ve ilgili mevzuat kapsamında Veri Sorumlusu sıfatıyla, kişisel verileriniz, yalnızca aşağıda açıklanan çerçevede ve ilgili mevzuata uygun olarak işlenebilecektir.",
-  "Bu metin, https://www.vodafonepay.com.tr/ (\"Site\") kullanımınız veya ziyaretiniz sırasında sizlerin deneyimini geliştirmek için kullanılan çerezlerin cihazınıza yerleştirilmesi aracılığıyla otomatik yolla elde edilen kişisel verilerin işlenmesi hakkında sizleri bilgilendirmek amacıyla hazırlanmıştır.",
-];
-
 export default async function CerezPolitikasi() {
   const [cmsPage, cmsCookieRows] = await Promise.all([getLegalPage("cerez-politikasi"), getCookieRows()]);
-  const cookieRows = cmsCookieRows?.length ? cmsCookieRows : fallbackCookieRows;
+  // Follow-up 28.08: the 59-row hardcoded `./cookieRows` fallback this used to
+  // fall back to is gone — the table was migrated into the `cookie-rows`
+  // collection (through the real Growth Maker -> Checker flow) so it is
+  // editable by a role instead of living in the bundle. Its own comment said
+  // to remove it "in the same change that seeds the collection"; this is that
+  // change. An empty CMS now renders the honest empty state rather than a
+  // stale copy of the table.
+  const cookieRows = cmsCookieRows ?? [];
 
   const pageMeta = await getPageMeta("/cerez-politikasi");
 
@@ -54,15 +44,10 @@ export default async function CerezPolitikasi() {
         <div className="mt-10 flex flex-col gap-y-6 text-sm leading-6 text-gray-700">
           <div>
             <h2 className="text-xl font-bold text-black">Veri Sorumlusu Kimdir?</h2>
-            {cmsPage ? (
-              <RichText data={cmsPage.intro} className="mt-3 flex flex-col gap-y-3" />
-            ) : (
-              fallbackIntro.map((p) => (
-                <p key={p} className="mt-3">
-                  {p}
-                </p>
-              ))
-            )}
+            {/* Follow-up 28.08: the hardcoded intro fallback is gone — this body
+                was migrated into the `legal-pages` collection through the real
+                Growth Maker -> Checker flow, so a role owns it now. */}
+            <RichText data={cmsPage?.intro ?? null} className="mt-3 flex flex-col gap-y-3" />
           </div>
 
           <div>

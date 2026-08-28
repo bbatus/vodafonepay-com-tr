@@ -688,3 +688,82 @@ Kullanıcı onayıyla netleşen kararlar (AskUserQuestion):
       taslağı yayınlayabilir; NV Checker davranışı değişmedi) ve gerçek
       admin UI'da (sidebar artık New Vertical ile aynı, yayındaki bir SSS'i
       düzenlemeye çalışınca doğru kırmızı hata toast'ı çıkıyor) test edildi.
+
+## 29. Rol sistemi tam denetimi + kodda kalan içeriğin CMS'e taşınması (28.08.2026)
+
+Kullanıcı §28'in gerçekten her collection'da doğru uygulanıp uygulanmadığından
+emin olamadı ve üç şey istedi: (1) her collection'ı iki rolle tek tek, gerçek
+login yaparak test et, (2) sitenin içeriğini gerçekten bu roller mi yönetiyor
+doğrula, (3) eski kullanıcılar silinip gerçek rol matrisindekiler eklendi mi.
+
+### 29a. Her collection × her akış, gerçek login ile
+
+- [x] 14 collection için tam maker→checker akışı koşuldu (`create draft` →
+      `edit own draft` → `publish (deny)` → `checker create (deny)` →
+      `checker publish` → `maker edit published (deny)` → `maker real content
+      edit (deny)` → `delete published (deny)` → `checker delete (deny)` →
+      `NV checker create (deny)` → `NV checker update` → `maker kendi
+      taslağını sil` → `anonim taslak görmesin`): **196/196 assertion geçti.**
+- [x] Campaigns'in kendi zengin koruması ayrıca sondalandı: yayındaki bir
+      kampanyada gerçek içerik değişikliği **409**, yayından kaldırma **403**,
+      `forceLiveEdit` acil-düzeltme kaçış kapısı **403** — başlık hiç
+      değişmedi. (İlk turda "GM edit published 200" görünmüştü; bu bir bug
+      değil, Campaigns'in `guardPublishedEdit`'inin bilinçli olarak izin
+      verdiği "yayın-nötr kayıt" — Growth Maker'ın yayından kaldırma TALEBİ
+      oluşturabilmesi bunu gerektiriyor, RFP 5.4. Test aracı düzeltildi.)
+- [x] Gerçek admin UI'da uçtan uca: Ece Boran (Growth Maker) Duyurular'da
+      taslak oluşturdu (`Oluşturan` otomatik damgalandı) → "Değişiklikleri
+      yayınla" **"Bu işlemi gerçekleştirmek için izniniz yok."** ile reddedildi
+      → Mert Sarıhan (Growth Checker) listede taslağı gördü, **"Yeni oluştur"
+      butonu kendisinde hiç yok** → onayladı → içerik `/duyurular`'da canlıya
+      çıktı.
+
+### 29b. Kodda kalan, hiçbir rolün yönetemediği içerik CMS'e taşındı
+
+Denetimde asıl açık buydu: bazı collection'lar boştu ve o sayfaların içeriği
+kodda duruyordu — yani hiçbir rol onları değiştiremiyordu.
+
+- [x] `cookie-rows`: 59 satırlık çerez tablosu `cookieRows.ts`'ten CMS'e
+      taşındı (Growth Maker taslak → Growth Checker onay, 59/59 başarılı).
+      Hardcoded dosya ve fixture testi silindi.
+- [x] `page-meta`: 16 elle-yazılmış route'un SEO başlık/açıklama ve breadcrumb
+      metni CMS'e taşındı (aynı akış). Alan-bazlı `?? "sabit"` varsayılanları
+      son çare olarak duruyor — silinen bir satır sayfayı `<title>`'sız
+      bırakmasın diye.
+- [x] `legal-pages`: 5 hukuki sayfadan 4'ünün gövdesi kodda duruyordu, hepsi
+      CMS'e taşındı. Ardından 4 sayfanın ölü yedeği kaldırıldı (kodun kendi
+      yorumu "koleksiyonu doldurduğun aynı değişiklikte kaldır" diyordu).
+- [x] Tam tur kanıtı: Growth Maker içerik ekler → **site değişmez** (taslak) →
+      Growth Checker onaylar → **site değişir**; Growth Maker yayındaki
+      `page-meta` kaydını düzenleyemez (403), Checker düzenler (200) ve
+      `/iletisim` sayfasının `<title>`'ı anında değişir.
+- [x] Kalan boş collection: sadece `announcements` (0 kayıt) — ama orada kodda
+      da içerik yok, yani zaten tamamen rol-yönetimli, sadece henüz veri
+      girilmemiş. Mimari açık değil.
+
+### 29c. Kullanıcılar gerçek rol matrisine göre yeniden oluşturuldu
+
+- [x] 4 `test-*@vodafonepay.local` fixture'ı silindi; matristeki 6 gerçek kişi
+      eklendi (4 Growth Maker, 1 Growth Checker, 1 NV Checker) —
+      `scripts/seed-real-users.mjs` (idempotent, Payload'ın pbkdf2
+      parametreleriyle). `admin@vodafonepay.local` bilinçli korundu: 4. rolü
+      taşıyor ve kullanıcı yönetimi/denetim/silme/çeviri yetkisi olan tek rol o.
+- [x] Canlıda bulunan bug: e-postalar büyük harfle yazılınca hiçbir zaman
+      giriş yapılamıyordu (Payload girişte küçük harfe çeviriyor, benzersiz
+      indeks ise harf duyarlı). Script artık `norm()` ile küçültüyor. 7/7 hesap
+      giriş yapabiliyor; tam denetim (196/196) bu gerçek hesaplarla tekrarlandı.
+- [x] Erişim Matrisi ekranına gerçek AccessPoint kimlikleri eklendi: her rolün
+      AD grup adı, yetkili departmanı, rol sorumlusu, kritiklik durumu ve ne
+      yapabildiğinin özeti (`ROLE_DIRECTORY`, `roleMapping.ts`). CSV dışa
+      aktarımı da bu sütunları taşıyor — denetçi tabloyu kaynak rol matrisiyle
+      doğrudan eşleştirebiliyor.
+
+### 29d. Yan bulgu: aylardır kırık olan 3 test düzeltildi
+
+`src/app/__tests__/page.test.tsx` `getPageBySlug`'ı mock'lamıyordu; testler
+gerçek CMS'e HTTP isteği atıyor, dev CMS ayaktayken canlı anasayfa belgesini
+çekip async `BlockRenderer`'ları render etmeye çalışıyor ve tüm ağaç boş
+dönüyordu — ortama bağımlı, kalıcı kırıklık. Mock eklendi.
+
+- [x] **Site: 380/380 test geçiyor** (önceki turlarda 377/380 idi).
+- [x] **CMS: 468/468 test geçiyor.**

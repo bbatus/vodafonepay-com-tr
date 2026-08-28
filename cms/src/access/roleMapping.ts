@@ -49,3 +49,81 @@ export function resolveRoleFromLdapGroups(groups: string[]): RoleValue | undefin
   }
   return undefined;
 }
+
+/**
+ * The rest of each row of the business-provided AccessPoint role table
+ * (28.08.2026), kept next to the group-name mapping it belongs to.
+ *
+ * This is reference data, not access control — nothing here grants or denies
+ * anything (that is `roles.ts`'s job). It exists so the CMS's own SOX access
+ * matrix screen (`/admin/access-matrix`, via `lib/rolePermissions.ts`) can
+ * show the real AccessPoint identity of each role — its group name, the
+ * department that owns it, who approves a request for it, and its criticality
+ * warning — instead of only our internal friendly label. An auditor reading
+ * that screen can then line it up against the source role table directly.
+ */
+export type RoleDirectoryEntry = {
+  /** The AccessPoint/AD group name — the key in LDAP_GROUP_TO_ROLE above. */
+  ldapGroup: string;
+  department: { tr: string; en: string };
+  /** "Rol Sorumlusu" — who approves an AccessPoint request for this role. */
+  approver: string;
+  /** "Rol Kritik Mi?" — all four are critical in the source table. */
+  critical: boolean;
+  /** "Kritik pop up mesaj içeriği", verbatim from the role table. */
+  criticalNotice: { tr: string; en: string };
+  /** Short description of what the role may do, from the role table. */
+  summary: { tr: string; en: string };
+};
+
+const CRITICAL_NOTICE = {
+  tr: "Bu role sahip kullanıcı, sistemlerde bulunan kritik data'ya erişme ve ekleme/değiştirme/silme yetkisine sahiptir.",
+  en: "A user holding this role can access critical data in the systems and add/change/delete it.",
+};
+
+export const ROLE_DIRECTORY: Record<RoleValue, RoleDirectoryEntry> = {
+  [ROLES.NEW_VERTICAL_MAKER]: {
+    ldapGroup: "RL_VODAFONEPAY_CMS_EXEC_DEVELOPER_MAKER_RW",
+    department: { tr: "New Vertical", en: "New Vertical" },
+    approver: "Tugay Kökden",
+    critical: true,
+    criticalNotice: CRITICAL_NOTICE,
+    summary: {
+      tr: "Panelin tüm alanlarında geliştirme ve değişiklik yapabilir; içeriği doğrudan canlıya alabilir. Maker'ların değişikliklerini onaylama yetkisi yoktur. FrontEnd developer lead'leri içindir.",
+      en: "Can develop and change every area of the panel and publish directly. Cannot approve other makers' changes. Intended for front-end developer leads.",
+    },
+  },
+  [ROLES.NEW_VERTICAL_CHECKER]: {
+    ldapGroup: "RL_VODAFONEPAY_CMS_EXEC_CONTENT_PRW",
+    department: { tr: "New Vertical", en: "New Vertical" },
+    approver: "Mert Sarıhan",
+    critical: true,
+    criticalNotice: CRITICAL_NOTICE,
+    summary: {
+      tr: "Developer'ın yaptığı geliştirmeleri FE'de takip eder ve onaylar. Yeni nesne ekleyemez.",
+      en: "Follows and approves the developers' work on the front end. Cannot create new objects.",
+    },
+  },
+  [ROLES.GROWTH_CHECKER]: {
+    ldapGroup: "ROLE_VODAFONEPAY_CMS_CHECKER_RO",
+    department: { tr: "Vodafone Pay Growth", en: "Vodafone Pay Growth" },
+    approver: "Mert Sarıhan",
+    critical: true,
+    criticalNotice: CRITICAL_NOTICE,
+    summary: {
+      tr: "Growth Maker'ın oluşturduğu içerikleri inceler, onaylar ve canlıya alır. Kendisi yeni içerik oluşturamaz.",
+      en: "Reviews, approves and publishes the content a Growth Maker created. Cannot create content itself.",
+    },
+  },
+  [ROLES.GROWTH_MAKER]: {
+    ldapGroup: "ROLE_VODAFONEPAY_CMS_MAKER_RW",
+    department: { tr: "Vodafone Pay Growth", en: "Vodafone Pay Growth" },
+    approver: "Mert Sarıhan",
+    critical: true,
+    criticalNotice: CRITICAL_NOTICE,
+    summary: {
+      tr: "Yeni içerik oluşturabilir ve mevcut içerik üzerinde değişiklik yapabilir. Kendi değişikliğini onaylayamaz — Growth Checker onaylar.",
+      en: "Can create new content and change existing content. Cannot approve its own change — a Growth Checker does.",
+    },
+  },
+};

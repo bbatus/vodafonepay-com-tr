@@ -1,4 +1,5 @@
 import { ROLES, type RoleValue } from "@/access/roles";
+import { ROLE_DIRECTORY, type RoleDirectoryEntry } from "@/access/roleMapping";
 import { COLLECTION_LABELS, DRAFT_ENABLED_COLLECTIONS } from "@/lib/collectionLabels";
 
 /**
@@ -270,8 +271,25 @@ export type AccessMatrixRow = {
   collectionLabel: { tr: string; en: string };
   role: RoleValue;
   roleLabel: { tr: string; en: string };
+  /**
+   * The role's real AccessPoint group name (e.g.
+   * `ROLE_VODAFONEPAY_CMS_MAKER_RW`). Added 28.08 so an auditor can line this
+   * table up against the source AccessPoint role table directly, instead of
+   * having to know which friendly label maps to which AD group.
+   */
+  ldapGroup: string;
+  department: { tr: string; en: string };
+  /** "Rol Sorumlusu" — who approves an AccessPoint request for this role. */
+  approver: string;
   flags: PermissionFlags;
 };
+
+/** The AccessPoint identity of each role, for the SOX matrix — see roleMapping.ts. */
+export type RoleDirectoryRow = RoleDirectoryEntry & { role: RoleValue; roleLabel: { tr: string; en: string } };
+
+export function getRoleDirectory(): RoleDirectoryRow[] {
+  return ALL_ROLES.map((role) => ({ role, roleLabel: ROLE_NAME[role], ...ROLE_DIRECTORY[role] }));
+}
 
 /**
  * RFP §7 "userID comparison tables" — the RFP text itself gives no further
@@ -292,6 +310,9 @@ export function getAccessMatrixRows(): AccessMatrixRow[] {
         collectionLabel: COLLECTION_LABELS[collectionSlug] ?? { tr: collectionSlug, en: collectionSlug },
         role,
         roleLabel: ROLE_NAME[role],
+        ldapGroup: ROLE_DIRECTORY[role].ldapGroup,
+        department: ROLE_DIRECTORY[role].department,
+        approver: ROLE_DIRECTORY[role].approver,
         flags: MATRIX[category][role],
       });
     }

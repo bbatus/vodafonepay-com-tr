@@ -18,21 +18,14 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-/**
- * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
- *
- * Checked against the live DB: the CMS collection behind this section has ZERO
- * rows, so unlike the FAQ/announcement/campaign fallbacks removed in this
- * round, this array is not dead code that only fires on an outage — it IS what
- * the site currently renders. Deleting it would blank a working section rather
- * than reveal a masked failure. Remove it in the same change that seeds the
- * collection; see the round report's "kalan fallback'ler" table.
- */
-const fallbackDocuments = ["Hüküm ve Şartlar için tıklayınız"];
-
 export default async function WebSitesiHukumVeSartlari() {
   const cmsPage = await getLegalPage("web-sitesi-hukum-ve-sartlari");
-  const documents = cmsPage ? richTextToLines(cmsPage.intro) : fallbackDocuments;
+  // Follow-up 28.08: the hardcoded fallback this used to fall back to is
+  // gone — the body was migrated into the `legal-pages` collection (through
+  // the real Growth Maker -> Checker flow), so a role owns it now. Its own
+  // comment said to remove the array "in the same change that seeds the
+  // collection"; this is that change.
+  const documents = richTextToLines(cmsPage?.intro ?? null);
 
   const pageMeta = await getPageMeta("/web-sitesi-hukum-ve-sartlari");
 

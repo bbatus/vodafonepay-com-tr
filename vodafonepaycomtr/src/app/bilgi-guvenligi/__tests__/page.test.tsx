@@ -11,13 +11,17 @@ vi.mock("@/components/Header", () => ({ Header: () => <header>Header</header> })
 vi.mock("@/components/Footer", () => ({ Footer: () => <footer>Footer</footer> }));
 
 describe("BilgiGuvenligi", () => {
-  it("falls back to the hardcoded tip list when the CMS has no legal page", async () => {
+  // Follow-up 28.08: the hardcoded fallback is gone — the body lives in the
+  // `legal-pages` collection now, so an empty/unreachable CMS must render an
+  // honestly empty section rather than a stale copy of the real content.
+  it("renders no tips at all when the CMS has no legal page", async () => {
     vi.mocked(getLegalPage).mockResolvedValue(null);
     vi.mocked(getPageMeta).mockResolvedValue(null);
 
-    render(await BilgiGuvenligi());
+    const { container } = render(await BilgiGuvenligi());
 
-    expect(screen.getByText(/Sizi arayan ve kendilerini avukat/)).toBeInTheDocument();
+    expect(screen.queryByText(/Sizi arayan ve kendilerini avukat/)).not.toBeInTheDocument();
+    expect(container.querySelectorAll("section ul li")).toHaveLength(0);
   });
 
   it("lists CMS-provided tips instead of the fallback when a legal page exists", async () => {

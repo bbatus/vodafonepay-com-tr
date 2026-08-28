@@ -19,20 +19,6 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-/**
- * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
- *
- * Checked against the live DB: the CMS collection behind this section has ZERO
- * rows, so unlike the FAQ/announcement/campaign fallbacks removed in this
- * round, this array is not dead code that only fires on an outage — it IS what
- * the site currently renders. Deleting it would blank a working section rather
- * than reveal a masked failure. Remove it in the same change that seeds the
- * collection; see the round report's "kalan fallback'ler" table.
- */
-const fallbackIntro = [
-  "6698 sayılı Kişisel Verilerin Korunması Kanunu (\"Kanun\") uyarınca, kişisel verileriniz; veri sorumlusu sıfatıyla, hizmet aldığınız Vodafone Elektronik Para ve Ödeme Hizmetleri A.Ş. (\"Vodafone\", \"Şirket\") tarafından aşağıda açıklanan amaç ve hukuki sebeplerle işlenecektir.",
-];
-
 const dataCategories = [
   "Kimlik (ad-soyadı, müşteri ID/kimliği, yaş, cinsiyet)",
   "İletişim (GSM numarası, e-posta adresi, adres bilgisi)",
@@ -108,15 +94,10 @@ export default async function GizlilikVeGuvenlikPolitikasi() {
         <div className="mt-10 flex flex-col gap-y-10 text-sm leading-6 text-gray-700">
           <div>
             <h2 className="text-2xl font-bold text-black">Vodafone Yanımda Uygulaması İşlemlerine Dair Aydınlatma Metni</h2>
-            {cmsPage ? (
-              <RichText data={cmsPage.intro} className="mt-4 flex flex-col gap-y-3" />
-            ) : (
-              fallbackIntro.map((p, i) => (
-                <p key={p} className={i === 0 ? "mt-4" : "mt-3"}>
-                  {p}
-                </p>
-              ))
-            )}
+            {/* Follow-up 28.08: the hardcoded intro fallback is gone — this body
+                was migrated into the `legal-pages` collection through the real
+                Growth Maker -> Checker flow, so a role owns it now. */}
+            <RichText data={cmsPage?.intro ?? null} className="mt-4 flex flex-col gap-y-3" />
 
             <h3 className="mt-6 font-bold text-black">
               İşlenen Kişisel Verileriniz, Kişisel Verilerinizin İşlenme Amaçları ve Hukuki Sebepleri

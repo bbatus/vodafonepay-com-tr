@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import Home from "@/app/page";
-import { getCampaigns, getContentBlocks, getHomepageFaqItems, getPageMeta } from "@/lib/cms";
+import { getCampaigns, getContentBlocks, getHomepageFaqItems, getPageBySlug, getPageMeta } from "@/lib/cms";
 
 vi.mock("@/lib/cms", async () => {
   const actual = await vi.importActual<typeof import("@/lib/cms")>("@/lib/cms");
@@ -12,12 +12,23 @@ vi.mock("@/lib/cms", async () => {
     getContentBlocks: vi.fn(),
     getPageMeta: vi.fn(),
     getNavLinks: vi.fn(),
+    getPageBySlug: vi.fn(),
   };
 });
 vi.mock("@/components/Header", () => ({ Header: () => <header>Header</header> }));
 vi.mock("@/components/Footer", () => ({ Footer: () => <footer>Footer</footer> }));
 
+/**
+ * `getPageBySlug` MUST be mocked here. Home() asks for the "anasayfa" Pages
+ * document first and only falls through to the hardcoded composition these
+ * tests exercise when there isn't one. Left unmocked it made a real HTTP call
+ * — which, on a machine with the dev CMS running, actually returned the live
+ * homepage document and rendered async BlockRenderers that React Testing
+ * Library cannot resolve, so the whole tree came back empty and all three
+ * tests failed. Environment-dependent, and the reason they were red.
+ */
 function mockEmpty() {
+  vi.mocked(getPageBySlug).mockResolvedValue(null);
   vi.mocked(getCampaigns).mockResolvedValue(null);
   vi.mocked(getHomepageFaqItems).mockResolvedValue(null);
   vi.mocked(getContentBlocks).mockResolvedValue(null);

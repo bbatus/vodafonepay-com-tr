@@ -11,13 +11,17 @@ vi.mock("@/components/Header", () => ({ Header: () => <header>Header</header> })
 vi.mock("@/components/Footer", () => ({ Footer: () => <footer>Footer</footer> }));
 
 describe("WebSitesiHukumVeSartlari", () => {
-  it("falls back to the single hardcoded document entry when the CMS has none", async () => {
+  // Follow-up 28.08: the hardcoded fallback is gone — the body lives in the
+  // `legal-pages` collection now, so an empty/unreachable CMS must render an
+  // honestly empty section rather than a stale copy of the real content.
+  it("renders no document entries at all when the CMS has none", async () => {
     vi.mocked(getLegalPage).mockResolvedValue(null);
     vi.mocked(getPageMeta).mockResolvedValue(null);
 
-    render(await WebSitesiHukumVeSartlari());
+    const { container } = render(await WebSitesiHukumVeSartlari());
 
-    expect(screen.getByText("Hüküm ve Şartlar için tıklayınız")).toBeInTheDocument();
+    expect(screen.queryByText("Hüküm ve Şartlar için tıklayınız")).not.toBeInTheDocument();
+    expect(container.querySelectorAll("section ul li")).toHaveLength(0);
   });
 
   it("lists CMS-provided document lines instead of the fallback when a legal page exists", async () => {
