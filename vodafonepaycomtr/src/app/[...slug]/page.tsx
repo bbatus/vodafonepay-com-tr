@@ -34,6 +34,7 @@ import {
   getFeeRows,
   getLimitTables,
   getPageBySlug,
+  getPageMeta,
   getPages,
   getRepresentatives,
   richTextToPlainText,
@@ -52,16 +53,27 @@ export async function generateStaticParams() {
   return (pages ?? []).map((p) => ({ slug: p.slug.split("/").filter(Boolean) }));
 }
 
+/**
+ * Found in the 28.08 walkthrough: PageMeta advertises itself with the example
+ * "Örn: /, /aninda-bakiye, /kampanyalar" — and `/aninda-bakiye` is a CMS Page,
+ * not one of the hand-written routes. An editor could create, publish, and
+ * verify a PageMeta row for a CMS page and nothing whatsoever would change,
+ * because this route read SEO only off the Page document. PageMeta is now the
+ * fallback: the Page's own fields still win where they are filled, so nothing
+ * that worked before changes, but the collection's promise finally holds for
+ * every address it names.
+ */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string[] }> }): Promise<Metadata> {
   const { slug } = await params;
-  const page = await getPageBySlug(slug.join("/"));
+  const path = `/${slug.join("/")}`;
+  const [page, meta] = await Promise.all([getPageBySlug(slug.join("/")), getPageMeta(path)]);
   if (!page) return {};
   return buildMetadata({
-    title: page.seoTitle || `${page.title} | Vodafone Pay`,
-    description: page.seoDescription || page.title,
-    keywords: page.seoKeywords || undefined,
+    title: page.seoTitle || meta?.seoTitle || `${page.title} | Vodafone Pay`,
+    description: page.seoDescription || meta?.seoDescription || page.title,
+    keywords: page.seoKeywords || meta?.seoKeywords || undefined,
     path: `/${page.slug}`,
-    image: page.ogImage?.url,
+    image: page.ogImage?.url ?? meta?.ogImage?.url,
   });
 }
 

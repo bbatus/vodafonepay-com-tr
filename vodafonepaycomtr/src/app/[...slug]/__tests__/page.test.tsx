@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import EditorPage, { generateMetadata, generateStaticParams } from "@/app/[...slug]/page";
-import { getPageBySlug, getPages } from "@/lib/cms";
+import { getPageBySlug, getPageMeta, getPages } from "@/lib/cms";
 
 const { notFoundMock } = vi.hoisted(() => ({
   notFoundMock: vi.fn(() => {
@@ -12,7 +12,7 @@ vi.mock("next/navigation", () => ({ notFound: notFoundMock }));
 
 vi.mock("@/lib/cms", async () => {
   const actual = await vi.importActual<typeof import("@/lib/cms")>("@/lib/cms");
-  return { ...actual, getPageBySlug: vi.fn(), getPages: vi.fn(), getNavLinks: vi.fn() };
+  return { ...actual, getPageBySlug: vi.fn(), getPageMeta: vi.fn(), getPages: vi.fn(), getNavLinks: vi.fn() };
 });
 vi.mock("@/components/Header", () => ({ Header: () => <header>Header</header> }));
 vi.mock("@/components/Footer", () => ({ Footer: () => <footer>Footer</footer> }));
@@ -35,6 +35,10 @@ describe("generateStaticParams", () => {
 });
 
 describe("generateMetadata", () => {
+  beforeEach(() => {
+    vi.mocked(getPageMeta).mockResolvedValue(null);
+  });
+
   it("returns an empty object when the slug matches no page", async () => {
     vi.mocked(getPageBySlug).mockResolvedValue(null);
     const meta = await generateMetadata({ params: Promise.resolve({ slug: ["yok"] }) });
@@ -57,6 +61,41 @@ describe("generateMetadata", () => {
     const meta = await generateMetadata({ params: Promise.resolve({ slug: ["sayfa"] }) });
 
     expect(meta.title).toBe("Sayfa Başlığı | Vodafone Pay");
+  });
+
+  /**
+   * PageMeta names CMS-page addresses in its own help text ("Örn: /,
+   * /aninda-bakiye, ..."), but this route used to read SEO only off the Page
+   * document, so a published PageMeta row for a CMS page did nothing at all.
+   */
+  it("falls back to the PageMeta row when the page has no SEO fields of its own", async () => {
+    vi.mocked(getPageBySlug).mockResolvedValue({
+      id: "1", title: "Sayfa Başlığı", slug: "aninda-bakiye", layout: [],
+      seoTitle: undefined, seoDescription: undefined, seoKeywords: undefined, ogImage: undefined, parent: undefined,
+    } as never);
+    vi.mocked(getPageMeta).mockResolvedValue({
+      seoTitle: "Anında Bakiye | Vodafone Pay",
+      seoDescription: "Meta açıklaması",
+      seoKeywords: undefined, ogImage: undefined,
+    } as never);
+
+    const meta = await generateMetadata({ params: Promise.resolve({ slug: ["aninda-bakiye"] }) });
+
+    expect(meta.title).toBe("Anında Bakiye | Vodafone Pay");
+    expect(meta.description).toBe("Meta açıklaması");
+    expect(vi.mocked(getPageMeta)).toHaveBeenCalledWith("/aninda-bakiye");
+  });
+
+  it("keeps the page's own SEO fields ahead of the PageMeta row", async () => {
+    vi.mocked(getPageBySlug).mockResolvedValue({
+      id: "1", title: "T", slug: "aninda-bakiye", layout: [],
+      seoTitle: "Sayfanın kendi başlığı", seoDescription: undefined, seoKeywords: undefined, ogImage: undefined, parent: undefined,
+    } as never);
+    vi.mocked(getPageMeta).mockResolvedValue({ seoTitle: "PageMeta başlığı" } as never);
+
+    const meta = await generateMetadata({ params: Promise.resolve({ slug: ["aninda-bakiye"] }) });
+
+    expect(meta.title).toBe("Sayfanın kendi başlığı");
   });
 });
 
