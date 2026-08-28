@@ -295,17 +295,18 @@ export const LegalPages: CollectionConfig = {
     },
     {
       // RFP §3.1.7: "Each content item should have a deeplink field in
-      // order to enable redirection." Data-model only for now — each legal
-      // page is its own hand-authored route file (5 separate page.tsx's,
-      // not one shared template), so wiring this in is 5 small site edits
-      // rather than one; left as a follow-up.
+      // order to enable redirection." Wired in (28.08) — each legal page
+      // is its own hand-authored route file (5 separate page.tsx's, not one
+      // shared template), so this took 5 small site edits: renders as an
+      // "İlgili bağlantı →" link at the bottom of the page, same pattern as
+      // BlogPosts/FaqItems' deeplink.
       name: "deeplink",
       type: "text",
       label: { tr: "İlgili Bağlantı", en: "Related Link" },
       admin: {
         description: {
-          tr: "Opsiyonel — ileride sayfanın altında gösterilecek ilgili bir bağlantı için ayrılmış alan (site tarafında henüz render edilmiyor).",
-          en: "Optional — reserved for a related link to be shown below the page (not yet rendered on the site).",
+          tr: "Opsiyonel — doluysa sayfanın altında 'İlgili bağlantı →' linki olarak gösterilir.",
+          en: "Optional — if set, shown as an 'İlgili bağlantı →' link at the bottom of the page.",
         },
       },
     },

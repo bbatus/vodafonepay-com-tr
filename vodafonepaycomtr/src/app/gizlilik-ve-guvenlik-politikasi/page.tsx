@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -259,6 +260,12 @@ export default async function GizlilikVeGuvenlikPolitikasi() {
 
           <p className="text-xs text-gray-400">Mevcut Versiyon Tarihi: 27/03/2024</p>
         </div>
+
+        {cmsPage?.deeplink && (
+          <Link href={cmsPage.deeplink} className="mt-8 inline-block text-sm font-bold text-vf-red hover:underline">
+            İlgili bağlantı →
+          </Link>
+        )}
       </section>
 
       <Footer />

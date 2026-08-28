@@ -51,4 +51,21 @@ describe("WebSitesiHukumVeSartlari", () => {
 
     expect(screen.getByText("CMS Kırıntı Etiketi")).toBeInTheDocument();
   });
+
+  it("renders the related-link CTA when the legal page has a deeplink", async () => {
+    vi.mocked(getLegalPage).mockResolvedValue({
+      id: "1",
+      slug: "web-sitesi-hukum-ve-sartlari",
+      title: "T",
+      intro: null,
+      heroImage: null,
+      groups: [],
+      deeplink: "/kampanyalar",
+    } as never);
+    vi.mocked(getPageMeta).mockResolvedValue(null);
+
+    render(await WebSitesiHukumVeSartlari());
+
+    expect(screen.getByText("İlgili bağlantı →").closest("a")).toHaveAttribute("href", "/kampanyalar");
+  });
 });

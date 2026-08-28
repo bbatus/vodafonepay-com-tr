@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -442,6 +443,14 @@ export default async function EditorPage({ params }: { params: Promise<{ slug: s
       {page.layout.map((block) => (
         <BlockRenderer key={block.id ?? JSON.stringify(block)} block={block} />
       ))}
+
+      {page.deeplink && (
+        <div className="mx-auto w-full max-w-[1030px] px-4 pb-16">
+          <Link href={page.deeplink} className="inline-block text-sm font-bold text-vf-red hover:underline">
+            İlgili bağlantı →
+          </Link>
+        </div>
+      )}
 
       <Footer />
     </main>

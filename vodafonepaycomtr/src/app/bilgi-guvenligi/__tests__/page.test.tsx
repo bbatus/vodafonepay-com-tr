@@ -50,4 +50,21 @@ describe("BilgiGuvenligi", () => {
 
     expect(screen.getByText("CMS Kırıntı Etiketi")).toBeInTheDocument();
   });
+
+  it("renders the related-link CTA when the legal page has a deeplink", async () => {
+    vi.mocked(getLegalPage).mockResolvedValue({
+      id: "1",
+      slug: "bilgi-guvenligi",
+      title: "T",
+      intro: null,
+      heroImage: null,
+      groups: [],
+      deeplink: "/kampanyalar",
+    } as never);
+    vi.mocked(getPageMeta).mockResolvedValue(null);
+
+    render(await BilgiGuvenligi());
+
+    expect(screen.getByText("İlgili bağlantı →").closest("a")).toHaveAttribute("href", "/kampanyalar");
+  });
 });

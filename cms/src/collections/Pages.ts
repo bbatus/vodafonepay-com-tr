@@ -1500,19 +1500,17 @@ export const Pages: CollectionConfig = {
     },
     {
       // RFP §3.1.7: "Each content item should have a deeplink field in
-      // order to enable redirection." Data-model only for now — unlike
-      // BlogPosts/FaqItems (one shared render point each), a Page's layout
-      // is fully block-composed with no single natural slot to place this;
-      // wiring it into the site's [...slug]/page.tsx renderer is a
-      // follow-up, not done in this pass.
+      // order to enable redirection." Wired in (28.08) — rendered below the
+      // last layout block, above the footer, as an "İlgili bağlantı →" link
+      // (same pattern as BlogPosts/FaqItems/LegalPages' deeplink).
       name: "deeplink",
       type: "text",
       label: { tr: "İlgili Bağlantı", en: "Related Link" },
       admin: {
         position: "sidebar",
         description: {
-          tr: "Opsiyonel — ileride sayfanın altında gösterilecek ilgili bir bağlantı için ayrılmış alan (site tarafında henüz render edilmiyor).",
-          en: "Optional — reserved for a related link to be shown below the page (not yet rendered on the site).",
+          tr: "Opsiyonel — doluysa sayfanın en altında (footer'dan hemen önce) 'İlgili bağlantı →' linki olarak gösterilir.",
+          en: "Optional — if set, shown at the very bottom of the page (just above the footer) as an 'İlgili bağlantı →' link.",
         },
       },
     },

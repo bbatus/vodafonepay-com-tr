@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -81,6 +82,12 @@ export default async function BilgiGuvenligi() {
             </li>
           ))}
         </ul>
+
+        {cmsPage?.deeplink && (
+          <Link href={cmsPage.deeplink} className="mt-8 inline-block text-sm font-bold text-vf-red hover:underline">
+            İlgili bağlantı →
+          </Link>
+        )}
       </section>
 
       <Footer />

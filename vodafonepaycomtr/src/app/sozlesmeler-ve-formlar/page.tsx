@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { AppDownloadBanner } from "@/components/AppDownloadBanner";
 import { Header } from "@/components/Header";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -92,6 +93,12 @@ export default async function SozlesmelerVeFormlar() {
         {cmsPage?.intro ? <RichText data={cmsPage.intro} className="mt-4 flex flex-col gap-y-3 text-center" /> : null}
 
         <SozlesmelerAccordion groups={groups} />
+
+        {cmsPage?.deeplink && (
+          <Link href={cmsPage.deeplink} className="mt-8 inline-block text-sm font-bold text-vf-red hover:underline">
+            İlgili bağlantı →
+          </Link>
+        )}
       </section>
 
       <Footer />

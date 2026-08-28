@@ -104,4 +104,43 @@ describe("EditorPage", () => {
     const parentLink = screen.getByText("Üst Sayfa").closest("a");
     expect(parentLink).toHaveAttribute("href", "/ust-sayfa");
   });
+
+  it("renders the page's deeplink as a related-link CTA below the layout, and omits it when unset", async () => {
+    vi.mocked(getPageBySlug).mockResolvedValue({
+      id: "1",
+      title: "Sayfa",
+      slug: "sayfa",
+      layout: [],
+      seoTitle: undefined,
+      seoDescription: undefined,
+      seoKeywords: undefined,
+      ogImage: undefined,
+      parent: undefined,
+      deeplink: "/kampanyalar",
+    } as never);
+
+    render(await EditorPage({ params: Promise.resolve({ slug: ["sayfa"] }) }));
+
+    const link = screen.getByText("İlgili bağlantı →").closest("a");
+    expect(link).toHaveAttribute("href", "/kampanyalar");
+  });
+
+  it("omits the related-link CTA when deeplink is unset", async () => {
+    vi.mocked(getPageBySlug).mockResolvedValue({
+      id: "1",
+      title: "Sayfa",
+      slug: "sayfa",
+      layout: [],
+      seoTitle: undefined,
+      seoDescription: undefined,
+      seoKeywords: undefined,
+      ogImage: undefined,
+      parent: undefined,
+      deeplink: undefined,
+    } as never);
+
+    render(await EditorPage({ params: Promise.resolve({ slug: ["sayfa"] }) }));
+
+    expect(screen.queryByText("İlgili bağlantı →")).not.toBeInTheDocument();
+  });
 });

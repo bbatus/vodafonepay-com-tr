@@ -591,6 +591,7 @@ const legalPageSchema = z.object({
     .optional()
     .transform((v) => v ?? null),
   groups: z.array(legalDocumentGroupSchema).nullable().optional().transform((v) => v ?? []),
+  deeplink: nullableString(),
 });
 export type CmsLegalPage = z.infer<typeof legalPageSchema>;
 
@@ -895,6 +896,7 @@ const pageSchema = z.object({
   seoKeywords: nullableString(),
   ogImage: mediaSchema.nullable().optional().transform((v) => v ?? undefined),
   parent: pageParentSchema.nullable().optional().transform((v) => v ?? undefined),
+  deeplink: nullableString(),
 });
 export type CmsPage = z.infer<typeof pageSchema>;
 
