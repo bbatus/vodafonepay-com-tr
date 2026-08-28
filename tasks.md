@@ -819,3 +819,116 @@ olarak göremeyeceği** üç ayrı hata çıktı.
       davranış, düzenleme kendi drawer'ları üzerinden.
 - [x] **CMS: 470/470, site: 380/380 test geçiyor**; `tsc --noEmit` ve `eslint`
       iki projede de temiz.
+
+### 29f. Gerçek UI turu: her collection'ın her alanı elle dolduruldu
+
+Kullanıcının ikinci itirazı da yerindeydi — 29e'de 14 collection'ın *yayınla
+butonunu* tarayıcıda doğrulamıştım, ama gerçek "Maker içerik yazar → Checker
+onaylar → siteye düşer" döngüsünü sadece birkaçında koşturmuştum. Bu turda 13
+collection'da form baştan sona elle dolduruldu, Maker taslağı gönderdi, Checker
+tek tek yayınladı ve 14/14 içerik render edilmiş sayfada arandı.
+
+- [x] **13 collection'da uçtan uca döngü**: duyuru, kategori, blog yazısı,
+      temsilci, içerik bloğu, menü linki, çerez satırı, sayfa meta, SSS, sayfa
+      (Hero bloğuyla), kampanya, ücret satırı (drawer), limit tablosu (drawer).
+      Taslakken site değişmedi, Checker onayladıktan sonra 14/14 göründü.
+- [x] **Kampanyaların reddetme döngüsü**: Checker "Reddet" → gerekçe zorunlu,
+      boşken buton pasif → durum "Reddedildi", red sebebi/tarihi/reddeden
+      kaydedildi → Maker panosunda "Taslaklarınız: Reddedildi" bildirimi →
+      Maker eksiği tamamlayıp tekrar gönderdi → durum otomatik "İncelemede"ye
+      döndü ve red bilgileri temizlendi (`manageReviewCycle`).
+- [x] **Checker'a özel yayın öncesi canlı önizleme** (Kampanyalar): "Onayla ve
+      Yayınla" modalı kampanya kartını gerçek görünümüyle gösteriyor.
+- [x] Sıra öneri bileşeni her collection'da doğru grubu sayıyor (ör.
+      content-blocks'ta page+blockType, categories'te scope), ilişki seçicileri
+      dolu, medya seçici filtreleri ve arama çalışıyor, çakışan slug net hata
+      veriyor, zorunlu alan hatası hem toast hem alan işaretiyle geliyor.
+
+### 29g. Turun çıkardığı 5 canlı hata
+
+1. **Alan etiketleri İngilizceydi.** Payload etiketi olmayan alanın `name`'ini
+   başlığa çeviriyor; Türkçe panelde "Business Name", "Rep Code", "Page Key",
+   "Unverified Limit" yazıyordu — altlarında Türkçe açıklamalarla. Temsilciler
+   11 alanda 1 etikete, Pages 96 alanda 12'ye sahipti. Hepsi tr/en etiketlendi,
+   array'lere `labels` eklendi ("Grup 01 / Belge 01 / Belge ekle" da Türkçeleşti).
+2. **Ücret/limit drawer'ından kayıt 404'e düşürüyordu.** Payload create sonrası
+   yeni kaydın kendi route'una yönlendiriyor (`depth < 2 && redirectAfterCreate
+   !== false`); iki collection da `admin.hidden` olduğu için o route 404. Kayıt
+   doğru oluşuyor, editör siyah hata sayfasında kalıyordu. `redirectAfterCreate={false}`.
+3. **`ContentBlocks` koleksiyonunun tamamı ölüydü** — çağrısı vardı ama o dal
+   `anasayfa` Pages kaydı yayınlandığı gün çalışmayı bıraktı. Emekliye ayrıldı
+   (`scripts/retire-content-blocks-29-08.sql`). Ders: "çağrısı var" yeterli
+   kontrol değil; kontrol, render edilmiş sayfada değişikliği görmek.
+4. **`PageMeta` her CMS sayfasında sessizce okunmuyordu** — oysa kendi yardım
+   metni örnek olarak `/aninda-bakiye`'yi, yani bir CMS sayfasını veriyor.
+   Artık fallback: sayfanın kendi SEO alanları önde, boşsa PageMeta devreye
+   giriyor. `/ulasim-odemeleri` ile canlıda doğrulandı.
+5. **`warm-cache.sh` .env'i okumuyordu**, `dev-revalidate-secret` varsayılanına
+   düşüp her deploy'da 401 veriyordu — yani dokümante edilmiş tek deploy-sonrası
+   adım sessizce hiç çalışmamış. Bu turda bir rebuild `/`'a CMS'siz fallback'i
+   gömdü ve hiçbir şey süpürmedi; düzeltmeden sonra sweep sayfayı geri getirdi.
+
+### 29h. Canlı sayfa kimse tarafından kaydedilemiyordu
+
+`Pages`' `faqList.category` serbest metindi, sonradan `categoryExistsValidate`
+eklendi ama mevcut satırlar taranmadı. İki satırda geçersiz slug kalmıştı
+(`aninda-bakiye`, `batuhan`). Payload kaydederken tüm dokümanı doğruladığı için
+**`/aninda-bakiye` yayındaki ürün sayfası hiçbir rol tarafından kaydedilemiyordu**
+— editör dokunmadığı bir alandan hata alıyor, blok da ziyaretçiye hiçbir şey
+basmadığı için kimsenin bakmak için sebebi olmuyordu.
+
+- [x] Eksik "Anında Bakiye" SSS kategorisi gerçek Maker→Checker akışıyla
+      oluşturuldu; sayfa tekrar kaydedilebiliyor (200).
+- [x] `ozge-aydiner`'ın geçersiz `batuhan` referansı temizlendi.
+- [x] Kural AGENTS.md'ye yazıldı: mevcut satırı olan bir alana `validate` /
+      `required` / daraltılmış `options` eklemek bir veri migration'ıdır.
+
+### 29i. Checker yayından kaldıramıyor (açık bulgu)
+
+Growth Checker 13 standart collection'ın hiçbirinde admin arayüzünden içeriği
+yayından kaldıramıyor. Sunucu izin veriyor (unpublish bir `update`; REST PATCH
+200 döndü), ama iki bağımsız sebep butonu gizliyor: Payload'ın ⋮ menüsü
+`hasCreatePermission || hasDeletePermission` istiyor (Checker'da ikisi de yok,
+tasarım gereği), ve `UnpublishButton` ayrıca `typeof versions.drafts === 'object'`
+arıyor — bu collection'lar `drafts: true` (boolean) kullanıyor. Yani yayını
+kontrol eden rol yayınlayabiliyor ama geri alamıyor. Kampanyalar kendi
+unpublish-request akışına sahip olduğu için etkilenmiyor.
+
+**Kalan iş:** ⋮ dışına görünür bir "Yayından Kaldır" kontrolü + `drafts: true`
+yerine `drafts: {}`. Bu tur içinde yapılmadı — yeni bir admin bileşeni ve 13
+collection'da şema dokunuşu demek.
+
+### 29j. Test verisi canlıdan kaldırıldı
+
+- [x] `/test`, `/layout-test-sayfasi`, `/melihbatuhan`, `/ozge-aydiner` →
+      Görünürlük "Gizli" (sayfaların bu iş için zaten bir alanı vardı; kayıt
+      duruyor, ziyaretçiye ve sitemap'e çıkmıyor). Dördü de 404.
+- [x] Footer'daki "layout Test Sayfası" menü linki, "Test ediyorumaa" ve
+      "Batuhan Test Kampanyası!" kampanyaları, "...miyim?2" yazım hatalı SSS →
+      yayından kaldırıldı (Checker yetkisiyle).
+- [x] `sozlesmeler-ve-formlar` hukuki sayfasının başlığı ve giriş metni "test"ti
+      ve canlı sayfada H1 olarak "test" görünüyordu → gerçek metinle değiştirildi.
+- [x] sitemap.xml ve /site-haritasi temiz.
+
+### 29k. Canlı site ile önyüz karşılaştırması (1440px, hesaplanmış CSS)
+
+Bölüm sırası birebir aynı: Header → Hero → StepPhones → FeatureHighlights →
+Kampanyalar → SSS → Footer. Font ailesi aynı (VodafoneRegular/Light/Bold);
+bizde `ui-sans-serif` sızıntısı yok, canlıda SSS başlıklarında var. Bölüm H2'si
+36px/40px, kart H3'ü 20px/28px, gövde 18px, kapsayıcı genişlikleri
+1030/998/896 — hepsi eşleşiyor.
+
+- **Tek ölçülen fark:** hero H1 — canlı 26px/32.5px, bizde 36px/45px. Ayrıca
+  canlı başlığı iki satıra bölüyor ("Vodafone Pay" / "Ödemenin Akıllı Hali"),
+  bizdeki tek satırda em-dash ile birleşik. İkincisi CMS içeriği (Hero bloğunun
+  başlığı), ilki kod.
+- **İçerik farkları (layout değil):** canlıda 5 stepPhone öğesi var, bizim
+  `anasayfa` kaydında 2; canlı anasayfada 2 kampanya kartı gösteriyor, biz
+  13'ünü birden basıyoruz (campaignGrid bloğunun `limit` alanı boş); canlı SSS
+  bölümü seçili birkaç soru, bizde ~25 soru listeleniyor (faqList `limit` boş).
+  Üçü de CMS'ten ayarlanabilir, kod değişikliği gerekmiyor.
+
+**Not:** tarayıcı paneli oturumun bir kısmında gizli kaldığı için görsel
+karşılaştırma ekran görüntüsüyle değil, iki sitede aynı seçicilerden okunan
+hesaplanmış CSS değerleriyle yapıldı — tipografi/renk/ölçü için daha kesin,
+ama boşluk ve hizalama için piksel karşılaştırması hâlâ yapılmadı.
