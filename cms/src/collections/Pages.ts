@@ -1348,7 +1348,11 @@ export const Pages: CollectionConfig = {
   admin: {
     hideAPIURL: true,
     useAsTitle: "title",
-    defaultColumns: ["title", "slug", "_status"],
+    // Walkthrough 29.08: `visibility` was available as a column but not on by
+    // default, so a page set to "Gizli" still read "Yayınlandı" in the list —
+    // the field that decides whether a visitor can see the page at all was
+    // the one you had to go looking for.
+    defaultColumns: ["title", "slug", "_status", "visibility"],
     group: { tr: "İçerik Yönetimi", en: "Content Management" },
     description: {
       tr: "Yeni sayfalar (kampanya landing, hub sayfası vb.) — geliştirici gerekmeden, blokları sürükleyip bırakarak oluşturulur. İlk defa mı yapıyorsunuz? Yukarıdaki '?' butonuna basın — adım adım anlatım orada.",

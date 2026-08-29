@@ -399,6 +399,13 @@ export const Users: CollectionConfig = {
       label: { tr: "Yetki Devredilen Kişi", en: "Delegate" },
       admin: {
         position: "sidebar",
+        // Walkthrough 29.08: the field's own help text says "Sadece Checker
+        // rolündeyseniz anlamlıdır" and it was still rendered, editable, on a
+        // Maker's own account — a control that tells you it does nothing and
+        // then lets you fill it in. `hasActiveCheckerDelegate` only ever reads
+        // delegations FROM a checker, so a Maker's value could never take
+        // effect. Show it to the roles it applies to.
+        condition: (data) => data?.role === ROLES.NEW_VERTICAL_CHECKER || data?.role === ROLES.GROWTH_CHECKER,
         description: {
           tr: "Sadece Checker rolündeyseniz anlamlıdır: izinliyken/tatildeyken onay yetkinizi geçici olarak devretmek istediğiniz kişi. Boş bırakırsanız devir yok.",
           en: "Only meaningful for Checker roles: who to temporarily hand your approval rights to while out of office. Leave empty for no delegation.",

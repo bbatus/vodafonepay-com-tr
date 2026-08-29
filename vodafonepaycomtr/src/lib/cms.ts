@@ -409,6 +409,14 @@ const blogPostDetailSchema = z.object({
   body: z.unknown().nullable().optional(),
   category: categoryRefSchema.nullable(),
   publishedDate: nullableString(),
+  // `publishedDate` is optional and, as of the 29.08 walkthrough, was empty on
+  // every post — so no post carried `datePublished` in its JSON-LD at all.
+  // Payload always writes `createdAt`, so this page can fall back to it and
+  // structured data is never simply missing. The date shown to the reader
+  // still uses `publishedDate` only: that one is an editorial choice, and
+  // rendering a record's creation timestamp as a publication date would be
+  // inventing information.
+  createdAt: nullableString(),
   seoTitle: nullableString(),
   seoDescription: nullableString(),
   seoKeywords: nullableString(),

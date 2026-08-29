@@ -15,7 +15,10 @@ export const CookieRows: CollectionConfig = {
   admin: {
     hideAPIURL: true,
     useAsTitle: "name",
-    defaultColumns: ["name", "provider", "party", "category"],
+    // Walkthrough 29.08: every drafts-enabled collection needs `_status` in the
+    // default columns — without it a draft is indistinguishable from a live
+    // record in the list, which is the one thing the list has to tell you.
+    defaultColumns: ["name", "provider", "party", "category", "_status"],
     group: { tr: "Site Yapısı", en: "Site Structure" },
     description: {
       tr: "/cerez-politikasi sayfasındaki çerez tablosunun satırları.",

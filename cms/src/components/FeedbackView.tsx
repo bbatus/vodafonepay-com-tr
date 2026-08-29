@@ -40,8 +40,10 @@ export default async function FeedbackView(props: {
       visibleEntities={visibleEntities}
       viewType="feedback"
     >
-      <h1>{t("feedback.title")}</h1>
-      <FeedbackApp />
+      <div className="cm-view-pad">
+        <h1>{t("feedback.title")}</h1>
+        <FeedbackApp />
+      </div>
     </DefaultTemplate>
   );
 }

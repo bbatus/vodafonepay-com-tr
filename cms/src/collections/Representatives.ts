@@ -15,7 +15,10 @@ export const Representatives: CollectionConfig = {
   admin: {
     hideAPIURL: true,
     useAsTitle: "businessName",
-    defaultColumns: ["businessName", "province", "district", "phone"],
+    // Walkthrough 29.08: every drafts-enabled collection needs `_status` in the
+    // default columns — without it a draft is indistinguishable from a live
+    // record in the list, which is the one thing the list has to tell you.
+    defaultColumns: ["businessName", "province", "district", "phone", "_status"],
     group: { tr: "İçerik Yönetimi", en: "Content Management" },
     description: {
       tr: "Temsilcilik/bayi kayıtları — /temsilciliklerimiz arama formu ve /temsilci/[id] detay sayfası bu veriyi kullanır.",

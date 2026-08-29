@@ -196,3 +196,37 @@ E-posta, Kullanıcı Adı (LDAP, boş "—"), Rol — hepsi salt-okunur ve açı
 - Yeni kategori / kampanya / sayfa **kaydedilmedi** — bu koleksiyonların create→onay akışları 28.08 turunda uçtan uca koşulmuştu; bu tur sidebar gezisine ve ekran davranışına odaklandı.
 - Kampanyalar dışındaki koleksiyonlarda "Reddet" akışı yok (o akış Campaigns'e özel), dolayısıyla denenmedi.
 - Sayfalar'ın 20+ bloklu kütüphanesinde bu turda yalnızca liste/sütun davranışı incelendi; blokların tek tek doldurulması yapılmadı.
+
+
+---
+
+# Düzeltme turu — 29.08.2026
+
+Aşağıdaki maddeler bu dokümanlardaki bulgular üzerine düzeltildi. Her biri
+**CMS arayüzünde tekrar açılıp** doğrulandı; siteye yansıması gerekenler ayrıca
+`localhost:3000` üzerinde kontrol edildi.
+
+| ✔ | Bulgu | Düzeltme | Doğrulama |
+|---|---|---|---|
+| ✅ | Checker panosundaki `+ Yeni` → "lütfen giriş yapın" ekranı | `CustomDashboardView` artık Payload'ın kendi izin setinden `create` kontrol ediyor | Checker panosunda üç kartta da buton yok; **Maker'da duruyor** |
+| ✅ | Sıralama aracı Growth rollerine gizli | `canReorder`'a `GROWTH_CHECKER` eklendi (gerekçesi 28.08'de eskimişti) | Checker'da 13 satırlık sürüklenebilir liste geldi |
+| ✅ | "Sürükleyerek Sırala" başlığı altı boş | Başlık ve widget tek bileşende, aynı rol kontrolüyle | Maker'da başlık da yok, Checker'da ikisi de var |
+| ✅ | Bekleyen yayından-kaldırma talebi butona yansımıyor | `unpublishRequest === "pending"` iken hazır ama bağlanmamış metin gösteriliyor | Maker talep sonrası **"Yayından kaldırma talebiniz Checker onayında."** görüyor |
+| ✅ | 6 koleksiyonda DURUM sütunu yok | `defaultColumns`'a `_status` | Kategoriler / Temsilciler / Menü Linkleri / Hukuki Sayfalar / Çerez Satırları / Sayfa Meta — altısında da geldi |
+| ✅ | Sayfalar'da Görünürlük varsayılan değil | `defaultColumns`'a `visibility` | Listede "Gizli (yalnızca CMS oturumu ile görünür)" görünüyor |
+| ✅ | Boolean sütunları `doğru`/`yanlış` | `i18n.translations.tr.general` → Evet/Hayır | SSS listesinde "evet" |
+| ✅ | Kırpma paneli "Mahsulat" | `i18n.translations.tr.upload.crop` → "Kırpma" | Görsel düzenleyicide "Kırpma" |
+| ✅ | Hesap ve Geri Bildirim ekranlarında kenar boşluğu yok (x=0) | `.cm-view-pad` başlık+form'u birlikte sarıyor | İki ekranda da içerik kenardan ayrıldı |
+| ✅ | Maker'a anlamsız "Yetki Devredilen Kişi" alanı | Alan `condition` ile Checker rollerine sınırlandı | Maker'ın alan listesinde yok |
+| ✅ | Blog'da `datePublished` yapısal verisi yok | Detay sayfası `publishedDate ?? createdAt` kullanıyor (ekranda gösterilen tarih hâlâ sadece `publishedDate`) | **Canlı sitede** `"datePublished":"2026-08-27T..."` |
+| ✅ | Kategori slug'ı isimle uyuşmuyor (`Kart` → `aninda-bakiye`) | `scripts/fix-category-slugs-29-08.sql` | `Kart/kart`, `Anında Bakiye/aninda-bakiye`; **canlı sitede** 6 filtre sekmesi ve 12 kampanya sağlam |
+| ✅ | `/ulasim-odemeleri` PageMeta'sı Anında Bakiye'den bahsediyor | Checker akışıyla düzeltildi | **Canlı sitede** doğru `<title>` ve `<meta description>` |
+| ✅ | İngilizce panelde rol etiketi Türkçe kalıyor | `ROLE_OPTIONS` etiketleri `{tr,en}` oldu | EN panelde "Growth — Maker (same scope as New Vertical, cannot publish)" |
+| ✅ | Denetim kaydında ham rol slug'ı (`growth_maker`) | Salt-okunur `AuditRoleField` — **saklanan değer slug olarak kalıyor** (denetim izi makine değerini korumalı), sadece gösterim çevriliyor | Kayıt detayında okunur etiket |
+
+## Düzeltilmeyenler ve sebepleri
+
+- **Hukuki Sayfalar'da "Yeni oluştur"** — 5 slug'ın beşi de dolu olduğu için şu an hiçbir zaman başarıya ulaşmıyor, ama bir hukuki sayfa silinirse geçerli hale gelir; koşula bağlı olduğu için kaldırılmadı. Hata mesajı net ve veri bozulmuyor.
+- **İlişki sütunlarının ~8 sn "Yükleniyor..." kalması** — Payload'ın kendi liste hücresi davranışı; dokunulmadı.
+- **Medya'da Growth Checker'ın create hakkı** — "Checker asla içerik üretmez" kuralıyla çelişiyor ve koddaki gerekçe eskimiş, ama bunu tek taraflı kaldırmak bir iş kararı. Bulgu olarak duruyor.
+- **Sürükle-bırak hareketinin kendisi** — HTML5 native drag, tarayıcı otomasyonundaki sentetik fare olaylarına yanıt vermiyor. Aracın **göründüğü** ve Checker'ın sıralama PATCH'inin sunucuda **200 döndüğü** doğrulandı; sürükleyip kaydetme yolu bizzat denenmedi. Bunun yerine kaydın "Sıra" alanı üzerinden test edildi ve çakışma koruması net bir mesajla çalıştı.

@@ -67,7 +67,10 @@ export const LegalPages: CollectionConfig = {
   admin: {
     hideAPIURL: true,
     useAsTitle: "title",
-    defaultColumns: ["title", "slug"],
+    // Walkthrough 29.08: every drafts-enabled collection needs `_status` in the
+    // default columns — without it a draft is indistinguishable from a live
+    // record in the list, which is the one thing the list has to tell you.
+    defaultColumns: ["title", "slug", "_status"],
     group: { tr: "Site Yapısı", en: "Site Structure" },
     description: {
       tr: "Bu yasal sayfaların tablo/liste gibi yapısal kısımları kodda sabit kalır; burada yönetilen giriş metni, ve Sözleşmeler ve Formlar için sayfa görseli + belge grupları.",

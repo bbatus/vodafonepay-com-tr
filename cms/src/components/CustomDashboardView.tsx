@@ -64,6 +64,7 @@ function RecentPanel({
   locale,
   statusLabels,
   addLabel,
+  canCreate,
 }: {
   title: string;
   icon: React.ReactNode;
@@ -72,6 +73,7 @@ function RecentPanel({
   locale: "tr" | "en";
   statusLabels: { published: string; draft: string };
   addLabel: string;
+  canCreate: boolean;
 }) {
   return (
     <div className="card cm-card cm-panel">
@@ -80,10 +82,24 @@ function RecentPanel({
           {icon}
           {title}
         </p>
-        <Link href={`/admin/collections/${collection}/create`} className="cm-panel__add">
-          <IconPlus />
-          {addLabel}
-        </Link>
+        {/*
+          Found live 29.08.2026 walking the panel as a Growth Checker. This
+          link rendered for everyone, and a Checker has `create` permission
+          nowhere by design — but the failure was not a 403 toast. Payload
+          serves the create route to an unauthorized user as its "please log
+          in" screen: "Bu işlemi gerçekleştirmek için lütfen giriş yapın / Bu
+          sayfaya erişim izniniz yok", with a Çıkış button. So the panel told a
+          logged-in reviewer they were not logged in, and offered to log them
+          out, in answer to pressing a button it drew itself. Same rule as
+          MakerAwarePublishButton and FeesAndLimitsApp's CreateButton: never
+          offer a control the server will refuse.
+        */}
+        {canCreate && (
+          <Link href={`/admin/collections/${collection}/create`} className="cm-panel__add">
+            <IconPlus />
+            {addLabel}
+          </Link>
+        )}
       </div>
       {docs.length === 0 ? (
         <p className="cm-panel__empty">{locale === "tr" ? "Kayıt yok." : "No records."}</p>
@@ -193,6 +209,12 @@ export default async function CustomDashboardView(props: {
   const siteBase = process.env.SITE_URL || "http://localhost:3000";
   const statusLabels = { published: t("contentManagement.published"), draft: t("contentManagement.draft") };
   const addLabel = locale === "tr" ? "Yeni" : "New";
+  // Payload hands the view its own sanitized permission set; this is the
+  // server-side twin of `useAuth().permissions` that FeesAndLimitsApp checks.
+  const permissions = initPageResult?.permissions as
+    | { collections?: Record<string, { create?: unknown } | undefined> }
+    | undefined;
+  const canCreate = (slug: string) => Boolean(permissions?.collections?.[slug]?.create);
 
   const kpiCards = [
     { label: t("dashboardKpi.totalContent"), value: totalContent, icon: <IconContent /> },
@@ -228,6 +250,7 @@ export default async function CustomDashboardView(props: {
           title={COLLECTION_LABELS["campaigns"]?.[locale] ?? "Kampanyalar"}
           icon={<IconCampaign />}
           collection="campaigns"
+          canCreate={canCreate("campaigns")}
           docs={recentCampaigns}
           locale={locale}
           statusLabels={statusLabels}
@@ -237,6 +260,7 @@ export default async function CustomDashboardView(props: {
           title={COLLECTION_LABELS["blog-posts"]?.[locale] ?? "Bloglar"}
           icon={<IconBlog />}
           collection="blog-posts"
+          canCreate={canCreate("blog-posts")}
           docs={recentBlogPosts}
           locale={locale}
           statusLabels={statusLabels}
@@ -246,6 +270,7 @@ export default async function CustomDashboardView(props: {
           title={COLLECTION_LABELS["pages"]?.[locale] ?? "Sayfalar"}
           icon={<IconPage />}
           collection="pages"
+          canCreate={canCreate("pages")}
           docs={recentPages}
           locale={locale}
           statusLabels={statusLabels}

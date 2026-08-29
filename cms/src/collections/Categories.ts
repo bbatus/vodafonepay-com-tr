@@ -91,7 +91,10 @@ export const Categories: CollectionConfig = {
   admin: {
     hideAPIURL: true,
     useAsTitle: "label",
-    defaultColumns: ["label", "scope", "slug", "order"],
+    // Walkthrough 29.08: every drafts-enabled collection needs `_status` in the
+    // default columns — without it a draft is indistinguishable from a live
+    // record in the list, which is the one thing the list has to tell you.
+    defaultColumns: ["label", "scope", "slug", "order", "_status"],
     group: { tr: "İçerik Yönetimi", en: "Content Management" },
     components: {
       edit: {

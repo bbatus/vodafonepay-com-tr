@@ -6,10 +6,14 @@ import FeesAndLimitsApp from "@/components/FeesAndLimitsApp";
 // Flipped per-test to cover the Growth Checker case (`create: false`), whose
 // create buttons must not render at all — see CreateButton in the component.
 let canCreate = true;
+// Flipped per-test: ReorderSection renders heading+widget only for roles whose
+// reorder PATCH lands — a Growth Maker's would 403 on a published row.
+let role = "new_vertical_maker";
 
 vi.mock("@payloadcms/ui", () => ({
   useTranslation: () => ({ i18n: { language: "tr" } }),
   useAuth: () => ({
+    user: { role },
     permissions: { collections: { "fee-rows": { create: canCreate }, "limit-tables": { create: canCreate } } },
   }),
   useDocumentDrawer: () => [
@@ -28,6 +32,7 @@ vi.mock("@/components/ReorderWidget", () => ({
 
 beforeEach(() => {
   canCreate = true;
+  role = "new_vertical_maker";
   vi.stubGlobal(
     "fetch",
     vi.fn((url: string) => {
@@ -89,6 +94,26 @@ describe("FeesAndLimitsApp", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Limit Tabloları", pressed: false }));
     await waitFor(() => expect(screen.getByText("Yeni Limit Tablosu")).toBeInTheDocument());
+  });
+
+  it("shows the reorder section to a Growth Checker, whose reorder actually saves", async () => {
+    role = "growth_checker";
+    render(<FeesAndLimitsApp />);
+    await waitFor(() => expect(screen.getByText("İşlem Ücreti")).toBeInTheDocument());
+    expect(screen.getByTestId("reorder-fee-rows")).toBeInTheDocument();
+    expect(screen.getByText("Sürükleyerek Sırala")).toBeInTheDocument();
+  });
+
+  /**
+   * The heading used to be printed unconditionally while the widget bowed out,
+   * leaving a Growth Maker staring at a section title with nothing under it.
+   */
+  it("hides the reorder heading too when the widget cannot render (Growth Maker)", async () => {
+    role = "growth_maker";
+    render(<FeesAndLimitsApp />);
+    await waitFor(() => expect(screen.getByText("İşlem Ücreti")).toBeInTheDocument());
+    expect(screen.queryByTestId("reorder-fee-rows")).not.toBeInTheDocument();
+    expect(screen.queryByText("Sürükleyerek Sırala")).not.toBeInTheDocument();
   });
 
   it("hides the create buttons from a role without create permission (Growth Checker)", async () => {

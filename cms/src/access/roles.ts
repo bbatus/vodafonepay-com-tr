@@ -56,11 +56,35 @@ export const ROLES = {
 
 export type RoleValue = (typeof ROLES)[keyof typeof ROLES];
 
+/**
+ * Walkthrough 29.08: these were plain strings, so the Role select stayed
+ * Turkish even with the panel switched to English — the one field on the
+ * account screen that refused to translate. Payload takes a {tr,en} object
+ * here exactly like every other label in this codebase.
+ */
 export const ROLE_OPTIONS = [
-  { label: "New Vertical — Exec Developer (Maker, tüm alanlar)", value: ROLES.NEW_VERTICAL_MAKER },
-  { label: "New Vertical — Exec Content (Checker, tüm alanlar)", value: ROLES.NEW_VERTICAL_CHECKER },
-  { label: "Growth — Checker (New Vertical ile aynı kapsam, sadece onaylar)", value: ROLES.GROWTH_CHECKER },
-  { label: "Growth — Maker (New Vertical ile aynı kapsam, yayınlayamaz)", value: ROLES.GROWTH_MAKER },
+  {
+    label: { tr: "New Vertical — Exec Developer (Maker, tüm alanlar)", en: "New Vertical — Exec Developer (Maker, all areas)" },
+    value: ROLES.NEW_VERTICAL_MAKER,
+  },
+  {
+    label: { tr: "New Vertical — Exec Content (Checker, tüm alanlar)", en: "New Vertical — Exec Content (Checker, all areas)" },
+    value: ROLES.NEW_VERTICAL_CHECKER,
+  },
+  {
+    label: {
+      tr: "Growth — Checker (New Vertical ile aynı kapsam, sadece onaylar)",
+      en: "Growth — Checker (same scope as New Vertical, approves only)",
+    },
+    value: ROLES.GROWTH_CHECKER,
+  },
+  {
+    label: {
+      tr: "Growth — Maker (New Vertical ile aynı kapsam, yayınlayamaz)",
+      en: "Growth — Maker (same scope as New Vertical, cannot publish)",
+    },
+    value: ROLES.GROWTH_MAKER,
+  },
 ];
 
 const roleOf = (req: PayloadRequest): RoleValue | undefined => {

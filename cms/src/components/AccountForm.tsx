@@ -45,7 +45,7 @@ export default function AccountForm({ user }: { user: AccountUser }) {
   const [preferredLocale, setPreferredLocale] = useState(user.preferredLocale ?? "tr");
   const [savingLocale, setSavingLocale] = useState(false);
 
-  const roleLabel = ROLE_OPTIONS.find((opt) => opt.value === user.role)?.label ?? user.role ?? "—";
+  const roleLabel = ROLE_OPTIONS.find((opt) => opt.value === user.role)?.label[locale] ?? user.role ?? "—";
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

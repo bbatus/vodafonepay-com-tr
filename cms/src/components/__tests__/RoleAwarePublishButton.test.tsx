@@ -8,12 +8,14 @@ const mockUseAuth = vi.fn();
 const mockUseDocumentInfo = vi.fn();
 const mockSubmit = vi.fn();
 const mockUseFormModified = vi.fn();
+const mockFormFields = vi.fn(() => ({}) as Record<string, { value?: unknown }>);
 
 vi.mock("@payloadcms/ui", () => ({
   useTranslation: () => ({ i18n: { language: "tr" } }),
   useAuth: () => mockUseAuth(),
   useDocumentInfo: () => mockUseDocumentInfo(),
   useForm: () => ({ submit: mockSubmit }),
+  useFormFields: (sel: (a: [Record<string, { value?: unknown }>]) => unknown) => sel([mockFormFields()]),
   useFormModified: () => mockUseFormModified(),
   useLocale: () => ({ code: "tr" }),
   useConfig: () => ({ config: { routes: { api: "/api" } } }),
@@ -38,6 +40,7 @@ function baseDocInfo() {
 beforeEach(() => {
   mockSubmit.mockReset().mockResolvedValue(true);
   mockUseFormModified.mockReturnValue(false);
+  mockFormFields.mockReturnValue({});
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ totalDocs: 0 }) }));
   document.body.innerHTML = "";
 });
@@ -155,5 +158,33 @@ describe("RoleAwarePublishButton — a role that can publish", () => {
     render(<RoleAwarePublishButton />);
     const buttons = screen.getAllByRole("button");
     expect(buttons.some((b) => b.textContent?.match(/reject|reddet/i))).toBe(false);
+  });
+});
+
+describe("RoleAwarePublishButton — pending unpublish request", () => {
+  /**
+   * A Maker who had already asked for a live campaign to come down still saw
+   * "Yayından Kaldırma Talebi Oluştur" and could fire the same request again;
+   * the string written for this state was never wired up.
+   */
+  it("tells a Growth Maker their request is already with the Checker", async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 1, role: ROLES.GROWTH_MAKER } });
+    mockUseDocumentInfo.mockReturnValue(docInfo({ hasPublishedDoc: true }));
+    mockFormFields.mockReturnValue({ unpublishRequest: { value: "pending" } });
+
+    render(<RoleAwarePublishButton />);
+
+    expect(await screen.findByText("Yayından kaldırma talebiniz Checker onayında.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Yayından Kaldırma Talebi Oluştur/ })).not.toBeInTheDocument();
+  });
+
+  it("still offers the request action when none is pending", async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 1, role: ROLES.GROWTH_MAKER } });
+    mockUseDocumentInfo.mockReturnValue(docInfo({ hasPublishedDoc: true }));
+    mockFormFields.mockReturnValue({ unpublishRequest: { value: "none" } });
+
+    render(<RoleAwarePublishButton />);
+
+    expect(await screen.findByText("Yayından Kaldırma Talebi Oluştur")).toBeInTheDocument();
   });
 });

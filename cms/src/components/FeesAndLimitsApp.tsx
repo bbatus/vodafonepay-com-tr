@@ -5,6 +5,10 @@ import { useAuth, useDocumentDrawer } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
 import ReorderWidget from "./ReorderWidget";
+import { ROLES } from "@/access/roles";
+
+/** Mirrors ReorderWidget's own `canReorder` — kept next to it so the two cannot drift apart silently again. */
+const REORDER_ROLES = new Set<string>([ROLES.NEW_VERTICAL_MAKER, ROLES.NEW_VERTICAL_CHECKER, ROLES.GROWTH_CHECKER]);
 
 type FeeRow = { id: string | number; label: string; value: string; order: number; _status?: string };
 type LimitTable = { id: string | number; title: string; order: number; _status?: string; rows?: { category: string }[] };
@@ -67,6 +71,25 @@ function LimitTableRow({ lt, onSaved }: { lt: LimitTable; onSaved: () => void })
       </td>
       <td>{lt.order}</td>
     </tr>
+  );
+}
+
+/**
+ * ReorderWidget renders nothing for a role whose reorder PATCH would 403 (see
+ * its own `canReorder`). The heading above it was printed unconditionally, so
+ * a Growth Maker saw a "Sürükleyerek Sırala" section title with an empty page
+ * under it — found live 29.08.2026. Heading and widget now live or die
+ * together: same role check, one component.
+ */
+function ReorderSection({ collection, title, onSaved }: { collection: "fee-rows" | "limit-tables"; title: string; onSaved: () => void }) {
+  const { user } = useAuth();
+  const role = (user as { role?: string } | undefined)?.role;
+  if (!role || !REORDER_ROLES.has(role)) return null;
+  return (
+    <>
+      <h2 className="cm-section-title">{title}</h2>
+      <ReorderWidget collection={collection} onSaved={onSaved} />
+    </>
   );
 }
 
@@ -222,8 +245,7 @@ export default function FeesAndLimitsApp() {
             loadingLabel={t("contentManagement.loading")}
             emptyLabel={t("contentManagement.empty")}
           />
-          <h2 className="cm-section-title">{t("feesAndLimits.reorderTitle")}</h2>
-          <ReorderWidget collection="fee-rows" onSaved={refetch} />
+          <ReorderSection collection="fee-rows" title={t("feesAndLimits.reorderTitle")} onSaved={refetch} />
         </>
       )}
 
@@ -242,8 +264,7 @@ export default function FeesAndLimitsApp() {
             loadingLabel={t("contentManagement.loading")}
             emptyLabel={t("contentManagement.empty")}
           />
-          <h2 className="cm-section-title">{t("feesAndLimits.reorderTitle")}</h2>
-          <ReorderWidget collection="limit-tables" onSaved={refetch} />
+          <ReorderSection collection="limit-tables" title={t("feesAndLimits.reorderTitle")} onSaved={refetch} />
         </>
       )}
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useAuth, useConfig, useDocumentInfo, useForm, useFormModified, useLocale } from "@payloadcms/ui";
+import { useAuth, useConfig, useDocumentInfo, useForm, useFormFields, useFormModified, useLocale } from "@payloadcms/ui";
 import { formatAdminURL } from "payload/shared";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
@@ -99,6 +99,14 @@ export default function RoleAwarePublishButton() {
     useDocumentInfo();
   const { submit } = useForm();
   const modified = useFormModified();
+  // Found live 29.08.2026: a Growth Maker who had already asked for this
+  // campaign to be taken down still saw "Yayından Kaldırma Talebi Oluştur",
+  // even after a reload — nothing in the action area said the request had
+  // gone. They could fire the same request again and had no way to tell it
+  // had ever been sent (the state IS in the sidebar, but not where the button
+  // is). `roleAwarePublishButton.unpublishRequested` was written for exactly
+  // this and had never been wired to anything.
+  const unpublishRequest = useFormFields(([fields]) => fields?.unpublishRequest?.value as string | undefined);
   const { code: localeCode } = useLocale();
   const { config } = useConfig();
 
@@ -248,6 +256,9 @@ export default function RoleAwarePublishButton() {
 
   if (role === ROLES.GROWTH_MAKER && !isActiveDelegate) {
     if (hasPublishedDoc) {
+      if (unpublishRequest === "pending") {
+        return <div className="rapb-awaiting">{t.unpublishRequested}</div>;
+      }
       return (
         <LiveActions
           t={t}

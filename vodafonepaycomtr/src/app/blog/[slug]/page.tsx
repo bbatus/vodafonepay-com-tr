@@ -44,7 +44,7 @@ export default async function BlogYazisi({ params }: { params: Promise<{ slug: s
         description={richTextToPlainText(post.body, 160)}
         image={post.coverImage.url}
         path={`/blog/${post.slug}`}
-        publishedDate={post.publishedDate}
+        publishedDate={post.publishedDate ?? post.createdAt}
       />
       <BreadcrumbJsonLd current={post.title} path={`/blog/${post.slug}`} trail={[{ label: "Blog", href: "/blog" }]} />
 

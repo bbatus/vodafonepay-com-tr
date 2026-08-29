@@ -372,16 +372,25 @@ export default function ReorderWidget({
     : undefined;
   const { user } = useAuth();
   const role = (user as { role?: string } | undefined)?.role;
-  // Every collection this widget is wired into (see admin.components.beforeList
-  // in each collection config) uses newVerticalReadWrite for `update` — only
-  // NV Maker/Checker can actually write. Everyone else (Growth roles, who
-  // still land on these list pages because `read` is public/authenticated)
-  // used to see the same draggable list and could drag an item into a new
-  // position — the UI updated optimistically, but every PATCH the drag
-  // issued 403'd server-side, so the "reorder" silently never saved. Hiding
-  // the widget for roles with no real write access here is more honest than
-  // a control that visually works but does nothing.
-  const canReorder = role === ROLES.NEW_VERTICAL_MAKER || role === ROLES.NEW_VERTICAL_CHECKER;
+  // The rule this gate encodes: show the draggable list only to roles whose
+  // reorder PATCH will actually land. A control that visually works and
+  // silently never saves is worse than no control.
+  //
+  // It used to read `NEW_VERTICAL_MAKER || NEW_VERTICAL_CHECKER`, on the
+  // grounds that these collections were `newVerticalReadWrite` and Growth
+  // could not write them at all. **That stopped being true at the 28.08 role
+  // expansion** — faq-items, announcements, nav-links, categories and
+  // fee-rows all moved to `standardReadWrite`, which folds Growth in — and
+  // nobody revisited the gate, so the tool stayed hidden from the roles that
+  // had just been given the content. Verified on the running server (order
+  // PATCH on a published faq-item): Growth Checker → 200, Growth Maker → 403.
+  //
+  // So a Growth Checker gets it and a Growth Maker still does not, for a
+  // different reason than before: `denyMakerEditPublished` blocks a Maker from
+  // touching a published document at all, and reordering a live list is
+  // exactly that. Their drag really would 403.
+  const canReorder =
+    role === ROLES.NEW_VERTICAL_MAKER || role === ROLES.NEW_VERTICAL_CHECKER || role === ROLES.GROWTH_CHECKER;
 
   useEffect(() => {
     if (!canReorder || groupsFrom) return;

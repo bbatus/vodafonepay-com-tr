@@ -50,7 +50,21 @@ export const AuditLogs: CollectionConfig = {
   },
   fields: [
     { name: "userEmail", type: "text", required: true, label: { tr: "Kullanıcı", en: "User" } },
-    { name: "userRole", type: "text", label: { tr: "Rol", en: "Role" } },
+    {
+      name: "userRole",
+      type: "text",
+      label: { tr: "Rol", en: "Role" },
+      admin: {
+        // Walkthrough 29.08: this showed the bare slug (`growth_maker`) in an
+        // otherwise Turkish screen. The STORED value stays the slug on
+        // purpose — an audit record should keep the exact machine value, not a
+        // display string that can be reworded later — so the mapping is done
+        // at render time only, and falls back to the raw value for any role
+        // that is no longer in ROLE_OPTIONS (an old record must stay readable
+        // after a role is retired).
+        components: { Field: "/components/AuditRoleField#default" },
+      },
+    },
     {
       name: "action",
       type: "select",

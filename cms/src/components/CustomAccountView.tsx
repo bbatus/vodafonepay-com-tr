@@ -31,5 +31,9 @@ export default async function CustomAccountView(props: {
 
   if (!user) return null;
 
-  return <AccountForm user={user} />;
+  return (
+    <div className="cm-view-pad">
+      <AccountForm user={user} />
+    </div>
+  );
 }

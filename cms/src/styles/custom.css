@@ -384,8 +384,20 @@ a {
    styles. Kept as plain divs (not real Payload fields) since the values are
    genuinely non-editable — the .field-type/.field-label/.field-description
    classes just make them look consistent with the rest of the admin. */
+/*
+ * Walkthrough 29.08: both the account and feedback views are registered as
+ * full view replacements, so Payload wraps them in its template but adds no
+ * page gutter of its own — measured live, the first element sat at x=0, flush
+ * against the window edge, while every collection screen has ~60px. Padding on
+ * the form alone was not enough: each view's <h1> is a sibling of the form, so
+ * the heading stayed against the edge. `.cm-view-pad` wraps the whole view.
+ */
+.cm-view-pad {
+  padding: 2rem;
+}
+
 .account-form {
-  padding: 2rem 0;
+  padding: 0;
   max-width: 640px;
 }
 

@@ -38,8 +38,8 @@ const LABELS = {
   en: { turkish: "Turkish", english: "English", locked: "Locked", active: "Active" },
 };
 
-function roleLabel(role: string | undefined): string {
-  return ROLE_OPTIONS.find((opt) => opt.value === role)?.label ?? role ?? "";
+function roleLabel(role: string | undefined, locale: "tr" | "en"): string {
+  return ROLE_OPTIONS.find((opt) => opt.value === role)?.label[locale] ?? role ?? "";
 }
 
 function buildTable(docs: ExportUser[], locale: "tr" | "en"): CsvTable {
@@ -48,7 +48,7 @@ function buildTable(docs: ExportUser[], locale: "tr" | "en"): CsvTable {
     header: HEADER[locale],
     rows: docs.map((u) => [
       u.email ?? "",
-      roleLabel(u.role),
+      roleLabel(u.role, locale),
       u.preferredLocale === "en" ? L.english : L.turkish,
       // RFP feedback 5.6: lock state belongs in the export too, not just the list.
       u.lockUntil && new Date(u.lockUntil) > new Date() ? `${L.locked} (${formatDateTr(u.lockUntil)})` : L.active,

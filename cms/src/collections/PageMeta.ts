@@ -22,7 +22,10 @@ export const PageMeta: CollectionConfig = {
   admin: {
     hideAPIURL: true,
     useAsTitle: "pageKey",
-    defaultColumns: ["pageKey", "breadcrumbLabel", "seoTitle"],
+    // Walkthrough 29.08: every drafts-enabled collection needs `_status` in the
+    // default columns — without it a draft is indistinguishable from a live
+    // record in the list, which is the one thing the list has to tell you.
+    defaultColumns: ["pageKey", "breadcrumbLabel", "seoTitle", "_status"],
     group: { tr: "Site Yapısı", en: "Site Structure" },
     description: {
       tr: "Sayfa başına breadcrumb metni ve SEO alanları. pageKey, sitedeki route ile birebir eşleşmeli (örn: /aninda-bakiye).",
