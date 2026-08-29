@@ -1364,6 +1364,9 @@ export const Pages: CollectionConfig = {
       edit: {
         beforeDocumentControls: [{ path: "/components/HelpButton#default", clientProps: { collection: "pages" } }],
         PublishButton: "/components/MakerAwarePublishButton#default",
+        // Payload offers Unpublish only inside the ⋮ menu, which never renders
+        // for a Checker and 403s for a Maker — see HideMenuUnpublishButton.
+        UnpublishButton: "/components/HideMenuUnpublishButton#default",
         SaveDraftButton: "/components/SaveOrSubmitButton#default",
       },
     },

@@ -145,6 +145,14 @@ export default buildConfig({
   i18n: {
     supportedLanguages: { tr, en },
     fallbackLanguage: "tr",
+    // Payload's own Turkish for this key reads "Başarıyla yayınlanmadı." —
+    // which back-translates as "it was NOT successfully published", the
+    // opposite reassurance from the one an editor who just took a page down
+    // needs. Seen live 29.08 the first time a Checker used the new Unpublish
+    // control. Overriding one string rather than forking the language pack.
+    translations: {
+      tr: { version: { unpublishedSuccessfully: "Yayından kaldırıldı." } },
+    },
   },
   // RFP feedback 5.7 — CONTENT LOCALIZATION IS OFF, deliberately.
   //

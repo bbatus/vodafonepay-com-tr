@@ -206,6 +206,9 @@ export const Campaigns: CollectionConfig = {
       ],
       edit: {
         PublishButton: "/components/RoleAwarePublishButton#default",
+        // Payload offers Unpublish only inside the ⋮ menu, which never renders
+        // for a Checker and 403s for a Maker — see HideMenuUnpublishButton.
+        UnpublishButton: "/components/HideMenuUnpublishButton#default",
         SaveDraftButton: "/components/SaveOrSubmitButton#default",
       },
     },

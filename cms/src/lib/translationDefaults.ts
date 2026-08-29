@@ -67,6 +67,11 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
     tr: "Bu kampanya yayında. Düzenlemek için önce yayından kaldırılması gerekir — ilk oluşturulma tarihi ve listedeki sırası korunur.",
     en: "This campaign is live. It has to be taken off the air before it can be edited — its original creation date and list position are kept.",
   },
+  // MakerAwarePublishButton's own label — deliberately NOT reusing
+  // roleAwarePublishButton.unpublish ("Yayından Kaldır ve Düzenle"), which is
+  // Campaigns-specific: there, unpublishing is the step that unlocks editing a
+  // live campaign. Everywhere else it is just taking the record off the site.
+  "makerAwarePublishButton.unpublish": { tr: "Yayından Kaldır", en: "Unpublish" },
   "roleAwarePublishButton.unpublish": { tr: "Yayından Kaldır ve Düzenle", en: "Unpublish & Edit" },
   "roleAwarePublishButton.unpublishing": { tr: "İşleniyor…", en: "Working…" },
   "roleAwarePublishButton.requestUnpublish": { tr: "Yayından Kaldırma Talebi Oluştur", en: "Request Unpublish" },

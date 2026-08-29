@@ -932,3 +932,42 @@ bizde `ui-sans-serif` sızıntısı yok, canlıda SSS başlıklarında var. Böl
 karşılaştırma ekran görüntüsüyle değil, iki sitede aynı seçicilerden okunan
 hesaplanmış CSS değerleriyle yapıldı — tipografi/renk/ölçü için daha kesin,
 ama boşluk ve hizalama için piksel karşılaştırması hâlâ yapılmadı.
+
+### 29l. Checker artık yayından kaldırabiliyor (29i kapandı)
+
+29i'de "kalan iş" diye bıraktığım şey yapıldı. Bir düzeltmeyle: orada iki
+bağımsız sebep saymıştım, ikincisi yanlıştı. `UnpublishButton`'ın aradığı
+`typeof versions.drafts === "object"` koşulu bizde zaten sağlanıyor — Payload
+config sanitize'ında `drafts: true`'yu istemciye göndermeden önce nesneye
+çeviriyor (`collections/config/sanitize.js:164`). Yani 13 collection'da şema
+değişikliği gerekmedi; **tek engel ⋮ menüsüydü.**
+
+- [x] `MakerAwarePublishButton` artık Payload'ın kendi `UnpublishButton`'ını
+      Yayınla'nın yanında render ediyor. Sıfırdan yazmak yerine onunkini
+      kullanmak bilinçli: onay modalı, sürüm sayacı bakımı ve **minimal
+      `{_status:"draft"}` PATCH'i** onda hazır. Sonuncusu önemli — yayından
+      kaldırma, dokümanın başka bir yerindeki doğrulama hatasına takılmamalı;
+      `/aninda-bakiye` tam olarak öyle kilitlenmişti (29h). Bizim olan iki şey:
+      etiket (panelin dilinde) ve stil (`PopupList.Button` markup'ı bir dropdown
+      için yapılmış, `.mapb-unpublish` ile ikincil toolbar butonuna çevriliyor).
+- [x] **Turda çıkan yeni hata:** Maker'ın ⋮ menüsünde "Yayından Kaldır"
+      görünüyordu (create yetkisi olduğu için menü açılıyor, ve Payload
+      `hasPublishPermission`'ı sadece `update` erişiminden türetiyor). Tıklayınca
+      `denyMakerEditPublished` 403'ü geliyordu — mesajı da "önce bir Checker'dan
+      yayından kaldırmasını isteyin" diyordu, yani panel editöre yayından
+      kaldırma denemesine karşılık Checker'dan yayından kaldırmasını istemesini
+      söylüyordu. 14 collection'da `admin.components.edit.UnpublishButton`
+      → `HideMenuUnpublishButton` (hiçbir şey render etmiyor) ile menüden
+      kaldırıldı; kontrol tek yerde, tek kuralla toolbar'da.
+- [x] **Payload'ın Türkçesi düzeltildi.** `version:unpublishedSuccessfully`
+      için gelen çeviri "Başarıyla yayınlanmadı." — yani "başarıyla YAYINLANMADI",
+      az önce sayfayı indiren editöre verilecek güvencenin tam tersi. Dil
+      paketini fork etmek yerine `i18n.translations` ile tek anahtar ezildi:
+      "Yayından kaldırıldı."
+- [x] Tarayıcıda doğrulandı: Checker butonu görüyor → onay modalı → SSS kaydı
+      taslağa döndü ve `/sikca-sorulan-sorular` sayfasından düştü → geri
+      yayınlandı. Maker'da ne toolbar butonu ne de menü öğesi var; menüsünde
+      sadece "Yeni oluştur" ve "Çoğalt" kaldı. Kampanyalarda Checker kendi
+      "Yayından Kaldır ve Düzenle" akışını görüyor, mükerrer kontrol yok.
+- [x] `MakerAwarePublishButton.test.tsx` eklendi (4 test: Maker, Checker,
+      New Vertical Maker, aktif vekil). CMS 473/473.

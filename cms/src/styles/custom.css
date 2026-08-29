@@ -2090,3 +2090,47 @@ a {
 .payload-toast-item.toast-success .payload-toast-close-button:hover {
   color: #86efac;
 }
+
+/*
+ * MakerAwarePublishButton (29.08): Payload only offers Unpublish inside the
+ * document's ⋮ menu, and that menu never renders for a Growth Checker — it is
+ * gated on create-or-delete permission, which a Checker has neither of by
+ * design. The component lifts Payload's own UnpublishButton out of the menu
+ * and next to Publish; its markup is a `PopupList.Button` meant for a
+ * dropdown, so it needs the look of the secondary toolbar buttons around it.
+ * Matching .btn--style-secondary rather than copying its declarations by hand
+ * would mean reaching into Payload's own class names, which move between
+ * versions — these are our tokens, applied to their element.
+ */
+.mapb-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mapb-unpublish .popup-button-list__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-s);
+  background: transparent;
+  color: var(--theme-elevation-800);
+  font-size: 1rem;
+  line-height: 1.5;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.1s ease, border-color 0.1s ease;
+}
+
+.mapb-unpublish .popup-button-list__button:hover {
+  background: var(--theme-elevation-50);
+  border-color: var(--theme-elevation-250);
+}
+
+/* The wrapper renders nothing when UnpublishButton bows out (unpublished doc,
+   or no publish permission) — without this it would still eat the flex gap. */
+.mapb-unpublish:empty {
+  display: none;
+}

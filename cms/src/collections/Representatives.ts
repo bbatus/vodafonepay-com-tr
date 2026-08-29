@@ -24,6 +24,9 @@ export const Representatives: CollectionConfig = {
     components: {
       edit: {
         PublishButton: "/components/MakerAwarePublishButton#default",
+        // Payload offers Unpublish only inside the ⋮ menu, which never renders
+        // for a Checker and 403s for a Maker — see HideMenuUnpublishButton.
+        UnpublishButton: "/components/HideMenuUnpublishButton#default",
         SaveDraftButton: "/components/SaveOrSubmitButton#default",
       },
       beforeList: [{ path: "/components/HelpButton#default", clientProps: { collection: "representatives" } }],
