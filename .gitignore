@@ -48,3 +48,7 @@ next-env.d.ts
 
 # Local temp files
 temp/
+
+# SonarQube user token — generated once from the SonarQube UI, read by
+# scripts/sonar-scan.sh. Never committed.
+.sonar-token

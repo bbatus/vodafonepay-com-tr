@@ -20,8 +20,30 @@ TARGET="${1:-all}"
 SONAR_HOST_URL_LOCAL="http://localhost:9002"
 SONAR_HOST_URL_DOCKER="http://sonarqube:9000"
 
+# Token resolution, in order: an exported SONAR_TOKEN wins, otherwise read
+# .sonar-token at the repo root. That file is gitignored and exists so the
+# token is generated ONCE and every later scan just works — same reason
+# warm-cache.sh reads .env rather than making you remember a secret.
+REPO_ROOT_EARLY="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SONAR_TOKEN_FILE="${SONAR_TOKEN_FILE:-${REPO_ROOT_EARLY}/.sonar-token}"
+if [ -z "${SONAR_TOKEN:-}" ] && [ -f "$SONAR_TOKEN_FILE" ]; then
+  SONAR_TOKEN="$(tr -d ' \t\r\n' < "$SONAR_TOKEN_FILE")"
+fi
+
 if [ -z "${SONAR_TOKEN:-}" ]; then
-  echo "SONAR_TOKEN is not set. Generate one at ${SONAR_HOST_URL_LOCAL} (My Account > Security) and export it." >&2
+  cat >&2 <<MSG
+SONAR_TOKEN yok.
+
+Bir kereye mahsus:
+  1. ${SONAR_HOST_URL_LOCAL} adresine giris yapin
+  2. Sag ustteki avatar > My Account > Security
+  3. "Generate Tokens" altinda bir isim verip Generate'e basin (tur: User Token)
+  4. Uretilen degeri su dosyaya yapistirin (tek satir, baska hicbir sey):
+       ${SONAR_TOKEN_FILE}
+
+Bu dosya .gitignore'da — repoya girmez. Sonraki her taramada script onu
+kendisi okur, bir daha token sormaz.
+MSG
   exit 1
 fi
 
