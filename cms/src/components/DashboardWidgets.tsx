@@ -9,7 +9,7 @@ import {
 } from "@/lib/collectionLabels";
 import { loadDbStrings } from "@/lib/loadDbStrings";
 import { applyPlaceholder } from "@/lib/translationDefaults";
-import { loadOwnDrafts, loadPendingCampaigns, type OwnDraft } from "@/lib/campaignApprovals";
+import { loadOwnPendingDrafts, loadPendingApprovals, type ApprovalItem } from "@/lib/approvalQueue";
 import { IconCheckCircle, IconDraft, IconUsers } from "./DashboardIcons";
 
 type LoginEntry = {
@@ -185,13 +185,18 @@ export default async function DashboardWidgets({
   // "is there something to approve" — the generic content-summary cards
   // added nothing actionable. Straight-to-review list instead of stat cards.
   if (isCheckerRole) {
-    const pending = await loadPendingCampaigns(payload);
+    // 29.08: was `loadPendingCampaigns` — Campaigns and nothing else, so a
+    // Maker could send a page, an FAQ or a fee row for approval and it never
+    // appeared here. A Checker's queue is everything from every Maker across
+    // their whole scope.
+    const pending = await loadPendingApprovals(payload, collectionSlugs, locale);
     return (
       <div className="cm-dashboard-widgets">
         <div className="cm-widget">
           <p className="cm-widget__title">
             <IconCheckCircle />
             {t.reviewTitle}
+            {pending.length > 0 && <span className="cm-widget__title-sub">({pending.length})</span>}
           </p>
           <div className="card cm-widget__body">
             {pending.length === 0 ? (
@@ -200,11 +205,14 @@ export default async function DashboardWidgets({
               <table className="cm-widget-table">
                 <tbody>
                   {pending.map((p) => (
-                    <tr key={p.id}>
+                    <tr key={`${p.collectionSlug}-${p.id}`}>
+                      <td>
+                        <span className="cm-badge">{p.collectionLabel}</span>
+                      </td>
                       <td>{p.title}</td>
                       <td>{p.createdByEmail ? `${t.openedBy}: ${p.createdByEmail}` : ""}</td>
                       <td>
-                        <a href={`/admin/collections/campaigns/${p.id}`}>{t.reviewCta}</a>
+                        <a href={p.href}>{t.reviewCta}</a>
                       </td>
                     </tr>
                   ))}
@@ -225,12 +233,17 @@ export default async function DashboardWidgets({
   // D1: a Maker's own in-flight Campaigns drafts — pending review or sent
   // back rejected — surfaced directly instead of making them dig through
   // the Campaigns list to find what needs a resubmit.
-  const ownDrafts: OwnDraft[] = isMakerRole && user?.id ? await loadOwnDrafts(payload, user.id) : [];
+  // 29.08: was Campaigns-only too. A Maker's own in-flight work is whatever
+  // THEY submitted, in any collection they can reach — that is the list they
+  // need to know a Checker is sitting on, or that came back rejected.
+  const ownDrafts: ApprovalItem[] =
+    isMakerRole && user?.id ? await loadOwnPendingDrafts(payload, user.id, collectionSlugs, locale) : [];
   const ownDraftsWidget = isMakerRole ? (
     <div className="cm-widget">
       <p className="cm-widget__title">
         <IconDraft />
         {t.ownDraftsTitle}
+        {ownDrafts.length > 0 && <span className="cm-widget__title-sub">({ownDrafts.length})</span>}
       </p>
       <div className="card cm-widget__body">
         {ownDrafts.length === 0 ? (
@@ -239,13 +252,16 @@ export default async function DashboardWidgets({
           <table className="cm-widget-table">
             <tbody>
               {ownDrafts.map((d) => (
-                <tr key={d.id}>
+                <tr key={`${d.collectionSlug}-${d.id}`}>
+                  <td>
+                    <span className="cm-badge">{d.collectionLabel}</span>
+                  </td>
                   <td>{d.title}</td>
                   <td className={d.reviewStatus === "rejected" ? "cm-rejected" : undefined}>
                     {d.reviewStatus === "rejected" ? t.ownDraftsRejected : t.ownDraftsPending}
                   </td>
                   <td>
-                    <a href={`/admin/collections/campaigns/${d.id}`}>{t.editCta}</a>
+                    <a href={d.href}>{t.editCta}</a>
                   </td>
                 </tr>
               ))}

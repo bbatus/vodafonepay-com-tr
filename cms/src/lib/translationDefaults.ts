@@ -203,17 +203,20 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "dashboardWidgets.total": { tr: "kayıt", en: "records" },
   "dashboardWidgets.loginsTitle": { tr: "Son Giriş Yapanlar", en: "Recent Logins" },
   "dashboardWidgets.noLogins": { tr: "Henüz giriş kaydı yok.", en: "No login records yet." },
-  "dashboardWidgets.reviewTitle": { tr: "İncelemeni Bekleyen Kampanyalar", en: "Campaigns Awaiting Your Review" },
+  // 29.08: was "…Bekleyen Kampanyalar" / "Campaigns Awaiting…" back when the
+  // queue really was Campaigns-only. It now covers every collection in the
+  // role's scope, so a title naming one of them would be misleading.
+  "dashboardWidgets.reviewTitle": { tr: "Onayınızı Bekleyen İçerikler", en: "Content Awaiting Your Approval" },
   "dashboardWidgets.reviewEmpty": {
-    tr: "Şu an incelemeni bekleyen bir kampanya yok.",
-    en: "Nothing is waiting for your review right now.",
+    tr: "Şu an onayınızı bekleyen içerik yok.",
+    en: "Nothing is waiting for your approval right now.",
   },
   "dashboardWidgets.reviewCta": { tr: "İncele →", en: "Review →" },
   "dashboardWidgets.ip": { tr: "IP", en: "IP" },
   "dashboardWidgets.distinctUsers": { tr: "farklı kullanıcı", en: "distinct users" },
   "dashboardWidgets.openedBy": { tr: "Açan kullanıcı", en: "Opened by" },
-  "dashboardWidgets.ownDraftsTitle": { tr: "Taslaklarınız", en: "Your Drafts" },
-  "dashboardWidgets.ownDraftsEmpty": { tr: "Şu anda incelemede veya reddedilmiş taslağınız yok.", en: "You have no drafts currently pending or rejected." },
+  "dashboardWidgets.ownDraftsTitle": { tr: "Onaya Gönderdikleriniz", en: "Your Submissions" },
+  "dashboardWidgets.ownDraftsEmpty": { tr: "Onay bekleyen veya reddedilmiş bir içeriğiniz yok.", en: "You have nothing pending approval or sent back." },
   "dashboardWidgets.ownDraftsPending": { tr: "İncelemede", en: "Pending review" },
   "dashboardWidgets.ownDraftsRejected": { tr: "Reddedildi", en: "Rejected" },
   "dashboardWidgets.editCta": { tr: "Düzenle →", en: "Edit →" },
