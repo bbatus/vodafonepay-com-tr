@@ -171,12 +171,14 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
     tr: "Ödemenin Akıllı Hali — İçerik Yönetim Paneli",
     en: "The Smart Way to Pay — Content Management Panel",
   },
-  // RFP feedback 5.10: the user liked "One platform for all your need" and asked
-  // for a subheadline that names vodafonepay.com.tr concretely. TR and EN are
-  // written separately on purpose — a literal translation of either reads
-  // stilted in the other language, so each says the same thing in its own
-  // idiom rather than mirroring word for word.
-  "loginBrandPanel.headline": { tr: "Sitenizin tek kumanda merkezi.", en: "One platform for all your need." },
+  // RFP feedback 5.10, revised 29.08: "tek kumanda merkezi" read as flat,
+  // industrial copy for a login screen — replaced with a line that says what
+  // actually happens here (the live site takes its shape from this panel)
+  // instead of naming the product category. TR and EN are written separately
+  // on purpose — a literal translation of either reads stilted in the other
+  // language, so each says the same thing in its own idiom rather than
+  // mirroring word for word.
+  "loginBrandPanel.headline": { tr: "vodafonepay.com.tr burada şekilleniyor.", en: "This is where vodafonepay.com.tr takes shape." },
   "loginBrandPanel.subheadline": {
     tr: "vodafonepay.com.tr'deki kampanyaları, sayfaları, duyuruları ve SSS'leri tek yerden yönetin. Onay akışı, roller ve denetim kaydı kutudan çıkar — ne göç, ne bağımlılık.",
     en: "Run every campaign, page, announcement and FAQ on vodafonepay.com.tr from one place. Approval workflows, roles and audit trails come built in — no migration, no lock-in.",

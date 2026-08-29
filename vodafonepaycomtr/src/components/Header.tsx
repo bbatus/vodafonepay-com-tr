@@ -5,18 +5,11 @@ import type { NavLink } from "@/types/homepage";
 /**
  * RFP feedback 5.0 (fallback masking audit) — KEPT DELIBERATELY.
  *
- * Checked against the live DB: NavLinks has ZERO rows, so unlike the
- * FAQ/announcement/campaign fallbacks removed in that round, this array is not
- * dead code that only fires on an outage — it IS what the header currently
- * renders. Deleting it would blank a working menu rather than reveal a masked
- * failure.
- *
- * As of the `showInProductsMenu` change a Page can now feed this menu itself,
- * so the exit condition is no longer "seed NavLinks" specifically: this array
- * stops being reachable the moment EITHER source has a row (see the merge
- * below). Delete it once the five product entries exist in the CMS — three are
- * already Pages documents, the remaining two (/faturana-yansit,
- * /vodafone-pay-kart) are still hand-written routes and need NavLinks rows.
+ * NavLinks(header-products/header-main) and Pages(showInProductsMenu) are all
+ * seeded and published now (29.08 migration), so this array is dead in normal
+ * operation — same status as Footer's `fallbackColumns`. It stays for the same
+ * reason: a safety net if that data ever comes back genuinely empty (an outage,
+ * a bad migration), not padding for missing content.
  */
 const fallbackProductLinks: NavLink[] = [
   { label: "Vodafone Pay Uygulaması", href: "/vodafone-pay-uygulama" },
