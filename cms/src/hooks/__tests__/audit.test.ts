@@ -7,6 +7,8 @@ import {
   auditExportEndpoint,
   auditForbiddenAttempt,
   auditGlobalAfterChange,
+  auditRoleChange,
+  diffFields,
   writeAuditLog,
 } from "@/hooks/audit";
 
@@ -185,5 +187,108 @@ describe("auditForbiddenAttempt", () => {
       collection: { slug: "campaigns" },
     } as never);
     expect(create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ summary: expect.stringContaining("silme") }) }));
+  });
+});
+
+/**
+ * `diffFields` is what puts the "Değişiklikler" before/after panel on an audit
+ * record — RFP §7.2's "before/after image of the data that was changed". It
+ * was the largest untested piece of this file at the 29.08 coverage run, and
+ * it is exactly the kind of code where a silent regression is invisible: a
+ * broken diff still renders a perfectly plausible-looking empty panel.
+ */
+describe("diffFields", () => {
+  it("reports only the fields that actually changed", () => {
+    const diffs = diffFields({ title: "Eski", order: 3, body: "aynı" }, { title: "Yeni", order: 3, body: "aynı" });
+    expect(diffs).toEqual([{ field: "title", before: "Eski", after: "Yeni" }]);
+  });
+
+  it("records a field that appears or disappears, not just one that is edited", () => {
+    expect(diffFields({ deeplink: undefined }, { deeplink: "/kampanyalar" })).toEqual([
+      { field: "deeplink", before: "—", after: "/kampanyalar" },
+    ]);
+    expect(diffFields({ deeplink: "/kampanyalar" }, { deeplink: null })).toEqual([
+      { field: "deeplink", before: "/kampanyalar", after: "null" },
+    ]);
+  });
+
+  it("skips the bookkeeping fields every save touches", () => {
+    const diffs = diffFields(
+      { updatedAt: "2026-08-28T00:00:00.000Z", title: "A" },
+      { updatedAt: "2026-08-29T00:00:00.000Z", title: "A" }
+    );
+    expect(diffs).toEqual([]);
+  });
+
+  it("compares structurally, so a reordered object is not a change but a real edit is", () => {
+    expect(diffFields({ meta: { a: 1, b: 2 } }, { meta: { a: 1, b: 2 } })).toEqual([]);
+    expect(diffFields({ meta: { a: 1 } }, { meta: { a: 2 } })).toHaveLength(1);
+  });
+
+  /** A rich-text body diffed in full would bloat every single save's audit row. */
+  it("truncates a very long value instead of storing all of it", () => {
+    const long = "x".repeat(500);
+    const [diff] = diffFields({ body: "kısa" }, { body: long });
+    expect(diff.after.endsWith("…")).toBe(true);
+    expect(diff.after.length).toBeLessThan(long.length);
+  });
+
+  it("treats a missing before or after as nothing to diff", () => {
+    expect(diffFields(null, { title: "A" })).toEqual([]);
+    expect(diffFields({ title: "A" }, undefined)).toEqual([]);
+    expect(diffFields(undefined, undefined)).toEqual([]);
+  });
+});
+
+/**
+ * A role change is the one Users edit with real security weight, and without
+ * this hook it lands in the log as a generic "users: X güncellendi" — the same
+ * line an avatar upload produces. (Roles are LDAP/AccessPoint-managed and the
+ * field is read-only in the panel, so this fires for out-of-band changes,
+ * which is precisely when an auditor needs to find it.)
+ */
+describe("auditRoleChange", () => {
+  const run = (args: { operation: string; doc: unknown; previousDoc?: unknown }) => {
+    const { req, create } = fakeReq({ user: { email: "admin@vodafonepay.local" } });
+    return auditRoleChange({ req, ...args } as never).then(() => create);
+  };
+
+  it("writes a dedicated entry naming both the old and the new role", async () => {
+    const create = await run({
+      operation: "update",
+      previousDoc: { role: "growth_maker" },
+      doc: { id: 12, email: "ece.boran@vodafone.com", role: "growth_checker" },
+    });
+    expect(create).toHaveBeenCalledTimes(1);
+    const entry = create.mock.calls[0][0].data;
+    expect(entry.action).toBe("role_changed");
+    expect(entry.collectionSlug).toBe("users");
+    expect(entry.documentId).toBe("12");
+    expect(entry.summary).toContain("ece.boran@vodafone.com");
+    expect(entry.summary).toContain("growth_maker");
+    expect(entry.summary).toContain("growth_checker");
+  });
+
+  it("stays quiet when the role did not change", async () => {
+    const create = await run({
+      operation: "update",
+      previousDoc: { role: "growth_maker" },
+      doc: { id: 12, email: "e@v.com", role: "growth_maker" },
+    });
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("stays quiet on create — that is the general hook's job, not this one", async () => {
+    const create = await run({ operation: "create", doc: { id: 1, role: "growth_maker" } });
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the id when the account has no email yet", async () => {
+    const create = await run({
+      operation: "update",
+      previousDoc: { role: undefined },
+      doc: { id: 99, role: "growth_maker" },
+    });
+    expect(create.mock.calls[0][0].data.summary).toContain("99");
   });
 });
