@@ -134,14 +134,25 @@ export const FaqItems: CollectionConfig = {
       // replacement for it — the existing "Anasayfa" category stays exactly
       // what it is (its own tab on /sikca-sorulan-sorular), this just adds
       // "...and also show it on /".
+      //
+      // Follow-up 30.08, found by the user: as of a real `anasayfa` Pages
+      // document existing and being published, this checkbox is a SAFETY NET,
+      // not a live control. `getHomepageFaqItems()` (which reads this flag)
+      // is only ever called from `page.tsx`'s CMS-unreachable fallback
+      // branch — the same class of trap AGENTS.md already documents for
+      // `ContentBlocks`/`stepPhones` (a real caller that stopped being the
+      // one actually reached the day a Pages document took over). The
+      // description below says so explicitly so an editor checking this box
+      // isn't misled into thinking it changes the current live homepage —
+      // that's the `anasayfa` Page's own SSS Bloğu (Kategori seçimi).
       name: "showOnHomepage",
       type: "checkbox",
       defaultValue: false,
       label: { tr: "Anasayfada Göster", en: "Show on Homepage" },
       admin: {
         description: {
-          tr: "İşaretlenirse bu soru, kendi kategorisine ek olarak anasayfadaki SSS bloğunda da görünür.",
-          en: "If checked, this question also appears in the homepage's FAQ block, in addition to its own category.",
+          tr: "Şu an canlı anasayfayı ETKİLEMİYOR — anasayfadaki SSS bölümü, Sayfalar'daki 'Anasayfa' kaydının kendi SSS Bloğu (Kategori seçimiyle) tarafından yönetiliyor. Bu kutu sadece o Sayfa kaydı silinir/yayından kalkarsa devreye giren bir yedek gösterimdir.",
+          en: "Does NOT affect the current live homepage — the homepage's FAQ section is controlled by the 'Anasayfa' Page record's own FAQ Block (its Category pick). This checkbox only takes over as a fallback if that Page record is ever deleted or unpublished.",
         },
       },
     },

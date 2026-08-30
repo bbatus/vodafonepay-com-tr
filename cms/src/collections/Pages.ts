@@ -241,18 +241,7 @@ const FaqListBlock: Block = {
       label: { tr: "Kategori", en: "Category" },
       type: "text",
       validate: categoryExistsValidate(CATEGORY_SCOPES.FAQ),
-      admin: {
-        description: {
-          tr: "Sadece BELİRLİ bir kategorideki soruları göstermek için Kategoriler koleksiyonundaki (Akış: Sık Sorulanlar) o kategorinin slug'ını yazın, örn: kampanyalar. Boş bırakılırsa SSS akışındaki TÜM sorular gelir.",
-          en: "To show questions from only ONE SPECIFIC category, enter that category's slug from the Categories collection (Flow: FAQ), e.g.: kampanyalar. If left empty, ALL questions in the FAQ flow are shown.",
-        },
-      },
-    },
-    {
-      name: "categoryHint",
-      label: { tr: "Kategori İpucu", en: "Category Hint" },
-      type: "ui",
-      admin: { components: { Field: { path: "/components/CategorySlugHint#default", clientProps: { scope: "faq" } } } },
+      admin: { components: { Field: { path: "/components/CategorySlugSelect#default", clientProps: { scope: "faq" } } } },
     },
   ],
 };
@@ -287,18 +276,7 @@ const CampaignGridBlock: Block = {
       label: { tr: "Kategori", en: "Category" },
       type: "text",
       validate: categoryExistsValidate(CATEGORY_SCOPES.CAMPAIGN),
-      admin: {
-        description: {
-          tr: "Sadece BELİRLİ bir kategorideki kampanyaları göstermek için Kategoriler koleksiyonundaki (Akış: Kampanyalar) o kategorinin slug'ını yazın, örn: kart. Boş bırakılırsa TÜM aktif kampanyalar gelir.",
-          en: "To show campaigns from only ONE SPECIFIC category, enter that category's slug from the Categories collection (Flow: Campaigns), e.g.: kart. If left empty, ALL active campaigns are shown.",
-        },
-      },
-    },
-    {
-      name: "categoryHint",
-      label: { tr: "Kategori İpucu", en: "Category Hint" },
-      type: "ui",
-      admin: { components: { Field: { path: "/components/CategorySlugHint#default", clientProps: { scope: "campaign" } } } },
+      admin: { components: { Field: { path: "/components/CategorySlugSelect#default", clientProps: { scope: "campaign" } } } },
     },
   ],
 };
@@ -807,18 +785,7 @@ const BlogGridBlock: Block = {
       label: { tr: "Kategori", en: "Category" },
       type: "text",
       validate: categoryExistsValidate(CATEGORY_SCOPES.BLOG),
-      admin: {
-        description: {
-          tr: "Sadece BELİRLİ bir kategorideki yazıları göstermek için Kategoriler koleksiyonundaki (Akış: Blog) o kategorinin slug'ını yazın, örn: haberler. Boş bırakılırsa TÜM yazılar gelir.",
-          en: "To show only ONE category's posts, enter that category's slug from the Categories collection (Flow: Blog), e.g.: haberler. Leave empty for ALL posts.",
-        },
-      },
-    },
-    {
-      name: "categoryHint",
-      label: { tr: "Kategori İpucu", en: "Category Hint" },
-      type: "ui",
-      admin: { components: { Field: { path: "/components/CategorySlugHint#default", clientProps: { scope: "blog" } } } },
+      admin: { components: { Field: { path: "/components/CategorySlugSelect#default", clientProps: { scope: "blog" } } } },
     },
   ],
 };
