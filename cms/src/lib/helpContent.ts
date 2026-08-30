@@ -19,6 +19,28 @@ export type HelpEntry = {
 };
 
 export const HELP_CONTENT: Record<string, HelpEntry> = {
+  categories: {
+    tr: {
+      title: "Kategoriler",
+      steps: [
+        "Bir kategori önce 'Akış' seçimiyle başlar: Kampanyalar, Blog veya Sık Sorulanlar. Bu, kategorinin HANGİ içerik türünün picker'ında görüneceğini belirler — üçü birbirine karışmaz.",
+        "'Akış'ı seçtiğinizde altta o akıştaki mevcut kategorilerin listesi çıkar — aynı ismi tekrar açmadan önce kontrol edin.",
+        "'slug' başlıktan otomatik türetilir ve benzersizliği sadece kendi Akışı içinde kontrol edilir (örn. Kampanyalar'da 'kart' ile SSS'te 'kart' aynı anda var olabilir, farklı taxonomilerdir).",
+        "Diğer koleksiyonlarda (Campaigns/BlogPosts/FaqItems) bir kaydın kategorisini seçerken picker sadece o kaydın Akışına ait kategorileri gösterir.",
+        "Taslak/onay akışı diğer koleksiyonlarla aynı: taslağı siz oluşturur/düzenlersiniz, bir Checker yayınlar.",
+      ],
+    },
+    en: {
+      title: "Categories",
+      steps: [
+        "A category starts with a 'Flow' choice: Campaigns, Blog, or FAQ. This decides WHICH content type's picker the category shows up in — the three never mix.",
+        "Once you pick a Flow, the list of existing categories in that Flow appears below — check it before creating a duplicate name.",
+        "'slug' is auto-derived from the title and only checked for uniqueness WITHIN its own Flow (e.g. 'kart' can exist in both Campaigns and FAQ at once — they're separate taxonomies).",
+        "When picking a category on another collection (Campaigns/BlogPosts/FaqItems), the picker only shows categories from that record's own Flow.",
+        "Same draft/approval flow as everywhere else: you create/edit the draft, a Checker publishes it.",
+      ],
+    },
+  },
   users: {
     tr: {
       title: "Kullanıcılar",
@@ -200,7 +222,7 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
       title: "Sayfalar (Sayfa Kurucu) — baştan sona nasıl yapılır",
       steps: [
         "1) Başlık girin (örn. 'Kurumsal'). URL (slug) başlıktan otomatik türetilir, siz elle yazmazsınız.",
-        "2) 'Layout' bölümünde '+ Layout Ekle'ye basıp bir blok seçin — her blok sayfanın bir bölümü demektir, istediğiniz kadar ekleyip sürükleyerek sırasını değiştirebilirsiniz. 10 blok var: Hero (en üstteki büyük başlık+görsel afişi), Metin (biçimlendirilmiş yazı), SSS (Kategoriler'deki soruları otomatik listeler), Kampanya Grid (Campaigns'teki kampanyaları kart olarak listeler), Video (tek YouTube videosu), Logo Grid (marka/ortak logoları vitrini), İkonlu Kartlar (ikon+başlık+kısa açıklama, 3'lü kart — 'özellikler/faydalar' anlatımı için), Adım Listesi (numaralı 'nasıl yapılır' adımları, görselli), Görsel + Metin Slayt (kaydırmalı görsel/metin vitrini), Çoklu Video (sekmeli, birden fazla video). Her bloğu eklediğinizde, içindeki her alanın altında ne yazmanız gerektiğini açıklayan bir not var.",
+        "2) 'Layout' bölümünde '+ Layout Ekle'ye basıp bir blok seçin — her blok sayfanın bir bölümü demektir, istediğiniz kadar ekleyip sürükleyerek sırasını değiştirebilirsiniz. 16 blok var (Hero, Metin, SSS, Kampanya Grid, Video, Logo Grid, İkonlu Kartlar, Adım Listesi, Görsel+Metin Slayt, Çoklu Video, Görsel+Adımlı Anlatım, Görsel+Metin, Ücret/Limit Tabloları, Blog Grid, Öne Çıkan Özellikler, Profil/Ekip Grid'i dahil) — hangisini ne zaman kullanacağınızın tam listesi, her birinin canlıda nasıl göründüğünü gösteren küçük bir örnek görselle birlikte, '+ Layout Ekle' ekranındaki kartların üzerinde. Her bloğu eklediğinizde, içindeki her alanın altında ne yazmanız gerektiğini açıklayan bir not var.",
         "3) SEO alanlarını (Seo Title, Seo Description, Og Image) doldurun — arama sonuçlarında ve link paylaşımlarında bunlar görünür. Boş bırakırsanız sayfa Başlığı kullanılır.",
         "4) 'ÜRÜNLER' MENÜSÜNDE GÖSTERMEK — sağdaki kenar çubuğunda ''Ürünler' Menüsünde Göster' kutusunu işaretleyin, yeter. Sayfa yayınlandığında header'daki 'Ürünler' açılır menüsünde otomatik çıkar; başka koleksiyona gitmeniz veya adresi elle yazmanız gerekmez. İsteğe bağlı iki alan: 'Menüde Görünecek İsim' (boş bırakırsanız sayfanın Başlığı kullanılır) ve 'Menüdeki Sırası' (boş bırakırsanız sona eklenir). Not: 'Görünürlük' Gizli ise sayfa menüde de çıkmaz.",
         "4b) DİĞER MENÜLER (Ana Menü, Footer) — bunlar hâlâ ayrı yönetiliyor: sol menüden 'Menü Linkleri' (NavLinks) koleksiyonuna gidin → 'Yeni oluştur' → Label alanına menüde görünecek yazıyı yazın → Href alanına başında / olacak şekilde bu sayfanın adresini yazın (örn. sayfanızın slug'ı 'kurumsal' ise: /kurumsal) → Section alanından NEREDE görüneceğini seçin (Header — Ana Menü / Footer — Kurumsal / Footer — Yasal) → kaydedin. Kod veya deploy gerekmez.",
@@ -213,7 +235,7 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
       title: "Pages (Page Builder) — start to finish",
       steps: [
         "1) Enter a Title (e.g. 'Kurumsal'). The URL (slug) is auto-derived from it — you never type it by hand.",
-        "2) In the 'Layout' section, click '+ Add Layout' and pick a block — each block is one section of the page; add as many as you like and drag to reorder. There are 10: Hero (the big headline+image banner at the top), Rich Text (formatted copy), FAQ (auto-lists questions from a Category), Campaign Grid (auto-lists campaigns from Campaigns), Video (a single YouTube video), Logo Grid (a partner/brand logo showcase), Icon Cards (icon+title+short text, a 3-card 'features/benefits' layout), Steps (numbered 'how to' steps with an image each), Image + Text Slides (a scrollable image/text showcase), Multi Video (tabbed, more than one video). Every field inside a block has a note under it explaining what to put there.",
+        "2) In the 'Layout' section, click '+ Add Layout' and pick a block — each block is one section of the page; add as many as you like and drag to reorder. There are 16 (Hero, Rich Text, FAQ, Campaign Grid, Video, Logo Grid, Icon Cards, Steps, Image + Text Slides, Multi Video, Image + Step Story, Image + Text, Prices and Limits, Blog Grid, Feature Highlights, Profile Grid among them) — the full list of which to use when, each with a small preview image of what it looks like live, is on the cards in the '+ Add Layout' screen itself. Every field inside a block has a note under it explaining what to put there.",
         "3) Fill in the SEO fields (Seo Title, Seo Description, Og Image) — these show up in search results and link previews. Leave blank to fall back to the page Title.",
         "4) SHOWING IT IN THE 'ÜRÜNLER' MENU — just tick the 'Show in the 'Products' Menu' checkbox in the right-hand sidebar. Once the page is published it appears in the header's 'Products' dropdown automatically; no second collection, no hand-typed address. Two optional fields go with it: 'Label in the Menu' (defaults to the page Title) and 'Position in the Menu' (defaults to the end). Note: a page whose Visibility is Private never shows in the menu.",
         "4b) OTHER MENUS (Main Menu, Footer) — still managed separately: go to 'Menü Linkleri' (NavLinks) in the sidebar → 'Create new' → set Label to the menu text → set Href to this page's address starting with / (e.g. if your page's slug is 'kurumsal': /kurumsal) → pick a Section for WHERE it shows (Header — Ana Menü / Footer — Kurumsal / Footer — Yasal) → save. No code, no deploy.",

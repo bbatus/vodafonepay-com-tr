@@ -1733,6 +1733,153 @@ a {
 }
 
 /* ---------------------------------------------------------------------
+   In-app usage guide / wiki (GuideApp.tsx)
+--------------------------------------------------------------------- */
+
+.guide {
+  max-width: 52rem;
+}
+
+.guide__toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-s);
+}
+
+.guide__toc-link {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--vf-red);
+  text-decoration: none;
+}
+
+.guide__toc-link:hover {
+  text-decoration: underline;
+}
+
+.guide__section {
+  margin: 0 0 2rem;
+}
+
+.guide__section-title {
+  font-size: 1.125rem;
+  margin: 0 0 0.75rem;
+}
+
+.guide__section p {
+  font-size: 0.875rem;
+  color: var(--theme-elevation-600);
+  line-height: 1.5;
+  margin: 0 0 0.75rem;
+}
+
+.guide__role-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.guide__role {
+  padding: 0.75rem 1rem;
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-s);
+}
+
+.guide__role--mine {
+  border-color: var(--vf-red);
+}
+
+.guide__role-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guide__role-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--vf-red);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+
+.guide__role-summary {
+  font-size: 0.8125rem;
+  color: var(--theme-elevation-500);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.guide__group {
+  margin: 0 0 1.25rem;
+}
+
+.guide__group-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--theme-elevation-450);
+  margin: 0 0 0.5rem;
+}
+
+.guide__collection-list {
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.guide__collection {
+  display: grid;
+  grid-template-columns: 10rem 1fr;
+  gap: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--theme-elevation-100);
+}
+
+.guide__collection dt {
+  font-weight: 600;
+  color: var(--theme-elevation-800);
+}
+
+.guide__collection dd {
+  margin: 0;
+  color: var(--theme-elevation-500);
+  line-height: 1.4;
+}
+
+.guide__stuck-list {
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+  display: grid;
+  gap: 0.6rem;
+  font-size: 0.875rem;
+  color: var(--theme-elevation-600);
+  line-height: 1.5;
+}
+
+@media (max-width: 40rem) {
+  .guide__collection {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+}
+
+/* ---------------------------------------------------------------------
    Auto-slug sidebar field (AutoSlugField.tsx)
 --------------------------------------------------------------------- */
 

@@ -1110,21 +1110,49 @@ sırayla cms adminde hem rolleri tanıtarak başlayan hem loginle başlayan
 kullanıcı sıkışırsa napacağını hangi collection'da neler yapabileceğini ekran
 görüntüleriyle içeren bir docs yapabiliriz kullanım amaçlı."
 
-- [ ] Yeni bir admin view (`admin.components.views` altında, R-10 gereği
-      `importMap.js`'e elle eklenecek) — ör. `/admin/rehber` veya
-      `/admin/kilavuz`.
-- [ ] İçerik iskeleti: giriş/login → rol tanıtımı (4 rol, ne yapabilir/
-      yapamaz) → dashboard'un okunuşu → koleksiyon bazlı kısa rehberler
-      (her koleksiyon: ne işe yarar, kim düzenleyebilir, taslak→onay akışı
-      nasıl işler) → "sıkıştım, ne yapmalıyım" bölümü (kilit hesap, red
-      sebebi göremiyorum, yayından kaldırma nasıl istenir vb.).
-- [ ] Ekran görüntüleri: gerçek admin ekranlarından alınacak (tarayıcı
-      araçlarıyla), CMS'in kendi görsel deposuna (Media/MinIO) değil, statik
-      dosya olarak bileşenin içine gömülecek.
-- [ ] tr/en — `useAdminLocale()`/`useDbStrings()` deseni (AGENTS.md kuralı).
-- [ ] Sidebar'a link eklenecek (hangi grup altına — kullanıcıyla netleşecek,
-      muhtemelen "Sistem").
-- [ ] Testler + tarayıcıda canlı doğrulama.
+- [x] Yeni admin view: `/admin/guide` (`GuideView.tsx` + `GuideApp.tsx`),
+      `payload.config.ts`'e `views.guide` + `afterNavLinks` girişi olarak
+      eklendi. `npm run generate:importmap` ile üretildi (R-10 sayesinde elle
+      düzenlemeye gerek kalmadı).
+- [x] İçerik iskeleti tam istenen sırayla: Başlarken (login) → Rolünüz Ne
+      Yapabilir (4 rol) → Dashboard'u Okumak → Koleksiyon Rehberi → Sıkıştım
+      Ne Yapmalıyım. Anchor'lı bir "İçindekiler" üstte sabit duruyor.
+- [x] **Karar (kullanıcıya gerekçeyle):** gerçek piksel ekran görüntüsü
+      YOK. Elimdeki tarayıcı araçları bir ekran görüntüsünü dosyaya kaydedip
+      bileşene gömecek bir yol vermiyor (sadece sohbet içinde görüntülüyor).
+      Onun yerine her bölüm, tam buton metni/sidebar grup adı gibi somut
+      referanslarla yazıldı ("toolbar'daki 'Yayından Kaldır' butonu" gibi) —
+      bu ayrıca bir arayüz küçük bir detay değiştiğinde piksel görüntünün
+      bayatlaması riskini de ortadan kaldırıyor. Gerçek ekran görüntüsü
+      istenirse `GuideApp.tsx` eklenecek dosya.
+- [x] **İçerik neredeyse tamamen mevcut, zaten doğrulanmış kaynaklardan
+      derlendi, sıfırdan yazılmadı** — Rol bölümü `getRoleDirectory()`'den
+      (Erişim Matrisi'nin de kullandığı gerçek RFP rol özetleri), Koleksiyon
+      Rehberi `HELP_CONTENT`'ten (her koleksiyonun kendi '?' butonunun
+      kullandığı içerik) besleniyor. Bu, iki yüzeyin birbirinden
+      kopmasını yapısal olarak imkansız hale getiriyor.
+- [x] **Bu sırada bulunan 2 küçük bayat içerik düzeltildi:** `helpContent.ts`
+      Sayfalar rehberi hâlâ "10 blok var" diyordu (gerçek sayı 16, blok
+      kütüphanesi item 25'te büyüdü) — güncellendi. `Categories.ts`'in kendi
+      yorumu "Deliberately New-Vertical-only (not Growth-scoped)" diyordu —
+      28.08'den beri yanlış (Growth artık `standardCreate` ile erişiyor);
+      düzeltildi. Ayrıca `HELP_CONTENT`'te eksik olan tek koleksiyon
+      (`categories`) eklendi — `HelpButton`'ın kendisi de artık orada
+      içerik gösteriyor.
+- [x] tr/en — `useAdminLocale()` + local `STRINGS` map deseni (rol
+      özetleri/koleksiyon içerikleri zaten kendi kaynaklarından iki dilli
+      geliyor).
+- [x] Sidebar: "Sistem" grubunda, Erişim Matrisi'nin hemen altında "Nasıl
+      Kullanılır?" linki.
+- [x] Testler: `GuideApp.test.tsx` (5 test — tüm bölümler render oluyor,
+      4 rolün tamamı listeleniyor, sadece giriş yapan kullanıcının kendi
+      rolü "Siz" rozetiyle işaretleniyor, tanınmayan rolde rozet çıkmıyor,
+      koleksiyon rehberi gruplanmış şekilde render oluyor). CMS 536/536,
+      tsc/eslint temiz.
+- [x] Canlı doğrulama: `docker compose up -d --build cms`, `/admin/guide`
+      hem Growth Maker (ece.boran, "Growth — Maker" kartı "Siz" rozetli)
+      hem Growth Checker (mert.sarihan, "Growth — Checker" kartı "Siz"
+      rozetli) olarak tarayıcıda gezildi.
 
 ## 34. CMS admin ekranlarına loading/skeleton state + mikro-etkileşim
 

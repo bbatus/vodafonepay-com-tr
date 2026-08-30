@@ -263,6 +263,10 @@ export default buildConfig({
         },
         {
           path: "/components/GroupedNavLink#default",
+          clientProps: { href: "/admin/guide", labelKey: "guide.navLabel", groupNames: ["Sistem", "System"] },
+        },
+        {
+          path: "/components/GroupedNavLink#default",
           clientProps: {
             href: "/admin/fees-and-limits",
             labelKey: "feesAndLimits.navLabel",
@@ -298,6 +302,13 @@ export default buildConfig({
         accessMatrix: {
           Component: "/components/AccessMatrixView#default",
           path: "/access-matrix",
+        },
+        // 30.08: in-panel onboarding wiki — login/roles/dashboard/collection
+        // guide/troubleshooting, built from the same data the Access Matrix
+        // and each collection's own "?" button already use. See GuideApp.tsx.
+        guide: {
+          Component: "/components/GuideView#default",
+          path: "/guide",
         },
         // Follow-up 25.08: one-way "tell us what's awkward" form — see
         // collections/Feedback.ts for why nothing can read it back.

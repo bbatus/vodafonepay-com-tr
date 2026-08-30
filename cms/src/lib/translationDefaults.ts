@@ -411,6 +411,8 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "auditLogsCefExport.error": { tr: "CEF dosyası indirilemedi.", en: "Couldn't download CEF file." },
   "accessMatrix.navLabel": { tr: "Erişim Matrisi", en: "Access Matrix" },
   "accessMatrix.title": { tr: "Kullanıcı Erişim Matrisi", en: "User Access Matrix" },
+  "guide.navLabel": { tr: "Nasıl Kullanılır?", en: "How to Use This" },
+  "guide.title": { tr: "Nasıl Kullanılır?", en: "How to Use This" },
   "accessMatrix.intro": {
     tr: "Her rolün her koleksiyonda ne yapabildiğini gösteren tablo — görüntüle/oluştur/düzenle/yayınla/sil. access/roles.ts'teki gerçek yetki mantığından üretilir; ikisi ayrışamaz.",
     en: "What each role can do in each collection — view/create/update/publish/delete. Generated from the same permission logic in access/roles.ts, so the two can't drift apart.",

@@ -45,9 +45,10 @@ export const generateSlug: CollectionBeforeValidateHook = async ({ data, operati
  * or rename a category without a developer. This is a real, editable
  * collection instead; Campaigns.category is a relationship to it.
  *
- * Deliberately New-Vertical-only (not Growth-scoped): a category is
- * taxonomy shared across the whole site, not campaign content — same
- * reasoning as every other structural collection Growth doesn't touch.
+ * Growth-scoped since the 28.08 role expansion (`standardCreate`/
+ * `standardReadWrite`, same as every other standard-shape collection) — the
+ * comment here used to say "New-Vertical-only", which stopped being true
+ * that day and nobody came back to fix it.
  *
  * `scope` (added when FaqItems.category joined this collection, then split
  * again when BlogPosts got its own scope) keeps the three flows from
