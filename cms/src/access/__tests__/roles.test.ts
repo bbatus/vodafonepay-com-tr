@@ -164,16 +164,29 @@ describe("standardCreate / standardReadWrite / standardDelete", () => {
 });
 
 describe("denyMakerEditPublished", () => {
-  const call = (role: string | undefined, operation: string, status: string | undefined) =>
+  const call = (role: string | undefined, operation: string, status: string | undefined, draftQuery = false) =>
     denyMakerEditPublished({
       data: {},
       operation,
       originalDoc: status ? { _status: status } : {},
-      req: reqWithRole(role),
+      // Payload's REST handler coerces `?draft=true` to the boolean `true`
+      // in place before any hook runs (see denyMakerEditPublished's doc
+      // comment) — the mock mirrors that, not the raw query string.
+      req: { user: role ? { role } : undefined, query: draftQuery ? { draft: true } : {} },
     } as never);
 
-  it("throws when GROWTH_MAKER updates an already-published document", async () => {
+  it("throws when GROWTH_MAKER directly writes to an already-published document (no ?draft=true)", async () => {
     await expect(call(ROLES.GROWTH_MAKER, "update", "published")).rejects.toThrow();
+  });
+
+  /**
+   * Follow-up 30.08: the panel's own Save/"Onaya Gönder" action always sends
+   * `?draft=true` — verified live that this creates a pending version without
+   * touching the live document, so it's the one case that should be let
+   * through instead of forcing every edit through an unpublish-first flow.
+   */
+  it("allows GROWTH_MAKER to queue an edit via the safe ?draft=true save path", async () => {
+    await expect(call(ROLES.GROWTH_MAKER, "update", "published", true)).resolves.not.toThrow();
   });
 
   it("allows GROWTH_MAKER to update its own draft", async () => {

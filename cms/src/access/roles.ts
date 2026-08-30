@@ -242,28 +242,52 @@ export const standardDelete: Access = (args) => {
 
 /**
  * The other half of Growth's segregation of duties, alongside
- * `denyMakerPublish`: that hook only owns the draft→published TRANSITION,
- * so on its own a Growth Maker could still edit a document that was
- * already published and stays published (a publication-neutral save) —
- * silently bypassing the checker entirely. Campaigns closes this with its
- * own bespoke `guardPublishedEdit` (unpublish-request flow, emergency
- * `forceLiveEdit` escape hatch, `reviewStatus` tracking); replicating that
- * whole system on every other collection would mean copying its field set
- * and UI everywhere. This is the deliberately simpler version for
- * everything else: a Growth Maker may never touch an already-published
- * document at all, full stop — they ask a Checker (or New Vertical) to
- * unpublish it first, exactly like every other role already can via the
- * normal draft toggle.
+ * `denyMakerPublish`: that hook only owns the draft→published TRANSITION, so
+ * on its own a Growth Maker could still directly overwrite a document that's
+ * currently live — silently bypassing the checker entirely.
+ *
+ * Follow-up 30.08, from the user: the first version of this hook blocked
+ * EVERY update to a published document, including the panel's own normal
+ * "save a draft" action — a Growth Maker who wanted to fix a typo on a live
+ * FAQ answer, say, had no way to even queue that edit for review; they had
+ * to go ask a Checker to take the whole thing offline first, just to open
+ * the door to editing it. Verified live (30.08) that this was stricter than
+ * it needed to be: Payload's own draft-save request — the `?draft=true`
+ * query param the panel's Save/"Onaya Gönder" button always sends alongside
+ * `_status: "draft"` — creates a new PENDING VERSION without touching the
+ * live document at all. The base row's content and `_status` stay exactly
+ * as published; only an authenticated `?draft=true` read (what the Checker's
+ * review screen uses) sees the new edit. A request WITHOUT that query param
+ * is a different, genuinely dangerous case: it writes straight to the live
+ * row, no version, no review — confirmed live it changes the public site's
+ * content immediately. So the two are told apart by that one query param,
+ * and only the second (direct-write) case is still blocked.
+ *
+ * (This reads `req.query.draft`, which arrives here as the boolean `true` —
+ * not the string `"true"` the browser actually sent. Payload's own REST
+ * handler (`updateByIDHandler`) runs `parseParams(req.query)` before any
+ * hook sees the request, and `parseParams` coerces known boolean params
+ * IN PLACE on that same query object (confirmed by reading
+ * `payload/dist/utilities/parseParams/index.js` — `parsedParams = params ||
+ * {}` is the identical object, not a copy). A `=== "true"` check here
+ * silently never matched; caught by testing this live as a real Growth
+ * Maker; the debug throw briefly reprinted this file's own
+ * `JSON.stringify(req.query)` to confirm the type. Populated for the REST
+ * calls every real caller here uses — the admin UI and the fetch-based seed
+ * scripts. A future Local API call passing `{ draft: true }` as an option
+ * rather than a real HTTP query string would still hit the strict branch;
+ * none of this codebase's current call sites do that.)
  */
 export const denyMakerEditPublished: CollectionBeforeChangeHook = async ({ data, operation, originalDoc, req }) => {
   if (operation !== "update" || originalDoc?._status !== "published") return data;
   if (roleOf(req) !== ROLES.GROWTH_MAKER) return data;
+  if (req.query?.draft === true) return data;
 
   const isEnglish = req.i18n?.language === "en";
   throw new APIError(
     isEnglish
-      ? "You can't edit a published record — ask a Checker to unpublish it first."
-      : "Yayındaki bir kaydı düzenleyemezsiniz — önce bir Checker'dan yayından kaldırmasını isteyin.",
+      ? "This request would edit the live record directly instead of queuing it for review — use the panel's normal save action."
+      : "Bu istek yayındaki kaydı incelemeye göndermek yerine doğrudan değiştirir — panelin normal kaydetme eylemini kullanın.",
     403,
     undefined,
     true

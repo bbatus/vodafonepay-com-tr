@@ -120,21 +120,52 @@ export const guardPublishedEdit: CollectionBeforeChangeHook = async ({ data, ope
   }
 
   if (goingToDraft) {
-    if (!role || !CAN_UNPUBLISH.has(role)) {
-      throw new APIError(
-        isEnglish
-          ? "You can't take a published campaign off the air yourself — request it and a Checker will approve."
-          : "Yayındaki bir kampanyayı kendiniz yayından kaldıramazsınız — talep oluşturun, bir Checker onaylasın.",
-        403,
-        undefined,
-        true
-      );
+    /**
+     * Follow-up 30.08, from the user: this branch used to treat every
+     * `_status: "draft"` update the same way — an unpublish, gated to
+     * CAN_UNPUBLISH — which meant a Growth Maker had no way to even queue an
+     * edit to a live campaign; they had to ask a Checker to take it fully
+     * offline first just to open the door to editing it.
+     *
+     * Payload's own stock "Save Draft" button (still rendered here — only
+     * the Publish area is replaced by RoleAwarePublishButton, see this
+     * collection's `admin.components.edit`) sends `?draft=true` alongside
+     * `_status: "draft"`. Verified live: that combination creates a new
+     * PENDING VERSION without touching the live document at all — the base
+     * row's fields and `_status` stay exactly as published, only an
+     * authenticated `?draft=true` read (the Checker's review screen) sees
+     * the new edit. RoleAwarePublishButton's real unpublish action
+     * (`doUnpublish`) deliberately does NOT send that query param — it's
+     * the one case that's still meant to take the campaign down immediately
+     * — so the query param is what tells the two apart.
+     *
+     * The value here is the boolean `true`, not the string `"true"` — see
+     * `denyMakerEditPublished`'s doc comment in access/roles.ts for why
+     * (Payload's REST handler coerces it in place before any hook runs).
+     */
+    const isSafeDraftSave = req.query?.draft === true;
+    if (!isSafeDraftSave) {
+      if (!role || !CAN_UNPUBLISH.has(role)) {
+        throw new APIError(
+          isEnglish
+            ? "You can't take a published campaign off the air yourself — request it and a Checker will approve."
+            : "Yayındaki bir kampanyayı kendiniz yayından kaldıramazsınız — talep oluşturun, bir Checker onaylasın.",
+          403,
+          undefined,
+          true
+        );
+      }
+      // Unpublishing puts it back into the normal review cycle and clears the
+      // request that asked for it.
+      data.unpublishRequest = "none";
+      data.unpublishRequestedBy = null;
+      data.unpublishRequestedAt = null;
+      data.reviewStatus = "pending";
+      return data;
     }
-    // Unpublishing puts it back into the normal review cycle and clears the
-    // request that asked for it.
-    data.unpublishRequest = "none";
-    data.unpublishRequestedBy = null;
-    data.unpublishRequestedAt = null;
+    // Safe path: queue the edit for review, leave the live campaign alone.
+    // Marked pending same as the real unpublish above so it surfaces in the
+    // Checker's approval queue either way.
     data.reviewStatus = "pending";
     return data;
   }

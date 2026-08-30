@@ -18,22 +18,30 @@ import { ROLES } from "@/access/roles";
  */
 const PUBLISHED = { id: 1, _status: "published", title: "Yaz Kampanyası", description: "eski", featured: false };
 
-function req(role: string | undefined, language: "tr" | "en" = "tr") {
+function req(role: string | undefined, language: "tr" | "en" = "tr", draftQuery = false) {
   return {
     user: role ? { role } : undefined,
     i18n: { language },
+    // Payload's REST handler coerces `?draft=true` to the boolean `true` in
+    // place before any hook runs — the mock mirrors that, not the raw string.
+    query: draftQuery ? { draft: true } : {},
     // The emergency path writes an audit entry; stub just enough for it.
     payload: { create: vi.fn().mockResolvedValue({}) },
     headers: { get: () => undefined },
   } as unknown as PayloadRequest;
 }
 
-const run = (data: Record<string, unknown>, role: string | undefined, originalDoc: Record<string, unknown> = PUBLISHED) =>
+const run = (
+  data: Record<string, unknown>,
+  role: string | undefined,
+  originalDoc: Record<string, unknown> = PUBLISHED,
+  draftQuery = false
+) =>
   guardPublishedEdit({
     data,
     operation: "update",
     originalDoc,
-    req: req(role),
+    req: req(role, "tr", draftQuery),
     collection: {} as never,
     context: {},
   } as never);
@@ -65,6 +73,36 @@ describe("guardPublishedEdit", () => {
 
   it("stops a Growth Maker unpublishing on its own — it can only request", async () => {
     await expect(run({ ...PUBLISHED, _status: "draft" }, ROLES.GROWTH_MAKER)).rejects.toThrow(/talep/i);
+  });
+
+  /**
+   * Follow-up 30.08, from the user: a Growth Maker had no way to queue an
+   * edit to a live campaign at all — every `_status: "draft"` write was
+   * treated as an unpublish attempt and blocked. Payload's own stock "Save
+   * Draft" button sends `?draft=true`, which (verified live) creates a
+   * pending version without touching the live campaign — so that query
+   * param, not the role, is what should gate this path.
+   */
+  it("lets a Growth Maker queue an edit via the safe ?draft=true save, without touching the live campaign", async () => {
+    const data = (await run({ ...PUBLISHED, description: "onaya gönderildi", _status: "draft" }, ROLES.GROWTH_MAKER, PUBLISHED, true)) as Record<
+      string,
+      unknown
+    >;
+    expect(data._status).toBe("draft");
+    expect(data.reviewStatus).toBe("pending");
+  });
+
+  it("still requires ?draft=true even for roles that can unpublish — no query param means a direct unpublish, not a queued save", async () => {
+    // Sanity check on the other side of the same branch: CAN_UNPUBLISH roles
+    // hitting the safe path behave the same way a Growth Maker does — the
+    // campaign isn't unpublished, unpublishRequest bookkeeping isn't touched.
+    const data = (await run(
+      { ...PUBLISHED, description: "onaya gönderildi", _status: "draft" },
+      ROLES.NEW_VERTICAL_CHECKER,
+      PUBLISHED,
+      true
+    )) as Record<string, unknown>;
+    expect(data.unpublishRequest).toBeUndefined();
   });
 
   it("does not interfere with a draft campaign", async () => {
