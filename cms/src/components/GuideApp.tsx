@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { getRoleDirectory } from "@/lib/rolePermissions";
@@ -51,7 +52,7 @@ const STRINGS = {
       "Altındaki 'Site Sayfaları' tablosu sitenin GERÇEK URL'lerinin tam listesidir (statik rotalar + CMS sayfaları + kampanya/blog gibi dinamik sayfalar) — bir adres satırına tıklamak sizi canlı sayfaya götürür, yeni sekmede açılır.",
     collectionsTitle: "Koleksiyon Rehberi",
     collectionsIntro:
-      "Aşağıda, panelde göreceğiniz her bölümün kısa bir özeti var — daha ayrıntılısı için o koleksiyonun kendi ekranındaki '?' butonuna bakın (varsa, aynı içerik orada da açılır).",
+      "Solda panelin sidebar'ındaki gruplamayla birebir aynı liste var — birine tıklayın, o koleksiyonda baştan sona ne yapacağınızı adım adım gösterelim. Aynı adımlar, o koleksiyonun kendi ekranındaki '?' butonunda da açılır.",
     stuckTitle: "Sıkıştım, Ne Yapmalıyım?",
     stuckLocked:
       "Hesabım kilitlendi (5 başarısız girişten sonra 15 dakika) — kendi kendinize açamazsınız. Bir New Vertical Maker, Kullanıcılar listesinde ilgili hesabı açıp 'Hesap Kilidini Aç' ile açabilir.",
@@ -93,7 +94,7 @@ const STRINGS = {
       "The 'Site Pages' table below it is the real, full list of the site's URLs (static routes + CMS pages + dynamic pages like campaigns/blog) — clicking an address opens the live page in a new tab.",
     collectionsTitle: "Collection Guide",
     collectionsIntro:
-      "A short summary of every section you'll see in the panel — for more detail, use that collection's own '?' button (where one exists, it shows the same content).",
+      "The list on the left matches the panel's own sidebar grouping exactly — pick one and we'll walk through it step by step, start to finish. The same steps also open from that collection's own '?' button.",
     stuckTitle: "Stuck? What Do I Do?",
     stuckLocked:
       "My account got locked (5 failed logins locks it for 15 minutes) — you can't unlock yourself. A New Vertical Maker can unlock the account from the Users list with 'Unlock Account'.",
@@ -138,12 +139,17 @@ function Section({ id, title, children }: { id: string; title: string; children:
   );
 }
 
+/** First collection (in group order) that actually has HELP_CONTENT — what opens by default. */
+const FIRST_DOCUMENTED_SLUG = GROUPS.flatMap((g) => g.slugs).find((slug) => HELP_CONTENT[slug]) ?? GROUPS[0].slugs[0];
+
 export default function GuideApp() {
   const locale = useAdminLocale();
   const t = STRINGS[locale];
   const { user } = useAuth();
   const myRole = (user as { role?: string } | undefined)?.role;
   const roles = getRoleDirectory();
+  const [activeSlug, setActiveSlug] = useState(FIRST_DOCUMENTED_SLUG);
+  const activeHelp = HELP_CONTENT[activeSlug];
 
   const toc = [
     ["getting-started", t.tocGettingStarted],
@@ -195,24 +201,43 @@ export default function GuideApp() {
 
       <Section id="collections" title={t.collectionsTitle}>
         <p>{t.collectionsIntro}</p>
-        {GROUPS.map((group) => (
-          <div key={group.key} className="guide__group">
-            <h3 className="guide__group-title">{group.label[locale]}</h3>
-            <dl className="guide__collection-list">
-              {group.slugs.map((slug) => {
-                const help = HELP_CONTENT[slug];
-                const label = COLLECTION_LABELS[slug]?.[locale] ?? slug;
-                if (!help) return null;
-                return (
-                  <div key={slug} className="guide__collection">
-                    <dt>{label}</dt>
-                    <dd>{help[locale].steps[0]}</dd>
-                  </div>
-                );
-              })}
-            </dl>
-          </div>
-        ))}
+        <div className="guide__collections-layout">
+          <nav className="guide__nav" aria-label={locale === "tr" ? "Koleksiyonlar" : "Collections"}>
+            {GROUPS.map((group) => (
+              <div key={group.key} className="guide__nav-group">
+                <p className="guide__group-title">{group.label[locale]}</p>
+                <ul className="guide__nav-list">
+                  {group.slugs.map((slug) => {
+                    if (!HELP_CONTENT[slug]) return null;
+                    const label = COLLECTION_LABELS[slug]?.[locale] ?? slug;
+                    return (
+                      <li key={slug}>
+                        <button
+                          type="button"
+                          className={`guide__nav-button${slug === activeSlug ? " guide__nav-button--active" : ""}`}
+                          aria-current={slug === activeSlug ? "page" : undefined}
+                          onClick={() => setActiveSlug(slug)}
+                        >
+                          {label}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </nav>
+          {activeHelp && (
+            <article className="guide__detail">
+              <h3 className="guide__detail-title">{activeHelp[locale].title}</h3>
+              <ol className="guide__detail-steps">
+                {activeHelp[locale].steps.map((step, i) => (
+                  <li key={i}>{step}</li>
+                ))}
+              </ol>
+            </article>
+          )}
+        </div>
       </Section>
 
       <Section id="stuck" title={t.stuckTitle}>

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { ROLES } from "@/access/roles";
 import { HELP_CONTENT } from "@/lib/helpContent";
 import GuideApp from "@/components/GuideApp";
@@ -43,14 +43,32 @@ describe("GuideApp", () => {
     expect(screen.queryByText("Siz")).not.toBeInTheDocument();
   });
 
-  it("renders a first-step summary for every collection that has HELP_CONTENT, grouped by sidebar section", () => {
+  it("lists every collection that has HELP_CONTENT as a nav button, grouped by sidebar section", () => {
     mockRole = ROLES.GROWTH_MAKER;
     render(<GuideApp />);
     expect(screen.getByText("İçerik Yönetimi")).toBeInTheDocument();
     expect(screen.getByText("Site Yapısı")).toBeInTheDocument();
     expect(screen.getByText("Sistem")).toBeInTheDocument();
-    expect(screen.getByText("Kategoriler")).toBeInTheDocument();
-    expect(screen.getByText(HELP_CONTENT.categories.tr.steps[0])).toBeInTheDocument();
-    expect(screen.getByText("Denetim Kayıtları")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Kategoriler" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Denetim Kayıtları" })).toBeInTheDocument();
+  });
+
+  it("opens on the first documented collection, with its FULL step-by-step written out, not just a summary", () => {
+    render(<GuideApp />);
+    expect(screen.getByRole("heading", { name: HELP_CONTENT.categories.tr.title })).toBeInTheDocument();
+    for (const step of HELP_CONTENT.categories.tr.steps) {
+      expect(screen.getByText(step)).toBeInTheDocument();
+    }
+    // A collection not currently selected shows only in the nav, not its steps.
+    expect(screen.queryByText(HELP_CONTENT.pages.tr.steps[0])).not.toBeInTheDocument();
+  });
+
+  it("switches the detail pane to whichever collection is clicked", () => {
+    render(<GuideApp />);
+    fireEvent.click(screen.getByRole("button", { name: "Sayfalar" }));
+    expect(screen.getByRole("heading", { name: HELP_CONTENT.pages.tr.title })).toBeInTheDocument();
+    expect(screen.getByText(HELP_CONTENT.pages.tr.steps[0])).toBeInTheDocument();
+    expect(screen.queryByText(HELP_CONTENT.categories.tr.steps[0])).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sayfalar" })).toHaveAttribute("aria-current", "page");
   });
 });

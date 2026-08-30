@@ -1154,6 +1154,49 @@ görüntüleriyle içeren bir docs yapabiliriz kullanım amaçlı."
       hem Growth Checker (mert.sarihan, "Growth — Checker" kartı "Siz"
       rozetli) olarak tarayıcıda gezildi.
 
+### 33b. Zenginleştirme — "sayfa sayfa" koleksiyon rehberi (30.08.2026, ikinci tur)
+
+**İstek:** "madde 33 ü biraz daha zenginleştirir misin her collection için
+daha detaylı adım adım sayfa sayfa bir yapı olabilir."
+
+Koleksiyon Rehberi'ndeki tek satırlık özet listesi (`dt`/`dd`, sadece
+`steps[0]`), soldan koleksiyon seçilen — sağda o koleksiyonun TÜM adımlarının
+numaralı olarak açıldığı bir düzenle değiştirildi (sidebar'ın kendi
+gruplamasıyla birebir aynı nav). Panelin sidebar'ı gibi, ama panel içinde.
+
+- [x] `GuideApp.tsx`: `useState` ile seçili koleksiyon; nav soldan tıklanınca
+      sağdaki `<article>` o koleksiyonun `HELP_CONTENT[slug][locale].title` +
+      TÜM `steps[]` dizisini numaralı liste olarak gösteriyor. Varsayılan
+      açılan: gruplardaki ilk `HELP_CONTENT`'i olan koleksiyon (Kategoriler).
+- [x] CSS: `.guide__collections-layout` (14rem nav + esnek detay paneli,
+      `position: sticky` nav), aktif buton kırmızı vurgulu
+      (`rgba(230,0,0,0.08)` + `--vf-red` metin). 44rem altında nav yatay
+      sarmalı listeye dönüyor (dar ekranda da kullanılabilir).
+- [x] Testler güncellendi/eklendi: artık nav buton olarak render olduğunu
+      doğruluyor (`getByRole("button")`), varsayılan seçilinin TÜM adımlarını
+      gösterdiğini (sadece özet değil) ve seçili OLMAYAN bir koleksiyonun
+      adımlarının görünmediğini, tıklayınca detay panelinin değiştiğini
+      (`aria-current="page"` dahil) doğruluyor. CMS 557/557.
+- [x] **Canlı doğrulamada bulunan gerçek bir altyapı hatası:** ilk
+      `docker compose up -d --build cms` görünürde başarılı bitti (build
+      loglarında hata yok, sonradan "exit 0" bile raporlandı) ama container
+      **yeniden oluşturulmadı** — Compose "Recreate" değil "Running" dedi,
+      yani `latest` tag'i aynı kaldığı için imaj gerçekten değişse bile
+      container'ı hiç yeniden başlatmadı, tarayıcı hâlâ eski kodu
+      görüyordu. `docker compose up -d --force-recreate cms` ile düzeltildi.
+      **Bu proje için ders:** `up -d --build` tek başına yeterli DEĞİL,
+      imaj gerçekten değiştiğinde `--force-recreate` de eklenmeli — aksi
+      halde "rebuild ettim ama site güncellenmedi" diye görünen bir sorun
+      sessizce ortaya çıkabilir.
+- [x] Canlı doğrulama: `force-recreate` sonrası `/admin/guide`'da yeni
+      düzen doğrulandı; "Kategoriler" varsayılan açık (5 adım tam görünür),
+      "Sayfalar"a tıklayınca detay paneli 7 adımlı "Sayfalar (Sayfa
+      Kurucu)..." içeriğine değişti, aktif buton vurgusu doğru koleksiyona
+      geçti. (Not: tarayıcı otomasyon aracının `ref` bazlı tıklaması bu
+      sayfada sticky nav + scroll etkileşiminde bir kere yanlış hedefe
+      tıkladı — gerçek bir React state hatası değildi, doğrudan DOM
+      `click()` ile doğrulanarak netleştirildi.)
+
 ## 34. CMS admin ekranlarına loading/skeleton state + mikro-etkileşim
 
 **İstek:** "Loading/skeleton state, animasyon, mikro-etkileşim... bunları

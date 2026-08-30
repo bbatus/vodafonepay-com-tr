@@ -1872,10 +1872,6 @@ a {
   margin: 0;
 }
 
-.guide__group {
-  margin: 0 0 1.25rem;
-}
-
 .guide__group-title {
   font-size: 0.8125rem;
   font-weight: 700;
@@ -1885,30 +1881,90 @@ a {
   margin: 0 0 0.5rem;
 }
 
-.guide__collection-list {
+/* Collection guide: a sidebar-shaped nav on the left, the selected
+   collection's full step-by-step written out on the right — each
+   collection reads like its own page, not one line in a long list. */
+.guide__collections-layout {
+  display: grid;
+  grid-template-columns: 14rem 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.guide__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  position: sticky;
+  top: 1rem;
+}
+
+.guide__nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.guide__nav-list {
   margin: 0;
-  display: grid;
-  gap: 0.5rem;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
-.guide__collection {
-  display: grid;
-  grid-template-columns: 10rem 1fr;
-  gap: 0.5rem 1rem;
+.guide__nav-button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: var(--style-radius-s);
+  background: none;
+  color: var(--theme-elevation-600);
   font-size: 0.8125rem;
-  padding: 0.35rem 0;
-  border-bottom: 1px solid var(--theme-elevation-100);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
 }
 
-.guide__collection dt {
-  font-weight: 600;
+.guide__nav-button:hover {
+  background: var(--theme-elevation-50);
   color: var(--theme-elevation-800);
 }
 
-.guide__collection dd {
+.guide__nav-button--active {
+  background: rgba(230, 0, 0, 0.08);
+  color: var(--vf-red);
+  font-weight: 600;
+}
+
+.guide__detail {
+  min-width: 0;
+  padding: 1.1rem 1.25rem 1.35rem;
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-s);
+}
+
+.guide__detail-title {
+  font-size: 1rem;
+  margin: 0 0 0.9rem;
+}
+
+.guide__detail-steps {
   margin: 0;
-  color: var(--theme-elevation-500);
-  line-height: 1.4;
+  padding: 0 0 0 1.15rem;
+  display: grid;
+  gap: 0.65rem;
+  font-size: 0.875rem;
+  color: var(--theme-elevation-600);
+  line-height: 1.55;
+}
+
+.guide__detail-steps li::marker {
+  color: var(--vf-red);
+  font-weight: 600;
 }
 
 .guide__stuck-list {
@@ -1921,10 +1977,15 @@ a {
   line-height: 1.5;
 }
 
-@media (max-width: 40rem) {
-  .guide__collection {
+@media (max-width: 44rem) {
+  .guide__collections-layout {
     grid-template-columns: 1fr;
-    gap: 0.15rem;
+  }
+  .guide__nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1.5rem;
   }
 }
 
