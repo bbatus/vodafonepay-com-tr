@@ -977,7 +977,9 @@ değişikliği gerekmedi; **tek engel ⋮ menüsüydü.**
 # Görev Listesi — 30.08.2026 turu (PoC hazırlığı)
 
 29.08'de yapılan genel değerlendirmenin ("neyi iyi yaptık, ne eksik, PoC'yi
-neyin etkileyeceği") sonucunda kullanıcının onayladığı 6 maddelik paket.
+neyin etkileyeceği") sonucunda kullanıcının onayladığı 6 maddelik paket
+(madde 32-36) + PROJECT-OVERVIEW.md'yi güncellerken bulunan acil bir canlı
+bug'ın kaydı (madde 30).
 Gözlemlenebilirlik (Sentry/APM) OpenShift'e taşınma planına bırakıldığı için
 bu turun kapsamı dışında bırakıldı — bilinçli, dokunulmadı.
 
@@ -987,7 +989,43 @@ sonra docs'un beslediği wiki route'u, sonra görsel/UX cilası, en son
 dashboard + diyagram (ikisi de görünürlük/anlatım işi, önceki maddelere bağlı
 değil).
 
-## 30. Docs/ klasörü konsolidasyonu
+## 30. ACİL — canlıda 404 veren "Vodafone Pay Uygulaması" sayfası kurtarıldı
+
+**Nasıl bulundu:** Madde 31'i yazarken (PROJECT-OVERVIEW.md'yi güncel duruma göre
+yeniden yazmak için route yapısını doğrularken) `pages` tablosunda id sırası
+7 → 9 diye atlıyordu. id 8, `vodafone-pay-uygulama` slug'ının kendisiydi —
+19.08'deki pilot göçle (`docs/STATUS.md` §2.10) CMS'e taşınmıştı, ama hiçbir
+audit-log kaydı ve `_pages_v` satırı olmadan bir noktada silinmiş (API dışı
+bir yoldan — muhtemelen erken bir SQL script). Header'ın "Ürünler" menüsündeki
+NavLinks satırı (pozisyon 1, yayında) hâlâ `/vodafone-pay-uygulama`'ya
+gidiyordu — **her ziyaretçi menüyü açıp ilk ürünü tıkladığında 404 alıyordu.**
+Sayfanın Category'si (`vodafone-pay-uygulama` SSS scope'u) ve o kategoriye
+bağlı FAQ'ler de sayfayla birlikte silinmiş; bunlar DB-only içerikti, git'te
+hiç yoktu, **kurtarılamaz.**
+
+- [x] Kurtarılabilir gerçek içerik (hero başlığı/görseli + 3 "Nasıl
+      Kazanırım" adımı) `a0d65bf~1`'deki son CMS-öncesi commit'ten alındı —
+      uydurma değil, sayfanın gerçek eski kopyası.
+      `scripts/recover-vodafone-pay-uygulama-30-08.mjs` (idempotent) 5 görseli
+      yükledi, Maker taslağı açtı, Checker yayınladı.
+- [x] **Bulunan ikinci bug:** `Pages.slug` alanı her zaman `title`'dan
+      otomatik türetiliyor (`generateSlug` hook'u) — script'e verdiğim açık
+      `slug: "vodafone-pay-uygulama"` görmezden gelinip başlıktan
+      `vodafone-pay-uygulamasi` üretildi ("Uygulaması" kelimesinin olduğu gibi
+      slugify edilmesi). Hook sadece `create`'te çalıştığı için başlığı
+      değiştirmek de düzeltmezdi; Checker olarak `PATCH /api/pages/18
+      {slug:"vodafone-pay-uygulama"}` ile elle düzeltildi (alan `admin.readOnly`
+      ama `access.update` kısıtı yok, API'den yazılabiliyor).
+- [x] **Bilinçli olarak eklenmeyen:** SSS bloğu. Orijinal sorular DB-only
+      olduğu için hiçbir yerde yok — uydurma soru/cevap yazmak projenin kendi
+      "sahte içerik üretme" kuralına aykırı olurdu. Bu, editörün gerçek
+      SSS'leri yeniden yazması gereken açık bir madde.
+- [x] Canlı doğrulama: `/vodafone-pay-uygulama` artık 200, hero+adımlar
+      doğru render oluyor, anasayfadaki "Ürünler" menüsü linki artık çalışıyor.
+- [ ] **Kullanıcı kararı bekliyor:** SSS bölümü için yeni bir Category +
+      gerçek soru/cevaplar kim tarafından yazılacak?
+
+## 31. Docs/ klasörü konsolidasyonu
 
 **İstek:** "bi toplayalım hangi döküman neyi anlatıyor diye. hem development
 sürecinde bize yarayacak şekilde olanları birleştiririz hem de gerçekten
@@ -1011,7 +1049,7 @@ bana da. gerek yok."
       dosya.
 - [ ] `AGENTS.md`'deki `docs/` referansları (varsa) güncellenecek.
 
-## 31. Güvenlik taraması gerçekten çalıştırılıp ölçülsün
+## 32. Güvenlik taraması gerçekten çalıştırılıp ölçülsün
 
 **İstek:** "bunları daha önceden yaptık ama ölçmemişiz büyük ihtimal."
 
@@ -1033,7 +1071,7 @@ yapıştır, `scripts/sonar-scan.sh` otomatik okuyor).
 - [ ] İkisinin sonucu da bu maddeye rakamla yazılacak — PoC sunumunda
       söylenebilecek somut bir cümle olsun diye.
 
-## 32. CMS admin içinde kullanım kılavuzu (wiki) route'u
+## 33. CMS admin içinde kullanım kılavuzu (wiki) route'u
 
 **İstek:** "bi tane cms de docs route'u yapabiliriz ve bildiğin wiki gibi
 sırayla cms adminde hem rolleri tanıtarak başlayan hem loginle başlayan
@@ -1056,7 +1094,7 @@ görüntüleriyle içeren bir docs yapabiliriz kullanım amaçlı."
       muhtemelen "Sistem").
 - [ ] Testler + tarayıcıda canlı doğrulama.
 
-## 33. CMS admin ekranlarına loading/skeleton state + mikro-etkileşim
+## 34. CMS admin ekranlarına loading/skeleton state + mikro-etkileşim
 
 **İstek:** "Loading/skeleton state, animasyon, mikro-etkileşim... bunları
 sadece cms ekranında eklememiz gerekiyor ekleyebiliriz." (Kapsam netleştirildi:
@@ -1072,7 +1110,7 @@ sadece CMS admin, public site'a dokunulmuyor.)
       koruyarak.
 - [ ] Testler + tarayıcıda canlı doğrulama (özellikle yavaş ağ simülasyonuyla).
 
-## 34. İçerik metrikleri dashboard widget'ı
+## 35. İçerik metrikleri dashboard widget'ı
 
 **İstek:** "kaç sayfa, kaç onay bu ay, ortalama onay süresi... audit log
 verisi zaten var, bunu görselleştirmek... dashboarda konumlandırabiliriz."
@@ -1088,7 +1126,7 @@ verisi zaten var, bunu görselleştirmek... dashboarda konumlandırabiliriz."
       düşünülecek (tarih aralığı filtreli).
 - [ ] Testler + tarayıcıda canlı doğrulama.
 
-## 35. Tek sayfalık mimari özet diyagramı
+## 36. Tek sayfalık mimari özet diyagramı
 
 **İstek:** "Tek bir sayfada mimari özet (Next.js + Payload + Postgres +
 MinIO + Docker, tek diagram) — teknik olmayan paydaşlar için. kesinlikle
@@ -1097,6 +1135,6 @@ yapalım."
 - [ ] Next.js (site) ↔ Payload CMS ↔ Postgres ↔ MinIO ↔ Docker Compose
       ilişkisini gösteren, teknik olmayan bir paydaşın da okuyabileceği
       sadeleştirilmiş bir diyagram.
-- [ ] Muhtemelen madde 30'da üretilecek "ürünün son hali" dokümanının
+- [ ] Muhtemelen madde 31'de üretilecek "ürünün son hali" dokümanının
       içine gömülecek ya da ayrı bir görsel/artifact olarak sunulacak —
-      madde 30 bitince netleşecek.
+      madde 31 bitince netleşecek.
