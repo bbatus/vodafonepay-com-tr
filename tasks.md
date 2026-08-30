@@ -971,3 +971,132 @@ değişikliği gerekmedi; **tek engel ⋮ menüsüydü.**
       "Yayından Kaldır ve Düzenle" akışını görüyor, mükerrer kontrol yok.
 - [x] `MakerAwarePublishButton.test.tsx` eklendi (4 test: Maker, Checker,
       New Vertical Maker, aktif vekil). CMS 473/473.
+
+---
+
+# Görev Listesi — 30.08.2026 turu (PoC hazırlığı)
+
+29.08'de yapılan genel değerlendirmenin ("neyi iyi yaptık, ne eksik, PoC'yi
+neyin etkileyeceği") sonucunda kullanıcının onayladığı 6 maddelik paket.
+Gözlemlenebilirlik (Sentry/APM) OpenShift'e taşınma planına bırakıldığı için
+bu turun kapsamı dışında bırakıldı — bilinçli, dokunulmadı.
+
+Sıra kullanıcının "sırayla, acele etmeden, her adımı test ederek" isteğine
+göre belirlendi: önce bağımsız/hazırlık işleri (docs, güvenlik taraması),
+sonra docs'un beslediği wiki route'u, sonra görsel/UX cilası, en son
+dashboard + diyagram (ikisi de görünürlük/anlatım işi, önceki maddelere bağlı
+değil).
+
+## 30. Docs/ klasörü konsolidasyonu
+
+**İstek:** "bi toplayalım hangi döküman neyi anlatıyor diye. hem development
+sürecinde bize yarayacak şekilde olanları birleştiririz hem de gerçekten
+ürünün son halini anlatan ve kritik noktalarımızı hem kendimiz notlamış
+oluruz hem de claude sessionlarım hatırlar. 45 rapor gerçekten fazla geldi
+bana da. gerek yok."
+
+- [ ] `docs/` altındaki 27+ dosyanın tamamı okunup ne anlattığı çıkarılacak
+      (tek satır özet + hangi kategori: mimari/karar, kronolojik fix raporu,
+      RFP/gap analizi, kullanıcı testi/walkthrough, prompt arşivi).
+- [ ] İki hedef doküman belirlenecek:
+      1. **Geliştirme sürecine yarayan, session-hatırlama amaçlı** —
+         kronolojik fix raporlarının (`DUZELTME-TURU-*`, `KATEGORI-SSS-*`,
+         `RICHTEXT-SIRA-*` vb.) özünü kaybetmeden tek bir dosyada birleştirmek
+         (muhtemelen mevcut `STATUS.md`'nin genişletilmiş hali).
+      2. **Ürünün son halini + kritik noktaları anlatan, iş insanına da
+         gösterilebilir tek doküman** — mimari, roller, onay akışı, bilinen
+         sınırlamalar, PoC kapsamı/kapsam dışı.
+- [ ] Kaynağı birleştirilen dosyalar silinecek/arşivlenecek (git history'de
+      zaten duruyorlar, kaybolmuyor) — hedef: `docs/` kökünde çok daha az
+      dosya.
+- [ ] `AGENTS.md`'deki `docs/` referansları (varsa) güncellenecek.
+
+## 31. Güvenlik taraması gerçekten çalıştırılıp ölçülsün
+
+**İstek:** "bunları daha önceden yaptık ama ölçmemişiz büyük ihtimal."
+
+**Durum:** tasks.md'nin kendi geçmişi (madde 16, 17, 22) Sonar'ın gerçekten
+çalıştırıldığını ve `0 açık bulgu`ya indirildiğini gösteriyor — yani iddia
+boş değil, iş yapılmıştı. Ama o turlarda kullanılan `SONAR_TOKEN` hiçbir yerde
+kalıcı değildi (o zaman `.sonar-token` mekanizması yoktu) ve şu an ne ortam
+değişkeni ne dosya olarak mevcut; SonarQube kendi de (parola ile bile) bana
+login yaptırılamıyor — bu kalıcı bir kural. **Kullanıcıdan yeni bir token
+gerekiyor** (My Account → Security → Generate Tokens → `.sonar-token`'a
+yapıştır, `scripts/sonar-scan.sh` otomatik okuyor).
+
+- [ ] Kullanıcıdan `.sonar-token` bekleniyor.
+- [ ] Token gelince: `scripts/sonar-scan.sh all` çalıştırılıp güncel
+      coverage/duplication/açık bulgu sayıları bu maddeye kaydedilecek.
+- [ ] `scripts/trivy-scan.sh all` çalıştırılıp güncel CVE durumu kaydedilecek
+      (son çalıştırma madde 22'deydi, o zamandan beri image/deps değişmiş
+      olabilir).
+- [ ] İkisinin sonucu da bu maddeye rakamla yazılacak — PoC sunumunda
+      söylenebilecek somut bir cümle olsun diye.
+
+## 32. CMS admin içinde kullanım kılavuzu (wiki) route'u
+
+**İstek:** "bi tane cms de docs route'u yapabiliriz ve bildiğin wiki gibi
+sırayla cms adminde hem rolleri tanıtarak başlayan hem loginle başlayan
+kullanıcı sıkışırsa napacağını hangi collection'da neler yapabileceğini ekran
+görüntüleriyle içeren bir docs yapabiliriz kullanım amaçlı."
+
+- [ ] Yeni bir admin view (`admin.components.views` altında, R-10 gereği
+      `importMap.js`'e elle eklenecek) — ör. `/admin/rehber` veya
+      `/admin/kilavuz`.
+- [ ] İçerik iskeleti: giriş/login → rol tanıtımı (4 rol, ne yapabilir/
+      yapamaz) → dashboard'un okunuşu → koleksiyon bazlı kısa rehberler
+      (her koleksiyon: ne işe yarar, kim düzenleyebilir, taslak→onay akışı
+      nasıl işler) → "sıkıştım, ne yapmalıyım" bölümü (kilit hesap, red
+      sebebi göremiyorum, yayından kaldırma nasıl istenir vb.).
+- [ ] Ekran görüntüleri: gerçek admin ekranlarından alınacak (tarayıcı
+      araçlarıyla), CMS'in kendi görsel deposuna (Media/MinIO) değil, statik
+      dosya olarak bileşenin içine gömülecek.
+- [ ] tr/en — `useAdminLocale()`/`useDbStrings()` deseni (AGENTS.md kuralı).
+- [ ] Sidebar'a link eklenecek (hangi grup altına — kullanıcıyla netleşecek,
+      muhtemelen "Sistem").
+- [ ] Testler + tarayıcıda canlı doğrulama.
+
+## 33. CMS admin ekranlarına loading/skeleton state + mikro-etkileşim
+
+**İstek:** "Loading/skeleton state, animasyon, mikro-etkileşim... bunları
+sadece cms ekranında eklememiz gerekiyor ekleyebiliriz." (Kapsam netleştirildi:
+sadece CMS admin, public site'a dokunulmuyor.)
+
+- [ ] Mevcut CMS admin ekranları (dashboard, ContentManagementApp,
+      FeesAndLimitsApp, AccessMatrixApp, wiki route'u vb.) taranıp veri
+      yüklenene kadar boş/zıplayan alan var mı tespit edilecek.
+- [ ] Skeleton/loading bileşenleri eklenecek (Payload'ın kendi admin
+      tema token'larıyla tutarlı, yeni bir tasarım dili icat edilmeyecek).
+- [ ] Küçük mikro-etkileşimler (buton hover/active geçişleri, kaydetme
+      sonrası görsel onay vb.) — abartıya kaçmadan, kurumsal panel hissini
+      koruyarak.
+- [ ] Testler + tarayıcıda canlı doğrulama (özellikle yavaş ağ simülasyonuyla).
+
+## 34. İçerik metrikleri dashboard widget'ı
+
+**İstek:** "kaç sayfa, kaç onay bu ay, ortalama onay süresi... audit log
+verisi zaten var, bunu görselleştirmek... dashboarda konumlandırabiliriz."
+
+- [ ] `audit-logs` koleksiyonundan (mevcut) türetilecek metrikler:
+      toplam sayfa/koleksiyon sayısı (mevcut `sitePages.ts`/KPI'lardan),
+      bu ay yayınlanan onay sayısı, ortalama Maker-gönderim → Checker-onay
+      süresi.
+- [ ] `CustomDashboardView.tsx`/`DashboardWidgets.tsx`'e yeni bir widget
+      (rol bazlı — Checker/Maker'ın zaten gördüğü onay kuyruklarıyla
+      karışmayacak, ayrı bir "genel metrikler" bloğu).
+- [ ] Performans: audit-log'lar büyüdükçe yavaşlamaması için sorgu sınırları
+      düşünülecek (tarih aralığı filtreli).
+- [ ] Testler + tarayıcıda canlı doğrulama.
+
+## 35. Tek sayfalık mimari özet diyagramı
+
+**İstek:** "Tek bir sayfada mimari özet (Next.js + Payload + Postgres +
+MinIO + Docker, tek diagram) — teknik olmayan paydaşlar için. kesinlikle
+yapalım."
+
+- [ ] Next.js (site) ↔ Payload CMS ↔ Postgres ↔ MinIO ↔ Docker Compose
+      ilişkisini gösteren, teknik olmayan bir paydaşın da okuyabileceği
+      sadeleştirilmiş bir diyagram.
+- [ ] Muhtemelen madde 30'da üretilecek "ürünün son hali" dokümanının
+      içine gömülecek ya da ayrı bir görsel/artifact olarak sunulacak —
+      madde 30 bitince netleşecek.

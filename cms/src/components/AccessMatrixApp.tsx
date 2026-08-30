@@ -119,7 +119,7 @@ export default function AccessMatrixApp() {
           owns it, and who approves a request for it. Source data:
           access/roleMapping.ts's ROLE_DIRECTORY. */}
       <div className="table-wrap">
-        <table className="access-matrix__table">
+        <table className="access-matrix__table access-matrix__table--directory">
           <thead>
             <tr>
               <th scope="col">{DIR_STRINGS[locale].role}</th>
@@ -176,7 +176,7 @@ export default function AccessMatrixApp() {
       </ul>
 
       <div className="table-wrap">
-        <table className="access-matrix__table">
+        <table className="access-matrix__table access-matrix__table--sticky">
           <thead>
             <tr>
               <th rowSpan={2} className="access-matrix__col-collection">

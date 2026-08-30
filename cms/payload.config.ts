@@ -259,7 +259,7 @@ export default buildConfig({
         },
         {
           path: "/components/GroupedNavLink#default",
-          clientProps: { href: "/admin/access-matrix", labelKey: "accessMatrix.navLabel", groupNames: ["Sistem", "System"], nvMakerOnly: true },
+          clientProps: { href: "/admin/access-matrix", labelKey: "accessMatrix.navLabel", groupNames: ["Sistem", "System"] },
         },
         {
           path: "/components/GroupedNavLink#default",
