@@ -1235,9 +1235,24 @@ verisi zaten var, bunu görselleştirmek... dashboarda konumlandırabiliriz."
 MinIO + Docker, tek diagram) — teknik olmayan paydaşlar için. kesinlikle
 yapalım."
 
-- [ ] Next.js (site) ↔ Payload CMS ↔ Postgres ↔ MinIO ↔ Docker Compose
-      ilişkisini gösteren, teknik olmayan bir paydaşın da okuyabileceği
-      sadeleştirilmiş bir diyagram.
-- [ ] Muhtemelen madde 31'de üretilecek "ürünün son hali" dokümanının
-      içine gömülecek ya da ayrı bir görsel/artifact olarak sunulacak —
-      madde 31 bitince netleşecek.
+- [x] Ayrı bir Artifact (yayınlanmış, paylaşılabilir HTML sayfası) olarak
+      yapıldı — `docs/PROJECT-OVERVIEW.md`'nin içine GÖMÜLMEDİ, çünkü o
+      dosya zaten teknik/yoğun; iş insanına gösterilecek ayrı, kendi başına
+      duran bir sayfa istendiği gibi daha iyi hizmet ediyor. Link session'da
+      kullanıcıya verildi (Artifact URL'leri kişiye özel/varsayılan gizli —
+      git'e commit edilecek bir şey değil, bu yüzden bu dosyada da yok).
+- [x] İçerik: "Parçalar" (Ziyaretçi/Editör → Next.js sitesi/Payload CMS →
+      ortak Postgres+MinIO altyapısı, Docker Compose çerçevesi), "Bir
+      içerik editörden ziyaretçiye" (5 adımlı yaşam döngüsü: taslak → onaya
+      gider → onaylanır → site tazelenir → ziyaretçi görür), "Bugün nerede
+      duruyoruz" (çalışan 3 madde / bilinçli ertelenen 3 madde, PROJECT-
+      OVERVIEW.md §11'in en iş-insanına-yönelik 6 satırı).
+- [x] Tasarım: gerçek Vodafone marka fontu (`cms/public/vodafone-*.woff`,
+      base64 gömülü — jenerik bir Google Font yerine bu projenin kendi
+      görsel kimliği) başlıklarda, Source Sans 3 gövde metninde; Vodafone
+      kırmızısı (#E60000) tek vurgu rengi; açık/koyu tema ikisi de elle
+      tasarlandı ve tarayıcıda doğrulandı (sistemin karşı tarafı bilerek
+      ters çevrilmedi, ikisi de kendi kontrastıyla okunur).
+- [x] Rakam doğruluğu: ilk taslakta "1000'in üzerinde otomatik test" yazmıştı,
+      gerçek toplam (549 CMS + 380 site = 929) kontrol edilip "900'ün
+      üzerinde"ye düzeltildi — yayınlamadan önce.
