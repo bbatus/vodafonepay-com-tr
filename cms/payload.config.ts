@@ -207,7 +207,7 @@ export default buildConfig({
     // instead of `../../../../src/components/Foo`), which resolves outside
     // the project and breaks every custom admin component. Confirmed by
     // running `payload generate:importmap` and diffing its output against
-    // the hand-maintained importMap.js — see docs/STATUS.md R-10.
+    // the hand-maintained importMap.js — see docs/PROJECT-OVERVIEW.md §10 (R-10).
     importMap: {
       baseDir: path.resolve(dirname, "src"),
     },

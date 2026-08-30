@@ -863,7 +863,7 @@ const pageBlockSchema = z.discriminatedUnion("blockType", [
 export type CmsPageBlock = z.infer<typeof pageBlockSchema>;
 
 /**
- * Butterfly-parity gap-fill (docs/PAGE-CREATE-PRODUCTION.MD analysis,
+ * Butterfly-parity gap-fill (docs/reference/PAGE-CREATE-PRODUCTION.MD analysis,
  * docs/RFP-OPEN-ITEMS.md §8): a simple parent reference for a breadcrumb
  * trail — deliberately not full nested routing, the URL stays flat /{slug}.
  */

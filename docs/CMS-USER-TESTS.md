@@ -20,7 +20,7 @@ Her madde için birlikte şu alanları dolduracağız:
 
 - **Durum:** Tartışılıyor (cevap verildi, onay bekliyor)
 - **DoD:** Kullanıcı cevabı kabul ederse "Tamamlandı" (kod değişikliği yok, davranış zaten doğru).
-- **Nasıl fixlendi:** Fix gerekmiyor — bu davranış RFP'nin verdiği 4 rollü taksonomiden geliyor (`docs/RFP-OPEN-ITEMS.md` §3.5.1, `docs/T0-PRODUCTION-READINESS.md` R-01). LDAP rol adları (`ROLE_VODAFONEPAY_CMS_MAKER_RW` vb.) business tarafından birebir verildi ve "değişmeyecek" olarak işaretlendi. Growth Maker/Checker rolleri kapsam olarak sadece Campaigns'e sabitlendi — Faq Items dahil diğer 18 collection'ı düzenleyememesi kasıtlı, bug değil.
+- **Nasıl fixlendi:** Fix gerekmiyor — bu davranış RFP'nin verdiği 4 rollü taksonomiden geliyor (`docs/RFP-OPEN-ITEMS.md` §3.5.1, `docs/archive/T0-PRODUCTION-READINESS.md` R-01). LDAP rol adları (`ROLE_VODAFONEPAY_CMS_MAKER_RW` vb.) business tarafından birebir verildi ve "değişmeyecek" olarak işaretlendi. Growth Maker/Checker rolleri kapsam olarak sadece Campaigns'e sabitlendi — Faq Items dahil diğer 18 collection'ı düzenleyememesi kasıtlı, bug değil.
 - **Test edildi mi:** Evet — `cms/src/access/roles.ts`'teki `campaignsCreate`/`campaignsReadWrite` (Campaigns) vs `newVerticalCreate`/`newVerticalReadWrite` (diğer tüm collection'lar) ayrımı kod üzerinden doğrulandı.
 - **Yorumlarım:** 
 

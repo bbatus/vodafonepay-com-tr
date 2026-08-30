@@ -1284,7 +1284,7 @@ const LeadFormCtaBlock: Block = {
 };
 
 /**
- * Butterfly-parity gap-fill (docs/PAGE-CREATE-PRODUCTION.MD analysis,
+ * Butterfly-parity gap-fill (docs/reference/PAGE-CREATE-PRODUCTION.MD analysis,
  * docs/RFP-OPEN-ITEMS.md §8): slug used to be a required, hand-typed field —
  * every other slugged collection (BlogPosts, Categories) already
  * auto-generates from `title` via `turkishSlugify`/`uniqueSlug`. Same

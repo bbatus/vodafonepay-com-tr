@@ -1,7 +1,7 @@
 # RFP Uyum Analizi — Güncel Durum (2026-08-24)
 
-**Kaynak:** `02_Technical Annex_RFPset_Cleaner_v10.14_final.docx` (`~/Downloads/`, aynı doküman `docs/RFP-GAP-ANALYSIS.md`'nin de kaynağı — v10.14, 19 ana bölüm, tamamı okunup satır satır bu belgeye işlendi)
-**Bu belge:** `docs/RFP-GAP-ANALYSIS.md` (2026-08-11, commit `05c9559`) analizinin **yerini alan** güncel versiyon — o tarihten bu yana repo'da devasa miktarda RFP-güdümlü çalışma yapıldı (bkz. `docs/RFP-OPEN-ITEMS.md` ve bu oturumdaki commit geçmişi). Eski belge tarihsel referans olarak duruyor, silinmedi.
+**Kaynak:** `02_Technical Annex_RFPset_Cleaner_v10.14_final.docx` (`~/Downloads/`, aynı doküman `docs/archive/RFP-GAP-ANALYSIS.md`'nin de kaynağı — v10.14, 19 ana bölüm, tamamı okunup satır satır bu belgeye işlendi)
+**Bu belge:** `docs/archive/RFP-GAP-ANALYSIS.md` (2026-08-11, commit `05c9559`) analizinin **yerini alan** güncel versiyon — o tarihten bu yana repo'da devasa miktarda RFP-güdümlü çalışma yapıldı (bkz. `docs/RFP-OPEN-ITEMS.md` ve bu oturumdaki commit geçmişi). Eski belge tarihsel referans olarak duruyor, silinmedi.
 **Değerlendirilen:** `main` dalı, HEAD `31b69db` (2026-08-24)
 **Kapsam sözü:** RFP'nin 19 bölümünün **tamamı** okundu. §1-§7 (fonksiyonel/mimari/operasyonel/güvenlik/SOX) satır satır koda karşı doğrulandı. §8-§19 (teslimatlar, kabul testi süreçleri, proje yönetimi, değişiklik yönetimi, İK, iş sürekliliği, AD/AM, eğitim) de okundu ve aşağıda özetlendi — ama bunlar bir kod deposunun kapatabileceği maddeler değil (tedarikçi-müşteri sözleşme/organizasyon maddeleri), bu yüzden "❌ eksik özellik" olarak değil, ayrı bir bölümde dürüstçe "kod ile kapanmaz" olarak işaretlendi. Notasyon aşağıda.
 

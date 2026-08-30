@@ -151,7 +151,7 @@ seçer), draft/published + Payload'ın otomatik versiyon geçmişi (vendor'ın e
 
 **Şema migration'ı:** bu ortamda prod container'da Payload'ın dev-only `push`'ı çalışmıyor
 (§5'teki genel not) — `pages`/`_pages_v` tablolarına `parent_id`/`visibility`/`created_by_id`
-kolonları elle eklendi, tam SQL `docs/STATUS.md` §2.7'de.
+kolonları elle eklendi, tam SQL `docs/archive/STATUS.md` §2.7'de.
 
 Canlı doğrulandı: API üzerinden üst+alt sayfa oluşturuldu, breadcrumb sitede doğru render
 oldu, private sayfa hem public API'de hem sitede (404) doğru gizlendi, self-parent denemesi

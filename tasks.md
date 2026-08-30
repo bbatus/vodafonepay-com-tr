@@ -1033,21 +1033,53 @@ sürecinde bize yarayacak şekilde olanları birleştiririz hem de gerçekten
 oluruz hem de claude sessionlarım hatırlar. 45 rapor gerçekten fazla geldi
 bana da. gerek yok."
 
-- [ ] `docs/` altındaki 27+ dosyanın tamamı okunup ne anlattığı çıkarılacak
-      (tek satır özet + hangi kategori: mimari/karar, kronolojik fix raporu,
-      RFP/gap analizi, kullanıcı testi/walkthrough, prompt arşivi).
-- [ ] İki hedef doküman belirlenecek:
-      1. **Geliştirme sürecine yarayan, session-hatırlama amaçlı** —
-         kronolojik fix raporlarının (`DUZELTME-TURU-*`, `KATEGORI-SSS-*`,
-         `RICHTEXT-SIRA-*` vb.) özünü kaybetmeden tek bir dosyada birleştirmek
-         (muhtemelen mevcut `STATUS.md`'nin genişletilmiş hali).
-      2. **Ürünün son halini + kritik noktaları anlatan, iş insanına da
-         gösterilebilir tek doküman** — mimari, roller, onay akışı, bilinen
-         sınırlamalar, PoC kapsamı/kapsam dışı.
-- [ ] Kaynağı birleştirilen dosyalar silinecek/arşivlenecek (git history'de
-      zaten duruyorlar, kaybolmuyor) — hedef: `docs/` kökünde çok daha az
-      dosya.
-- [ ] `AGENTS.md`'deki `docs/` referansları (varsa) güncellenecek.
+- [x] `docs/` altındaki 30 dosyanın tamamı okunup kategorize edildi (bir agent
+      ile — mimari/karar, kronolojik fix raporu, RFP/gap analizi, kullanıcı
+      testi/walkthrough, prompt arşivi, "bizim değil, referans vendor CMS
+      notu"). Sonuç: 27+1 (STATUS.md) rapor/prompt/plan dosyası + kullanıcının
+      farkında olmadığı 2 tane "Butterfly" (referans vendor CMS) dosyası.
+- [x] İki hedef doküman yazıldı (planlanandan biraz farklı çıktı — `STATUS.md`
+      zaten `tasks.md`'yle içerik olarak çakışıyordu ve ondan geride kalmıştı,
+      genişletmek yerine görevini `tasks.md`'ye devretti):
+      1. **`docs/HISTORY.md`** — arşivlenen 20 dosyanın kronolojik indeksi
+         (hangi tarih, ne anlatıyor, hangi prompt hangi raporu üretti).
+         Detayları kaybetmeden birleştirmenin yolu: dosyaların İÇERİĞİNİ tek
+         tek yeniden yazmak değil (kayıp/hata riski yüksek), `docs/archive/`e
+         taşıyıp üstüne bir indeks koymak.
+      2. **`docs/PROJECT-OVERVIEW.md`** — tamamen yeniden yazıldı (eskisi
+         25.08'den kalmaydı, artık var olmayan 3 koleksiyonu hâlâ listeliyordu,
+         rol modeli/test sayıları bayattı). Şimdi: gerçek AccessPoint rol
+         eşlemesi, 19 güncel koleksiyon, 5/5 ürün sayfası Pages'te, PoC
+         bağlamı + bilinen sınırlamalar tablosu (§11) — iş insanına da
+         gösterilebilir.
+- [x] 20 dosya `docs/archive/`e taşındı (git mv, içerik korunarak):
+      `STATUS.md`, `RFP-GAP-ANALYSIS.md` (eski), `CMS_INTEGRATION_PLAN.md`,
+      `DUZELTME-TURU-RAPORU.md`, `DUZELTME-TURU-3-RAPORU.md`,
+      `GUVENLIK-TARAMA-VE-ROL-TESTI.md`, `KATEGORI-SSS-TURU-RAPORU.md`,
+      `RICHTEXT-SIRA-TURU-RAPORU.md`, `UI-WALKTHROUGH-MAKER.md`,
+      `UI-WALKTHROUGH-CHECKER.md`, `AUDIT-CONTENT-CMS.md`,
+      `BACKLOG-CONTENT-CMS.md`, `CLAUDE-CODE-PROMPT.md`…`-5.md`,
+      `CONTENT-CMS-AUDIT-PROMPT.md`, `PRODUCTION_READINESS_PROMPT.md`,
+      `T0-PRODUCTION-READINESS.md`. `docs/` kökü: 27+ dosya → 9 dosya
+      (+ `HISTORY.md`, `PROJECT-OVERVIEW.md`).
+- [x] **Beklenmeyen bulgu:** `varnish-cache.md` ve (agent'ın ilk taramada
+      kaçırdığı) `PAGE-CREATE-PRODUCTION.MD` bizim raporumuz değil — gerçek
+      vodafonepay.com.tr'nin çalıştığı vendor CMS'in ("Butterfly") kendi
+      cache/sayfa-oluşturma mimarisi notları, `LAYOUT-PARITY.md`'nin
+      "Butterfly parity analizi" için referans olarak kullanılmış. Arşive
+      değil, yeni bir `docs/reference/`e taşındı — bunlar tarihsel değil,
+      hâlâ geçerli tasarım-ilhamı kaynağı.
+- [x] Kırılan tüm çapraz referanslar düzeltildi: `cms/README.md` (kökten
+      kökten yanlış — 9 koleksiyon/Strapi-planı/no-approval-workflow
+      diyordu, artık kısa + `PROJECT-OVERVIEW.md`'ye yönlendiriyor),
+      `cms/payload.config.ts` (R-10 yorumu), `docs/RFP-OPEN-ITEMS.md`,
+      `docs/RFP-GAP-ANALYSIS-2026-08-24.md`, `docs/CMS-USER-TESTS.md`,
+      `vodafonepaycomtr/src/lib/cms.ts` + `cms/src/collections/Pages.ts`
+      (`PAGE-CREATE-PRODUCTION.MD` yolu).
+- [x] `docs/research/` (INSPECTION_GUIDE.md/PAGE_TOPOLOGY.md/BEHAVIORS.md) ve
+      `docs/design-references/` **bilinçli olarak dokunulmadı** —
+      `.claude/skills/clone-website/SKILL.md` bu tam yollara yazıyor, kendi
+      geçmişimiz değil, aktif bir araç konvansiyonu.
 
 ## 32. Güvenlik taraması gerçekten çalıştırılıp ölçülsün
 
