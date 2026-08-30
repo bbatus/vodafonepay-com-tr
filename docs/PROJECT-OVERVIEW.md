@@ -84,7 +84,7 @@ Gerçek LDAP/AccessPoint bağlantısı henüz kurulmadı (kullanıcı kararı �
 
 **Kullanıcı hesapları tamamen LDAP/AccessPoint'in olacak şekilde kilitlendi** — CMS içinden email/username/rol/parola değiştirilemez (`cms/src/collections/Users.ts`). Tek self-servis alanlar: avatar, dil tercihi (`preferredLocale`), checker delegasyonu (`delegateTo`). Auth: 5 başarısız denemede 15dk kilit, token 12 saatte düşüyor; CAPTCHA/2FA yok (LDAP'ın kendi kimlik doğrulamasının üstleneceği varsayılıyor).
 
-**Erişim Matrisi** (`/admin/access-matrix`, rol × koleksiyon tam yetki tablosu) sadece New Vertical Maker'a görünüyor (`nvMakerOnly: true`, `payload.config.ts`) — kaybolmadı, kaldırılmadı, sadece scope'u bu. Bunu Checker'lara da açmak bir görünürlük kararı, henüz alınmadı.
+**Erişim Matrisi** (`/admin/access-matrix`, rol × koleksiyon tam yetki tablosu) artık **4 rolün tamamına açık** — salt-okunur referans veri olduğu için (30.08.2026, kullanıcının kendi commit'i `24f9641`). Daha önce sadece New Vertical Maker'a görünüyordu (`nvMakerOnly: true`); o kısıt kaldırıldı, sidebar linki ve view'ın kendisi artık `ROLES` setinin tamamını kontrol ediyor.
 
 ## 6. CMS koleksiyonları — ne var, ne işe yarıyor (19 koleksiyon + 1 global)
 
