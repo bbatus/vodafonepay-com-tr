@@ -5,7 +5,8 @@ import { loadDbStrings } from "@/lib/loadDbStrings";
 import { COLLECTION_LABELS } from "@/lib/collectionLabels";
 import DashboardWidgets from "./DashboardWidgets";
 import { countSiteUrls, loadSitePages, type SitePageEntry } from "@/lib/sitePages";
-import { IconContent, IconPage, IconUsers, IconFaq, IconCampaign, IconBlog, IconClock, IconPlus } from "./DashboardIcons";
+import { loadContentMetrics, formatApprovalDuration } from "@/lib/contentMetrics";
+import { IconContent, IconPage, IconUsers, IconFaq, IconCampaign, IconBlog, IconClock, IconCheckCircle, IconPlus } from "./DashboardIcons";
 
 /**
  * RFP follow-up: "her rolün dashboard'unda bunlar olmalı... şu an olan her
@@ -194,7 +195,7 @@ export default async function CustomDashboardView(props: {
   const t = await loadDbStrings(payload, locale);
 
   const kpiSlugs = ["campaigns", "blog-posts", "faq-items", "announcements", "representatives", "pages"] as const;
-  const [kpiCounts, sitePages, userCount, faqCount, recentCampaigns, recentBlogPosts, recentPages] = await Promise.all([
+  const [kpiCounts, sitePages, userCount, faqCount, recentCampaigns, recentBlogPosts, recentPages, contentMetrics] = await Promise.all([
     Promise.all(kpiSlugs.map((slug) => payload.count({ collection: slug as never, overrideAccess: true }).then((r) => r.totalDocs))),
     loadSitePages(payload, locale),
     payload.count({ collection: "users", overrideAccess: true }).then((r) => r.totalDocs),
@@ -202,6 +203,7 @@ export default async function CustomDashboardView(props: {
     loadRecent(payload, "campaigns", "title"),
     loadRecent(payload, "blog-posts", "title"),
     loadRecent(payload, "pages", "title"),
+    loadContentMetrics(payload),
   ]);
   const totalContent = kpiCounts.reduce((sum, n) => sum + n, 0);
   const siteUrlCount = countSiteUrls(sitePages);
@@ -221,6 +223,15 @@ export default async function CustomDashboardView(props: {
     { label: locale === "tr" ? "Sayfalar" : "Pages", value: siteUrlCount, icon: <IconPage /> },
     { label: COLLECTION_LABELS["users"]?.[locale] ?? "Kullanıcılar", value: userCount, icon: <IconUsers /> },
     { label: COLLECTION_LABELS["faq-items"]?.[locale] ?? "SSS", value: faqCount, icon: <IconFaq /> },
+    { label: t("dashboardKpi.publishedThisMonth"), value: contentMetrics.publishedThisMonth, icon: <IconCheckCircle /> },
+    {
+      label: t("dashboardKpi.avgApprovalTime"),
+      value:
+        contentMetrics.avgApprovalHours === null
+          ? t("dashboardKpi.avgApprovalTimeEmpty")
+          : formatApprovalDuration(contentMetrics.avgApprovalHours, locale),
+      icon: <IconClock />,
+    },
   ];
 
   return (

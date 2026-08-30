@@ -1198,16 +1198,36 @@ sadece CMS admin, public site'a dokunulmuyor.)
 **İstek:** "kaç sayfa, kaç onay bu ay, ortalama onay süresi... audit log
 verisi zaten var, bunu görselleştirmek... dashboarda konumlandırabiliriz."
 
-- [ ] `audit-logs` koleksiyonundan (mevcut) türetilecek metrikler:
-      toplam sayfa/koleksiyon sayısı (mevcut `sitePages.ts`/KPI'lardan),
-      bu ay yayınlanan onay sayısı, ortalama Maker-gönderim → Checker-onay
-      süresi.
-- [ ] `CustomDashboardView.tsx`/`DashboardWidgets.tsx`'e yeni bir widget
-      (rol bazlı — Checker/Maker'ın zaten gördüğü onay kuyruklarıyla
-      karışmayacak, ayrı bir "genel metrikler" bloğu).
-- [ ] Performans: audit-log'lar büyüdükçe yavaşlamaması için sorgu sınırları
-      düşünülecek (tarih aralığı filtreli).
-- [ ] Testler + tarayıcıda canlı doğrulama.
+- [x] Toplam sayfa sayısı zaten vardı (`countSiteUrls`/"Sayfalar" KPI'ı) —
+      tekrar hesaplanmadı. Yeni: `cms/src/lib/contentMetrics.ts` →
+      `loadContentMetrics()` — "Bu Ay Yayınlanan" (audit-logs'ta
+      `action=publish`, bu ayki `createdAt`) ve "Ort. Onay Süresi".
+- [x] **Onay süresi gerçek bir ölçüm değil, dürüst bir proxy — kod
+      yorumunda açıkça yazılı:** audit-logs'ta "onaya gönderildi" diye ayrı
+      bir olay yok, sadece create/update/publish var. Her `publish` satırı
+      için AYNI dokümanın kendi en son create/update'i bulunuyor (Growth
+      Maker `denyMakerPublish` yüzünden kendi taslağını istediği kadar
+      düzenleyebiliyor, publish'ten hemen önceki düzenleme GERÇEKTEN
+      Checker'ın onayladığı versiyon) ve `publish - o düzenleme` farkı
+      ortalanıyor.
+- [x] Ayrı bir "onay kuyruğu" değil — Maker/Checker'ın zaten gördüğü
+      `approvalQueue` widget'larıyla karışmasın diye mevcut KPI satırına
+      2 kart olarak eklendi (`cm-kpi-row` zaten `flex-wrap`, 4→6 kart
+      sorunsuz sardı) — herkese görünür, tıpkı diğer 4 KPI gibi.
+- [x] Performans: ay toplamı (`totalDocs`) sınırsız/doğru; ortalama süre
+      hesaplaması için örnekleme sınırı (`maxSamples=50`, en yeni 50
+      publish) — N+1 sorgu riskini audit-logs büyüdükçe sınırlıyor.
+- [x] Testler: `contentMetrics.test.ts` — 8 test (ay toplamı örnekleme
+      sınırından bağımsız, publish'i doğru dokümanın en son düzenlemesiyle
+      eşleştiriyor — daha eskisiyle değil, farklı dokümanın düzenlemesini
+      asla eşleştirmiyor, veri yokken NaN/0 değil null döndürüyor, süre
+      formatlama saat/gün+saat). CMS 549/549, tsc/eslint temiz.
+- [x] Canlı doğrulama: rebuild sonrası dashboard'da "Bu Ay Yayınlanan: 182",
+      "Ort. Onay Süresi: 0.1 sa" render oldu. **Not:** bu oturumdaki script'li
+      seed/publish akışları (Maker→Checker milisaniyeler içinde) sayıyı
+      gerçekçi olmayan biçimde hızlı gösteriyor — hesaplama doğru (8 test
+      kanıtlıyor), ama gerçek editoryal kullanım birikince sayı daha
+      anlamlı olacak.
 
 ## 36. Tek sayfalık mimari özet diyagramı
 

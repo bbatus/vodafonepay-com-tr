@@ -226,6 +226,9 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "dashboardKpi.title": { tr: "Anasayfa", en: "Dashboard" },
   "dashboardKpi.totalContent": { tr: "Toplam İçerik", en: "Total Content" },
   "dashboardKpi.recentTitle": { tr: "Son Güncellenen İçerikler", en: "Recently Updated Content" },
+  "dashboardKpi.publishedThisMonth": { tr: "Bu Ay Yayınlanan", en: "Published This Month" },
+  "dashboardKpi.avgApprovalTime": { tr: "Ort. Onay Süresi", en: "Avg. Approval Time" },
+  "dashboardKpi.avgApprovalTimeEmpty": { tr: "—", en: "—" },
 
   "forgotPasswordDisabled.title": { tr: "Parola sıfırlama kapalı", en: "Password reset is disabled" },
   "forgotPasswordDisabled.body": {
