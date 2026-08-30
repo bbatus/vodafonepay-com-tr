@@ -59,6 +59,12 @@ afterEach(() => {
 });
 
 describe("FeesAndLimitsApp", () => {
+  it("shows a skeleton table, not a blank page, while fee rows are still loading", () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+    const { container } = render(<FeesAndLimitsApp />);
+    expect(container.querySelector(".cm-table--skeleton")).toBeInTheDocument();
+  });
+
   it("loads and shows fee rows on the default tab", async () => {
     render(<FeesAndLimitsApp />);
     await waitFor(() => expect(screen.getByText("İşlem Ücreti")).toBeInTheDocument());

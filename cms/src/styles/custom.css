@@ -692,6 +692,55 @@ a {
   color: var(--vf-red);
 }
 
+/* Table skeleton (TableSkeleton.tsx) — pulsing placeholder bars shown while
+   a client-fetched table's first request is in flight. */
+.skeleton-bar {
+  display: inline-block;
+  height: 0.7rem;
+  border-radius: var(--style-radius-s);
+  background: var(--theme-elevation-100);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-bar--head {
+  height: 0.6rem;
+  background: var(--theme-elevation-150);
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Real data fading in once a skeleton is replaced, instead of popping in. */
+.cm-table:not(.cm-table--skeleton) tbody {
+  animation: cm-table-fade-in 200ms ease-out;
+}
+
+@keyframes cm-table-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bar {
+    animation: none;
+    opacity: 0.75;
+  }
+  .cm-table:not(.cm-table--skeleton) tbody {
+    animation: none;
+  }
+}
+
 .cm-badge {
   display: inline-block;
   padding: 0.15rem 0.5rem;

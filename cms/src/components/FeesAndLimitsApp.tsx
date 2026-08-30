@@ -5,6 +5,7 @@ import { useAuth, useDocumentDrawer } from "@payloadcms/ui";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
 import ReorderWidget from "./ReorderWidget";
+import { TableSkeleton } from "./TableSkeleton";
 import { ROLES } from "@/access/roles";
 
 /** Mirrors ReorderWidget's own `canReorder` — kept next to it so the two cannot drift apart silently again. */
@@ -138,18 +139,16 @@ function TablePanel<T extends { id: string | number }>({
   rows,
   headers,
   renderRow,
-  loadingLabel,
   emptyLabel,
 }: {
   rows: T[] | null;
   headers: string[];
   renderRow: (row: T) => React.ReactNode;
-  loadingLabel: string;
   emptyLabel: string;
 }) {
   let body: React.ReactNode;
   if (rows === null) {
-    body = <p className="cm-hint">{loadingLabel}</p>;
+    body = <TableSkeleton columns={headers.length} />;
   } else if (rows.length === 0) {
     body = <p className="cm-hint">{emptyLabel}</p>;
   } else {
@@ -242,7 +241,6 @@ export default function FeesAndLimitsApp() {
               t("feesAndLimits.colOrder"),
             ]}
             renderRow={(row) => <FeeRowRow key={row.id} row={row} onSaved={refetch} />}
-            loadingLabel={t("contentManagement.loading")}
             emptyLabel={t("contentManagement.empty")}
           />
           <ReorderSection collection="fee-rows" title={t("feesAndLimits.reorderTitle")} onSaved={refetch} />
@@ -261,7 +259,6 @@ export default function FeesAndLimitsApp() {
               t("feesAndLimits.colOrder"),
             ]}
             renderRow={(lt) => <LimitTableRow key={lt.id} lt={lt} onSaved={refetch} />}
-            loadingLabel={t("contentManagement.loading")}
             emptyLabel={t("contentManagement.empty")}
           />
           <ReorderSection collection="limit-tables" title={t("feesAndLimits.reorderTitle")} onSaved={refetch} />

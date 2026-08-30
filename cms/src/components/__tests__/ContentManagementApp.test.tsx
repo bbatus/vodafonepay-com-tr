@@ -36,6 +36,12 @@ afterEach(() => {
 });
 
 describe("ContentManagementApp", () => {
+  it("shows a skeleton table, not a blank page, while the summary is still loading", () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+    const { container } = render(<ContentManagementApp />);
+    expect(container.querySelector(".cm-table--skeleton")).toBeInTheDocument();
+  });
+
   it("renders the summary table with a real count once collections load", async () => {
     render(<ContentManagementApp />);
     await waitFor(() => {

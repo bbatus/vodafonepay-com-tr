@@ -4,6 +4,7 @@ import { startTransition, useCallback, useEffect, useMemo, useState } from "reac
 import Link from "next/link";
 import { useAdminLocale } from "./useAdminLocale";
 import { useDbStrings } from "./useDbStrings";
+import { TableSkeleton } from "./TableSkeleton";
 import {
   ALL_REPORTED_SLUGS,
   HAND_BUILT_ROUTES,
@@ -246,7 +247,7 @@ export default function ContentManagementApp() {
   const renderDetail = () => {
     if (isSiteRoutesTab) return renderSiteRoutesDetail();
     if (!tab) return null;
-    if (loading) return <p className="cm-hint">{t("contentManagement.loading")}</p>;
+    if (loading) return <TableSkeleton columns={1 + tab.columns.length} />;
     if (error) return <p className="cm-error">{error}</p>;
     if (docs.length === 0) return <p className="cm-hint">{t("contentManagement.empty")}</p>;
     return (
@@ -278,7 +279,7 @@ export default function ContentManagementApp() {
   };
 
   const renderSummary = () => {
-    if (summaries === null) return <p className="cm-hint">{t("contentManagement.loading")}</p>;
+    if (summaries === null) return <TableSkeleton columns={5} />;
     return (
       <div className="table-wrap">
         <table className="cm-table">

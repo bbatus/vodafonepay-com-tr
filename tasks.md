@@ -1160,15 +1160,38 @@ görüntüleriyle içeren bir docs yapabiliriz kullanım amaçlı."
 sadece cms ekranında eklememiz gerekiyor ekleyebiliriz." (Kapsam netleştirildi:
 sadece CMS admin, public site'a dokunulmuyor.)
 
-- [ ] Mevcut CMS admin ekranları (dashboard, ContentManagementApp,
-      FeesAndLimitsApp, AccessMatrixApp, wiki route'u vb.) taranıp veri
-      yüklenene kadar boş/zıplayan alan var mı tespit edilecek.
-- [ ] Skeleton/loading bileşenleri eklenecek (Payload'ın kendi admin
-      tema token'larıyla tutarlı, yeni bir tasarım dili icat edilmeyecek).
-- [ ] Küçük mikro-etkileşimler (buton hover/active geçişleri, kaydetme
-      sonrası görsel onay vb.) — abartıya kaçmadan, kurumsal panel hissini
-      koruyarak.
-- [ ] Testler + tarayıcıda canlı doğrulama (özellikle yavaş ağ simülasyonuyla).
+- [x] **Tarama sonucu:** 13 client bileşeni gerçek `fetch()` çağırıyor;
+      13'ün 10'unda zaten bir loading/busy durumu vardı (çoğu buton üstünde
+      "Kaydediliyor…"/"Gönderiliyor…" metniyle — kabul edilebilir). Sıfır
+      loading-state göstergesi bulunan 3'ü (`FeedbackApp`, `LockedAccountsBanner`,
+      `UnlockAccountField`) incelendi: hiçbiri gerçek bir boşluk değil —
+      ya render'ı veri gelene kadar `null` (banner, doğru davranış: yoksa
+      hiç görünmemeli) ya da zaten forma yüklenmiş bir alan değeri kullanıyor
+      (kilit açma), ek bir loading state gerektirmiyor.
+- [x] **Gerçek boşluk 2 yerde çıktı — panelin en büyük iki ekranı:**
+      `ContentManagementApp` (Tüm İçerikler) ve `FeesAndLimitsApp` (Ücretler
+      ve Limitler), ikisi de tablo yüklenene kadar düz "Yükleniyor…" metni
+      gösteriyordu — veri gelince tablonun tam şekliyle yer değiştiren bir
+      sıçrama. Yeni `TableSkeleton.tsx` (paylaşılan, kolon sayısına göre
+      nabız atan çubuklarla gerçek tablo iskeletini önceden çiziyor,
+      `aria-hidden`) her ikisine de bağlandı — sayfa şekli yükleniyor→yüklendi
+      geçişinde sabit kalıyor.
+- [x] Mikro-etkileşim: gerçek veri skeleton'ın yerini alırken kısa bir
+      fade-in (`cm-table-fade-in`, 200ms) — ani "pop" yerine yumuşak geçiş.
+      `prefers-reduced-motion` için hem skeleton nabzı hem fade-in kapatılıyor
+      (erişilebilirlik). Panelde zaten 7 yerde transition vardı (buton hover
+      vb.) — abartıya kaçmamak için üstüne yeni bir tasarım dili eklenmedi,
+      mevcut token'lar (`--theme-elevation-*`, `--vf-red`, `--style-radius-s`)
+      kullanıldı.
+- [x] Bu sırada `FeesAndLimitsApp`'ın artık kullanılmayan `loadingLabel` prop'u
+      (TablePanel skeleton'a geçince ölü koddu) temizlendi.
+- [x] Testler: `TableSkeleton.test.tsx` (3 test), `ContentManagementApp`/
+      `FeesAndLimitsApp`'a birer "hiç bitmeyen fetch sırasında skeleton
+      render olur" testi eklendi. CMS 541/541, tsc/eslint temiz.
+- [x] Canlı doğrulama: `docker compose up -d --build cms`, her iki ekran
+      tarayıcıda gezildi, veri doğru render oluyor (yerelde DB sorgusu
+      skeleton'ı gözle yakalayamayacak kadar hızlı — testler bu durumu
+      sahte, hiç çözülmeyen bir `fetch` ile deterministik olarak kanıtlıyor).
 
 ## 35. İçerik metrikleri dashboard widget'ı
 
