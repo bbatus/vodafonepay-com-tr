@@ -1468,3 +1468,62 @@ bırakıldı.
         `cms/` yoluna referans veriyorlar, yeni yapıya göre güncellenmeli
       - OCP'ye gerçek deploy, GitHub Actions pipeline'ları, k8s
         manifestleri — `docs/OCP-DEVOPS-RUNBOOK.md`'nin sonraki fazları
+
+## 40. S1-S12 cevaplandı, health endpoint'leri + gerçek k8s manifestleri üretildi (31.08.2026)
+
+Runbook'un §2'sindeki 12 soru kullanıcı tarafından tek seferde cevaplandı
+(namespace `vepas-ai-am`, ikisi de Node.js, MinIO namespace-içi geçici,
+sadece TEST, düz `5432`, otomatik route host — kullanıcının verdiği gerçek
+`finwatcher-frontend` örneğiyle doğrulandı, Sonar/Fortify sadece rapor
+[blocker yok], 1 replica). `docs/OCP-DEVOPS-RUNBOOK.md` bu cevaplarla
+güncellendi, §1 (repo ayrımı) özetlendi.
+
+- [x] **Health endpoint'leri** (§6.2'nin karşılığı, artık gerçek kod):
+      `clover/src/lib/healthEndpoints.ts` — `payload.config.ts`'in
+      `endpoints` dizisine top-level Payload endpoint olarak eklendi
+      (`auditExportEndpoint`'in kullandığı aynı desen, `getPayload()` ile
+      ikinci bir manuel bootstrap yerine `req.payload` bedava geliyor).
+      Liveness hiç DB'ye gitmiyor (bir DB kesintisi pod'u öldürüp restart
+      loop'una çevirmesin diye); readiness gerçek bir
+      `find({limit:0, overrideAccess:true})` round-trip'i yapıyor. Site
+      tarafında (`vodafonepaycomtr/src/app/api/health/*`) readiness
+      BİLİNÇLİ OLARAK Clover'a gitmiyor — kısa bir CMS aksaklığını tüm
+      site pod'larını route'tan düşüren bir soruna çevirmemek için (ISR
+      zaten bunu tolere ediyor). 3+2 test, canlıda doğrulandı (`curl` ile
+      200/503 senaryoları), her iki repoda da commit'lendi.
+- [x] **Gerçek k8s manifestleri** — iki repo'nun kendi `k8s/` klasöründe:
+      `deployment.yaml` (1 replica, gerçek health path'leri,
+      `readOnlyRootFilesystem`), `service.yaml`, `route.yaml` (otomatik
+      host), `configmap.yaml`, `secret.yaml` + `.env.secret.example` +
+      `create-secret.sh`, `serviceaccount.yaml`, `hpa.yaml` (1-2),
+      `networkpolicy.yaml` (placeholder, şablonla aynı desen).
+- [x] **Clover'a özel: `k8s/minio.yaml`** — MinIO'yu `vepas-ai-am`
+      namespace'ine biz deploy ediyoruz (Deployment+PVC+Service+Route+
+      bucket-init Job, docker-compose'daki `minio-init`'in Job karşılığı).
+      **Bulunan gerçek bir mimari nokta:** MinIO'nun kendi Route'u
+      ZORUNLU — yüklenen medya tarayıcıya doğrudan MinIO'dan servis
+      ediliyor (Clover üzerinden proxy değil), Route olmadan hiçbir görsel
+      açılmaz. Sadece S3 API portu (9000) dışa açık, konsol (9001) kapalı.
+- [x] **`DATABASE_URI` kararı netleşti:** `k8s/configmap.yaml`'da host/
+      port/db/user YOK — Payload tek bir bağlantı string'i okuduğu için
+      (koddan doğrulandı, `docs/OCP-DEVOPS-RUNBOOK.md §3`) tamamı
+      `k8s/secret.yaml`'da.
+- [x] **Bulunan ikinci gerçek boşluk:** `k8s/.env.secret` iki repoda da
+      hiçbir `.gitignore`'da yoktu (`.env` deseni sadece tam o dosya adını
+      eşliyor, `.env.secret`'ı değil) — ikisine de eklendi.
+- [x] `clover/DEPLOYMENT_RUNBOOK.md` ve
+      `vodafonepaycomtr/vodafonepaycomtr/DEPLOYMENT_RUNBOOK.md` — kopyala-
+      yapıştır çalışan, gerçek değerlerle dolu Faz 0 + rollback +
+      sorun giderme.
+- [x] Tüm YAML'lar `python3 -c "yaml.safe_load_all(...)"` ile sözdizimi
+      doğrulandı, `create-secret.sh`'lar `bash -n` ile kontrol edildi.
+- [x] `docs/OCP-DEVOPS-RUNBOOK.md`: §1 özetlendi (artık "✅ TAMAMLANDI"),
+      §2'nin 12 sorusu cevaplarla dolduruldu, §6.2 "✅ tamamlandı" oldu,
+      yeni §8 ("k8s manifestleri üretildi") eklendi, §7 sadece gerçekten
+      DevOps'a sorulması gereken kalan maddelere daraltıldı (GHES kaydı,
+      namespace kota/izin teyidi, DB parolası, pull secret, migration
+      kararı).
+- [ ] **Takip — henüz yapılmadı:** `.github/workflows/` pipeline'ları
+      (GHES repo kaydı netleşmeden anlamlı doldurulamaz), gerçek `oc apply`
+      ile ilk TEST kurulumu (manifestler hazır, hiç uygulanmadı), migration
+      kararı (§6.3, hâlâ açık).

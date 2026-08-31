@@ -1,0 +1,16 @@
+# PLACEHOLDER — bkz. clover/k8s/networkpolicy.yaml'daki aynı açıklama.
+# Egress: Clover'ın Service'i (namespace-içi) + DNS (53/UDP).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vodafonepaycomtr
+  namespace: vepas-ai-am
+  labels: { app: vodafonepaycomtr }
+spec:
+  podSelector:
+    matchLabels: { app: vodafonepaycomtr }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - {}      # TODO: yalnızca router/namespace'ten gelen 3000'e izin ver
+  egress:
+    - {}      # TODO: Clover Service + DNS

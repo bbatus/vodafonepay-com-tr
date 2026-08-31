@@ -61,26 +61,23 @@ git push <yeni-site-repo-url> site-only:main
 ## 2. DevOps şablonunun S1–S12 soruları — bizim projeye göre taslak cevaplar
 
 `devops-proje-sablonu/README.md §4`, kod yazılmadan önce cevaplanması gereken
-12 soru listeliyor. Bildiğimiz kadarıyla taslak cevaplar:
+12 soru listeliyor. **31.08.2026 itibarıyla hepsi cevaplandı** (kullanıcı
+kararıyla) — `k8s/` manifestleri bu cevaplarla dolduruldu (§8).
 
-| # | Soru | Site (`vodafonepaycomtr`) | Clover (eski `cms`) |
-|---|---|---|---|
-| S1 | Repo adı + namespace | Repo adı muhtemelen `vodafonepaycomtr` (henüz kendi repo'suna ayrılmadı, §1) — namespace TODO | **Repo adı `clover` — biliniyor** (`github.com/bbatus/clover`, §1'de ayrıldı). Namespace hâlâ TODO |
-| S2 | Dil/stack | **Node.js / Next.js 16** (Java değil — pipeline'da `project_type: npm`) | Aynı — **Node.js / Next.js 16 + Payload CMS 3.87** |
-| S3 | Harici bağımlılıklar | Yok (kendi başına statik+ISR site, CMS'e HTTP ile bağlanıyor) | **PostgreSQL** (zaten talep edildi, §3), **MinIO/S3** (medya deposu) |
-| S4 | Test/prod host-port-db-kullanıcı | — | TEST: §3'teki bilgiler. PROD: **henüz talep açılmadı** |
-| S5 | Sertifikalar | TODO — DevOps ile netleşecek (muhtemelen sadece `github.vpara.local` CA, CI için) | Aynı + Postgres/MinIO bağlantısı TLS ile mi? (§3'teki TNS düz `5432`, TLS belirtilmemiş — netleştirilmeli) |
-| S6 | Local user / generic service user | TODO | TODO — Postgres kullanıcısı zaten generic görünüyor (`vpaycmstest_new_user`) |
-| S7 | Prod dağıtım modeli (aktif-aktif-aktif vb.) | TODO — henüz konuşulmadı, bu doküman **sadece test** kapsıyor | Aynı |
-| S8 | LDAP gerekli mi, hangi domain(ler)? | Hayır (site'ın kendi girişi yok) | **Evet, ileride** — `cms/src/access/roleMapping.ts` zaten LDAP grup→rol eşlemesi için hazır ama gerçek LDAPS bağlantısı **henüz kurulmadı** (bkz. §6.4) |
-| S9 | LDAP grup → rol eşlemesi | — | Kısmen var: `ROLES` (4 rol) + `roleMapping.ts`'teki `LDAP_GROUP_TO_ROLE` — gerçek AccessPoint grup adlarıyla zaten dolu (`docs/PROJECT-OVERVIEW.md §5`), sadece gerçek bir LDAPS sunucusuna bağlanmıyor |
-| S10 | Route: otomatik host mü, kurumsal DNS mi? | TODO | TODO |
-| S11 | Sonar/Fortify blocker mı, sadece rapor mu? | TODO — mevcut yerel Sonar akışımız zaten "0 açık bulgu" hedefliyor (`AGENTS.md`), OCP pipeline'ında da aynı disiplin istenebilir | Aynı |
-| S12 | Kaynak talebi (CPU/RAM), min/max replica | TODO | TODO — CMS muhtemelen site'dan daha az trafik alır (sadece editörler), kaynak talebi buna göre küçük tutulabilir |
-
-**Not:** Bu tablo bir taslaktır — DevOps ekibiyle netleşmeden `k8s/` manifest'leri
-gerçek değerlerle doldurulamaz (`devops-proje-sablonu/docs/01 §Faz 0`: *"Cevaplar
-gelmeden manifest üretme"*).
+| # | Soru | Karar |
+|---|---|---|
+| S1 | Repo adı + namespace | **`clover`** ve **`vodafonepaycomtr`**, ikisi de namespace **`vepas-ai-am`** altında |
+| S2 | Dil/stack | **İkisi de Node.js / Next.js** — Java yok, pipeline'da `project_type: npm` |
+| S3 | Harici bağımlılıklar | **PostgreSQL harici** (DBA talebiyle, §3). **MinIO namespace-içi, geçici** — kurumsal bir S3 netleşene kadar kendi MinIO'muzu `vepas-ai-am`'a deploy ediyoruz (`clover/k8s/minio.yaml`) |
+| S4 | Test/prod host-port-db-kullanıcı | **Sadece TEST** — §3'teki bilgiler. PROD talebi henüz açılmadı, bu tur test OCP + test Postgres'i hedefliyor |
+| S5 | Sertifikalar | **Şimdilik düz `5432`, TLS yok** — Postgres/MinIO bağlantısında CA/sertifika gerekmiyor |
+| S6 | Local user / generic service user | Postgres kullanıcısı zaten generic (`vpaycmstest_new_user`, §3) |
+| S7 | Prod dağıtım modeli | **Kapsam dışı** — bu tur sadece TEST, tek cluster (tst-vcloud), 1 replica |
+| S8 | LDAP gerekli mi? | **Şimdilik hayır** — CMS'teki mevcut test kullanıcıları (hande.tanis vb.) kalıyor, gerçek LDAPS bağlantısı ayrı bir iş (§6.4) |
+| S9 | LDAP grup → rol eşlemesi | Kod zaten hazır (`roleMapping.ts`), bağlantı kurulmadığı için şimdilik devrede değil |
+| S10 | Route: otomatik host mü? | **Otomatik host** — kullanıcının verdiği gerçek örnek (aynı namespace'teki `finwatcher-frontend` route'u) tam olarak bu kalıbı doğruluyor: `<ad>-vepas-ai-am.apps.tst-vcloud.vpara.local`. Kurumsal DNS istenirse sonra eklenir |
+| S11 | Sonar/Fortify blocker mı? | **Hayır — sadece rapor.** `blocker=false`/`"0"` |
+| S12 | Kaynak talebi, replica | **1 replica ile başlıyoruz**, HPA 1-2 arası (küçük başlangıç, trafiğe göre genişletilir) |
 
 ---
 
@@ -252,19 +249,16 @@ desende** (multi-stage, `node:24-alpine`, standalone output, non-root `USER
 node`, port 3000) — şablonun Containerfile'ı yerine **bunlar** `Containerfile`
 adıyla kopyalanmalı. Tek gerçek eksik: kurumsal CA trust'ı (§6.5).
 
-### 6.2 Health endpoint — yazılması gereken gerçek iş
-Şu an hem site hem CMS'in "healthcheck"i sadece `/`'in 200 dönüp dönmediğine
-bakıyor (`docker-compose.yml`) — bu, liveness/readiness ayrımı yapmıyor ve
-gerçek bağımlılık kontrolü (DB/MinIO erişilebilir mi) içermiyor. Yazılması
-gerekenler:
-- `GET /api/health/liveness` — sadece "process ayakta mı" (DB'ye gitmez,
-  hızlı döner)
-- `GET /api/health/readiness` — CMS için: Postgres'e ve MinIO'ya gerçek bir
-  bağlantı/sorgu (site için: CMS'e erişilebilir mi, opsiyonel)
-- `deployment.yaml`'daki `readinessProbe.timeoutSeconds`, bu health route'un
-  kendi iç zaman sınırından **büyük** olmalı (şablonun kendi uyarısı,
-  `docs/05 Troubleshooting` tablosunda bunun gerçek bir sahada yaşanmış hata
-  olduğu yazılı)
+### 6.2 ✅ Health endpoint — tamamlandı (31.08.2026)
+İkisinde de `GET /api/health/liveness` (bağımlılık kontrolü yok, her zaman
+hızlı 200) ve `GET /api/health/readiness` yazıldı. Clover'ınki gerçek bir
+Postgres round-trip yapıyor (`payload.find({limit:0})`, `src/lib/healthEndpoints.ts`);
+site'ınki kasıtlı olarak Clover'a gitmiyor (readiness'i CMS'in kesintisine
+bağlamak, kısa bir CMS aksaklığını tüm site pod'larını devre dışı bırakan bir
+soruna çevirirdi — ISR zaten CMS kesintisini tolere edecek şekilde
+tasarlanmıştı). Her ikisi de canlıda test edildi, `deployment.yaml`'lara
+işlendi (`k8s/deployment.yaml`, her iki repo). 3+2 test, tam kayıt: ilgili
+repo'ların kendi commit'leri.
 
 ### 6.3 Migration aracı — DevOps kuralıyla mevcut mimari çelişiyor
 Şablonun **tartışmaya kapalı** kuralı: `ddl-auto=validate`, şema migration
@@ -353,25 +347,52 @@ SonarQube — muhtemelen aynı `SONAR_ENTERPRISE_HOST_URL`'e taşınacak).
 
 ---
 
-## 7. DevOps ekibine sorulacaklar (özet)
+## 7. DevOps ekibine sorulacaklar (kalan)
 
-1. **Namespace kesin adı** — `vepas-ai-am` her iki servis için mi, yoksa
-   ayrı namespace'ler mi?
-2. **Repo adları** — GitHub Enterprise'da açılacak 2 yeni repo için isim.
-3. **MinIO** — kurumsal bir S3/MinIO endpoint'i mi kullanılacak, yoksa
-   kendi MinIO'muz aynı namespace'e mi deploy edilecek?
-4. **CMS↔Postgres bağlantısı TLS mi?** (§3'teki bilgi düz `5432`, netleşmedi)
-5. **DB parolası** — kullanıcı adıyla aynı görünüyor, gerçek/kalıcı mı,
+S1-S12 hepsi kullanıcı kararıyla cevaplandı (§2) — geriye şunlar kaldı, bunlar
+DevOps/IT'nin kendi tarafında yapması gereken, bizim karar veremeyeceğimiz
+şeyler:
+
+1. **GitHub Enterprise repo kaydı** — `clover` ve `vodafonepaycomtr`
+   organizasyon içine (GHES) kayıtlı mı, yoksa şu an sadece
+   `github.com/bbatus/...`'ta mı yaşıyorlar? Pipeline'ların çalışması için
+   GHES tarafında da açılmaları gerekecek.
+2. **`vepas-ai-am` namespace'inde bizim için gerçekten kota/izin var mı** —
+   `oc project vepas-ai-am` ile deploy kullanıcısının bu iki servisi
+   oluşturabildiği teyit edilmeli (Faz 0, ilk manuel kurulum sırasında
+   netleşir).
+3. **DB parolası** — kullanıcı adıyla aynı görünüyor (§3), gerçek/kalıcı mı,
    değiştirilmesi mi gerekiyor?
-6. **Route host'ları** — otomatik OCP host mu, kurumsal DNS kaydı mı?
-7. **Sonar/Fortify/Mend** — pipeline'ı kırsın mı (`blocker=true`), yoksa
-   sadece raporlasın mı?
-8. **Migration kararı** (§6.3) — Payload'ın push-tabanlı senkronu istisna
+4. **Image pull secret'ı için registry kullanıcı adı/token** — Faz 0'ın ilk
+   adımı, DevOps'tan/registry admin'den alınacak.
+5. **Migration kararı** (§6.3) — Payload'ın push-tabanlı senkronu istisna
    olarak kabul mü edilecek, yoksa `migrate:create`'e geçiş mi istenecek?
+   (Hâlâ açık, bizim tarafımızda bir kod kararı — DevOps'a sormaktan çok
+   kendi aramızda netleştirilecek.)
 
 ---
 
-## 8. Kaynaklar
+## 8. ✅ k8s manifestleri üretildi (31.08.2026)
+
+§2'deki cevaplarla, her iki repo'nun kendi `k8s/` klasöründe:
+
+| Dosya | Clover | Site |
+|---|---|---|
+| `deployment.yaml` | ✅ 1 replica, gerçek health path'leri, `readOnlyRootFilesystem` | ✅ aynı desen |
+| `service.yaml` / `route.yaml` | ✅ otomatik host (`clover-vepas-ai-am.apps.tst-vcloud.vpara.local`) | ✅ `vodafonepaycomtr-vepas-ai-am....` |
+| `configmap.yaml` | ✅ `DATABASE_URI` **yok** (parola içerdiği için tamamen Secret'ta), MinIO/site endpoint'leri var | ✅ `CMS_API_URL` |
+| `secret.yaml` + `.env.secret.example` + `create-secret.sh` | ✅ | ✅ |
+| `serviceaccount.yaml` / `hpa.yaml` (1-2) / `networkpolicy.yaml` (placeholder) | ✅ | ✅ |
+| `minio.yaml` (Deployment+PVC+Service+Route+bucket-init Job) | ✅ **sadece Clover'da** — MinIO'yu namespace'e biz koyuyoruz (S3) | — |
+| `DEPLOYMENT_RUNBOOK.md` | ✅ repo kökünde | ✅ repo kökünde |
+
+**Henüz yapılmadı:** `.github/workflows/` pipeline'ları (GHES repo kaydı ve
+registry erişimi netleşmeden anlamlı doldurulamaz, §7), gerçek OCP'ye ilk
+deploy (Faz 3 — manifestler hazır ama `oc apply` hiç çalıştırılmadı).
+
+---
+
+## 9. Kaynaklar
 
 - `devops-surecleri/Devops-Surecleri.md` — DevOps ekibinin genel süreç notu
 - `devops-surecleri/devops-proje-sablonu/README.md` — şablonun kendi haritası + S1-S12
