@@ -1,9 +1,9 @@
-# OCP DevOps Runbook — vodafonepaycomtr + cms
+# OCP DevOps Runbook — vodafonepaycomtr + Clover
 
-**Durum:** Analiz/planlama dokümanı. Hiçbir kod/altyapı değiştirilmedi — bu, DevOps
-ekibinin `devops-surecleri` reposundaki şablonu (`devops-proje-sablonu/`) bizim
-projemize uyarlayan bir yol haritası. Aşağıdaki her adım henüz **yapılmadı**,
-yapılacak.
+**Durum:** §1 (repo ayrımı) **tamamlandı ve canlıda doğrulandı** (30-31.08.2026,
+tam kayıt: `tasks.md` madde 39). Geri kalan her şey (§2-§7) hâlâ analiz/planlama
+— DevOps ekibinin `devops-surecleri` reposundaki şablonunu (`devops-proje-sablonu/`)
+bizim projemize uyarlayan bir yol haritası, henüz uygulanmadı.
 
 _Kaynak:_ `devops-surecleri/Devops-Surecleri.md` + `devops-surecleri/devops-proje-sablonu/`
 (DevOps ekibinin verdiği şablon repo, bu proje klasörünün içine ayrıca clone'landı).
@@ -12,51 +12,49 @@ teyit edilmeli, bkz. §7 S1). Test PostgreSQL zaten talep edilip karşılandı (
 
 ---
 
-## 1. En kritik karar: tek repo, iki mikroservis nasıl ayrılır?
+## 1. ✅ TAMAMLANDI — repo ayrımı (30-31.08.2026)
 
-DevOps şablonu tartışmaya kapalı tek bir kural veriyor: **her mikroservis ayrı
-repo** (`devops-proje-sablonu/README.md §1`: *"Organizasyon içinde repo'lar;
-her mikroservis ayrı repo"*). Bizde şu an `vodafonepaycomtr` (Next.js site) ve
-`cms` (Payload CMS) **tek repo'da iki kardeş klasör** — kendi `package.json`,
-`node_modules`, testleri olan, birbirinden bağımsız iki proje, ama tek git
-geçmişini paylaşıyorlar (bkz. `docs/PROJECT-OVERVIEW.md §1`).
+DevOps şablonunun tartışmaya kapalı kuralı — **her mikroservis ayrı repo**
+(`devops-proje-sablonu/README.md §1`) — uygulandı. `cms/`, **Seçenek A**
+(`git subtree split`) ile ayrıldı ve yeni adını aldı: **Clover** (İngilizce
+"yonca").
 
-OCP'ye çıkmak için bunun **gerçekten iki ayrı repo'ya** bölünmesi gerekiyor —
-her birinin kendi `.github/workflows/`, `k8s/`, pipeline'ı, branch modeli
-(`development`/`release`/`master`) olacak şekilde.
+| | Önce | Sonra |
+|---|---|---|
+| CMS'in yeri | `vodafonepaycomtr/cms/` (monorepo alt klasörü) | `https://github.com/bbatus/clover.git`, yerelde `/Users/guestbatu/Documents/Projects/clover/` — `vodafonepaycomtr/`'ın tam yanında, tamamen bağımsız repo |
+| Git geçmişi | — | **Korundu** — 148 commit, `cms/x` yolları `x`'e yeniden yazılmış, hiçbir kök-neden notu kaybolmadı |
+| Yerel ayağa kalkış | Tek `docker-compose.yml`, kök dizinden | İki bağımsız `docker-compose.yml`: `clover/` ve `vodafonepaycomtr/vodafonepaycomtr/`, kendi klasöründen |
+| Ortak Postgres/MinIO | Aynı compose'un servisleri | Clover'ın compose'unda, **aynı eski volume'lara** (`external: true`) bağlı — veri taşınmadı |
+| Haberleşme | Docker Compose'un kendi ağı | Paylaşılan harici ağ: `vodafonepay-net` (`docker network create vodafonepay-net`) — container adıyla DNS, OCP'de iki Service'in birbirini bulması gibi |
 
-### Seçenekler
+**Doğrulama (gerçek komutlarla, tahmin değil) — tam kayıt `tasks.md` madde 39:**
+- İki klasör bağımsız ayakta ✅
+- Haberleşme iki yönde de (`fetch()` ile container adından) ✅
+- Postgres verisi bölünmeden önce/sonra **birebir aynı** (satır sayıları) ✅
+- MinIO **128/128 obje**, birebir aynı ✅
+- Gerçek veri senkronu: Clover'da oluşturulan bir duyuru, elle tetiklenmeden
+  site'ta anında göründü (Clover'ın `afterChange` hook'u otomatik çalıştı) ✅
+- Site 380/380, Clover 564/564 test yeşil ✅
 
-| Seçenek | Ne yapar | Artı | Eksi |
-|---|---|---|---|
-| **A — `git subtree split` (önerilen)** | Her klasörün kendi commit geçmişini koruyarak ayrı bir repo'ya çıkarır (`git subtree split --prefix=cms -b cms-only`, sonra yeni repo'ya push) | Git blame/history korunur — "bu satır ne zaman, neden değişti" hâlâ sorulabilir | İki komut, biraz dikkat ister (doğru repo'ya push) |
-| B — Fresh start | Mevcut içeriği olduğu gibi kopyala, yeni repo'da `git init` | En basit | **Tüm geçmiş kaybolur** — bu oturumun (ve önceki 30+ günün) commit mesajlarındaki kök-neden analizleri, kararlar, "neden böyle yapıldı" notları gider |
-| C — Monorepo + 2 pipeline | Tek repo kalır, `.github/workflows/`'a path-filter'lı 2 ayrı workflow eklenir (`paths: ['cms/**']` / `paths: ['vodafonepaycomtr/**']`) | Geçmiş korunur, ayırma işi yok | **DevOps ekibinin kuralına aykırı** ("her mikroservis ayrı repo") — kendi CI sistemleri muhtemelen repo-bazlı deploy varsayıyor (registry image adı `<repo>` = mikroservis adı, `devops-proje-sablonu/README.md §1`) |
+**Bu sırada bulunan gerçek bir hata:** `cms/` hiçbir zaman kendi
+`.gitignore`'ına sahip olmamış — hep monorepo kökündekine güvenmiş. Subtree
+split sonrası Clover bağımsız bir repo olunca bu ortaya çıktı (`node_modules`/
+`.env` bir `git add .` ile commit'e girebilirdi) — `clover/.gitignore`
+oluşturuldu.
 
-**Önerim: A.** Git geçmişi bu projede gerçekten değerli — `tasks.md`'nin 38
-maddesi, commit mesajlarındaki kök-neden analizleri (`git log --oneline` ile
-görülen onlarca "neden böyle yapıldı" kaydı) yeni repo'larda da erişilebilir
-kalmalı. Adımlar (ne zaman uygulamaya karar verilirse):
+**Bilinçli ertelenen (ayrı onay bekliyor):** `cms/` klasörü monorepo'dan henüz
+**silinmedi** — `scripts/trivy-scan.sh`, `scripts/warm-cache.sh`,
+`scripts/sonar-scan.sh` ve `AGENTS.md` hâlâ eski yapıya (kök `docker-compose.yml`,
+`cms/` yolu) referans veriyor, bunları güncellemek ayrı bir iş.
 
+`vodafonepaycomtr` (site) için aynı ayrım **henüz yapılmadı** — bu doküman
+hâlâ onu da OCP'ye çıkmadan önce kendi repo'suna ayrılması gereken bir servis
+olarak sayıyor (§2, §4, §5). Ne zaman sırası gelirse aynı yöntem (subtree
+split) uygulanabilir:
 ```bash
-# CMS için
-git subtree split --prefix=cms -b cms-only
-git push <yeni-cms-repo-url> cms-only:main
-
-# Site için
 git subtree split --prefix=vodafonepaycomtr -b site-only
 git push <yeni-site-repo-url> site-only:main
 ```
-
-`docker-compose.yml`, `scripts/`, `docs/`, `tasks.md`, `AGENTS.md` gibi
-kök dosyalar **hiçbir yeni repo'ya gitmez** — onlar bu "orkestrasyon" reposunda
-(mevcut repo) kalır; yerel geliştirme deneyimi (tek `docker compose up` ile
-4 servis) bozulmaz. OCP'de zaten ayrı deploy edilecekler, yerelde de zaten
-ayrı `Dockerfile`'ları var.
-
-⚠️ Bu adım **geri dönüşü zor** bir işlemdir (iki yeni repo oluşturmayı,
-GitHub Enterprise'da yeni organizasyon içi repo açmayı gerektirir) — kullanıcı
-onayı olmadan uygulanmayacak.
 
 ---
 
@@ -65,9 +63,9 @@ onayı olmadan uygulanmayacak.
 `devops-proje-sablonu/README.md §4`, kod yazılmadan önce cevaplanması gereken
 12 soru listeliyor. Bildiğimiz kadarıyla taslak cevaplar:
 
-| # | Soru | Site (`vodafonepaycomtr`) | CMS (`cms`) |
+| # | Soru | Site (`vodafonepaycomtr`) | Clover (eski `cms`) |
 |---|---|---|---|
-| S1 | Repo adı + namespace | TODO — DevOps ekibiyle netleşecek, muhtemelen `vodafonepaycomtr` | TODO, muhtemelen `vodafonepay-cms` |
+| S1 | Repo adı + namespace | Repo adı muhtemelen `vodafonepaycomtr` (henüz kendi repo'suna ayrılmadı, §1) — namespace TODO | **Repo adı `clover` — biliniyor** (`github.com/bbatus/clover`, §1'de ayrıldı). Namespace hâlâ TODO |
 | S2 | Dil/stack | **Node.js / Next.js 16** (Java değil — pipeline'da `project_type: npm`) | Aynı — **Node.js / Next.js 16 + Payload CMS 3.87** |
 | S3 | Harici bağımlılıklar | Yok (kendi başına statik+ISR site, CMS'e HTTP ile bağlanıyor) | **PostgreSQL** (zaten talep edildi, §3), **MinIO/S3** (medya deposu) |
 | S4 | Test/prod host-port-db-kullanıcı | — | TEST: §3'teki bilgiler. PROD: **henüz talep açılmadı** |
@@ -170,11 +168,13 @@ servisimize göre:
 - [ ] IT/AD'den LDAP service account (S8/S9 zaten kısmen hazır, bkz. §6.4)
 
 ### Faz 1 — Repo iskeleti
-- [ ] §1'deki karar uygulanır (subtree split, 2 yeni repo)
-- [ ] Her repo'ya: `.github/workflows/`, `k8s/`, `Containerfile` (mevcut
-      `Dockerfile`'larımızdan uyarlanacak, bkz. §6.1), `DEPLOYMENT_RUNBOOK.md`
-- [ ] Branch modeli: `development`/`release`/`master` — şu an ikisi de sadece
-      `main` kullanıyor, bu üçe bölünmeli
+- [x] Clover için: §1'deki karar uygulandı (subtree split, `github.com/bbatus/clover`)
+- [ ] Site için: aynı ayrım henüz yapılmadı
+- [ ] Her repo'ya (Clover dahil, henüz yapılmadı): `.github/workflows/`, `k8s/`,
+      `Containerfile` (mevcut `Dockerfile`'larımızdan uyarlanacak, bkz. §6.1),
+      `DEPLOYMENT_RUNBOOK.md`
+- [ ] Branch modeli: `development`/`release`/`master` — Clover ve site'ın
+      ikisi de hâlâ sadece `main` kullanıyor, bu üçe bölünmeli
 
 ### Faz 2 — Uygulama iskeleti
 - [ ] **Health endpoint'leri yazılmalı** — şu an ikisinde de yok
@@ -383,3 +383,4 @@ SonarQube — muhtemelen aynı `SONAR_ENTERPRISE_HOST_URL`'e taşınacak).
 - `devops-surecleri/devops-proje-sablonu/docs/06-github-variables-secrets.md` — CI değişkenleri
 - `devops-surecleri/devops-proje-sablonu/docs/07-teslim-checklist.md` — "bitti" tanımı
 - `docs/PROJECT-OVERVIEW.md` — bizim projenin güncel mimarisi (§5 rol modeli, §10 kararlar, §11 sınırlamalar)
+- `tasks.md` madde 39 — §1'in tam uygulama/doğrulama kaydı (repo ayrımı, Docker ayrımı, canlı test sonuçları)
