@@ -39,6 +39,33 @@ describe("REFERENCE_MAP", () => {
     expect(paths).toContain("pages.layout.logos.logo");
   });
 
+  /**
+   * Follow-up 30.08, from the user: only 3 of the 13 upload fields across the
+   * Pages block library were covered — a Media doc still used in, say,
+   * `mediaPanel.backgroundImage` could be deleted with no warning, and the
+   * usage panel (which reads this same map) would never show it as in use.
+   * One entry per distinct field PATH, not per block — `layout.steps.image`
+   * covers both `steps` (Adım Listesi) and `stepPhones` (Telefonlu Tanıtım),
+   * which name their array/field the same way.
+   */
+  it("covers every remaining upload field in the Pages block library, not just the first 3", () => {
+    const paths = new Set(REFERENCE_MAP.media.map((s) => `${s.collection}.${s.path}`));
+    for (const path of [
+      "pages.layout.cards.icon", // iconCards
+      "pages.layout.steps.image", // steps, stepPhones
+      "pages.layout.steps.icon", // howToEarn
+      "pages.layout.media", // featureHighlights
+      "pages.layout.features.icon", // featureHighlights
+      "pages.layout.people.photo", // profileGrid
+      "pages.layout.backgroundImage", // mediaPanel
+      "pages.layout.sideImage", // imageTextSlides
+      "pages.layout.slides.image", // imageTextSlides
+      "pages.layout.darkBackgroundImage", // videoList
+    ]) {
+      expect(paths, path).toContain(path);
+    }
+  });
+
   it("treats users references as provenance, never as blocking", () => {
     // Blocking on createdBy/rejectedBy/uploadedBy would make it impossible to
     // ever offboard a user who once touched anything.

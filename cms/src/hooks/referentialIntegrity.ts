@@ -66,8 +66,31 @@ export const REFERENCE_MAP: Record<string, ReferenceSource[]> = {
     { collection: "blog-posts", path: "coverImage", titleField: "title", blocking: true },
     { collection: "page-meta", path: "ogImage", titleField: "pageKey", blocking: true },
     { collection: "pages", path: "ogImage", titleField: "title", blocking: true },
+    // `layout.image` and `layout.logos.logo` each match EVERY block sharing
+    // that exact field path, not just one block type — Payload resolves a
+    // `where` path inside a polymorphic `blocks` array across all variants
+    // that declare it. `layout.image` alone already covers hero, howToEarn
+    // and imageWithText (all three name their top-level image field
+    // literally "image"); no separate entry needed for each.
     { collection: "pages", path: "layout.image", titleField: "title", blocking: true },
     { collection: "pages", path: "layout.logos.logo", titleField: "title", blocking: true },
+    // Follow-up 30.08, from the user: found live that this map only covered
+    // 3 of the 13 upload fields across the Pages block library — the other
+    // 10 could be deleted out from under a live page with no warning and no
+    // "Kullanıldığı Yerler" listing. Same reasoning as above: one entry per
+    // distinct field PATH, not per block, so `layout.steps.image` alone
+    // covers both `steps` (Adım Listesi) and `stepPhones` (Telefonlu
+    // Tanıtım), which happen to name their array/field the same way.
+    { collection: "pages", path: "layout.cards.icon", titleField: "title", blocking: true }, // iconCards
+    { collection: "pages", path: "layout.steps.image", titleField: "title", blocking: true }, // steps, stepPhones
+    { collection: "pages", path: "layout.steps.icon", titleField: "title", blocking: true }, // howToEarn
+    { collection: "pages", path: "layout.media", titleField: "title", blocking: true }, // featureHighlights
+    { collection: "pages", path: "layout.features.icon", titleField: "title", blocking: true }, // featureHighlights
+    { collection: "pages", path: "layout.people.photo", titleField: "title", blocking: true }, // profileGrid
+    { collection: "pages", path: "layout.backgroundImage", titleField: "title", blocking: true }, // mediaPanel
+    { collection: "pages", path: "layout.sideImage", titleField: "title", blocking: true }, // imageTextSlides
+    { collection: "pages", path: "layout.slides.image", titleField: "title", blocking: true }, // imageTextSlides
+    { collection: "pages", path: "layout.darkBackgroundImage", titleField: "title", blocking: true }, // videoList
     { collection: "representatives", path: "qrCode", titleField: "businessName", blocking: true },
     { collection: "users", path: "avatar", titleField: "email", blocking: true },
     { collection: "legal-pages", path: "heroImage", titleField: "title", blocking: true },
