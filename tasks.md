@@ -1527,3 +1527,32 @@ güncellendi, §1 (repo ayrımı) özetlendi.
       (GHES repo kaydı netleşmeden anlamlı doldurulamaz), gerçek `oc apply`
       ile ilk TEST kurulumu (manifestler hazır, hiç uygulanmadı), migration
       kararı (§6.3, hâlâ açık).
+
+### 40b. Düzeltme — MinIO kaynakları repo isimlendirmesine uymuyordu (31.08.2026)
+
+**Bildirim:** "yalnız şyi yanlıs yapmısız deployment yaml lar configmapler
+ve secretlar falan reponun isimlendirmesi ile olması gerekiyordu onlar
+olmamış."
+
+Kendi çıktımı yeniden denetleyip doğruladım: `clover/k8s/`'teki HER kaynak
+(`deployment`, `service`, `route`, `configmap`, `secret`, `serviceaccount`,
+`hpa`, `networkpolicy`) doğru şekilde `clover`/`clover-*` ile
+isimlendirilmişti — **tek istisna `k8s/minio.yaml`'dı**: PVC/Deployment/
+Service/Route düz `minio`/`minio-data` adlarıyla kalmıştı (Job zaten
+`clover-minio-init` idi, tutarsızlık oradan görülebilirdi).
+
+- [x] `minio-data` → `clover-minio-data` (PVC)
+- [x] `minio` → `clover-minio` (Deployment, Service, Route, pod label'ı)
+- [x] Bağımlı referanslar güncellendi: `configmap.yaml`'daki `S3_ENDPOINT`
+      (`http://clover-minio:9000`) ve `S3_PUBLIC_URL`
+      (`https://clover-minio-vepas-ai-am.apps.tst-vcloud.vpara.local`),
+      `minio.yaml`'ın kendi Job komutundaki `mc alias set` hedefi,
+      `DEPLOYMENT_RUNBOOK.md`'deki `oc wait`/`oc get route` komutları.
+- [x] Neden önemli: aynı namespace'te birden fazla proje yaşıyor
+      (`finwatcher`, `genaiops` — route örneğinden zaten biliniyordu) —
+      düz `minio` adı gelecekte bir başka projenin kendi MinIO'suyla
+      çakışabilirdi; her kaynağın hangi mikroservise ait olduğu isminden
+      belli olmalı.
+- [x] Tüm YAML'lar yeniden doğrulandı (`yaml.safe_load_all`), site
+      tarafında (`vodafonepaycomtr/k8s/`) aynı taramada başka bir
+      tutarsızlık bulunmadı — sadece Clover'ın MinIO'su etkilenmişti.
