@@ -1364,3 +1364,76 @@ ekledikten hemen sonra kaydet") tam olarak bunu tetikliyormuş.
       alanlı) — ikisi de TÜM alanlarıyla (Başlık, Görsel picker, Kartlar
       dizisi vb.) sorunsuz render oldu. Test sayfası kaydedilmeden
       atıldı, DB'de iz bırakmadı (`SELECT` ile doğrulandı).
+
+---
+
+# Görev Listesi — OCP hazırlığı, Faz 1: repo ayrımı (30-31.08.2026)
+
+`docs/OCP-DEVOPS-RUNBOOK.md`'nin §1'inde önerilen karar onaylandı: **git
+subtree split** ile `cms/`, kendi git geçmişini koruyarak ayrı bir repo'ya
+çıkarılıyor. Yeni servisin adı **Clover** (İngilizce "yonca") — repo:
+`https://github.com/bbatus/clover.git` (kullanıcı tarafından zaten oluşturuldu).
+
+## 39. `cms/` → `clover` — ayrı repo + ayrı yerel klasör + bağımsız Docker
+
+**İstek (özet):** "cms in ismini repo ve deployment ismini clover olarak
+seçtim... buraya clover yani cms in kodunu pushlucaz... localde de bunun
+vodafonepaycomtr nin olduğu dizinde [yeni bir] klasörünü aç ve oraya tüm cms
+kodunu taşı. docker compose ile kaldırıyorduk... artık öyle olmayacak, 2 ayrı
+klasörden docker container ile kaldıracaksın ve bakacaksın ikisi birbiriyle
+haberleşebiliyor mu, ortak postgrelerini/miniolarını kullanabiliyorlar mı,
+eklenen data senkronize mi."
+
+**Kapsam netliği (kendi yorumum, teyide açık):** Bu turun hedefi *kurmak ve
+doğrulamak* — `cms/` klasörünü mevcut monorepo'dan silmek şimdilik kapsam
+dışı bırakıldı. Tüm ara doğrulamalar (haberleşme, ortak Postgres/MinIO,
+veri senkronu) geçmeden eski kopyayı silmek riskli olur; kullanıcı "taşı"
+dedi ama aynı mesajda sırayla doğrulanacak bir kontrol listesi de verdi —
+önce doğrula, sonra temizle sırası izleniyor. Temizlik (cms/'i monorepo'dan
+kaldırmak) ayrı, bu doğrulamalar bittikten sonra istenecek bir adım olarak
+bırakıldı.
+
+- [ ] `git subtree split --prefix=cms -b cms-only` — `cms/`'in TÜM git
+      geçmişini koruyarak (dosya yolları `cms/x` → `x` olacak şekilde
+      yeniden yazılmış) ayrı bir branch olarak çıkar.
+- [ ] `cms-only` branch'i `https://github.com/bbatus/clover.git`'e
+      `main` olarak push edilir.
+- [ ] Yerel: `vodafonepaycomtr/` proje klasörünün YANINA (aynı üst dizinde,
+      `/Users/guestbatu/Documents/Projects/`), `clover/` adında yeni, tamamen
+      bağımsız bir git deposu açılır — `https://github.com/bbatus/clover.git`
+      clone'lanarak (subtree split'in ürettiği geçmişle).
+- [ ] Mevcut monorepo'daki `cms/` klasörüne bu turda **dokunulmuyor** —
+      hem çalışan sistemi bozmamak hem de aşağıdaki doğrulamalar bitene kadar
+      geri dönüşü kolay tutmak için. Silme kararı ayrı istenecek.
+- [ ] **Docker ayrımı:** `docker-compose.yml` artık tek komutla her şeyi
+      ayağa kaldırmıyor olacak — `clover/` kendi `docker-compose`'unu (ya da
+      `docker run`/`Dockerfile`'ını) kendi klasöründen, `vodafonepaycomtr/`
+      kendi başına kendi klasöründen ayağa kalkacak şekilde ayrılacak.
+      Postgres + MinIO paylaşımlı kalacaksa (OCP'de zaten öyle olacak, aynı
+      test Postgres'i paylaşıyoruz — `docs/OCP-DEVOPS-RUNBOOK.md §3`) bu
+      ikisinin nasıl ayağa kalkacağına (ayrı bir "ortak altyapı" compose
+      dosyası mı, yoksa ikisi de dışarıdaki gerçek OCP test Postgres'ine mi
+      bağlanacak) karar verilecek — yereldeki mevcut `docker-compose.yml`'in
+      postgres/minio servisleri örnek/başlangıç noktası.
+- [ ] **Doğrulama listesi (kullanıcının istediği sırayla):**
+      - [ ] İki klasör, iki ayrı `docker compose`/`docker run` ile bağımsız
+            ayağa kalkabiliyor mu?
+      - [ ] Site (`vodafonepaycomtr`) ve Clover (CMS) birbirleriyle
+            haberleşebiliyor mu? (Site'ın `CMS_API_URL`'i, revalidate
+            webhook'u vb. — `docker-compose.yml`'deki mevcut servis-adı
+            bazlı DNS çözümlemesi artık geçerli olmayacağı için bunun
+            nasıl güncelleneceği netleşmeli: `localhost:<port>` mü, yoksa
+            iki ayrı compose'un ortak bir Docker network'ünde mi kalacaklar?)
+      - [ ] İkisi de **aynı** Postgres'i kullanabiliyor mu (ayrı DB/şema,
+            aynı sunucu — tıpkı OCP'deki gerçek test Postgres'i gibi)?
+      - [ ] İkisi de **aynı** MinIO'yu kullanabiliyor mu (medya
+            yükleme/okuma iki taraftan da çalışıyor mu)?
+      - [ ] Veri gerçekten senkron mu — CMS'te girilen bir içerik (örn. yeni
+            bir duyuru/kampanya) site tarafında görünüyor mu, medya
+            yüklemesi her iki taraftan da erişilebiliyor mu?
+- [ ] Bu turda **dokunulmayacaklar** (bilinçli, ayrı bir iş): OCP'ye gerçek
+      deploy, GitHub Actions pipeline'ları, k8s manifestleri — bunlar
+      `docs/OCP-DEVOPS-RUNBOOK.md`'nin sonraki fazları, bu turun kapsamı
+      sadece "iki bağımsız yerel proje + ayrı repo" kurmak.
+- [ ] Testler + canlı doğrulama — her adımdan sonra ilgili test suite'i
+      (varsa) ve gerçek tarayıcı/curl doğrulaması.
