@@ -1299,3 +1299,68 @@ yapalım."
 - [x] Rakam doğruluğu: ilk taslakta "1000'in üzerinde otomatik test" yazmıştı,
       gerçek toplam (549 CMS + 380 site = 929) kontrol edilip "900'ün
       üzerinde"ye düzeltildi — yayınlamadan önce.
+
+## 37. "Taslak kaydet" butonu Growth Maker için görünmüyor (rapor edildi) — etiket kafa karıştırıyormuş, kod zaten doğruydu
+
+**İstek:** "ben hala growth makerın hiçbir collecitonda taslak kaydetme
+akışını göremiyorum butonu onu eklemedik mi" → ekran görüntüsüyle: "yok
+işte uı a bakmıyorsun sanırım bak yok burada taslagı kaydet butonu hiçbir
+collectionda cıkmıyor maker için."
+
+- [x] Önce canlıda 3 farklı yerde test edildi (Sık Sorulanlar hem yeni
+      kayıt hem yayındaki kayıt, Kampanyalar yayındaki kayıt, Ücretler ve
+      Limitler drawer'ı) — buton her seferinde vardı ve çalıştı ("Taslak
+      başarıyla kaydedildi" toast'ı, sürüm sayısı arttı).
+- [x] Kullanıcının gönderdiği ekran görüntüsü incelendi: buton **gerçekten
+      oradaydı** — sağ üstte "Onaya Gönder" yazan buton. Kullanıcı bile onu
+      "taslak kaydetme" olarak tanımamış — kök neden kod değil, **etiket**:
+      "Onaya Gönder" sadece SONUCU söylüyordu (inceleneceğini), EYLEMİ
+      söylemiyordu (işinizin kaydedildiğini).
+- [x] `saveOrSubmit.submitForReview` çevirisi "Onaya Gönder" → **"Taslağı
+      Onaya Gönder"** yapıldı (tr+en, `SaveOrSubmitButton.tsx`'in kendi
+      yorumu da güncellendi). İkisini de söylüyor artık: kaydediliyor VE
+      onaya gidiyor.
+- [x] Canlı doğrulama: Growth Maker (ece.boran) olarak Sık Sorulanlar'da
+      yeni kayıt ekranı — buton artık "Taslağı Onaya Gönder" diyor.
+- [x] **Ders:** İşlevsel olarak doğru bir buton, yanlış kelimeyle
+      "yok" gibi görünebiliyor — bu, "gerçekten çalışıyor mu" sorusunun
+      sadece kod okumakla değil, gerçek bir kullanıcının ekranı nasıl
+      okuduğuyla da test edilmesi gerektiğinin bir örneği daha.
+
+## 38. "+ Layout Ekle" ile eklenen blok bazen boş kalıyor — otomatik düzeltildi
+
+Madde 27.08.2026 taşımasında bulunan, Payload 3.87→3.88 yükseltmesinin de
+kapatamadığı, kullanıcının canlıda elle doğruladığı bilinen upstream Payload
+hatası (payloadcms/payload#9567) için gerçek bir çözüm.
+
+**Kök neden (kaynak koddan doğrulandı, `node_modules/@payloadcms/ui`):**
+`addFieldRow` yeni satırı `isLoading:true` ile ekliyor
+(`forms/Form/fieldReducer.js`), ama bunu temizleyen tek yol
+`getFormState`'in `renderAllFields:true` ile TAM bir yeniden-çözümleme
+yapması — bu da normal yazma sırasında çalışan kısmi/debounce'lu
+yenilemede olmuyor, sadece "Taslağı Onaya Gönder"in kendi submit
+round-trip'inde oluyor. Kullanıcının elle bulduğu geçici çözüm ("bloğu
+ekledikten hemen sonra kaydet") tam olarak bunu tetikliyormuş.
+
+- [x] `cms/src/components/BlockFieldAutoResolve.tsx` (yeni) — `layout`
+      alanının satır sayısını izliyor, bir satır ARTINCA (azalma/yeniden
+      sıralamada tetiklenmiyor) 600ms sonra formun KENDİ mevcut verisiyle
+      (`getData()`) `reset()` çağırıyor — bu, submit'in kullandığı AYNI
+      `renderAllFields:true` isteği, ama hiçbir şey kaydetmiyor/yayınlamıyor,
+      sadece render şemasını tazeliyor. 600ms gecikme, blok satırının
+      kendi shimmer penceresiyle (`useThrottledValue`, 500ms) örtüşecek
+      şekilde seçildi — editöre "boş blok sonra düzeliyor" değil, "normal
+      yükleniyor animasyonu" gibi görünsün diye.
+- [x] `Pages.ts`'e `admin.components.edit.beforeDocumentControls`'a
+      eklendi (`path: "layout"`), `generate:importmap` ile üretildi.
+- [x] Testler: `BlockFieldAutoResolve.test.tsx` (6 test — ilk yüklemede
+      tetiklenmiyor, satır artınca ~600ms sonra `getData()`'yı `reset()`'e
+      geçiriyor, satır silinince tetiklenmiyor, yeniden sıralamada
+      tetiklenmiyor, gecikme dolmadan satır tekrar silinirse bekleyen
+      çağrı iptal oluyor, hiçbir şey render etmiyor). CMS 563/563,
+      tsc/eslint temiz.
+- [x] Canlı doğrulama: Growth Maker olarak yeni bir sayfada arka arkaya 2
+      blok eklendi (Hero — upload alanlı, İkonlu Kartlar — array+upload
+      alanlı) — ikisi de TÜM alanlarıyla (Başlık, Görsel picker, Kartlar
+      dizisi vb.) sorunsuz render oldu. Test sayfası kaydedilmeden
+      atıldı, DB'de iz bırakmadı (`SELECT` ile doğrulandı).

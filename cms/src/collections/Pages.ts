@@ -1333,7 +1333,11 @@ export const Pages: CollectionConfig = {
       // create/edit view, where HelpButton wasn't rendered at all — only on
       // the list, one screen back. Same component, second placement.
       edit: {
-        beforeDocumentControls: [{ path: "/components/HelpButton#default", clientProps: { collection: "pages" } }],
+        beforeDocumentControls: [
+          { path: "/components/HelpButton#default", clientProps: { collection: "pages" } },
+          // Works around a Payload upstream bug — see BlockFieldAutoResolve.tsx.
+          { path: "/components/BlockFieldAutoResolve#default", clientProps: { path: "layout" } },
+        ],
         PublishButton: "/components/MakerAwarePublishButton#default",
         // Payload offers Unpublish only inside the ⋮ menu, which never renders
         // for a Checker and 403s for a Maker — see HideMenuUnpublishButton.
