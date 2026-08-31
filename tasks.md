@@ -1393,47 +1393,78 @@ dedi ama aynı mesajda sırayla doğrulanacak bir kontrol listesi de verdi —
 kaldırmak) ayrı, bu doğrulamalar bittikten sonra istenecek bir adım olarak
 bırakıldı.
 
-- [ ] `git subtree split --prefix=cms -b cms-only` — `cms/`'in TÜM git
-      geçmişini koruyarak (dosya yolları `cms/x` → `x` olacak şekilde
-      yeniden yazılmış) ayrı bir branch olarak çıkar.
-- [ ] `cms-only` branch'i `https://github.com/bbatus/clover.git`'e
-      `main` olarak push edilir.
-- [ ] Yerel: `vodafonepaycomtr/` proje klasörünün YANINA (aynı üst dizinde,
-      `/Users/guestbatu/Documents/Projects/`), `clover/` adında yeni, tamamen
-      bağımsız bir git deposu açılır — `https://github.com/bbatus/clover.git`
-      clone'lanarak (subtree split'in ürettiği geçmişle).
-- [ ] Mevcut monorepo'daki `cms/` klasörüne bu turda **dokunulmuyor** —
-      hem çalışan sistemi bozmamak hem de aşağıdaki doğrulamalar bitene kadar
-      geri dönüşü kolay tutmak için. Silme kararı ayrı istenecek.
-- [ ] **Docker ayrımı:** `docker-compose.yml` artık tek komutla her şeyi
-      ayağa kaldırmıyor olacak — `clover/` kendi `docker-compose`'unu (ya da
-      `docker run`/`Dockerfile`'ını) kendi klasöründen, `vodafonepaycomtr/`
-      kendi başına kendi klasöründen ayağa kalkacak şekilde ayrılacak.
-      Postgres + MinIO paylaşımlı kalacaksa (OCP'de zaten öyle olacak, aynı
-      test Postgres'i paylaşıyoruz — `docs/OCP-DEVOPS-RUNBOOK.md §3`) bu
-      ikisinin nasıl ayağa kalkacağına (ayrı bir "ortak altyapı" compose
-      dosyası mı, yoksa ikisi de dışarıdaki gerçek OCP test Postgres'ine mi
-      bağlanacak) karar verilecek — yereldeki mevcut `docker-compose.yml`'in
-      postgres/minio servisleri örnek/başlangıç noktası.
-- [ ] **Doğrulama listesi (kullanıcının istediği sırayla):**
-      - [ ] İki klasör, iki ayrı `docker compose`/`docker run` ile bağımsız
-            ayağa kalkabiliyor mu?
-      - [ ] Site (`vodafonepaycomtr`) ve Clover (CMS) birbirleriyle
-            haberleşebiliyor mu? (Site'ın `CMS_API_URL`'i, revalidate
-            webhook'u vb. — `docker-compose.yml`'deki mevcut servis-adı
-            bazlı DNS çözümlemesi artık geçerli olmayacağı için bunun
-            nasıl güncelleneceği netleşmeli: `localhost:<port>` mü, yoksa
-            iki ayrı compose'un ortak bir Docker network'ünde mi kalacaklar?)
-      - [ ] İkisi de **aynı** Postgres'i kullanabiliyor mu (ayrı DB/şema,
-            aynı sunucu — tıpkı OCP'deki gerçek test Postgres'i gibi)?
-      - [ ] İkisi de **aynı** MinIO'yu kullanabiliyor mu (medya
-            yükleme/okuma iki taraftan da çalışıyor mu)?
-      - [ ] Veri gerçekten senkron mu — CMS'te girilen bir içerik (örn. yeni
-            bir duyuru/kampanya) site tarafında görünüyor mu, medya
-            yüklemesi her iki taraftan da erişilebiliyor mu?
-- [ ] Bu turda **dokunulmayacaklar** (bilinçli, ayrı bir iş): OCP'ye gerçek
-      deploy, GitHub Actions pipeline'ları, k8s manifestleri — bunlar
-      `docs/OCP-DEVOPS-RUNBOOK.md`'nin sonraki fazları, bu turun kapsamı
-      sadece "iki bağımsız yerel proje + ayrı repo" kurmak.
-- [ ] Testler + canlı doğrulama — her adımdan sonra ilgili test suite'i
-      (varsa) ve gerçek tarayıcı/curl doğrulaması.
+- [x] `git subtree split --prefix=cms -b cms-only` — 148 commit (cms/'e
+      dokunan tüm commit'ler), dosya yolları `cms/x` → `x` olarak yeniden
+      yazıldı, hiçbir geçmiş kaybolmadı.
+- [x] `cms-only` → `https://github.com/bbatus/clover.git` (`main`) —
+      **kullanıcı kendi terminalinden push etti** (bu oturumun izin
+      sınıflandırıcısı harici repo'ya ilk push'u ve proje-dışı `ls`'i
+      engelledi; kullanıcıya iki komutu verdim, kendisi çalıştırdı).
+- [x] Yerel: `/Users/guestbatu/Documents/Projects/clover/` — kullanıcı
+      `git clone https://github.com/bbatus/clover.git` ile açtı,
+      `vodafonepaycomtr/`'ın tam yanında, subtree split'in ürettiği
+      geçmişle. Bundan sonra proje-dışı dosya işlemleri de izin verildi,
+      kalan her şeyi ben yaptım.
+- [x] `cms/` monorepo'dan **hâlâ silinmedi** (bilinçli, kararlaştırıldığı
+      gibi) — aşağıdaki doğrulamalar bitti ama temizlik ayrı bir onay
+      bekliyor.
+- [x] **Docker ayrımı — gerçek yapı:**
+      - `docker network create vodafonepay-net` — paylaşılan, harici
+        (`external: true`) bir ağ; OCP'de iki ayrı Service'in aynı
+        namespace'te birbirini bulması gibi, iki bağımsız compose bunun
+        üzerinden container adıyla birbirini buluyor.
+      - `clover/docker-compose.yml` (yeni) — Postgres + MinIO + `clover`
+        servisi, hepsi bu ağda. Postgres/MinIO volume'ları **eski
+        `vodafonepaycomtr_postgres-data` / `-minio-data` isimleriyle,
+        `external: true`** referans veriyor — veri taşınmadı/kopyalanmadı,
+        aynı disk verisi.
+      - `vodafonepaycomtr/docker-compose.yml` (yeni, artık `vodafonepaycomtr/`
+        alt klasörünün İÇİNDE) — sadece `app`+`dev`, aynı ağda,
+        `CMS_API_URL=http://clover:3000/api`.
+      - Eski kök `docker-compose.yml` — silinmedi, üstüne büyük bir
+        "RETIRING" uyarısı eklendi (hâlâ `scripts/trivy-scan.sh` ve
+        `AGENTS.md` ona referans veriyor — onları güncellemek ayrı bir
+        takip maddesi, aşağıda).
+      - `clover/.gitignore` **yoktu** — subtree split `cms/`'in hiç kendi
+        `.gitignore`'ı olmadığını, kök deponunkine bel bağladığını ortaya
+        çıkardı; artık bağımsız repo olduğu için `node_modules`/`.next`/
+        `.env` bir `git add .` ile commit'e girebilirdi. Önce bunu
+        oluşturdum, sonra `docker-compose.yml`'i ekledim.
+      - `clover/.env` + `vodafonepaycomtr/.env` (ikisi de gitignore'da,
+        commit edilmedi) — eski kök `.env`'deki gerçek `PAYLOAD_SECRET`/
+        `REVALIDATE_SECRET`/`PREVIEW_SECRET` değerleriyle. **Bulunan gerçek
+        hata:** ilk build denemesi `PAYLOAD_SECRET is unset or still the
+        dev placeholder` diye patladı — `clover/`'da `.env` hiç yoktu
+        (gitignore'lu dosya subtree split'e hiç girmemişti), compose
+        placeholder default'a düşüyordu, kod da (haklı olarak) production
+        modda placeholder secret'ı reddediyordu.
+- [x] **Doğrulama listesi — hepsi geçti, gerçek komutlarla:**
+      - [x] İki klasör, iki bağımsız `docker compose up` ile ayrı ayrı
+            ayağa kalktı (`cd clover && docker compose up -d`,
+            `cd vodafonepaycomtr/vodafonepaycomtr && docker compose up -d app`).
+      - [x] Haberleşme, iki yönde de container adıyla doğrulandı:
+            site içinden `fetch('http://clover:3000/api/campaigns')` →
+            gerçek veri döndü; clover içinden
+            `fetch('http://vodafonepaycomtr:3000/')` → 200.
+      - [x] Ortak Postgres: `docker exec vodafonepaycms-postgres psql ...`
+            ile satır sayıları bölünmeden ÖNCEKİ (`pages 12, campaigns 14,
+            faq 26, ann 6, media 44, users 7, audit 1422`) ve SONRAKİ
+            değerler **birebir aynı** çıktı.
+      - [x] Ortak MinIO: obje sayısı bölünmeden önce/sonra **128/128**,
+            birebir aynı.
+      - [x] Veri senkronu — gerçek uçtan uca test: Clover'da yeni bir
+            duyuru oluşturuldu (Maker→Checker REST akışıyla), yayınlandı;
+            **hiçbir revalidate çağrısı elle tetiklenmeden** site
+            `/duyurular`'da anında göründü (Clover'ın kendi `afterChange`
+            hook'u, yeni container-adı tabanlı `SITE_REVALIDATE_URL`'i
+            kullanarak otomatik tetiklemiş). Test verisi sonra temizlendi
+            (silindi + revalidate edildi), site ve DB'de iz kalmadı.
+- [x] Testler: site 380/380, clover 564/564 (ilk kez `npm install`
+      gerekti — subtree split `node_modules` taşımaz, beklenen).
+- [ ] **Takip — bu turda bilinçli ertelendi:**
+      - `cms/`'i monorepo'dan silme kararı (ayrı onay bekliyor)
+      - `AGENTS.md`, `scripts/trivy-scan.sh`, `scripts/warm-cache.sh`,
+        `scripts/sonar-scan.sh` — hâlâ eski kök `docker-compose.yml`'e ve
+        `cms/` yoluna referans veriyorlar, yeni yapıya göre güncellenmeli
+      - OCP'ye gerçek deploy, GitHub Actions pipeline'ları, k8s
+        manifestleri — `docs/OCP-DEVOPS-RUNBOOK.md`'nin sonraki fazları

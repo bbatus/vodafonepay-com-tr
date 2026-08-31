@@ -1,3 +1,21 @@
+# =============================================================================
+# ⚠️ RETIRING (30-31.08.2026, tasks.md item 39) — do not bring this up anymore.
+#
+# CMS moved to its own repo/deployment, "Clover" (github.com/bbatus/clover,
+# locally at ../clover — sibling of this repo's folder). Each service now has
+# its own standalone compose file and is brought up from its own directory:
+#
+#   cd vodafonepaycomtr && docker compose up -d app     # site
+#   cd ../clover         && docker compose up -d        # CMS + Postgres + MinIO
+#
+# Both join the shared external network `vodafonepay-net`
+# (`docker network create vodafonepay-net`, once) so they can still reach
+# each other by container name, exactly like two OCP Services would.
+#
+# This file is kept only until scripts/trivy-scan.sh, scripts/warm-cache.sh
+# and AGENTS.md are updated to stop referencing it (tasks.md item 39,
+# follow-up) — don't add new services here, don't rely on it.
+# =============================================================================
 services:
   app:
     build:
