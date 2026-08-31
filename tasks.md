@@ -1556,3 +1556,41 @@ Service/Route düz `minio`/`minio-data` adlarıyla kalmıştı (Job zaten
 - [x] Tüm YAML'lar yeniden doğrulandı (`yaml.safe_load_all`), site
       tarafında (`vodafonepaycomtr/k8s/`) aynı taramada başka bir
       tutarsızlık bulunmadı — sadece Clover'ın MinIO'su etkilenmişti.
+
+### 40c. Düzeltme — `docs/OCP-DEVOPS-RUNBOOK.md` kendi içinde çelişiyordu (31.08.2026)
+
+**Bildirim:** "senin ocp devops runbook md de güncelleme yapman lazmdı ama
+güncelnnememis sanırım."
+
+Haklıydı — 40/40b'deki güncellemeler tek tek eklenmişti ama dosyanın tamamı
+baştan sona yeniden okunmamıştı; sonuç, aynı belge içinde biri "tamamlandı"
+diyen yeni bölümlerle hâlâ "yapılacak"/taslak diyen eski bölümlerin bir arada
+kalmasıydı. Dosyayı baştan sona okuyup şunları düzelttim:
+
+- [x] Başlık altındaki durum özeti — "§2-§7 hâlâ analiz/planlama... henüz
+      uygulanmadı" diyen eski cümle, §1/§2/§6.2/§8'in tamamlandığını ve
+      sadece Faz 3 (`oc apply`) + `.github/workflows/` kaldığını söyleyen
+      doğru bir özetle değiştirildi.
+- [x] §2 başlığı hâlâ "taslak cevaplar" diyordu, gövde metni kesinleştiğini
+      söylüyordu — başlık "✅ kesinleşen cevaplar (31.08.2026)" oldu.
+- [x] §3 "Nereye gidecek" — hâlâ hipotetik, ayrı `DATABASE_URI_HOST/PORT/
+      NAME/USER` ConfigMap anahtarları öneren eski örnek YAML silinip,
+      gerçekte yapılan (`clover/k8s/configmap.yaml` + `secret.yaml`) ile
+      değiştirildi.
+- [x] §4 Faz 0-3 checklist'leri — Faz 2'de "Health endpoint'leri yazılmalı —
+      şu an ikisinde de yok" ifadesi aynı belgenin kendi §6.2'siyle
+      ("✅ tamamlandı") çelişiyordu; tüm checklist'ler gerçek duruma göre
+      `[x]`/`[ ]` olarak yeniden işaretlendi.
+- [x] §5 "İşin sonunda elimizde ne olacak" — §8'i tekrarlayan/çelişen eski
+      genel `<repo>/` şablonu ve hiç yapılmamış hipotetik `sql/`+`ldap/`
+      klasör örnekleri silindi, §8'e yönlendirildi.
+- [x] §6.1 ve §6.4 — dosya yolları hâlâ eski `cms/Dockerfile` ve
+      `cms/src/access/roleMapping.ts` diyordu; ikisi de gerçek yeni yola
+      (`clover/Dockerfile`, `clover/src/access/roleMapping.ts`) düzeltildi.
+- [x] Son bir `grep -n -i cms` taramasıyla kalan tüm "cms" geçişleri
+      kontrol edildi — geri kalanlar ya §1'in meşru öncesi/sonrası
+      karşılaştırma tablosu (bilinçli olarak tarihsel) ya da "CMS" kelimesinin
+      genel/kavramsal kullanımı (örn. "CMS'teki test kullanıcıları"), path
+      referansı değil — düzeltme gerektirmedi.
+- [x] §7 ve §9 yeniden okundu, güncel ve tutarlı bulundu — değişiklik
+      gerekmedi.

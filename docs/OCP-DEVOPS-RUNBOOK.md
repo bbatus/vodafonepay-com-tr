@@ -1,9 +1,11 @@
 # OCP DevOps Runbook — vodafonepaycomtr + Clover
 
-**Durum:** §1 (repo ayrımı) **tamamlandı ve canlıda doğrulandı** (30-31.08.2026,
-tam kayıt: `tasks.md` madde 39). Geri kalan her şey (§2-§7) hâlâ analiz/planlama
-— DevOps ekibinin `devops-surecleri` reposundaki şablonunu (`devops-proje-sablonu/`)
-bizim projemize uyarlayan bir yol haritası, henüz uygulanmadı.
+**Durum (31.08.2026):** Repo ayrımı (§1), S1-S12 kararları (§2), health
+endpoint'leri (§6.2) ve `k8s/` manifestleri (§8) **tamamlandı ve canlıda/
+kodda doğrulandı** — tam kayıt `tasks.md` madde 39/40/40b. Geriye kalan tek
+şey: gerçek OCP'ye ilk `oc apply` (Faz 3, hiç çalıştırılmadı) ve
+`.github/workflows/` pipeline'ları (GHES repo kaydı netleşmeden anlamlı
+doldurulamaz, §7).
 
 _Kaynak:_ `devops-surecleri/Devops-Surecleri.md` + `devops-surecleri/devops-proje-sablonu/`
 (DevOps ekibinin verdiği şablon repo, bu proje klasörünün içine ayrıca clone'landı).
@@ -58,7 +60,7 @@ git push <yeni-site-repo-url> site-only:main
 
 ---
 
-## 2. DevOps şablonunun S1–S12 soruları — bizim projeye göre taslak cevaplar
+## 2. ✅ DevOps şablonunun S1–S12 soruları — kesinleşen cevaplar (31.08.2026)
 
 `devops-proje-sablonu/README.md §4`, kod yazılmadan önce cevaplanması gereken
 12 soru listeliyor. **31.08.2026 itibarıyla hepsi cevaplandı** (kullanıcı
@@ -105,48 +107,21 @@ eklendiğini gösteriyor. Yani süreç doğru işlemiş, talep doğru şablonla 
 verdiği, ilk girişte değiştirilmesi beklenen bir durum — production'a taşımadan
 önce **mutlaka** teyit edilmeli, koşulsuz kullanılmamalı.
 
-### Nereye gidecek
+### Nereye gidecek — ✅ karar verildi ve uygulandı
 
-Doğru — kullanıcının dediği gibi, **host/port/db adı/kullanıcı adı ConfigMap'te,
-sadece parola Secret'ta** (`devops-proje-sablonu/k8s/configmap.yaml` deseni):
-
-```yaml
-# k8s/configmap.yaml (CMS servisi, ORTAM: TEST)
-data:
-  DATABASE_URI_HOST: "172.31.229.152"      # ya da DB_HOST — Payload'ın env adına göre
-  DATABASE_URI_PORT: "5432"
-  DATABASE_URI_NAME: "vpaycms_test_new"
-  DATABASE_URI_USER: "vpaycmstest_new_user"
-  # Payload tek bir DATABASE_URI (postgres:// bağlantı string'i) de kabul eder —
-  # o zaman host/port/db/user'ı ayrı ayrı değil, tek bir Secret alanında birleştirmek
-  # gerekebilir. cms/payload.config.ts'nin DATABASE_URI'yi nasıl okuduğuna bakılmalı.
-```
-
-```yaml
-# k8s/secret.yaml (ŞABLON — gerçek parola commit edilmez)
-stringData:
-  DATABASE_PASSWORD: "${DB_PASSWORD}"
-```
-
-⚠️ **Uyarlama notu — koddan doğrulandı:** `cms/payload.config.ts:537`,
+Kullanıcının ilk sorduğu "host/port/db/user ConfigMap'te, parola Secret'ta"
+şablon deseni, koddan doğrulanan bir gerçekle çelişti: `payload.config.ts:537`,
 `postgresAdapter({ pool: { connectionString: env.DATABASE_URI } } })` —
-Payload **tek bir `DATABASE_URI`** (`postgres://user:pass@host:port/db`)
-env değişkeni okuyor, host/port/db/user'ı ayrı ayrı okumuyor. DevOps
-şablonu bunları **ayrı ayrı** ConfigMap anahtarları olarak öngörüyor
-(Java/Spring deseni) — bize doğrudan uymuyor. İki yol var:
-- (a) `payload.config.ts`'e host/port/db/user'ı ayrı ayrı okuyup kendi
-  içinde connection string'i birleştiren birkaç satır eklemek, **ya da**
-- (b) Tüm `postgres://...` string'ini (parola dahil, dolayısıyla **tamamı
-  Secret'ta**, ConfigMap'e hiç host/port/db/user yazılmaz) tek bir
-  `DATABASE_URI` Secret anahtarı olarak tutmak.
+Payload host/port/db/user'ı ayrı ayrı okumuyor, **tek bir `DATABASE_URI`**
+(`postgres://user:pass@host:port/db`) bağlantı string'i okuyor. DevOps
+şablonunun ayrı-ayrı-ConfigMap-anahtarı deseni (Java/Spring için) bize
+doğrudan uymadı.
 
-**(b) tercih edilmeli** — sıfır kod değişikliği, Payload'ın zaten native
-okuduğu format bu. Tek risk: host/port/db adı gibi (gizli olmayan) bilgiler
-de Secret'ta yaşar, DevOps'un "gizli olmayan, topoloji bilgisi ConfigMap'te"
-alışkanlığından sapar (`docs/03 §2`'deki LDAP URL/DN kararına benzer bir
-istisna — onlar da "parola değil ama iç ağ haritası" gerekçesiyle Secret'ta
-tutuluyor, aynı mantık DATABASE_URI'ye de uygulanabilir). DevOps ekibine
-bu şekilde anlatılmalı, S4/S6'nın bir parçası olarak netleştirilmeli.
+**Karar (uygulandı):** Tüm `postgres://...` string'i, parola dahil, **tamamen
+`clover/k8s/secret.yaml`'da** — `k8s/configmap.yaml`'da host/port/db/user
+hiç yok. Sıfır kod değişikliği, Payload'ın zaten native okuduğu format bu.
+Gerçek dosyalar: `clover/k8s/configmap.yaml` + `clover/k8s/secret.yaml`
+(§8).
 
 ---
 
@@ -157,33 +132,31 @@ servisimize göre:
 
 ### Faz 0 — Bilgi toplama
 - [x] Test PostgreSQL talebi açıldı ve karşılandı (§3)
-- [ ] §2'deki S1, S4 (prod), S5, S6, S7, S10, S11, S12 DevOps ekibiyle netleşecek
-- [ ] MinIO için: test ortamında kurumsal bir MinIO/S3 mü kullanılacak, yoksa
-      bizim kendi MinIO container'ımız aynı namespace'e mi deploy edilecek?
-      (Yerel geliştirmede kendi MinIO'muz var — `docker-compose.yml` — ama OCP'de
-      muhtemelen kurumsal bir S3 endpoint'i tercih edilir.) **Netleşmemiş.**
-- [ ] IT/AD'den LDAP service account (S8/S9 zaten kısmen hazır, bkz. §6.4)
+- [x] §2'deki 12 soru — hepsi kullanıcı kararıyla cevaplandı
+- [x] MinIO kararı: namespace-içi, geçici (S3, `clover/k8s/minio.yaml`)
+- [ ] IT/AD'den LDAP service account — **bilinçli ertelendi** (S8: "şimdilik
+      hayır"), CMS'teki test kullanıcıları kalıyor, bkz. §6.4
 
 ### Faz 1 — Repo iskeleti
 - [x] Clover için: §1'deki karar uygulandı (subtree split, `github.com/bbatus/clover`)
-- [ ] Site için: aynı ayrım henüz yapılmadı
-- [ ] Her repo'ya (Clover dahil, henüz yapılmadı): `.github/workflows/`, `k8s/`,
-      `Containerfile` (mevcut `Dockerfile`'larımızdan uyarlanacak, bkz. §6.1),
-      `DEPLOYMENT_RUNBOOK.md`
+- [x] Clover'a `k8s/` + `DEPLOYMENT_RUNBOOK.md` (§8)
+- [x] Site'a da `k8s/` + `DEPLOYMENT_RUNBOOK.md` (§8) — repo ayrımı olmasa da
+      manifestler zaten `vodafonepaycomtr/vodafonepaycomtr/k8s/`'te hazır
+- [ ] Site için: kendi repo'suna ayrım (§1'deki gibi subtree split) henüz yapılmadı
+- [ ] `.github/workflows/` — henüz hiçbir repoda yok (§7: GHES kaydı bekliyor)
+- [ ] `Containerfile` — mevcut `Dockerfile`'lar henüz bu adla kopyalanmadı (§6.1)
 - [ ] Branch modeli: `development`/`release`/`master` — Clover ve site'ın
       ikisi de hâlâ sadece `main` kullanıyor, bu üçe bölünmeli
 
 ### Faz 2 — Uygulama iskeleti
-- [ ] **Health endpoint'leri yazılmalı** — şu an ikisinde de yok
-      (`docs/PROJECT-OVERVIEW.md §11`'in kendi notu: "`/api/health` yok").
-      Next.js'te Spring'in `/actuator/health/{liveness,readiness}` karşılığı
-      yok, kendi route'umuzu yazmamız gerekiyor — bkz. §6.2
+- [x] **Health endpoint'leri** — ikisinde de yazıldı, canlıda test edildi (§6.2)
 
 ### Faz 3 — TEST ortamı ilk kurulum
 Sırası `devops-proje-sablonu/docs/05-deployment-runbook.md`'deki ile aynı,
-her iki servis için ayrı ayrı (ayrı Secret, ayrı ConfigMap, ayrı Route —
-aynı namespace `vepas-ai-am` içinde 2 servis olarak yaşayabilirler, ya da
-DevOps ekibi 2 ayrı namespace isteyebilir — S1'de netleşecek).
+her iki servis için ayrı ayrı (ayrı Secret, ayrı ConfigMap, ayrı Route),
+**aynı namespace `vepas-ai-am` içinde** (S1'de karara bağlandı, ayrı
+namespace yok). Manifestler hazır (§8) ama `oc apply` **hiç çalıştırılmadı**
+— bu fazın kendisi henüz başlamadı.
 
 ### Faz 4-8
 Şablondakiyle birebir aynı — CI/CD devreye alma, TEST doğrulama, PROD
@@ -194,44 +167,30 @@ hazırlık (henüz kapsam dışı, bu doküman sadece TEST'i hedefliyor), PROD'a
 
 ## 5. İşin sonunda elimizde ne olacak
 
-Her bir mikroservis (site, cms) için ayrı ayrı:
+`k8s/` + `DEPLOYMENT_RUNBOOK.md` kısmı artık hipotetik değil — **gerçekten
+üretildi**, içeriği için §8'e bakın. Burada kalan, henüz yapılmamış kısım:
 
 ```
-<repo>/
-├── .github/workflows/
+<repo>/           (Clover VEYA vodafonepaycomtr, ikisi de)
+├── .github/workflows/          ❌ henüz yok — GHES repo kaydı bekliyor (§7)
 │   ├── pipeline-test.yml       development/release → TEST OCP
-│   ├── pipeline-prod.yml       master → PROD (henüz kapsam dışı)
-│   ├── sonar.yml, fortify.yml, mend.yml   (project_type: npm)
-├── k8s/
-│   ├── deployment.yaml         port 3000, probe'lar dolu, non-root
-│   ├── configmap.yaml          ORTAM: TEST — DB host/port/db/user (CMS için)
-│   ├── secret.yaml             şablon — DB_PASSWORD (CMS için)
-│   ├── service.yaml, route.yaml, hpa.yaml, serviceaccount.yaml, networkpolicy.yaml
-│   ├── certs/configmap-ca-bundle.yaml   (gerekiyorsa)
-│   └── create-secret.sh
-├── Containerfile                mevcut Dockerfile'dan uyarlanmış (bkz §6.1)
-└── DEPLOYMENT_RUNBOOK.md        bu dokümandan türetilmiş, o repo'ya özel
+│   ├── pipeline-prod.yml       master → PROD (kapsam dışı, bu tur sadece TEST)
+│   └── sonar.yml, fortify.yml, mend.yml   (project_type: npm, blocker yok — S11)
+├── k8s/                        ✅ hazır — §8
+└── Containerfile                ❌ henüz yok — mevcut Dockerfile bu adla
+                                    kopyalanmalı (§6.1), kod değişikliği değil
 ```
 
-CMS için ayrıca:
-```
-sql/
-├── 00-db-talep-sablonu.md      DOLU — talep zaten açıldı (§3)
-├── 00-ilk-baglanti-dogrulama.sql
-└── (V1/V2 YOK — bkz. §6.3, Payload push-tabanlı şema kullanıyor)
-```
+**Clover'a özel, henüz yapılmamış:** LDAP gerçek bağlantısı kurulursa
+(§6.4, bilinçli ertelendi) `ldap/` klasörü ve `migrate:create`'e geçiş
+kararı verilirse (§6.3) `db/migrations/` benzeri bir yapı — ikisi de bu
+tur için gerekli değil.
 
-Ve (LDAP gerçek bağlantı kurulunca, şimdilik değil):
-```
-ldap/
-├── ldap-config-contract.md
-├── k8s/ldap-secret.yaml, configmap-ldap-ca.yaml
-```
-
-**Namespace `vepas-ai-am` içinde test cluster'da çalışan 2 pod:**
-- `vodafonepaycomtr` — ziyaretçi trafiği, route ile dışa açık
-- `cms` — editör trafiği (admin paneli), muhtemelen ayrı bir route/host,
-  Postgres'e (§3) ve MinIO'ya bağlı
+**Namespace `vepas-ai-am` içinde test cluster'da çalışacak 2 pod (henüz
+deploy edilmedi, Faz 3):**
+- `vodafonepaycomtr` — ziyaretçi trafiği, kendi Route'u ile dışa açık
+- `clover` — editör trafiği (admin paneli), kendi Route'u, Postgres'e (§3,
+  harici) ve namespace-içi MinIO'ya (`clover-minio`, §8) bağlı
 
 ---
 
@@ -244,10 +203,11 @@ için değişmesi gereken yerler:
 Şablonun `Containerfile.react` bir **statik SPA** (Vite/CRA + nginx) varsayıyor
 — bize **uygun değil**, ikisi de server-render eden Next.js uygulaması
 (`node server.js` çalıştırıyor, nginx'in servis edebileceği düz dosyalar değil).
-**Mevcut `vodafonepaycomtr/Dockerfile` ve `cms/Dockerfile` zaten doğru
-desende** (multi-stage, `node:24-alpine`, standalone output, non-root `USER
-node`, port 3000) — şablonun Containerfile'ı yerine **bunlar** `Containerfile`
-adıyla kopyalanmalı. Tek gerçek eksik: kurumsal CA trust'ı (§6.5).
+**Mevcut `vodafonepaycomtr/Dockerfile` ve `clover/Dockerfile` (eski
+`cms/Dockerfile`, §1'de taşındı) zaten doğru desende** (multi-stage,
+`node:24-alpine`, standalone output, non-root `USER node`, port 3000) —
+şablonun Containerfile'ı yerine **bunlar** `Containerfile` adıyla
+kopyalanmalı. Tek gerçek eksik: kurumsal CA trust'ı (§6.5).
 
 ### 6.2 ✅ Health endpoint — tamamlandı (31.08.2026)
 İkisinde de `GET /api/health/liveness` (bağımlılık kontrolü yok, her zaman
@@ -287,7 +247,8 @@ vermiyor. **Önerim: (a)** — zaten R-10 bu kapıyı açtı, kalan iş sadece
 "kullanmaya başlamak."
 
 ### 6.4 LDAP — hazır ama bağlı değil
-`cms/src/access/roleMapping.ts` gerçek AccessPoint LDAP grup adlarını (4 rol)
+`clover/src/access/roleMapping.ts` (eski `cms/src/access/roleMapping.ts`)
+gerçek AccessPoint LDAP grup adlarını (4 rol)
 zaten biliyor (`docs/PROJECT-OVERVIEW.md §5`) ama gerçek bir LDAPS sunucusuna
 **hiç bağlanmıyor** — rol ataması şu an test kullanıcılarına elle yapılmış
 bir simülasyon. `devops-proje-sablonu/docs/03-ldap-entegrasyon-rehberi.md`
