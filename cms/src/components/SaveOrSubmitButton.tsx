@@ -13,8 +13,14 @@ import { ROLES } from "@/access/roles";
  * that clicking it is what actually sends the campaign to a Checker for
  * review. Replaces Payload's default SaveDraftButton (same submit logic,
  * copied from its source) with an identical action but a role-conditional
- * label: "Onaya Gönder" for the one role that can never publish here
+ * label: "Taslağı Onaya Gönder" for the one role that can never publish here
  * (Growth Maker), the normal "Taslağı Kaydet" for everyone else.
+ *
+ * Follow-up 30.08: that label was originally just "Onaya Gönder" — a real
+ * Growth Maker looked straight at this button and reported "there's no
+ * save-draft button anywhere," because the text named only the consequence
+ * (goes to review) with nothing saying the action itself saves their work.
+ * Naming both fixed it.
  */
 export default function SaveOrSubmitButton() {
   const { user } = useAuth();

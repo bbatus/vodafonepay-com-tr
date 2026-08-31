@@ -323,7 +323,12 @@ export const TRANSLATION_DEFAULTS: Record<string, { tr: string; en: string }> = 
   "lockedAccounts.bannerCta": { tr: "Kilitli hesapları görüntüle →", en: "View locked accounts →" },
 
   "saveOrSubmit.saveDraft": { tr: "Taslağı Kaydet", en: "Save Draft" },
-  "saveOrSubmit.submitForReview": { tr: "Onaya Gönder", en: "Submit for Review" },
+  // Follow-up 30.08: a real Growth Maker didn't recognize "Onaya Gönder" as
+  // the save-draft action at all ("taslak kaydet butonu hiçbir collectionda
+  // çıkmıyor" — while looking straight at it) — the label communicated only
+  // the consequence (goes to review), not the action itself (your work is
+  // saved). Says both now, same as the button already does.
+  "saveOrSubmit.submitForReview": { tr: "Taslağı Onaya Gönder", en: "Save & Submit for Review" },
 
   "accountForm.email": { tr: "E-posta", en: "Email" },
   "accountForm.username": { tr: "Kullanıcı Adı (LDAP)", en: "Username (LDAP)" },
