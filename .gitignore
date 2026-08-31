@@ -52,3 +52,8 @@ temp/
 # SonarQube user token — generated once from the SonarQube UI, read by
 # scripts/sonar-scan.sh. Never committed.
 .sonar-token
+
+# DevOps team's own template repo (github.com/bbatus/devops-surecleri) — cloned
+# here for reference/analysis only, has its own git history and remote. Not part
+# of this project; see docs/OCP-DEVOPS-RUNBOOK.md for what was learned from it.
+devops-surecleri/
