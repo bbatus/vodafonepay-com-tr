@@ -1594,3 +1594,56 @@ kalmasıydı. Dosyayı baştan sona okuyup şunları düzelttim:
       referansı değil — düzeltme gerektirmedi.
 - [x] §7 ve §9 yeniden okundu, güncel ve tutarlı bulundu — değişiklik
       gerekmedi.
+
+## 41. Site de kendi reposuna ayrıldı + her iki repoya TEST OCP CI/CD pipeline'ı (31.08.2026)
+
+**İstek:** "hem cms hem de vodafonepaycomtr'nin pipeline'ını yazalım" —
+kullanıcının verdiği gerçek `genaiops-event-processor` pipeline örneğine
+(Mend→Fortify→Sonar→build+deploy sıralı/paralel job yapısı) ve
+`devops-surecleri`'ndeki `pipeline-test.yml`/`mend.yml`/`fortify.yml`/
+`sonar.yml` şablonlarına göre.
+
+**Önce bir boşluk bulundu:** `vodafonepaycomtr` (site) hiç `clover` gibi
+ayrılmamıştı — hâlâ monorepo içindeydi. Bir CI/CD pipeline'ı repo köküne
+yazılır; site'ın kendi reposu olmadan pipeline'ı nereye koyacağımız
+belirsizdi. Kullanıcıya soruldu, **site de ayrılsın** dendi, hedef:
+`https://github.com/bbatus/vodafonepaycomtr.git`.
+
+- [x] `git subtree split --prefix=vodafonepaycomtr -b site-only` — 246
+      commit korunarak → `github.com/bbatus/vodafonepaycomtr.git` (push'u
+      kullanıcı kendi yaptı, ilk harici push'ta permission classifier
+      engelledi — clover'daki aynı desen).
+- [x] Yerelde `/Users/guestbatu/Documents/Projects/vodafonepaycomtr-site/`'a
+      klonlandı (Clover'ınkiyle aynı sibling-klasör deseni).
+- [x] Site'ın da (Clover'ın ilk split'inde bulunanla aynı boşluk) kendi
+      `.gitignore`'ı yoktu — Clover'ınkiyle birebir aynı eklendi.
+- [x] `.env` monorepo'daki `vodafonepaycomtr/vodafonepaycomtr/.env`'den
+      kopyalandı (gitignore'da, subtree split taşımaz).
+- [x] Her iki repoya `Containerfile` (mevcut `Dockerfile`'ın kopyası, §6.1).
+- [x] Her iki repoya `.github/workflows/mend.yml`/`fortify.yml`/`sonar.yml`
+      — `devops-surecleri/devops-proje-sablonu`'nun reusable workflow'larının
+      **değiştirilmemiş** kopyaları (npm dalları zaten hazır, sadece
+      çağrılmıyordu).
+- [x] Her iki repoya `.github/workflows/pipeline-test.yml` — şablonun Maven
+      build job'u npm/Next.js'e çevrildi (`npm ci && lint && typecheck &&
+      test && build`, Clover'da Payload'ın env.ts'i için CI-only dummy
+      `DATABASE_URI`/`PAYLOAD_SECRET` vb. — mevcut `ci.yml`'deki desenle
+      aynı), `project_type: npm` her üç güvenlik taramasına geçildi,
+      health check `/actuator/health` yerine gerçek
+      `/api/health/{liveness,readiness}`'e çevrildi, ConfigMap/Secret/Route/
+      MinIO uygulaması (kalıcı/parola içeren kaynaklar) şablonun kendi
+      kuralıyla pipeline'ın dışında bırakıldı (Faz 0'da elle, bir kez).
+- [x] İkisi de commit'lenip push edildi: `clover` `fc23601`,
+      `vodafonepaycomtr` `2c2f7ce`.
+- [x] `docs/OCP-DEVOPS-RUNBOOK.md` güncellendi: §1 (site ayrımı tamamlandı),
+      §4/§5 (Faz 1 kuyruğu kısaldı), §6.1 (Containerfile tamamlandı), §7
+      (Mend runner etiketinin tahmin olduğu netleştirildi — yeni açık soru),
+      §8 (pipeline üretildi ama hiç çalıştırılmadı — GHES kaydı bekliyor).
+
+**Açık/teyit edilmemiş noktalar (§7'ye eklendi):**
+- `mend.yml`'deki `runs-on: MENDPROJECT-<Proje>` yer tutucusu
+  `genaiops-event-processor`'daki gerçek örnekten (`MENDPROJECT-Vepas`)
+  **tahmin edilerek** dolduruldu — DevOps'tan teyit gerekiyor.
+- Pipeline'ın kendisi **hiç tetiklenmedi** — GHES repo kaydı (§7 madde 1)
+  olmadan organizasyon Variables/Secrets'ları (registry token'ı, OCP
+  parolası, Sonar/Fortify token'ları) devreye girmiyor.

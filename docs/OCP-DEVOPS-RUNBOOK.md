@@ -1,10 +1,13 @@
 # OCP DevOps Runbook — vodafonepaycomtr + Clover
 
-**Durum (31.08.2026):** Repo ayrımı, S1-S12 kararları, health endpoint'leri
-ve `k8s/` manifestleri tamamlandı. **Test OCP'de HENÜZ AYAKTA DEĞİLİZ** —
-`oc apply` hiç çalıştırılmadı, imaj hiç build/push edilmedi, `.github/
-workflows/` build+deploy pipeline'ı hiçbir repoda yok. Kalan iş: §4 Faz 1
-kuyruğu, Faz 3 (ilk `oc apply`), §7'deki DevOps'a sorulacaklar.
+**Durum (31.08.2026):** Repo ayrımı (Clover **ve** artık site de kendi
+reposunda), S1-S12 kararları, health endpoint'leri, `k8s/` manifestleri **ve**
+`.github/workflows/` build+deploy pipeline'ı — hepsi tamamlandı ve iki repoya
+da (`github.com/bbatus/clover`, `github.com/bbatus/vodafonepaycomtr`) push
+edildi. **Test OCP'de HENÜZ AYAKTA DEĞİLİZ** — pipeline hiç çalıştırılmadı
+(GHES repo kaydı bekliyor, §7 madde 1), `oc apply` hiç çalıştırılmadı, imaj
+hiç build/push edilmedi. Kalan iş: §7'deki DevOps'a sorulacaklar (asıl
+blokör: GHES kaydı), sonrasında pipeline'ın ilk çalışması.
 
 _Kaynak:_ `devops-surecleri/Devops-Surecleri.md` + `devops-surecleri/devops-proje-sablonu/`.
 _Hedef:_ test OCP, namespace `vepas-ai-am`. Test PostgreSQL zaten talep edilip karşılandı (§3).
@@ -20,10 +23,15 @@ korunarak. Bağımsız `docker-compose.yml`'lar, ortak Postgres/MinIO volume'ler
 yok, çift yönlü haberleşme ve gerçek içerik senkronu doğrulandı. Tam kayıt +
 doğrulama detayları: `tasks.md` madde 39.
 
-**Bilinçli ertelenen:** `cms/` klasörü monorepo'dan henüz silinmedi (bazı
-scriptler hâlâ eski yola referans veriyor — ayrı bir iş). Site
-(`vodafonepaycomtr`) için aynı ayrım **henüz yapılmadı**, aynı yöntemle
-(`git subtree split --prefix=vodafonepaycomtr`) ileride uygulanabilir.
+**Bilinçli ertelenen:** `cms/` **ve** `vodafonepaycomtr/vodafonepaycomtr/`
+klasörleri monorepo'dan henüz silinmedi (bazı scriptler hâlâ eski yola
+referans veriyor — ayrı bir iş).
+
+**✅ Site de aynı yöntemle ayrıldı (31.08.2026):** `git subtree split
+--prefix=vodafonepaycomtr -b site-only` → `github.com/bbatus/vodafonepaycomtr.git`,
+yerelde `/Users/guestbatu/Documents/Projects/vodafonepaycomtr-site/` — 246
+commit'lik geçmiş korunarak. Kendi `.gitignore`'ı yoktu (Clover'ın ilk
+split'inde bulunan aynı boşluk), eklendi.
 
 ---
 
@@ -61,12 +69,13 @@ ConfigMap'te host/port/db/user hiç yok.
 
 ## 4. Faz faz plan — kalanlar
 
-**Faz 0 (bilgi toplama), Faz 2 (health endpoint) tamamlandı.**
+**Faz 0 (bilgi toplama), Faz 1 (repo iskeleti — aşağıdaki iki madde hariç),
+Faz 2 (health endpoint) tamamlandı.**
 
 ### Faz 1 — Repo iskeleti (kalanlar)
-- [ ] Site için: kendi repo'suna ayrım henüz yapılmadı (§1)
-- [ ] `.github/workflows/` — henüz hiçbir repoda yok, GHES kaydı bekliyor (§7 madde 1)
-- [ ] `Containerfile` — mevcut `Dockerfile`'lar bu adla henüz kopyalanmadı (§6.1)
+- [ ] Pipeline hiç çalıştırılmadı — GHES repo kaydı bekliyor (§7 madde 1);
+      `.github/workflows/pipeline-test.yml` + `mend.yml`/`fortify.yml`/`sonar.yml`
+      her iki repoya da push edildi (31.08.2026) ama tetiklenmedi
 - [ ] Branch modeli: ikisi de hâlâ sadece `main` — `development`/`release`/`master`'a bölünmeli
 - [ ] IT/AD'den LDAP service account — bilinçli ertelendi (§6.4)
 
@@ -84,8 +93,8 @@ ile aynı, her iki servis için ayrı Secret/ConfigMap/Route, aynı namespace i�
 
 ```
 <repo>/  (Clover VEYA vodafonepaycomtr, ikisi de aynı durumda)
-├── .github/workflows/    ❌ yok — GHES repo kaydı bekliyor (§7)
-├── Containerfile          ❌ yok — mevcut Dockerfile bu adla kopyalanmalı (§6.1)
+├── .github/workflows/    ✅ hazır ve push edildi, ama HİÇ ÇALIŞMADI — GHES kaydı bekliyor (§7)
+├── Containerfile          ✅ hazır (Dockerfile'ın kopyası)
 └── k8s/                   ✅ hazır (§8), ama hiç `oc apply` edilmedi
 ```
 
@@ -96,11 +105,12 @@ kapsamında değil.
 
 ## 6. Projeye özgü uyarlama noktaları ve riskler
 
-### 6.1 Containerfile
+### 6.1 ✅ Containerfile — tamamlandı
 Şablonun `Containerfile.react` statik SPA (nginx) varsayıyor — bize uymuyor,
 ikisi de server-render eden Next.js. Mevcut `Dockerfile`'larımız zaten doğru
-desende (multi-stage, `node:24-alpine`, standalone, non-root) — sadece
-`Containerfile` adıyla kopyalanmaları gerekiyor. Eksik: CA trust (§6.5).
+desende (multi-stage, `node:24-alpine`, standalone, non-root) — ikisi de
+`Containerfile` adıyla kopyalandı (31.08.2026), pipeline `-f Containerfile .`
+ile build ediyor. Eksik: CA trust (§6.5).
 
 ### 6.2 ✅ Health endpoint — tamamlandı
 İkisinde de `GET /api/health/{liveness,readiness}` var, canlıda test edildi,
@@ -155,24 +165,39 @@ geçmiyor**, üstüne ekleniyor.
 1. **GitHub Enterprise repo kaydı** — `clover` ve `vodafonepaycomtr` GHES'e
    kayıtlı mı, yoksa şu an sadece `github.com/bbatus/...`'ta mı? Pipeline'lar
    için GHES tarafında da açılmaları gerekecek. **Bu, build/deploy
-   pipeline'ının önündeki asıl blokör.**
-2. **`vepas-ai-am` namespace'inde gerçekten kota/izin var mı** — Faz 0/3'te
+   pipeline'ının önündeki asıl blokör** — pipeline dosyaları hazır ve push
+   edildi (§8), ama GHES'e taşınıp organizasyon Variables/Secrets'ları
+   (`OPENSHIFT_SERVER_TST`, `REGISTRY_LOGIN_TOKEN`, `SONAR_TOKEN`,
+   `FORTIFY_TOKEN` vb.) devreye girmeden hiç tetiklenemez.
+2. **Mend runner etiketi** — `mend.yml`'deki `runs-on: MENDPROJECT-<Proje>`
+   yer tutucusunu `genaiops-event-processor`'daki gerçek örnekten
+   (`MENDPROJECT-Vepas`) tahmin ederek doldurduk, **teyit edilmedi**. Yanlışsa
+   `mend-scan` job'ı runner bulamayıp asılı kalır.
+3. **`vepas-ai-am` namespace'inde gerçekten kota/izin var mı** — Faz 0/3'te
    ilk manuel kurulumda netleşir.
-3. **DB parolası** kullanıcı adıyla aynı görünüyor (§3) — gerçek/kalıcı mı?
-4. **Image pull secret'ı** için registry kullanıcı adı/token — DevOps'tan/
+4. **DB parolası** kullanıcı adıyla aynı görünüyor (§3) — gerçek/kalıcı mı?
+5. **Image pull secret'ı** için registry kullanıcı adı/token — DevOps'tan/
    registry admin'den alınacak.
-5. **Migration kararı** (§6.3) — bizim tarafımızda netleştirilecek bir kod
+6. **Migration kararı** (§6.3) — bizim tarafımızda netleştirilecek bir kod
    kararı, DevOps'a sormaktan çok kendi aramızda.
 
 ---
 
-## 8. ✅ k8s manifestleri — üretildi, henüz uygulanmadı (31.08.2026)
+## 8. ✅ k8s manifestleri + CI/CD pipeline'ı — üretildi, henüz çalıştırılmadı (31.08.2026)
 
 Her iki repo'nun kendi `k8s/` klasöründe `deployment/service/route/configmap/
 secret/serviceaccount/hpa/networkpolicy` + Clover'da ayrıca `minio.yaml` +
 her iki repoda `DEPLOYMENT_RUNBOOK.md` hazır. **Hiçbiri `oc apply` ile test
-OCP'ye uygulanmadı.** İçerik detayı: ilgili repoların kendi `k8s/` dosyaları
-+ `DEPLOYMENT_RUNBOOK.md`'leri.
+OCP'ye uygulanmadı.**
+
+Her iki repoya da `.github/workflows/pipeline-test.yml` (build+lint+typecheck+
+test → Fortify/Mend/Sonar paralel → imaj build+push → `oc apply`) +
+`mend.yml`/`fortify.yml`/`sonar.yml` (org'un reusable workflow'larının
+`project_type: npm` ile çağrıldığı, değiştirilmemiş kopyaları) eklendi ve
+`github.com/bbatus/clover` + `github.com/bbatus/vodafonepaycomtr`'a push
+edildi. **Pipeline hiç tetiklenmedi** — GHES'e taşınmadan (§7 madde 1)
+anlamlı çalışamaz. İçerik detayı: ilgili repoların kendi `k8s/` ve
+`.github/workflows/` dosyaları + `DEPLOYMENT_RUNBOOK.md`'leri.
 
 ---
 
@@ -180,4 +205,5 @@ OCP'ye uygulanmadı.** İçerik detayı: ilgili repoların kendi `k8s/` dosyalar
 
 - `devops-surecleri/Devops-Surecleri.md`, `devops-surecleri/devops-proje-sablonu/` — DevOps şablonu (README + docs/01-07)
 - `docs/PROJECT-OVERVIEW.md` — bizim projenin güncel mimarisi (§5 rol modeli, §10 kararlar, §11 sınırlamalar)
-- `tasks.md` madde 39/40/40b/40c — repo ayrımı, S1-S12, manifest üretimi, düzeltmelerin tam kaydı
+- `tasks.md` madde 39/40/40b/40c/41 — repo ayrımı, S1-S12, manifest üretimi,
+  düzeltmelerin tam kaydı, site ayrımı + CI/CD pipeline'ı
