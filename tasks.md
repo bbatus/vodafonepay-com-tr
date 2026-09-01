@@ -1647,3 +1647,64 @@ belirsizdi. Kullanıcıya soruldu, **site de ayrılsın** dendi, hedef:
 - Pipeline'ın kendisi **hiç tetiklenmedi** — GHES repo kaydı (§7 madde 1)
   olmadan organizasyon Variables/Secrets'ları (registry token'ı, OCP
   parolası, Sonar/Fortify token'ları) devreye girmiyor.
+
+## 42. Anasayfa block fix'leri — canlı site (vodafonepay.com.tr) referans alınarak
+
+Kullanıcı 01.09.2026'da OCP'ye anasayfa içeriği (Pages `anasayfa` slug'ı)
+girerken bulduğu 6 gerçek layout/davranış hatasını bildirdi + 1 ekstra (help
+butonları). **Kural: hiçbiri canlıya (OCP'ye) alınmayacak, sadece yerelde
+çalışılacak. Her fix ayrı ayrı lokal commit'lenecek, PUSH YOK — kullanıcı
+"pushla" demeden hiçbir repo'ya push edilmeyecek.** Her madde için önce
+`vodafonepay.com.tr`'deki gerçek davranış/görsel referans alınacak.
+
+- [x] **42a. Hero block — başlık zorunlu olmamalı + padding**
+      `heading` artık opsiyonel (Pages.ts). `ProductHero.tsx` eski
+      overlay-on-image (masaüstünde görselin İÇİNE beyaz overlay) desenini
+      terk etti — artık TEK düzen, her breakpoint'te: görsel üstte, başlık/alt
+      başlık/buton kendi padding'li bloğunda ALTINDA. `heading` boşsa o blok
+      hiç render edilmiyor. Clover `501236e`, site `e47a291`.
+- [x] **42b. RichText block — sola dayalı olmalı**
+      İncelemede kod zaten sola dayalıydı (`text-align: start`, gerçek DOM'da
+      ölçüldü) — kullanıcının gördüğü muhtemelen build edilmemiş/eski bir
+      container'dı. Kod değişikliği gerekmedi.
+- [x] **42c. StepPhones (telefonlu tanıtım) block — 4 ayrı düzeltme**
+      Alternation (`lg:flex-row-reverse`) kaldırıldı, görsel her adımda
+      tutarlı şekilde solda. Her adıma `ctaLabel`+`ctaPage` eklendi —
+      `ctaPage` bir `relationship` alanı, sadece yayında+public Page'lerle
+      `filterOptions` ile sınırlı (serbest URL değil, dropdown'dan seçim).
+      Opsiyonel `backgroundImage` eklendi, component'te `-z-10` ile metnin
+      ARKASINA/ALTINA render ediliyor. Clover `0bb859a`, site `f26f6f6`.
+- [x] **42d. FeatureHighlights (öne çıkan özellikler) block — hardcoded video**
+      Kaynağı bulundu: `FeatureHighlights.tsx`, `media` boşsa sessizce
+      `/videos/feature-loop.mp4`'e (statik dosya) düşüyordu. Pages.ts'e gerçek
+      bir `video` upload alanı eklendi (sadece `media` boşken admin'de
+      gösteriliyor). Component artık `media` > `video` > hiçbiri sırasıyla
+      render ediyor, hardcoded fallback tamamen kaldırıldı, ölü dosya
+      silindi. Clover `4f01881`, site `4155d98`.
+- [x] **42e. CampaignGrid block — kategori seçilince kampanya checkbox listesi**
+      Pages.ts'e `campaigns` (hasMany relationship) eklendi — sadece kategori
+      seçiliyken admin'de görünüyor, `filterOptions` (async, slug→id çözümü)
+      ile o kategorideki kampanyalarla sınırlı. Boş bırakılırsa geriye dönük
+      uyumluluk için eski davranış (kategorinin tamamı) korunuyor. Clover
+      `6b15868`, site `c444382`.
+- [x] **42f. Help butonları responsive değil + Escape ile kapanmıyor**
+      `HelpButton.tsx`'e Escape keydown + dışına tıklama listener'ları
+      eklendi (ikisi de paneli kapatıyor). `.help-button__panel`'in sabit
+      `max-width: 640px`'i `min(640px, calc(100vw - 2rem))` yapıldı, dar
+      ekranda taşmasın diye. Clover `6c06e34`.
+
+**DoD:** Her madde için (a) canlı sitedeki gerçek davranış doğrulandı,
+(b) kod düzeltildi, (c) yerelde (`docker compose`, `localhost:3010`)
+görsel/işlevsel olarak test edildi (42a/42c hero+campaignGrid gerçek bir
+CMS sayfası oluşturularak, browser'da DOM/computed style okunarak
+doğrulandı), (d) ayrı bir commit olarak kaydedildi (push YOK — hepsi
+sadece `main` branch'inde lokal, `clover` 6 commit + `vodafonepaycomtr`
+5 commit), (e) bu listede `[x]` işaretlendi. Her iki repoda da
+`tsc --noEmit` temiz, testler yeşil (clover 569/569, site 382/382).
+
+**Yan not:** Bu turda ayrıca iki altyapı sorunu çözüldü (fix'lerin kendisiyle
+ilgisiz ama test sırasında yaşandı): Docker disk doluluğu Postgres'i
+crash-loop'a soktu (`docker builder prune`/`image prune` ile giderildi, iki
+kez), ve site container'ının saatler önceki eski bir imajdan ayakta olduğu
+(rebuild edilmeden test ediliyordu) fark edildi — 42b'nin "zaten doğruymuş"
+çıkmasının asıl sebebi muhtemelen buydu.
