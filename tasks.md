@@ -1708,3 +1708,17 @@ crash-loop'a soktu (`docker builder prune`/`image prune` ile giderildi, iki
 kez), ve site container'ının saatler önceki eski bir imajdan ayakta olduğu
 (rebuild edilmeden test ediliyordu) fark edildi — 42b'nin "zaten doğruymuş"
 çıkmasının asıl sebebi muhtemelen buydu.
+
+**Son doğrulama (rebuild sonrası):** Tüm fix'ler commit'lendikten sonra
+Clover + site gerçekten `docker compose up -d --build` ile yeniden build
+edildi (önceki testler sadece `docker restart` ile eski imajı test ediyordu
+— gerçek kod değişikliklerini yansıtmıyordu). Rebuild sonrası Clover
+`NODE_ENV=production`'da (Docker'da da, OCP'deki gibi) push-tabanlı şema
+senkronu kapalı olduğu için yeni field'ların (ctaLabel/ctaPage/
+backgroundImage/video/campaigns) kolonları/junction tabloları local dev
+DB'de yoktu — `npx next dev` ile bir kez (geçici, 3099 portunda) kaynak
+koddan çalıştırılıp push tetiklendi, kolonlar eklendi, DB'deki mevcut veri
+(44 media, 11 user, sayfa içerikleri) korunarak. Sonrasında anasayfa
+(`localhost:3000`) tarayıcıda gerçekten açılıp DOM'dan doğrulandı: hero
+başlığı görselin altında (`absolute` değil), stepPhones'ta `reverse` sınıfı
+yok (2/2 satır aynı yönde), featureHighlights'ta hardcoded `<video>` yok.
