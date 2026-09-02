@@ -1870,3 +1870,55 @@ gerçek `--build` sonrası: `/kampanyalar` kartları sadece görsel+başlık+but
 sayfasında iki sütunlu üst blok + "Kampanya Detay"tan footer'a kadar gri
 section, tüm görünür metin `vodafoneLight/Regular/Bold` font-family (başka
 hiçbir font yok).
+
+## 46. DB göç scripti — 01.09→02.09 arası şema farkı (02.09.2026)
+
+Kullanıcı talebi: production DB Vodafone içinde external/uzak bir Postgres —
+buradan hiçbir ALTER'a doğrudan erişimimiz yok. Bu yüzden her fix/feature
+turunda Postgres şemasını etkileyen bir değişiklik varsa, bunu kullanıcıya
+hatırlatıp ayrı bir SQL'de toplamam gerekiyor (daha önce DB creation için
+kullandığımız `scripts/clover-test-db-schema.sql` gibi). Bu artık **AGENTS.md
+→ MOST IMPORTANT NOTES**'a kalıcı bir kural olarak eklendi — her yeni
+session'da otomatik olarak devreye girecek.
+
+**Yapılan analiz:** son pushlanan commit'ten (`04eae56`, `clover-test-db-
+schema.sql`'in kapsadığı taban) bugüne kadarki 10 commit (`501236e`..`91a597f`,
+01-02.09.2026) tek tek incelendi. Şema etkisi olanlar:
+
+- `pages_blocks_step_phones_steps` (+ `_pages_v_` sürümü): `cta_label`,
+  `cta_page_id`, `background_image_id` kolonları (43. tur, stepPhones CTA).
+- `pages_blocks_feature_highlights` (+ `_pages_v_`): `video_id` kolonu.
+- `pages_blocks_lead_form_cta` (+ `_pages_v_`): `background_image_id`,
+  `icon_id`, `text`, `cta_label`, `cta_url` kolonları.
+- `pages_blocks_videos_with_tabs_marker_tabs[_items]` (+ `_pages_v_`
+  karşılıkları): YENİ tablolar.
+- `pages_rels` / `_pages_v_rels`: YENİ tablolar — campaignGrid'in `campaigns`
+  hasMany alanı, Pages'in ilk hasMany ilişkisi olduğu için Payload'ın
+  paylaşımlı ilişki tablosu hiç yoktu.
+- `faq_items` / `_faq_items_v`: `show_on_homepage`/`homepage_order` (ve
+  `version_` karşılıkları) DROP edildi — "Anasayfada Göster" alanı kaldırıldı.
+- `pages_blocks_hero.heading`'in required→optional olması: **DB etkisi YOK**
+  (Payload zorunlu alanları NOT NULL olarak uygulamıyor) — script'e girmedi.
+
+- [x] `scripts/clover-schema-migration-01-09-to-02-09-2026.sql` yazıldı.
+- [x] **Doğrulandı** (elle yazılmadı, tahmin edilmedi): taban script boş bir
+      scratch DB'ye (`migration_verify`) yüklendi, yeni migration script'i
+      onun üzerine çalıştırıldı, sonucun `pg_dump --schema-only` çıktısı
+      gerçek local dev DB'nin (kod zaten çalışıyor, doğrulanmış) aynı
+      tablolarının çıktısıyla `diff`'lendi — **byte-byte identical**.
+      Scratch DB silindi.
+
+**KULLANICIYA HATIRLATMA — canlıya/OCP'ye almadan önce bu script'i uzak
+Postgres'e uygulaman lazım:**
+`scripts/clover-schema-migration-01-09-to-02-09-2026.sql` — DBeaver'da hedef
+DB'ye bağlanıp "Execute script" (Alt+X) ile tamamını çalıştır. Tek transaction
+(`BEGIN`/`COMMIT`) — bir satır hata verirse hiçbir şey uygulanmaz. **DATA LOSS
+UYARISI**: `faq_items.show_on_homepage`/`homepage_order` kolonlarında veri
+varsa DROP ile kalıcı siliniyor (kasıtlı — bkz. #43d).
+
+**Ayrıca bulunan boşluk (bu turda çözülmedi, kullanıcıya bildirilecek):**
+AGENTS.md'nin 28.08 notu `scripts/growth-role-migration-28-08.sql`'in teslim
+edildiğini söylüyor ama dosya repoda YOK. Categories/Representatives/
+Documents'a `versions.drafts` için gereken kolonlar production DB'de gerçekten
+var mı belirsiz — teyit edilmeli, yoksa o migration da yeniden üretilip
+teslim edilmeli.
