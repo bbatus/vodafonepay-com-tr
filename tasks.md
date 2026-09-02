@@ -1782,3 +1782,63 @@ ile gerçekten yeniden build edildi; yeni blok alanlarının DB kolonları
 `/` → 307 `/admin`, `/admin/login` 200, `/block-thumbs/hero.png` 200,
 `?redirect=` param'ı tarayıcıda temizleniyor, sitede `/`, `/aninda-bakiye`,
 `/sikca-sorulan-sorular`, `/kampanyalar` 200.
+
+## 44. "Sabit sayfa" anormalliği + anasayfa mantık hatası (02.09.2026)
+
+### 44.1 — Anasayfa mantık hatası (TAMAMLANDI)
+
+Kullanıcının sezdiği hata gerçekti ve tek bir kök sebepten üç belirti veriyordu.
+
+**Kök sebep:** `/` statik bir route. `next build` sırasında bir kez üretilip
+`initialRevalidateSeconds: 3600` ile o HTML servis ediliyordu. Build container'ı
+CMS'e ulaşamazsa `getPageBySlug("anasayfa")` null dönüyor, kod da **sessizce
+hardcoded anasayfayı basıp image'a gömüyordu**. Yerelde birebir üretildi: aynı
+deploy'da `/` elle yazılmış anasayfayı, `/anasayfa` editörün gerçek sayfasını
+gösteriyordu — hiçbir yerde hata/uyarı yok. Diğer tüm sayfalar içerik yoksa
+gürültülü şekilde 404 verir; sadece bu route'un elinde makul görünen yanlış bir
+cevap vardı.
+
+- [x] `/` artık `revalidate = 0` ile her istekte render ediliyor — build'e
+      gömülemiyor. Fetch cache'i KAPATMIYOR: `cmsFetch` kendi pozitif
+      `revalidate`'ini koruyor (Next 16 `caching-without-cache-components.md`
+      bunu açıkça söylüyor), yani hız ve tag-tabanlı invalidasyon aynen duruyor.
+- [x] Hardcoded fallback kompozisyonu (Hero/Campaigns/Faq) kaldırıldı. Sayfa
+      yoksa 404 — farklı bir anasayfa gösteren fallback arızayı gizliyordu.
+- [x] `/anasayfa` → `/` 308 kalıcı yönlendirme; `generateStaticParams` ve
+      `sitemap.ts` de artık o ikinci adresi üretmiyor.
+- [x] CMS'teki "Site Sayfaları" listesinde anasayfa tek satır: `/`, CMS
+      kaynaklı, dokümanına link.
+
+**DoD / doğrulama:** site 389/389 + clover 566/566 test yeşil, `tsc`/eslint
+temiz. Docker'da taze build sonrası (hiç revalidate ping'i atmadan):
+`/` → CMS anasayfası, `/anasayfa` → 308 `/`, prerender-manifest'te ne `/` ne
+`/anasayfa` var, `sitemap.xml`'de `anasayfa` geçmiyor, diğer 7 route 200.
+
+### 44.2 — "Sabit" satırların gerçeği (BULGU + PLAN, karar bekliyor)
+
+Listedeki "Sabit" etiketi **yanıltıcı**. 17 satırın gerçek dağılımı:
+
+- **2 satır hayaletti** (`/vodafone-pay-kart`, `/faturana-yansit`): elle yazılmış
+  route'ları YOK, ikisi de Pages dokümanı. Tablo, o Pages kayıtlarının olmadığı
+  bir ortamda servis edilemeyen + düzenlenemeyen sayfa vaat ediyordu → **kaldırıldı (44.1'de)**.
+- **14 satırın içeriği zaten CMS'ten geliyor**, sadece Pages blok kurgusundan
+  değil kendi koleksiyonundan: /kampanyalar→Campaigns, /blog→BlogPosts,
+  /sikca-sorulan-sorular→FaqItems, /ucretler-ve-limitler→FeeRows+LimitTables,
+  /iletisim + /kurumsal-yonetim→ContactInfo, /duyurular→Announcements,
+  /temsilciliklerimiz→Representatives, /site-haritasi→NavLinks,
+  /cerez-politikasi→CookieRows+LegalPages, /gizlilik…, /bilgi-guvenligi,
+  /sozlesmeler-ve-formlar, /web-sitesi-hukum-ve-sartlari→LegalPages.
+  Yani "editleyemiyorum" algısının sebebi sayfanın sabit olması değil,
+  **listenin editörü doğru koleksiyona yönlendirmemesi**.
+- **1 satır gerçekten hardcoded**: `/faydali-bilgiler` (sadece `getPageMeta`
+  okuyor, gövdesi kodda).
+
+**Önerilen plan (kullanıcı onayı bekliyor):**
+1. Listeye "Kaynak" yerine "Nereden düzenlenir" kolonu: her satır kendi
+   koleksiyonuna link versin (14 satır anında düzenlenebilir hale gelir, kod
+   değişikliği minimum). "Sabit" etiketi sadece gerçekten kodda olanlar için.
+2. `/faydali-bilgiler` bir Pages dokümanına taşınsın (aynı /vodafone-pay-uygulama
+   gibi) — böylece gerçek "sabit içerik" sıfıra iner.
+3. Fallback temizliği: 44.1'de anasayfa fallback'i kaldırıldı. Kalan aynı
+   desendeki fallback'ler (Header `fallbackProductLinks`, Footer
+   `fallbackColumns`) da aynı gerekçeyle kaldırılabilir — karar kullanıcının.
