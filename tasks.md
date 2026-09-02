@@ -1758,16 +1758,20 @@ Kullanıcının canlı test sırasında bulduğu 10 madde. Hepsi lokal, push YOK
 - [x] **43g — Dashboard'a "Son Güncellenen İçerikler" paneli eklendi,**
   giriş kayıtları onun altına indi. Kaynak: audit log'un create/update/publish
   kayıtları, rolün kendi koleksiyon kapsamıyla filtreli, doküman linkiyle.
-- [ ] **43h — OG "Paylaşım Görseli" alanı: KALDIRILMADI, kullanıcıya soruldu.**
-  Alan aslında ölü değil: `src/lib/metadata.ts` bunu gerçek `og:image` meta
-  etiketine basıyor (sosyal paylaşım önizlemesi). Kullanıcının gerekçesi
-  "kullanılmıyorsa" olduğu için, çalışan bir özelliği sessizce silmek yerine
-  onay bekleniyor.
-- [ ] **43i — Checker formlarının "pembe arkaplanı": tekrar üretilemedi.**
-  Growth Checker ile girilip kampanya/SSS düzenleme ekranları incelendi;
-  hesaplanan `background-color` değerlerinde pembe/kırmızı tonlu bir arkaplan
-  bulunamadı (custom.css'te de role bağlı bir kural yok). Kullanıcıdan hangi
-  ekran olduğu / ekran görüntüsü bekleniyor.
+- [ ] **43h — OG "Paylaşım Görseli" alanı: AÇIK, karar kullanıcıya bırakıldı.**
+  Alan ölü değil: `src/lib/metadata.ts` bunu gerçek `og:image` meta etiketine
+  basıyor (WhatsApp/LinkedIn/X'te link paylaşılınca çıkan önizleme görseli).
+  Kullanıcı 02.09'da "sonra karar verelim, açık olarak işle" dedi — şimdilik
+  hiçbir şey silinmedi, alan olduğu gibi duruyor.
+- [x] **43i — Panelin "hafif kırmızı/pembe" görünümü düzeltildi.**
+  Kullanıcının tarifi ("checker ve admin ile girdiğimde tüm dashboard ekranı
+  öyle") kök sebebi verdi: role bağlı bir kural yok, `--theme-success-50`
+  (#fdeaea) marka kırmızısına çevrilmişti ve bu değişken nav hover, aktif nav
+  linki, tablo satırı hover, pill'ler ve KPI kart ikon zeminlerinde YÜZEY
+  rengi olarak kullanılıyordu — yani panelin her yerinde soluk pembe bir
+  zemin. Bu yüzeyler nötr griye (`--theme-elevation-50/100`) alındı, kırmızı
+  yazı/ikon aksanı olarak korundu. Kullanıcının kendi ekranında teyit etmesi
+  bekleniyor.
 
 **Doğrulama:** clover 564/564 + site 385/385 test yeşil, `tsc --noEmit` her iki
 repoda temiz (site'ta yeni hata yok; clover'da sadece önceden var olan 2
