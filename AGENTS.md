@@ -39,6 +39,7 @@ A reusable template for reverse-engineering any website into a clean, modern Nex
 - **No personal aesthetic changes during emulation phase** — match 1:1 first, customize later
 - **Real content** — use actual text and assets from the target site, not placeholders
 - **Beauty-first** — every pixel matters
+- **Typography must be the target site's own font, everywhere, not a fallback.** vodafonepay.com.tr renders every visible text node in one of three Vodafone webfonts (`VodafoneLight`/`VodafoneRegular`/`VodafoneBold`, confirmed via computed `font-family` on the live site) — never a system/default sans-serif. `vodafonepaycomtr/src/app/layout.tsx` already self-hosts the same three faces via `next/font/local` (`public/fonts/vodafone-{light,regular,bold}.woff`) as `--font-light`/`--font-sans`/`--font-bold`, wired through `globals.css`'s `@theme inline`. Confirmed 02.09.2026 by inspecting every unique computed `font-family` across the rendered site: only those three, no stray Arial/system-ui/Inter anywhere — so there was nothing to fix. If a new component or a pasted-in snippet ever introduces a hardcoded `font-family` or a Tailwind class that resolves outside this set, that is a bug — fix it back onto the shared `--font-*` variables rather than adding a new font.
 
 ## Project Structure
 
