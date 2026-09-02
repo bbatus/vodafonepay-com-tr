@@ -1722,3 +1722,59 @@ koddan çalıştırılıp push tetiklendi, kolonlar eklendi, DB'deki mevcut veri
 (`localhost:3000`) tarayıcıda gerçekten açılıp DOM'dan doğrulandı: hero
 başlığı görselin altında (`absolute` değil), stepPhones'ta `reverse` sınıfı
 yok (2/2 satır aynı yönde), featureHighlights'ta hardcoded `<video>` yok.
+
+## 43. CMS düzenlenebilirlik + panel akışı fix'leri (02.09.2026)
+
+Kullanıcının canlı test sırasında bulduğu 10 madde. Hepsi lokal, push YOK.
+
+- [x] **43a — `leadFormCta` ve `videosWithTabsMarker` düzenlenebilir hale geldi.**
+  İkisi de `fields: []` "marker" bloğuydu; site bileşeni kendi sabit görselini
+  (`/images/leadform-banner.svg`) ve /faturana-yansit'a özel sabit metnini
+  basıyordu. Artık: leadFormCta → arkaplan görseli, ikon, metin, buton yazısı,
+  buton linki; videosWithTabsMarker → sekmeler + her kart için kendi görseli.
+  Tüm alanlar opsiyonel: leadFormCta boşsa eski sabit görünüme düşüyor,
+  videosWithTabs boşsa hiç render etmiyor (başka bir sayfanın metnini basmak
+  yerine).
+- [x] **43b — Hero bloğunun seçim önizlemesi gerçek ekran görüntüsü oldu.**
+  Elle çizilmiş SVG taslak yerine anasayfadaki hero bölümünün gerçek
+  screenshot'ı (`clover/public/block-thumbs/hero.png`). Beğenilirse diğer
+  bloklara da yapılacak.
+- [x] **43c — Growth Maker artık taslağını kaydedebiliyor.**
+  Kök sebep: `SaveOrSubmitButton`, Payload'ın kendi `SaveDraftButton`'ındaki
+  `skipValidation: true`'yu atlamıştı; zorunlu alan (örn. medya) boşken
+  client-side doğrulama save'i tamamen engelliyordu. Campaigns bilinçli olarak
+  `versions.drafts.validate: true` dediği için orada davranış aynı bırakıldı.
+- [x] **43d — SSS'teki "Anasayfada Göster" akışı kaldırıldı.**
+  `showOnHomepage`/`homepageOrder` alanları + hook + site tarafındaki
+  `getHomepageFaqItems` silindi. Zaten sadece `app/page.tsx`'in
+  ulaşılamaz fallback dalını besliyordu (ContentBlocks/PageMeta ile aynı
+  tuzak). DB'de 26 satırdaki ölü değerler drop edildi (lokal DB).
+- [x] **43e — Çıplak route artık 404 basmıyor.**
+  `/` → `/admin` (307). NOT: bu Next sürümünde `middleware.ts` +`proxy.ts`
+  bir arada build'i kırıyor, yönlendirme mevcut `src/proxy.ts`'e eklendi.
+- [x] **43f — Login sonrası her zaman panele düşüyor.**
+  Payload'ın `?redirect=` param'ı (süresi dolmuş oturumda eski bir admin
+  linki açıldığında ekleniyor) login ekranında temizleniyor.
+- [x] **43g — Dashboard'a "Son Güncellenen İçerikler" paneli eklendi,**
+  giriş kayıtları onun altına indi. Kaynak: audit log'un create/update/publish
+  kayıtları, rolün kendi koleksiyon kapsamıyla filtreli, doküman linkiyle.
+- [ ] **43h — OG "Paylaşım Görseli" alanı: KALDIRILMADI, kullanıcıya soruldu.**
+  Alan aslında ölü değil: `src/lib/metadata.ts` bunu gerçek `og:image` meta
+  etiketine basıyor (sosyal paylaşım önizlemesi). Kullanıcının gerekçesi
+  "kullanılmıyorsa" olduğu için, çalışan bir özelliği sessizce silmek yerine
+  onay bekleniyor.
+- [ ] **43i — Checker formlarının "pembe arkaplanı": tekrar üretilemedi.**
+  Growth Checker ile girilip kampanya/SSS düzenleme ekranları incelendi;
+  hesaplanan `background-color` değerlerinde pembe/kırmızı tonlu bir arkaplan
+  bulunamadı (custom.css'te de role bağlı bir kural yok). Kullanıcıdan hangi
+  ekran olduğu / ekran görüntüsü bekleniyor.
+
+**Doğrulama:** clover 564/564 + site 385/385 test yeşil, `tsc --noEmit` her iki
+repoda temiz (site'ta yeni hata yok; clover'da sadece önceden var olan 2
+`FeesAndLimitsApp` hatası). Her iki container `docker compose up -d --build`
+ile gerçekten yeniden build edildi; yeni blok alanlarının DB kolonları
+(`pages_blocks_lead_form_cta.background_image_id/icon_id/text/cta_label/cta_url`,
+`pages_blocks_videos_with_tabs_marker_tabs[_items]`) doğrulandı. Canlı kontrol:
+`/` → 307 `/admin`, `/admin/login` 200, `/block-thumbs/hero.png` 200,
+`?redirect=` param'ı tarayıcıda temizleniyor, sitede `/`, `/aninda-bakiye`,
+`/sikca-sorulan-sorular`, `/kampanyalar` 200.
