@@ -12,7 +12,7 @@
 #
 # One POST to /api/revalidate with pathType "layout" on "/" does the same
 # full-site sweep the CMS itself now sends on every publish (see
-# cms/src/hooks/revalidate.ts) — every route rebuilds with real data on its
+# clover/src/hooks/revalidate.ts) — every route rebuilds with real data on its
 # very next visit, deploy or no deploy.
 set -euo pipefail
 

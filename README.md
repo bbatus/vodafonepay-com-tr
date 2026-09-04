@@ -109,40 +109,35 @@ Each builder agent receives the full component specification inline — exact `g
 
 ## Project Structure
 
-The site and the CMS are two fully independent projects living side by side — neither is an npm workspace of the other.
+The site and the CMS used to live side by side as subfolders of this repo. As of 02.09.2026 both are split into their own repos (full history preserved via `git subtree split`) — this repo is docs/scripts/tasks only now. See AGENTS.md's own Project Structure section for the full layout; in short:
 
 ```
-vodafonepaycomtr/     # this Next.js site — run `npm run <script>` from here
-  src/
-    app/              # Next.js routes
-    components/       # React components
-      ui/             # shadcn/ui primitives
-      icons.tsx       # Extracted SVG icons
-    lib/utils.ts      # cn() utility
-    types/            # TypeScript interfaces
-    hooks/            # Custom React hooks
-  public/
-    images/           # Downloaded images from target
-    videos/           # Downloaded videos from target
-    seo/              # Favicons, OG images
-cms/                  # Payload CMS — separate project, own package.json
-docs/
-  research/           # Extraction output & component specs
-  design-references/  # Screenshots
-scripts/
-  sync-agent-rules.sh  # Regenerate agent instruction files
-  sync-skills.mjs      # Regenerate /clone-website for all platforms
-AGENTS.md           # Agent instructions (single source of truth)
-CLAUDE.md           # Claude Code config (imports AGENTS.md)
-GEMINI.md           # Gemini CLI config (imports AGENTS.md)
+Documents/Projects/
+  vodafonepaycomtr/       # THIS repo — docs, scripts, tasks.md. No app code.
+  vodafonepaycomtr-site/  # github.com/bbatus/vodafonepaycomtr.git — the Next.js site
+  clover/                 # github.com/bbatus/clover.git — the Payload CMS
+```
+
+```
+vodafonepaycomtr/ (this repo)
+  docs/
+    research/           # Extraction output & component specs
+    design-references/  # Screenshots
+  scripts/
+    sync-agent-rules.sh  # Regenerate agent instruction files
+    sync-skills.mjs      # Regenerate /clone-website for all platforms
+    trivy-scan.sh / sonar-scan.sh  # Read the two sibling repos, see their headers
+  AGENTS.md           # Agent instructions (single source of truth)
+  CLAUDE.md           # Claude Code config (imports AGENTS.md)
+  GEMINI.md           # Gemini CLI config (imports AGENTS.md)
 ```
 
 ## Commands
 
-Run from inside `vodafonepaycomtr/`:
+Run from inside whichever of the two sibling repos you're touching (`vodafonepaycomtr-site/` or `clover/`) — this repo has no `package.json` of its own:
 
 ```bash
-cd vodafonepaycomtr
+cd ../vodafonepaycomtr-site   # or ../clover
 npm run dev    # Start dev server
 npm run build  # Production build
 npm run lint   # ESLint check
@@ -152,9 +147,11 @@ npm run check  # Run lint + typecheck + build
 
 ### If using docker
 
+Each repo brings itself up independently, from its own folder:
+
 ```bash
-docker compose up app --build # build and run the app
-docker compose up dev --build # run the app in dev mode on port 3001
+cd ../vodafonepaycomtr-site && docker compose up app --build   # site
+cd ../clover && docker compose up --build                       # CMS + Postgres + MinIO
 ```
 
 ## Updating for Other Platforms

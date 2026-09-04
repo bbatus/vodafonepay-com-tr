@@ -2,9 +2,15 @@
 # Runs a SonarQube scan against the local SonarQube instance
 # (tools/sonarqube/docker-compose.yml) and prints open issues.
 #
+# 02.09.2026: site (`vodafonepaycomtr/`) and CMS (`cms/`) are no longer
+# subfolders of this repo — they're their own repos, cloned as siblings of
+# this one (`../vodafonepaycomtr-site`, `../clover`). This script now reads
+# from there. If you don't have both cloned next to this repo, `git clone`
+# them first (see AGENTS.md's Project Structure).
+#
 # Usage:
-#   scripts/sonar-scan.sh web     # scan the root Next.js site
-#   scripts/sonar-scan.sh cms     # scan the Payload CMS
+#   scripts/sonar-scan.sh web     # scan the site (vodafonepaycomtr-site)
+#   scripts/sonar-scan.sh cms     # scan the Payload CMS (clover)
 #   scripts/sonar-scan.sh all     # both (default)
 #
 # Requires SONAR_TOKEN in the environment. Generate one from the SonarQube UI
@@ -48,12 +54,14 @@ MSG
 fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SITE_ROOT="${SITE_ROOT:-${REPO_ROOT}/../vodafonepaycomtr-site}"
+CLOVER_ROOT="${CLOVER_ROOT:-${REPO_ROOT}/../clover}"
 SCAN_TMP="/private/tmp/sonar-scan"
 
 run_scan() {
   local project_key="$1"
   local src_dir="$2"
-  local extra_sources="${3:-}"
+  local extra_sources="${3:-}"  # absolute path, or empty
   local project_root="$4"
   local cpd_exclusions="${5:-}"
 
@@ -62,7 +70,7 @@ run_scan() {
   mkdir -p "${SCAN_TMP}/${project_key}"
   rsync -a --exclude node_modules --exclude .next --exclude .git "${src_dir}/" "${SCAN_TMP}/${project_key}/src/"
   if [ -n "$extra_sources" ]; then
-    cp "${REPO_ROOT}/${extra_sources}" "${SCAN_TMP}/${project_key}/"
+    cp "${extra_sources}" "${SCAN_TMP}/${project_key}/"
   fi
 
   # Coverage: run vitest fresh so the report always reflects the current
@@ -110,7 +118,7 @@ sys.exit(1 if d['total'] > 0 else 0)
 
 FAILED=0
 if [ "$TARGET" = "web" ] || [ "$TARGET" = "all" ]; then
-  run_scan "vodafonepaycomtr" "${REPO_ROOT}/vodafonepaycomtr/src" "" "${REPO_ROOT}/vodafonepaycomtr" || FAILED=1
+  run_scan "vodafonepaycomtr" "${SITE_ROOT}/src" "" "${SITE_ROOT}" || FAILED=1
 fi
 if [ "$TARGET" = "cms" ] || [ "$TARGET" = "all" ]; then
   # translationDefaults.ts/helpContent.ts are pure literal seed-data tables —
@@ -122,7 +130,7 @@ if [ "$TARGET" = "cms" ] || [ "$TARGET" = "all" ]; then
   # shape. Excluded rather than "fixed", the same judgment already applied
   # this session to Footer.tsx/site-haritasi's non-identical fallback lists
   # and to cerez-politikasi's cookieRows.ts.
-  run_scan "vodafonepaycomtr-cms" "${REPO_ROOT}/cms/src" "cms/payload.config.ts" "${REPO_ROOT}/cms" \
+  run_scan "vodafonepaycomtr-cms" "${CLOVER_ROOT}/src" "${CLOVER_ROOT}/payload.config.ts" "${CLOVER_ROOT}" \
     "src/lib/translationDefaults.ts,src/lib/helpContent.ts" || FAILED=1
 fi
 

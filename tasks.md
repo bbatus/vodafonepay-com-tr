@@ -1922,3 +1922,57 @@ edildiğini söylüyor ama dosya repoda YOK. Categories/Representatives/
 Documents'a `versions.drafts` için gereken kolonlar production DB'de gerçekten
 var mı belirsiz — teyit edilmeli, yoksa o migration da yeniden üretilip
 teslim edilmeli.
+
+## 47. Monorepo temizliği — stale cms/ ve vodafonepaycomtr/ kopyaları silindi (02.09.2026)
+
+**İstek:** "vodafonepaycomtr ve clover repoları 2'ye ayrıldı ve vodafonepaycomtr
+reposunu kullanmıyoruz... eğer her şey taşındıysa oradaki şeyleri kapatalım
+silelim... bu sessionda görmeyelim."
+
+**Doğrulama (silmeden önce):** `diff -rq` ile monorepo'nun `cms/` ve
+`vodafonepaycomtr/` alt klasörlerini standalone `clover/` ve
+`vodafonepaycomtr-site/` repolarıyla karşılaştırdım. Her iki klasörde de
+SADECE şu ikisi çıktı: (1) `clover`/`vodafonepaycomtr-site`'ın zaten daha
+yeni/ileride olduğu (31.08'de donmuş kopyalar, iş 02.09'a kadar sadece
+split repolarda devam etmiş), (2) bu turda BİLİNÇLİ kaldırılan iki dosya
+(`faqItems.test.ts` — sildiğim `assignNextHomepageOrder` hook'unu test
+ediyordu; `feature-loop.mp4` — sildiğim hardcoded video fallback'i). Tek
+başına monorepo kopyalarında olup split repolarda OLMAYAN hiçbir şey
+bulunamadı — silmek güvenliydi.
+
+- [x] `cms/` ve `vodafonepaycomtr/` (git tarihi korunarak `git rm -r`,
+      dosyalar kayıp değil — `git log --follow` ile geri bulunabilir).
+- [x] Kök `docker-compose.yml` silindi — zaten "RETIRING" notu taşıyordu,
+      not tam olarak bu temizliğin yapılmasını bekliyordu.
+- [x] `.github/workflows/ci.yml` silindi — `clover`/`vodafonepaycomtr-site`
+      artık kendi `pipeline-test.yml`'lerine sahip (bkz. #41), bu dosya
+      artık var olmayan `vodafonepaycomtr/`/`cms/` yollarını test ediyordu.
+- [x] `scripts/trivy-scan.sh` — `../vodafonepaycomtr-site` ve `../clover`
+      kardeş repolarını okuyacak şekilde güncellendi. **Bulunan gerçek
+      hata:** image adı `vodafonepaycomtr-cms:latest` idi, hiçbir zaman
+      doğru olmamış (gerçek ad `clover:latest`, clover'ın kendi
+      `docker-compose.yml`'inden teyit edildi) — düzeltildi.
+- [x] `scripts/sonar-scan.sh` — aynı şekilde güncellendi (`SITE_ROOT`/
+      `CLOVER_ROOT`, `extra_sources` artık mutlak yol alıyor).
+- [x] `scripts/warm-cache.sh` — yorum satırındaki `cms/` yolu `clover/`
+      oldu (davranışı etkilemiyordu, sadece dokümantasyon).
+- [x] `AGENTS.md`, `README.md` — Project Structure bölümleri 3 kardeş
+      repoyu (bu repo: docs/scripts/tasks; `vodafonepaycomtr-site`;
+      `clover`) yansıtacak şekilde yeniden yazıldı; MOST IMPORTANT
+      NOTES'taki `cms/src/...` yol referansları `clover/src/...`'a
+      düzeltildi (içerik aynı, path artık gerçek).
+- [x] `bash scripts/sync-agent-rules.sh` ile platform dosyaları senkronize
+      edildi.
+
+**Doğrulama:** `bash -n` ile üç script'in de sözdizimi kontrol edildi;
+`scripts/trivy-scan.sh deps` gerçekten çalıştırıldı — her iki repodan da
+doğru `package-lock.json`'ı buldu ve gerçekten tarama yaptı. **Yan bulgu:**
+bu taramada `clover`'ın `fast-uri` bağımlılığında 4 gerçek HIGH CVE çıktı
+(CVE-2026-75899/75931/75975/76172) — script yanlış path'e baktığı için bu
+muhtemelen hiç görülmemişti. Bu turun kapsamı dışında (dependency güncellemesi
+ayrı bir iş), kullanıcıya ayrıca bildirildi.
+
+**Dokunulmadı, bilinçli:** `.claude/worktrees/selam-login-disable-temp-725fb7/`
+— eski, ayrı bir git worktree (muhtemelen önceki bir agent-team turundan
+kalma), kendi içinde eski `cms/`/`vodafonepaycomtr/` referansları taşıyor
+ama bu görevin kapsamı dışında; silinmedi.
